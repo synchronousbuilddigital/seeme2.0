@@ -1,0 +1,427 @@
+.fabrics-page {
+  background: #fdfaf5;
+  color: var(--charcoal);
+  overflow-x: hidden;
+}
+
+.editorial-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* Cinematic Hero */
+.fabrics-hero-editorial {
+  height: 90vh;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-media-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.hero-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6));
+}
+
+.hero-editorial-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  color: white;
+}
+
+.editorial-kicker {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  letter-spacing: 6px;
+  color: var(--primary-gold);
+  margin-bottom: 20px;
+  display: block;
+}
+
+.editorial-title {
+  font-family: var(--font-heading);
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: -2px;
+}
+
+.hero-scroll-indicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.scroll-line {
+  width: 1px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-line::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-gold);
+  animation: scrollAnim 2s infinite ease-in-out;
+}
+
+@keyframes scrollAnim {
+  0% { top: -100%; }
+  100% { top: 100%; }
+}
+
+/* Narrative Section */
+.fabrics-narrative {
+  padding: 120px 0;
+  background: white;
+}
+
+.narrative-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  align-items: center;
+}
+
+.narrative-heading {
+  font-family: var(--font-heading);
+  font-size: 3.5rem;
+  line-height: 1;
+  color: var(--charcoal);
+}
+
+.narrative-body {
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  line-height: 1.8;
+  color: var(--soft-gray);
+  text-align: justify;
+}
+
+/* Fabric Journal */
+.fabric-journal {
+  padding: 100px 0;
+}
+
+.journal-header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.journal-count {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 4px;
+  color: var(--primary-gold);
+  display: block;
+  margin-bottom: 15px;
+}
+
+.journal-title {
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  color: var(--charcoal);
+}
+
+.journal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.journal-card {
+  cursor: pointer;
+  position: relative;
+}
+
+.card-image-wrapper {
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  position: relative;
+  border-radius: 4px;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover-info {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.card-hover-info span {
+  color: white;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  border: 1px solid white;
+  padding: 12px 24px;
+}
+
+.journal-card:hover .card-image {
+  transform: scale(1.08);
+}
+
+.journal-card:hover .card-hover-info {
+  opacity: 1;
+}
+
+.card-content {
+  padding: 25px 0;
+  text-align: center;
+}
+
+.card-category {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: var(--primary-gold);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.card-title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  color: var(--charcoal);
+  margin-bottom: 15px;
+}
+
+.card-line {
+  width: 40px;
+  height: 1px;
+  background: var(--cream);
+  margin: 0 auto;
+  transition: width 0.5s ease;
+}
+
+.journal-card:hover .card-line {
+  width: 100px;
+  background: var(--primary-gold);
+}
+
+/* Technical Section */
+.fabrics-technical {
+  padding: 120px 0;
+  background: #1a1a1a;
+  color: white;
+}
+
+.technical-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+}
+
+.tech-item {
+  position: relative;
+  padding-top: 40px;
+}
+
+.tech-num {
+  font-family: var(--font-heading);
+  font-size: 4rem;
+  color: var(--primary-gold);
+  opacity: 0.2;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.tech-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.tech-desc {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.6);
+}
+
+/* Modal Styling */
+.fabric-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  backdrop-filter: blur(10px);
+}
+
+.fabric-modal {
+  background: white;
+  width: 100%;
+  max-width: 1200px;
+  max-height: 90vh;
+  position: relative;
+  border-radius: 4px;
+  overflow-y: auto;
+}
+
+.fabric-modal-close {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: none;
+  border: none;
+  color: var(--charcoal);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.fabric-modal-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.fabric-modal-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 600px;
+}
+
+.fabric-modal-info {
+  padding: 80px 60px;
+}
+
+.fabric-modal-badge {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 4px;
+  color: var(--primary-gold);
+  display: block;
+  margin-bottom: 20px;
+}
+
+.fabric-modal-title {
+  font-family: var(--font-heading);
+  font-size: 3.5rem;
+  margin-bottom: 30px;
+  line-height: 1;
+}
+
+.fabric-modal-description {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--soft-gray);
+  margin-bottom: 40px;
+}
+
+.fabric-modal-features h4,
+.fabric-modal-care h4 {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fabric-modal-features ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 30px;
+}
+
+.fabric-modal-features li {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+  padding-left: 20px;
+  position: relative;
+}
+
+.fabric-modal-features li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--primary-gold);
+}
+
+.fabric-modal-care p {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--soft-gray);
+}
+
+/* Loading/Empty */
+.fabrics-page-loading,
+.fabrics-page-empty {
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--cream);
+  border-top-color: var(--primary-gold);
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .narrative-grid,
+  .journal-grid,
+  .technical-grid,
+  .fabric-modal-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .fabric-modal-info {
+    padding: 40px;
+  }
+}

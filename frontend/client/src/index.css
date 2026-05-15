@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+:root {
+  /* Elegant Jewelry Palette - Inspired by Logo */
+  --primary-gold: #D4AF37;
+  --dark-gold: #B8941E;
+  --light-gold: #F4E4C1;
+  --cream: #FAF7F2;
+  --off-white: #FEFDFB;
+  --charcoal: #2B2B2B;
+  --soft-gray: #8B8B8B;
+  --warm-beige: #E8DCC4;
+  --accent-rose: #D4A5A5;
+  --deep-brown: #3D2817;
+  
+  /* Typography - Fluid Scaling */
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Poppins', sans-serif;
+  
+  /* Fluid Typography - Enhanced for Mobile First */
+  --fs-xs: clamp(0.65rem, 0.6rem + 0.2vw, 0.8rem);
+  --fs-sm: clamp(0.8rem, 0.75rem + 0.25vw, 0.95rem);
+  --fs-base: clamp(0.95rem, 0.9rem + 0.3vw, 1.1rem);
+  --fs-lg: clamp(1.15rem, 1.1rem + 0.4vw, 1.4rem);
+  --fs-xl: clamp(1.4rem, 1.3rem + 1vw, 2.5rem);
+  --fs-xxl: clamp(2rem, 1.8rem + 3vw, 4.5rem);
+  --fs-huge: clamp(3rem, 2.5rem + 10vw, 10rem);
+
+  /* Spacing */
+  --section-padding: clamp(2.5rem, 6vh, 8rem);
+  --container-width: 1400px;
+  --header-height: clamp(65px, 10vh, 90px);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* Remove touch blue highlight */
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--header-height);
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--off-white);
+  color: var(--charcoal);
+  overflow-x: hidden;
+  position: relative;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Mobile First Container --- */
+.container {
+  width: 100%;
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 5vw, 3rem);
+}
+
+/* --- Responsive Images --- */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Premium Section Transitions */
+section {
+  padding: var(--section-padding) 0;
+  position: relative;
+}
+
+/* Background Atmosphere */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(232, 220, 196, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Custom Scrollbar (Desktop Only) */
+@media (min-width: 1024px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--cream);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--primary-gold), var(--dark-gold));
+    border-radius: 10px;
+  }
+}
+
+/* Mobile Typography Overrides */
+@media (max-width: 768px) {
+  body {
+    font-size: 15px; /* Base mobile size */
+  }
+  
+  h1, h2, h3 {
+    letter-spacing: -0.01em;
+  }
+}

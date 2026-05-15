@@ -1,0 +1,295 @@
+.magazine-section {
+  padding: 8rem 0;
+  background: var(--off-white);
+  overflow: hidden;
+  position: relative;
+}
+
+.magazine-header {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.magazine-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  color: var(--primary-gold);
+  display: block;
+  margin-bottom: 1.2rem;
+}
+
+.magazine-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  color: var(--charcoal);
+  font-weight: 300;
+  letter-spacing: -2px;
+}
+
+.book-stage {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.book-perspective {
+  perspective: 3000px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 750px;
+}
+
+.book-spread-container {
+  width: clamp(320px, 90vw, 1100px);
+  height: clamp(450px, 60vh, 700px);
+  position: relative;
+  transform-style: preserve-3d;
+  box-shadow: 0 60px 120px rgba(0,0,0,0.25);
+  border-radius: 4px;
+}
+
+.book-spread {
+  display: flex; /* Side-by-side pages */
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: center;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  background: white;
+}
+
+.book-page {
+  flex: 1; /* Each page takes 50% */
+  height: 100%;
+  position: relative;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+}
+
+.left-page {
+  border-right: 1px solid rgba(0,0,0,0.05);
+  box-shadow: inset -15px 0 30px rgba(0,0,0,0.03);
+}
+
+.right-page {
+  border-left: 1px solid rgba(0,0,0,0.05);
+  background: #fcfcfc;
+}
+
+.flipping-back {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  transform-origin: right center;
+  z-index: 4;
+}
+
+.page-shadow-dynamic {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(0,0,0,0.4) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.book-spine-fold {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(0,0,0,0.12) 48%, 
+    rgba(0,0,0,0.12) 52%, 
+    transparent 100%
+  );
+  z-index: 20;
+  pointer-events: none;
+}
+
+.page-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png');
+  opacity: 0.1;
+  pointer-events: none;
+  z-index: 2; /* Texture is low */
+}
+
+.page-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: relative;
+  z-index: 1;
+}
+
+.magazine-content-layout {
+  padding: clamp(2rem, 5vw, 5rem);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 5; /* Above texture */
+}
+
+.editorial-tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  color: var(--primary-gold);
+  margin-bottom: 2rem;
+  font-weight: 700;
+}
+
+.editorial-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1.1;
+  color: var(--charcoal);
+  margin-bottom: 2.5rem;
+  letter-spacing: -2px;
+}
+
+.drop-cap {
+  font-size: 5.5rem;
+  float: left;
+  line-height: 0.75;
+  padding-right: 15px;
+  padding-top: 8px;
+  color: var(--primary-gold);
+  font-family: var(--font-heading);
+}
+
+.editorial-lead {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.9;
+  color: var(--soft-gray);
+  margin-bottom: 4rem;
+}
+
+.page-number {
+  position: absolute;
+  bottom: 2rem;
+  font-size: 0.75rem;
+  letter-spacing: 3px;
+  color: #bbb;
+  width: 100%;
+  text-align: center;
+  z-index: 15;
+}
+
+/* Navigation */
+.book-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: white;
+  border: 1px solid rgba(0,0,0,0.05);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-nav:hover {
+  background: var(--primary-gold);
+  color: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.book-nav.prev { left: -80px; }
+.book-nav.next { right: -80px; }
+
+@media (max-width: 1300px) {
+  .book-nav.prev { left: -30px; }
+  .book-nav.next { right: -30px; }
+}
+
+@media (max-width: 1024px) {
+  .book-spread-container { width: 95vw; height: 550px; }
+}
+
+@media (max-width: 768px) {
+  .book-spread-container { 
+    width: 100%; 
+    height: auto; 
+    box-shadow: none; 
+    display: block;
+    background: transparent;
+  }
+  .book-page { 
+    position: relative; 
+    width: 100%; 
+    height: auto; 
+    margin-bottom: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-radius: 8px;
+  }
+  .left-page { height: 400px; transform: none !important; }
+  .book-spine-fold, .flipping-back, .book-nav { display: none; }
+  .right-page { left: 0; width: 100%; }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .book-container {
+    height: 500px;
+    padding: 0 40px;
+  }
+  .book-nav.prev { left: 0; }
+  .book-nav.next { right: 0; }
+}
+
+@media (max-width: 768px) {
+  .book-spread {
+    flex-direction: column;
+    box-shadow: none;
+  }
+  .book-container {
+    height: auto;
+  }
+  .book-page {
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+  }
+  .book-spine {
+    display: none;
+  }
+  .left-page {
+    height: 350px;
+  }
+  .right-page {
+    height: auto;
+  }
+  .page-content {
+    padding: 2.5rem 1.5rem;
+  }
+}

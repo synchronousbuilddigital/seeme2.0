@@ -1,0 +1,39 @@
+{
+  "name": "see-mee-backend",
+  "version": "1.0.0",
+  "description": "Backend for See Mee ethnic clothing store",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup": "npm install && node scripts/createAdmin.js",
+    "seed": "node scripts/seedAll.js",
+    "seed:products": "node scripts/seedProducts.js",
+    "reset": "node scripts/seedAll.js",
+    "import:catalog": "node scripts/importCatalog.js",
+    "import:catalog-images": "node scripts/importCatalogImages.js",
+    "fix:images": "node scripts/fixImageUrls.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.9.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^8.5.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^8.0.7",
+    "razorpay": "^2.9.6",
+    "streamifier": "^0.1.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

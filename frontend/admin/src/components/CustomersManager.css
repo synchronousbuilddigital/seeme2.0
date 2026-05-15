@@ -1,0 +1,99 @@
+.customers-manager {
+  padding: 20px 0;
+}
+
+.customers-manager .toolbar {
+  margin-bottom: 30px;
+}
+
+.customers-manager .toolbar input {
+  width: 100%;
+  max-width: 400px;
+  padding: 12px 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.customers-manager .toolbar input:focus {
+  border-color: #3b82f6;
+}
+
+.customers-table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.admin-table th {
+  background: #f8fafc;
+  padding: 15px 20px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #64748b;
+  font-weight: 700;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.admin-table td {
+  padding: 18px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.customer-cell {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.customer-cell .avatar {
+  width: 40px;
+  height: 40px;
+  background: #e0f2fe;
+  color: #0369a1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.customer-cell .details {
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-cell .name { font-weight: 600; }
+.customer-cell .email { font-size: 0.8rem; color: #64748b; }
+
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-pill.active { background: #dcfce7; color: #15803d; }
+.status-pill.blocked { background: #fee2e2; color: #b91c1c; }
+
+.action-link {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}

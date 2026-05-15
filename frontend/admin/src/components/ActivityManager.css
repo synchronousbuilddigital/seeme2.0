@@ -1,0 +1,293 @@
+/* Ultra-Premium Activity Manager UI */
+.activity-manager {
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  color: #111;
+  animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.manager-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #EAEAEA;
+}
+
+.manager-header h1 {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 2.4rem;
+  font-weight: 300;
+  color: #000;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.manager-header p {
+  font-size: 0.95rem;
+  color: #777;
+  letter-spacing: 0.02em;
+}
+
+.refresh-btn {
+  padding: 0.8rem 1.4rem;
+  background: transparent;
+  color: #000;
+  border: 1px solid #CCC;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Toolbar & Filters */
+.activity-toolbar {
+  display: flex;
+  margin-bottom: 3rem;
+  background: #fff;
+  border: 1px solid #EAEAEA;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.feed-filters {
+  display: flex;
+  gap: 1rem;
+}
+
+.feed-filters button {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 100px;
+}
+
+.feed-filters button:hover {
+  color: #111;
+  background: #F5F5F5;
+}
+
+.feed-filters button.active {
+  color: #fff;
+  background: #000;
+}
+
+/* Timeline Container */
+.activity-container {
+  background: #fff;
+  border: 1px solid #EAEAEA;
+  border-radius: 8px;
+  padding: 3rem 4rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.activity-timeline {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.activity-timeline::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 10px;
+  bottom: 10px;
+  width: 1px;
+  background: #EAEAEA;
+}
+
+/* Timeline Items */
+.activity-card {
+  position: relative;
+  margin-bottom: 3rem;
+}
+
+.activity-card:last-child {
+  margin-bottom: 0;
+}
+
+.activity-marker {
+  position: absolute;
+  left: -2rem;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 100%;
+}
+
+.marker-dot {
+  position: absolute;
+  top: 5px;
+  left: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #000;
+  z-index: 2;
+  box-shadow: 0 0 0 4px #fff;
+}
+
+.activity-card.high .marker-dot {
+  background: #D32F2F;
+  box-shadow: 0 0 0 4px #fff, 0 0 0 1px #D32F2F;
+}
+
+.activity-content {
+  background: #FAFAFA;
+  padding: 1.5rem 2rem;
+  border-radius: 6px;
+  border: 1px solid #F0F0F0;
+  transition: all 0.3s ease;
+}
+
+.activity-content:hover {
+  background: #fff;
+  border-color: #EAEAEA;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.03);
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #555;
+  background: #F0F0F0;
+  padding: 0.3rem 0.6rem;
+  border-radius: 2px;
+}
+
+.dot-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.timestamp {
+  font-size: 0.85rem;
+  color: #777;
+  font-weight: 500;
+}
+
+.full-date {
+  color: #AAA;
+  font-size: 0.75rem;
+}
+
+.activity-content h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #000;
+  margin-bottom: 0.5rem;
+}
+
+.activity-content p {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.activity-meta {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #EAEAEA;
+}
+
+.status-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.3rem 0.8rem;
+  border-radius: 100px;
+}
+
+.status-tag.pending { background: #F9F9F9; color: #888; border: 1px solid #EAEAEA; }
+.status-tag.confirmed { background: #000; color: #fff; }
+.status-tag.processing { background: #F3E5F5; color: #6A1B9A; }
+.status-tag.shipped { background: #E3F2FD; color: #1565C0; }
+.status-tag.delivered { background: #E8F5E9; color: #2E7D32; }
+
+/* Loader & Empty States */
+.feed-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 0;
+  gap: 1.5rem;
+}
+
+.pulse-loader {
+  width: 12px;
+  height: 12px;
+  background-color: #000;
+  border-radius: 50%;
+  animation: ripple 1.5s infinite ease-in-out;
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(0,0,0,0.2); }
+  100% { transform: scale(2.4); box-shadow: 0 0 0 20px rgba(0,0,0,0); }
+}
+
+.feed-loader span {
+  font-size: 0.85rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.empty-feed {
+  padding: 5rem 0;
+  text-align: center;
+}
+
+.empty-feed p {
+  font-size: 1rem;
+  color: #777;
+}

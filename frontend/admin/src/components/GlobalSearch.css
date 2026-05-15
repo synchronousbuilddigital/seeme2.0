@@ -1,0 +1,138 @@
+.global-search-container {
+  position: relative;
+  width: 350px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #FAFAFA;
+  border-radius: 6px;
+  padding: 0 16px;
+  border: 1px solid #EAEAEA;
+  transition: all 0.2s;
+}
+
+.search-input-wrapper:focus-within {
+  background: #fff;
+  border-color: #000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.search-icon {
+  color: var(--admin-text-sub);
+  margin-right: 12px;
+}
+
+.search-input-wrapper input {
+  border: none;
+  background: transparent;
+  padding: 12px 0;
+  width: 100%;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--admin-text-main);
+  outline: none;
+}
+
+.search-results-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  border: 1px solid var(--admin-border);
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  padding: 12px 0;
+}
+
+.result-section {
+  padding: 8px 0;
+}
+
+.result-section h4 {
+  padding: 4px 20px;
+  font-size: 0.75rem;
+  color: var(--admin-text-sub);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
+
+.result-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.result-item:hover {
+  background: #f8fafc;
+}
+
+.result-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #f1f5f9;
+}
+
+.item-icon {
+  width: 40px;
+  height: 40px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.item-icon.avatar {
+  background: var(--admin-accent);
+  color: #111;
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.item-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--admin-text-main);
+  margin: 0;
+}
+
+.item-meta {
+  font-size: 0.8rem;
+  color: var(--admin-text-sub);
+  margin: 2px 0 0;
+}
+
+.no-results-msg {
+  padding: 20px;
+  text-align: center;
+  color: var(--admin-text-sub);
+  font-style: italic;
+}
+
+.loader-ring {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e2e8f0;
+  border-top-color: var(--admin-accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,0 +1,28 @@
+const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+
+export const API_ENDPOINTS = {
+  HEALTH: `${API_BASE_URL}/api/health`,
+  AUTH: {
+    LOGIN: `${API_BASE_URL}/api/auth/login`,
+    ME: `${API_BASE_URL}/api/auth/me`
+  },
+  PRODUCTS: `${API_BASE_URL}/api/products`,
+  GET_CATEGORIES: `${API_BASE_URL}/api/products/categories/all`,
+  COLLECTION_COUNT: `${API_BASE_URL}/api/products/collection/count`,
+  ORDERS: `${API_BASE_URL}/api/orders`,
+  NEW_ARRIVALS: `${API_BASE_URL}/api/new-arrivals`,
+  ADMIN: {
+    BASE: `${API_BASE_URL}/api/admin`,
+    SEARCH: `${API_BASE_URL}/api/admin/search`,
+    ANALYTICS: `${API_BASE_URL}/api/admin/analytics`,
+    INVENTORY: `${API_BASE_URL}/api/admin/inventory`,
+    CUSTOMERS: `${API_BASE_URL}/api/admin/customers`,
+    DASHBOARD_SUMMARY: `${API_BASE_URL}/api/admin/dashboard-summary`
+  },
+  UPLOAD: {
+    IMAGE: `${API_BASE_URL}/api/upload/image`,
+    IMAGES: `${API_BASE_URL}/api/upload/images`,
+    VIDEO: `${API_BASE_URL}/api/upload/video`
+  },
+  SITE_SETTINGS: `${API_BASE_URL}/api/site-settings`
+}

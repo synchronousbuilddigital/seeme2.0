@@ -1,0 +1,290 @@
+/* New Arrivals - Modern Editorial Style */
+.new-arrivals-premium {
+  padding: 120px 0;
+  background-color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.premium-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 5%;
+}
+
+/* Header Styles */
+.arrivals-header {
+  margin-bottom: 80px;
+  text-align: center;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.accent-line {
+  width: 40px;
+  height: 1px;
+  background-color: var(--editorial-accent, #d4af37);
+}
+
+.premium-subtitle {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--editorial-accent, #d4af37);
+}
+
+.premium-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 300;
+  color: #1a1a1a;
+  margin-bottom: 25px;
+}
+
+.premium-title span {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.premium-desc {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #767676;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Grid Styles */
+.arrivals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  margin-bottom: 80px;
+}
+
+/* Card Styles */
+.arrival-card-modern {
+  position: relative;
+  background: #fff;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-media {
+  position: relative;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  cursor: pointer;
+  background-color: #f9f9f9;
+}
+
+.image-zoom-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.arrival-card-modern:hover .card-media img {
+  transform: scale(1.1);
+}
+
+.card-media-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.arrival-card-modern:hover .card-media-overlay {
+  opacity: 1;
+}
+
+.quick-view {
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  border-bottom: 1px solid #fff;
+  padding-bottom: 5px;
+}
+
+.heart-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.heart-btn:hover {
+  transform: scale(1.1);
+  color: var(--editorial-accent, #d4af37);
+}
+
+.heart-btn.active {
+  background: var(--editorial-accent, #d4af37);
+  color: #fff;
+}
+
+/* Content Styles */
+.card-content-modern {
+  padding: 25px 0;
+  text-align: left;
+}
+
+.card-category {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--editorial-accent, #d4af37);
+  margin-bottom: 10px;
+}
+
+.card-name-modern {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+  line-height: 1.2;
+}
+
+.card-footer-modern {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.card-price {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  color: #1a1a1a;
+}
+
+.bag-btn-mini {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #1a1a1a;
+  cursor: pointer;
+  padding: 5px 0;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.bag-btn-mini:hover {
+  color: var(--editorial-accent, #d4af37);
+  border-bottom-color: var(--editorial-accent, #d4af37);
+}
+
+/* Action Styles */
+.arrivals-action {
+  text-align: center;
+}
+
+.explore-btn-modern {
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  padding: 20px 50px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+
+.explore-btn-modern:hover {
+  background-color: var(--editorial-accent, #d4af37);
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(212, 175, 55, 0.3);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .arrivals-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+}
+
+@media (max-width: 768px) {
+  .new-arrivals-premium {
+    padding: 80px 0;
+  }
+  
+  .arrivals-header {
+    margin-bottom: 40px;
+    padding: 0 20px;
+  }
+  
+  .premium-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .premium-container {
+    padding: 0 15px;
+  }
+  
+  .arrivals-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
+    gap: 20px 12px;
+  }
+  
+  .card-name-modern {
+    font-size: 1.1rem;
+  }
+  
+  .card-price {
+    font-size: 1rem;
+  }
+  
+  .bag-btn-mini {
+    font-size: 0.7rem;
+  }
+}

@@ -1,0 +1,194 @@
+.fabrics-theme-section {
+  padding: 80px 0;
+  background-color: #fcfcfc; /* Website background color */
+  overflow: hidden;
+  --gold: #D4AF37;
+  --charcoal: #2B2B2B;
+  --soft-grey: #666;
+}
+
+.theme-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* Header */
+.theme-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.theme-eyebrow {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+}
+
+.theme-title {
+  font-family: var(--font-display, serif);
+  font-size: clamp(3rem, 6vw, 5rem);
+  color: var(--charcoal);
+  font-weight: 300;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.theme-title span {
+  font-style: italic;
+  font-weight: 200;
+}
+
+.theme-divider {
+  width: 60px;
+  height: 2px;
+  background: var(--gold);
+  margin: 2.5rem auto 0;
+}
+
+/* Grid */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30px;
+}
+
+.theme-card {
+  position: relative;
+  cursor: pointer;
+}
+
+.theme-media {
+  position: relative;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  background: #eee;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+}
+
+.theme-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-card:hover .theme-media img {
+  transform: scale(1.08);
+}
+
+/* Hover Overlay */
+.theme-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(43, 43, 43, 0.9); /* Dark translucent charcoal */
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem;
+  color: white;
+  text-align: center;
+}
+
+.overlay-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.overlay-title {
+  font-family: var(--font-display, serif);
+  font-size: 2rem;
+  font-weight: 300;
+  margin-bottom: 1.5rem;
+}
+
+.overlay-desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 2rem;
+}
+
+.overlay-btn {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 1px solid var(--gold);
+  padding-bottom: 5px;
+  display: inline-block;
+}
+
+/* Card Footer */
+.theme-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.card-num {
+  font-family: var(--font-display, serif);
+  font-size: 0.9rem;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.card-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--charcoal);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Footer */
+.theme-explore {
+  margin-top: 100px;
+  text-align: center;
+}
+
+.theme-btn {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin: 0 auto;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--charcoal);
+  cursor: pointer;
+  transition: gap 0.3s;
+}
+
+.theme-btn svg {
+  color: var(--gold);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .theme-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .theme-container { padding: 0 20px; }
+  .theme-grid { grid-template-columns: 1fr; }
+  .theme-header { margin-bottom: 60px; }
+  .theme-title { font-size: 3rem; }
+  .theme-media { aspect-ratio: 4/5; }
+}
