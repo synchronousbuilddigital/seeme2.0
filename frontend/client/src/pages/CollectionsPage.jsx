@@ -1,11 +1,13 @@
 import { useState, useEffect, useContext } from 'react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import './CollectionsPage.css'
 
 const CollectionsPage = () => {
+  const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -185,14 +187,22 @@ const CollectionsPage = () => {
               transition={{ duration: 0.5, delay: index * 0.05 }}
               whileHover={{ y: -10 }}
             >
-              <div className="product-image-wrapper" onClick={() => openProductModal(product)}>
+              <div className="product-image-wrapper" onClick={() => navigate(`/product/${product._id}`)}>
                 <img 
                   src={getOptimizedImageUrl(product.images?.[0], 'product')} 
                   alt={product.name}
                   className="product-image"
                 />
                 <div className="product-overlay">
-                   <button className="quick-view-btn">Quick View</button>
+                   <button 
+                     className="quick-view-btn"
+                     onClick={(e) => {
+                       e.stopPropagation()
+                       openProductModal(product)
+                     }}
+                   >
+                     Quick View
+                   </button>
                  </div>
                  <button 
                    className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}
@@ -212,7 +222,13 @@ const CollectionsPage = () => {
 
               <div className="product-info">
                 <span className="product-category">{product.category}</span>
-                <h3 className="product-name">{product.name}</h3>
+                <h3 
+                  className="product-name" 
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/product/${product._id}`)}
+                >
+                  {product.name}
+                </h3>
                 <p className="product-description">{product.description}</p>
                 <div className="product-footer">
                   <span className="product-price">₹{product.price.toLocaleString()}</span>

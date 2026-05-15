@@ -29,11 +29,13 @@ const Hero = () => {
 
   const fetchCarouselImages = async () => {
     try {
+      setLoading(true)
       const carouselResponse = await fetch(API_ENDPOINTS.CAROUSEL)
       const carouselData = await carouselResponse.json()
-
-      const heroSlides = carouselData.success
-        ? carouselData.data.filter(slide => slide.isActive && slide.image)
+      
+      // Handle both 'isActive' and 'active' field naming variations
+      let heroSlides = carouselData.success 
+        ? carouselData.data.filter(slide => (slide.isActive !== false && slide.active !== false) && slide.image)
         : []
 
       if (heroSlides.length > 0) {
@@ -46,54 +48,55 @@ const Hero = () => {
         return
       }
 
+      // If carousel is empty, fallback to featured/collection products
+      console.log('Hero: Carousel empty, falling back to featured products')
       const [featuredResponse, collectionResponse] = await Promise.all([
-        fetch(API_ENDPOINTS.FEATURED_PRODUCTS),
-        fetch(API_ENDPOINTS.COLLECTION_PRODUCTS)
+        fetch(API_ENDPOINTS.FEATURED_PRODUCTS).catch(() => null),
+        fetch(API_ENDPOINTS.COLLECTION_PRODUCTS).catch(() => null)
       ])
 
-      const [featuredData, collectionData] = await Promise.all([
-        featuredResponse.json(),
-        collectionResponse.json()
-      ])
+      let featuredData = featuredResponse ? await featuredResponse.json() : { success: false }
+      let collectionData = collectionResponse ? await collectionResponse.json() : { success: false }
 
-      const featuredProducts = featuredData.success
-        ? featuredData.data.filter(product => Array.isArray(product.images) && product.images.length > 0)
-        : []
-
-      const collectionProducts = collectionData.success
-        ? collectionData.data.filter(product => Array.isArray(product.images) && product.images.length > 0)
-        : []
-
-      const sourceProducts = [...featuredProducts, ...collectionProducts]
-
-      if (sourceProducts.length > 0) {
-        const uniqueProducts = sourceProducts.filter(
-          (product, index, list) => index === list.findIndex(item => item._id === product._id)
+      const combined = [
+        ...(featuredData.success ? featuredData.data : []),
+        ...(collectionData.success ? collectionData.data : [])
+      ]
+      
+      if (combined.length > 0) {
+        // Filter out duplicate IDs
+        const uniqueProducts = combined.filter(
+          (p, idx, self) => self.findIndex(t => t._id === p._id) === idx
         )
 
-        const carouselData = uniqueProducts.map(product => ({
-          img: product.images[0],
-          category: product.category.toUpperCase(),
-          desc: product.name,
-          id: product._id
-        }))
-
-        setThumbnails(carouselData.slice(0, 5))
+        setThumbnails(uniqueProducts.slice(0, 5).map(p => ({
+          img: p.images?.[0] || '/images/home-hero.png',
+          category: (p.category || 'FEATURED').toUpperCase(),
+          desc: p.name || 'Premium Collection',
+          id: p._id
+        })))
       } else {
+        // Ultimate fallback to local high-quality images
         setThumbnails([
-          { img: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?q=80&w=800', category: 'ANARKALI', desc: 'Royal Collection' },
-          { img: 'https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?q=80&w=800', category: 'SHARARA', desc: 'Festive Edit' }
+          { img: '/images/home-hero.png', category: 'ANARKALI', desc: 'Timeless Grace' },
+          { img: '/images/categories_straight.jpg', category: 'PALAZZO', desc: 'Contemporary Comfort' },
+          { img: '/images/ruby_bridal_sharara.png', category: 'STRAIGHT CUT', desc: 'Classic Sophistication' },
+          { img: '/images/home-hero.png', category: 'SHARARA', desc: 'Regal Charm' },
+          { img: '/images/categories_straight.jpg', category: 'NEW ARRIVALS', desc: 'Fresh Edit' }
         ])
       }
-    } catch (error) {
-      console.error('Error fetching collection products:', error)
+    } catch (err) {
+      console.error('Error fetching carousel:', err)
+      // Fallback on error - use local images
+      setThumbnails([
+        { img: '/images/home-hero.png', category: 'ANARKALI', desc: 'Timeless Grace' },
+        { img: '/images/categories_straight.jpg', category: 'PALAZZO', desc: 'Contemporary Comfort' },
+        { img: '/images/ruby_bridal_sharara.png', category: 'STRAIGHT CUT', desc: 'Classic Sophistication' }
+      ])
     } finally {
       setLoading(false)
     }
   }
-
-
-
 
 
   // Get position for each image relative to center
@@ -158,7 +161,6 @@ const Hero = () => {
             <img
               src={getOptimizedImageUrl(item.img, 'thumbnail')}
               alt={item.category}
-              crossOrigin="anonymous"
             />
           </button>
         ))}
@@ -205,82 +207,80 @@ const Hero = () => {
                 }}
               >
                 <div className="carousel-image-container">
-                  <img
-                    src={getOptimizedImageUrl(item.img, 'mobile-hero')}
+                    <img
+                      src={getOptimizedImageUrl(item.img, 'mobile-hero')}
+                      alt={`${item.category} - ${item.desc}`}
+                      fetchpriority={position === 0 ? "high" : "low"}
+                      loading={Math.abs(position) <= 1 ? "eager" : "lazy"}
+                    />
+                  </div>
+                  <motion.div
+                    className="carousel-label"
+                    animate={{
+                      opacity: position === 0 ? 1 : 0.7
+                    }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <span className="label-category">{item.category}</span>
+                    <span className="label-desc">{item.desc}</span>
+                  </motion.div>
+                </motion.div>
+              )
+            }
+  
+            // Desktop: use Framer Motion animations
+            const centerWidth = 380
+            const sideWidth = centerWidth * 0.72
+            const outerWidth = centerWidth * 0.52
+            const baseGap = centerWidth * 0.063
+  
+            const getGap = (pos) => {
+              if (pos === 0) return 0
+              if (pos === 1) return (centerWidth / 2) + baseGap + (sideWidth / 2)
+              if (pos === -1) return -((centerWidth / 2) + baseGap + (sideWidth / 2))
+              if (pos === 2) return (centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2)
+              if (pos === -2) return -((centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2))
+              return 0
+            }
+  
+            return (
+              <motion.div
+                key={idx}
+                className={`carousel-arch position-${position}`}
+                animate={{
+                  x: getGap(position),
+                  scale: position === 0 ? 1 : position === -1 || position === 1 ? 0.75 : 0.55,
+                  zIndex: position === 0 ? 5 : position === -1 || position === 1 ? 4 : 3,
+                  opacity: Math.abs(position) > 2 ? 0 : 1
+                }}
+                transition={{
+                  duration: 1.2,
+                  ease: [0.25, 0.1, 0.25, 1]
+                }}
+                onClick={() => {
+                  if (position === 0 && item.id) {
+                    navigate(`/product/${item.id}`);
+                  } else {
+                    setActiveIndex(idx);
+                  }
+                }}
+              >
+                <div className="carousel-image-container">
+                  <motion.img
+                    src={getOptimizedImageUrl(item.img, 'hero')}
                     alt={`${item.category} - ${item.desc}`}
                     fetchpriority={position === 0 ? "high" : "low"}
                     loading={Math.abs(position) <= 1 ? "eager" : "lazy"}
-                    crossOrigin="anonymous"
+                    style={{ objectPosition: 'center 20%' }}
+                    animate={Math.abs(position) > 0 ? {} : { scale: [1, 1.01] }}
+                    transition={Math.abs(position) > 0 ? {} : {
+                      duration: 4,
+                      ease: "easeInOut",
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
                   />
                 </div>
-                <motion.div
-                  className="carousel-label"
-                  animate={{
-                    opacity: position === 0 ? 1 : 0.7
-                  }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <span className="label-category">{item.category}</span>
-                  <span className="label-desc">{item.desc}</span>
-                </motion.div>
-              </motion.div>
-            )
-          }
-
-          // Desktop: use Framer Motion animations
-          const centerWidth = 380
-          const sideWidth = centerWidth * 0.72
-          const outerWidth = centerWidth * 0.52
-          const baseGap = centerWidth * 0.063
-
-          const getGap = (pos) => {
-            if (pos === 0) return 0
-            if (pos === 1) return (centerWidth / 2) + baseGap + (sideWidth / 2)
-            if (pos === -1) return -((centerWidth / 2) + baseGap + (sideWidth / 2))
-            if (pos === 2) return (centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2)
-            if (pos === -2) return -((centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2))
-            return 0
-          }
-
-          return (
-            <motion.div
-              key={idx}
-              className={`carousel-arch position-${position}`}
-              animate={{
-                x: getGap(position),
-                scale: position === 0 ? 1 : position === -1 || position === 1 ? 0.75 : 0.55,
-                zIndex: position === 0 ? 5 : position === -1 || position === 1 ? 4 : 3,
-                opacity: Math.abs(position) > 2 ? 0 : 1
-              }}
-              transition={{
-                duration: 1.2,
-                ease: [0.25, 0.1, 0.25, 1]
-              }}
-              onClick={() => {
-                if (position === 0 && item.id) {
-                  navigate(`/product/${item.id}`);
-                } else {
-                  setActiveIndex(idx);
-                }
-              }}
-            >
-              <div className="carousel-image-container">
-                <motion.img
-                  src={getOptimizedImageUrl(item.img, 'hero')}
-                  alt={`${item.category} - ${item.desc}`}
-                  fetchpriority={position === 0 ? "high" : "low"}
-                  loading={Math.abs(position) <= 1 ? "eager" : "lazy"}
-                  crossOrigin="anonymous"
-                  style={{ objectPosition: 'center 20%' }}
-                  animate={Math.abs(position) > 0 ? {} : { scale: [1, 1.01] }}
-                  transition={Math.abs(position) > 0 ? {} : {
-                    duration: 4,
-                    ease: "easeInOut",
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                  }}
-                />
-              </div>
               <motion.div
                 className="carousel-label"
                 animate={{

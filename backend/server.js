@@ -36,6 +36,10 @@ const app = express()
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'http://localhost:5173', // Common Vite port
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:5173',
   'https://seeme2-0-f867.vercel.app',
   'https://seeme2-0-inue.vercel.app',
   process.env.CLIENT_URL,
@@ -44,8 +48,16 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true)
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+    // In development, allow all local origins
+    if (!origin || process.env.NODE_ENV !== 'production') {
+      return callback(null, true)
+    }
+    
+    // In production, check against whitelist
+    const isAllowed = allowedOrigins.includes(origin) || 
+                      origin.endsWith('.vercel.app')
+                      
+    if (isAllowed) {
       return callback(null, true)
     }
     return callback(new Error(`CORS blocked for origin: ${origin}`))
@@ -55,52 +67,52 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
 
-app.use(helmet())
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "img-src": ["'self'", "data:", "blob:", "https://*.cloudinary.com", "https://res.cloudinary.com", "https://images.unsplash.com", "https://images.pexels.com", "*.placeholder.com"],
+      "media-src": ["'self'", "https://*.cloudinary.com", "https://res.cloudinary.com", "data:", "blob:"],
+      "connect-src": ["'self'", "https://*.cloudinary.com", "https://res.cloudinary.com", "*.vercel.app", "http://localhost:*", "http://127.0.0.1:*"]
+    },
+  },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
+}))
 app.use(cookieParser())
 
-// Rate Limiting
+// Rate Limiting - Disabled or relaxed in development
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // Increased for admin dashboard polling
+  windowMs: 15 * 60 * 1000, 
+  max: process.env.NODE_ENV === 'production' ? 500 : 5000, 
   message: { success: false, message: 'Too many requests, please try again later.' }
 })
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per `window` (login/signup)
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 10 : 100,
   message: { success: false, message: 'Too many login attempts, please try again after 15 minutes.' }
-})
-
-const paymentLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // Limit each user to 20 payment attempts per hour
-  message: { success: false, message: 'Payment attempt limit reached. Please try again later.' }
 })
 
 app.use('/api/', globalLimiter)
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
-app.use('/api/orders/create-razorpay-order', paymentLimiter)
-
-// CORS moved to top
 
 // ─── BODY PARSING ──────────────────────────────────────
 app.use(express.json({ limit: '50mb' }))
 app.use(express.urlencoded({ extended: true, limit: '50mb' }))
 
-// ─── REQUEST LOGGER (development only) ─────────────────
-if (process.env.NODE_ENV === 'development') {
-  app.use((req, res, next) => {
-    const start = Date.now()
-    res.on('finish', () => {
-      const duration = Date.now() - start
-      const status = res.statusCode
-      const color = status >= 500 ? '\x1b[31m' : status >= 400 ? '\x1b[33m' : '\x1b[32m'
-      console.log(`${color}${req.method}\x1b[0m ${req.originalUrl} → ${status} (${duration}ms)`)
-    })
-    next()
+// ─── REQUEST LOGGER ─────────────────
+app.use((req, res, next) => {
+  const start = Date.now()
+  res.on('finish', () => {
+    const duration = Date.now() - start
+    const status = res.statusCode
+    const color = status >= 500 ? '\x1b[31m' : status >= 400 ? '\x1b[33m' : '\x1b[32m'
+    console.log(`${color}${req.method}\x1b[0m ${req.originalUrl} → ${status} (${duration}ms)`)
   })
-}
+  next()
+})
 
 // ─── HEALTH CHECK ──────────────────────────────────────
 app.get('/api/health', (req, res) => {
@@ -147,36 +159,18 @@ app.use((err, req, res, next) => {
   })
 })
 
-// ─── START SERVER ──────────────────────────────────────
-const PORT = process.env.PORT || 5000
-
-// For Vercel serverless, export the app
-export default app
-
-// Only listen if not in Vercel serverless environment
-if (!process.env.VERCEL) {
-  const startServer = async () => {
-    await connectDB()
-    
-    // Drop stale sku unique index that causes duplicate key errors
-    try {
-      const mongoose = (await import('mongoose')).default
-      const collection = mongoose.connection.collection('products')
-      const indexes = await collection.indexes()
-      const skuIndex = indexes.find(i => i.name === 'sku_1')
-      if (skuIndex) {
-        await collection.dropIndex('sku_1')
-        console.log('✅ Dropped stale sku_1 index')
-      }
-    } catch (err) {
-      // Index may not exist, that's fine
-    }
-
-    app.listen(PORT, () => {
+// ─── INITIALIZATION ─────────────────────────────────────
+connectDB().then(() => {
+  if (!process.env.VERCEL) {
+    const PORT = process.env.PORT || 5000
+    app.listen(PORT, '0.0.0.0', () => {
       console.log(`\n🚀 Server running on http://localhost:${PORT}`)
       console.log(`📦 Environment: ${process.env.NODE_ENV || 'development'}`)
       console.log(`🔗 Health check: http://localhost:${PORT}/api/health\n`)
     })
   }
-  startServer()
-}
+}).catch(err => {
+  console.error('Failed to initialize server:', err.message)
+})
+
+export default app

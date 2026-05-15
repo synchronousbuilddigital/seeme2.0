@@ -1,23 +1,49 @@
 // Helper function to get optimized image URL from Cloudinary
 export const getImageUrl = (imageData, options = {}) => {
-  if (!imageData) return '/images/hero/anarkali_luxury.png'
+  // Use a reliable local fallback image
+  const defaultFallback = '/images/home-hero.png'
+  
+  if (!imageData) return defaultFallback
   
   // If it's a string URL
   if (typeof imageData === 'string') {
-    // If it's a relative filename (no protocol and not starting with '/'), prefix with API base
-    const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://seeme2-0.vercel.app' : 'http://localhost:5000')
-    const looksLikeRelative = !imageData.includes('://') && !imageData.startsWith('/') && !imageData.startsWith('data:')
-    if (looksLikeRelative) {
-      // ensure no double slashes
-      const prefix = apiBase.endsWith('/') ? apiBase.slice(0, -1) : apiBase
-      const path = imageData.startsWith('/') ? imageData.slice(1) : imageData
-      return `${prefix}/${path}`
+    // INTERCEPT BROKEN PLACEHOLDERS - Use local assets instead of Unsplash
+    const isPlaceholder = 
+      imageData.includes('placeholder') || 
+      imageData.includes('via.placeholder.com') ||
+      imageData.match(/^\d+x\d+/) || 
+      imageData.includes('?text=')
+
+    if (isPlaceholder) {
+      if (imageData.toLowerCase().includes('anarkali')) return '/images/ruby_bridal_sharara.png'
+      if (imageData.toLowerCase().includes('palazzo')) return '/images/categories_straight.jpg'
+      if (imageData.toLowerCase().includes('sharara')) return '/images/ruby_bridal_sharara.png'
+      return defaultFallback
     }
-    // Check if it's a Cloudinary URL
-    if (imageData.includes('cloudinary.com')) {
-      return optimizeCloudinaryUrl(imageData, options)
+
+    // Determine API Base
+    const apiBase = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://seeme2-0.vercel.app' : 'http://localhost:5000')).replace(/\/$/, '')
+    
+    // Check if it's already an absolute URL
+    if (imageData.includes('://') || imageData.startsWith('data:')) {
+      // Check if it's a Cloudinary URL to optimize
+      if (imageData.includes('cloudinary.com')) {
+        return optimizeCloudinaryUrl(imageData, options)
+      }
+      return imageData
     }
-    return imageData
+
+    // It's a relative path. If it starts with '/', we still need to prepend the API base 
+    // because the images are served from the backend, not the frontend public folder.
+    // Except for a few known local assets like logos if they are in the public folder.
+    const isLocalPublicAsset = imageData.startsWith('/images/') || imageData.startsWith('/favicon')
+    
+    if (isLocalPublicAsset) {
+      return imageData
+    }
+
+    const cleanPath = imageData.startsWith('/') ? imageData.slice(1) : imageData
+    return `${apiBase}/${cleanPath}`
   }
   
   // If it's an object with base64 data (legacy format)
@@ -25,7 +51,7 @@ export const getImageUrl = (imageData, options = {}) => {
     return `data:${imageData.contentType};base64,${imageData.data}`
   }
   
-  return '/images/hero/anarkali_luxury.png'
+  return defaultFallback
 }
 
 // Optimize Cloudinary URLs with transformations
@@ -47,19 +73,19 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
     if (hasExistingTransformations) return url;
 
     // Insert transformations after /upload/
-    const transformations = [
-      `w_${width}`,
-      `q_${quality}`,
-      `f_${format}`,
-      `c_${crop}`,
-      'dpr_auto'
-    ]
+    const transformations = []
+    if (width) transformations.push(`w_${width}`)
+    if (quality) transformations.push(`q_${quality}`)
+    if (format) transformations.push(`f_${format}`)
+    if (crop) transformations.push(`c_${crop}`)
+    transformations.push('dpr_auto')
     
     // Add blur if specified
     if (blur) {
       transformations.push(`e_blur:${blur}`)
     }
     
+    // Safety check: only replace the FIRST occurrence of /upload/
     return url.replace('/upload/', `/upload/${transformations.join(',')}/`)
   }
   

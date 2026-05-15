@@ -15,28 +15,28 @@ const CategoriesSlider = () => {
       title: 'Anarkali Suits',
       subtitle: 'Timeless Elegance',
       description: 'Experience the grace of flowing silhouettes with our exquisite Anarkali collection.',
-      image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200',
+      image: '/images/ruby_bridal_sharara.png',
       features: ['Flowing Silhouette', 'Embroidery', 'Premium Fabrics']
     },
     palazzo: {
       title: 'Palazzo Suits',
       subtitle: 'Modern Comfort',
       description: 'Chic and contemporary, our Palazzo suits offer the perfect blend of style and ease.',
-      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1200',
+      image: '/images/categories_straight.jpg',
       features: ['Wide-Leg Elegance', 'Versatile Style', 'Breathable Fabrics']
     },
     'straight-cut': {
       title: 'Straight Cut Suits',
       subtitle: 'Classic Sophistication',
       description: 'Defined by clean lines and understated luxury, our Straight Cut suits are a testament to timeless fashion.',
-      image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=1200',
+      image: '/images/categories_straight.jpg',
       features: ['Tailored Fit', 'Minimalist Design', 'Everyday Luxury']
     },
     sharara: {
       title: 'Sharara Sets',
       subtitle: 'Artisan Heritage',
       description: 'Discover the royal charm of our Sharara collection, featuring intricate handwork and premium fabrics.',
-      image: 'https://images.unsplash.com/photo-1617175548912-1ef022df7006?auto=format&fit=crop&q=80&w=1200',
+      image: '/images/ruby_bridal_sharara.png',
       features: ['Intricate Handwork', 'Royal Flare', 'Heritage Designs']
     }
   }
@@ -65,7 +65,7 @@ const CategoriesSlider = () => {
                     title: cat.charAt(0).toUpperCase() + cat.slice(1),
                     subtitle: 'Heritage Collection',
                     description: `Explore our ${cat} collection, crafted with artisan precision and timeless design.`,
-                    image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=1200',
+                    image: '/images/categories_straight.jpg',
                     features: ['Premium Quality', 'Artisan Crafted', 'Timeless Style']
                   }
                   return {
@@ -140,7 +140,7 @@ const CategoriesSlider = () => {
                   <img 
                     src={getImageUrl(activeCategory.image)} 
                     alt={activeCategory.title} 
-                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=1200' }}
+                    onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                   />
                 </div>
                 <div className="floating-badge">

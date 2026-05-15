@@ -7,34 +7,35 @@ dns.setServers(['1.1.1.1', '8.8.8.8'])
 /**
  * Connect to MongoDB with retry logic and proper event handling.
  */
+let isConnected = false
+
 const connectDB = async () => {
+  if (isConnected) {
+    return mongoose.connection
+  }
+
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/seemee', {
-      family: 4 // Force IPv4 to avoid DNS resolution issues
+      family: 4
     })
 
+    isConnected = true
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`)
 
-    // Connection event listeners
     mongoose.connection.on('error', (err) => {
       console.error('❌ MongoDB connection error:', err)
+      isConnected = false
     })
 
     mongoose.connection.on('disconnected', () => {
-      console.warn('⚠️  MongoDB disconnected. Attempting to reconnect...')
-    })
-
-    mongoose.connection.on('reconnected', () => {
-      console.log('✅ MongoDB reconnected')
+      console.warn('⚠️  MongoDB disconnected')
+      isConnected = false
     })
 
     return conn
   } catch (error) {
     console.error('❌ MongoDB Connection Error:', error.message)
-    // Retry after 5 seconds
-    console.log('🔄 Retrying connection in 5 seconds...')
-    await new Promise(resolve => setTimeout(resolve, 5000))
-    return connectDB()
+    throw error // Let the caller handle retry or fail
   }
 }
 

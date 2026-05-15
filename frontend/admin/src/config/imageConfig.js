@@ -142,13 +142,13 @@ export const PRODUCT_IMAGE_TEMPLATES = {
 // ============================================
 
 export const DEFAULT_PRODUCT_IMAGES = {
-  anarkali: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800',
-  palazzo: 'https://images.unsplash.com/photo-1610173826014-9336df76906a?auto=format&fit=crop&q=80&w=800',
-  straightCut: 'https://images.unsplash.com/photo-1589156206699-bc21e38c8a7d?auto=format&fit=crop&q=80&w=800',
-  sharara: 'https://images.unsplash.com/photo-1617627143750-d86bc21e44bb?auto=format&fit=crop&q=80&w=800',
-  saree: 'https://images.unsplash.com/photo-1563857671-127f341e4e3c?auto=format&fit=crop&q=80&w=800',
-  lehenga: 'https://images.unsplash.com/photo-1552053831-71594a27c62d?auto=format&fit=crop&q=80&w=800',
-  placeholder: 'https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?auto=format&fit=crop&q=80&w=800'
+  anarkali: '/images/ruby_bridal_sharara.png',
+  palazzo: '/images/categories_straight.jpg',
+  straightCut: '/images/categories_straight.jpg',
+  sharara: '/images/ruby_bridal_sharara.png',
+  saree: '/images/home-hero.png',
+  lehenga: '/images/ruby_bridal_sharara.png',
+  placeholder: '/images/home-hero.png'
 }
 
 // ============================================

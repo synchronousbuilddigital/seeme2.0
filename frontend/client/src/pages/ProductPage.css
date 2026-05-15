@@ -341,14 +341,21 @@
 
 /* Suggested Section */
 .suggested-section {
-  padding: 120px 40px;
+  padding: 120px 0;
   background: #fdfaf5;
   margin-top: 120px;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
 }
 
 .suggested-header {
   text-align: center;
   margin-bottom: 60px;
+  padding: 0 40px;
 }
 
 .editorial-label {
@@ -424,5 +431,97 @@
   }
   .price-value {
     font-size: 28px;
+  }
+}
+
+/* Related Products - Horizontal Row Redesign */
+.related-products-grid {
+  display: flex;
+  gap: 30px;
+  overflow-x: auto;
+  padding: 20px 40px 40px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.related-products-grid::-webkit-scrollbar {
+  display: none; /* Chrome/Safari/Webkit */
+}
+
+.related-product-card {
+  flex: 0 0 480px; /* Big cards as requested */
+  cursor: pointer;
+  background: #fff;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.related-img-wrapper {
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  margin-bottom: 30px; /* Increased spacing */
+  background: #fdfaf5;
+}
+
+.related-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.related-product-card:hover .related-img-wrapper img {
+  transform: scale(1.05);
+}
+
+.related-info {
+  padding: 0 20px 30px;
+  text-align: left; /* Editorial left alignment */
+}
+
+.related-category {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #D4AF37;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.related-info h3 {
+  font-family: var(--font-serif, serif);
+  font-size: 24px; /* Bigger title */
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+.related-info p {
+  font-size: 18px; /* Bigger price */
+  color: #D4AF37;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 1024px) {
+  .related-product-card {
+    flex: 0 0 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .related-product-card {
+    flex: 0 0 320px;
+  }
+  .suggested-section {
+    padding: 80px 0;
+  }
+  .related-products-grid {
+    padding: 20px 20px 40px;
+    gap: 20px;
   }
 }

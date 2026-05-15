@@ -249,6 +249,7 @@ const ProductPage = () => {
                   <img src={getImageUrl(p.images?.[0])} alt={p.name} />
                 </div>
                 <div className="related-info">
+                  <span className="related-category">{p.category}</span>
                   <h3>{p.name}</h3>
                   <p>₹{p.price?.toLocaleString('en-IN')}</p>
                 </div>
