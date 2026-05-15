@@ -169,20 +169,37 @@ async function createApp() {
 
 // Vercel handler
 export default async function handler(req, res) {
+  // ─── MANUAL CORS HEADERS (Ensures CORS works even on errors) ───
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
+
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   try {
-    console.log(`📨 ${req.method} ${req.url}`)
+    console.log(`📨 ${req.method} ${req.url}`);
     
+    // Normalize URL: Ensure it starts with /api if it doesn't
+    // This fixes issues where Vercel might strip the /api prefix
+    if (!req.url.startsWith('/api')) {
+      req.url = `/api${req.url}`;
+    }
+
     // Connect to database first
-    await connectToDatabase()
+    await connectToDatabase();
     
     // Create/get Express app
-    const expressApp = await createApp()
+    const expressApp = await createApp();
     
     // Handle request
-    return expressApp(req, res)
+    return expressApp(req, res);
   } catch (error) {
-    console.error('❌ Handler error:', error)
-    console.error('Stack:', error.stack)
+    console.error('❌ Handler error:', error);
     
     // Make sure we haven't sent headers yet
     if (!res.headersSent) {
@@ -191,7 +208,7 @@ export default async function handler(req, res) {
         message: 'Server initialization error',
         error: error.message,
         details: process.env.NODE_ENV === 'development' ? error.stack : 'Check server logs'
-      })
+      });
     }
   }
 }

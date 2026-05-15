@@ -3,7 +3,21 @@
  * In development, Vite proxy handles /api → http://localhost:5000
  * In production, VITE_API_URL points to the deployed backend.
  */
-const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL || ''
+  
+  // In production, if we're on a vercel.app domain, default to relative paths
+  // to ensure we hit the same deployment's API and avoid CORS issues.
+  if (import.meta.env.PROD) {
+    if (typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
+      return ''
+    }
+  }
+  
+  return envUrl.replace(/\/$/, '')
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 export const API_ENDPOINTS = {
   // ─── Auth ──────────────────────────────────────
