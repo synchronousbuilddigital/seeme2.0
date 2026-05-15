@@ -118,6 +118,9 @@ async function createApp() {
     const { default: adminRoutes } = await import('../routes/admin.js')
     console.log('✅ Admin routes loaded')
 
+    const { default: userRoutes } = await import('../routes/users.js')
+    console.log('✅ User routes loaded')
+
     app.use('/api/auth', authRoutes)
     app.use('/api/products', productRoutes)
     app.use('/api/orders', orderRoutes)
@@ -126,6 +129,7 @@ async function createApp() {
     app.use('/api/carousel', carouselRoutes)
     app.use('/api/site-settings', siteSettingsRoutes)
     app.use('/api/admin', adminRoutes)
+    app.use('/api/users', userRoutes)
 
     const { default: uploadRoutes } = await import('../routes/upload.js')
     app.use('/api/upload', uploadRoutes)
