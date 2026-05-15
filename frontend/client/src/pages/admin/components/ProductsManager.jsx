@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { getImageUrl } from '../../../utils/imageHelper'
 import './ProductsManager.css'
+import { API_ENDPOINTS } from '../../../config/api'
 
 const ProductsManager = () => {
   const [products, setProducts] = useState([])
@@ -40,7 +41,7 @@ const ProductsManager = () => {
   const checkCollectionNotifications = async () => {
     try {
       const token = localStorage.getItem('adminToken')
-      const response = await fetch('/api/products?inCollection=true', {
+      const response = await fetch(`${API_ENDPOINTS.PRODUCTS}?inCollection=true`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()
@@ -67,7 +68,7 @@ const ProductsManager = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('/api/products')
+      const response = await fetch(API_ENDPOINTS.PRODUCTS)
       const data = await response.json()
       if (data.success) {
         setProducts(data.data)
@@ -101,7 +102,7 @@ const ProductsManager = () => {
 
       console.log('Uploading images...') // Debug log
 
-      const response = await fetch('/api/upload/images', {
+      const response = await fetch(API_ENDPOINTS.UPLOAD_IMAGES, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: uploadFormData
@@ -143,7 +144,7 @@ const ProductsManager = () => {
   const handleToggleFeatured = async (productId, currentValue) => {
     try {
       const token = localStorage.getItem('adminToken')
-      const response = await fetch(`/api/products/${productId}`, {
+      const response = await fetch(`${API_ENDPOINTS.PRODUCTS}/${productId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -170,7 +171,7 @@ const ProductsManager = () => {
       const token = localStorage.getItem('adminToken')
 
       // First check if there's an existing carousel slide for this product
-      const allRes = await fetch('/api/carousel/all', {
+      const allRes = await fetch(API_ENDPOINTS.CAROUSEL_ALL, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const allData = await allRes.json()
@@ -191,7 +192,7 @@ const ProductsManager = () => {
           order: 0
         }
 
-        const res = await fetch('/api/carousel', {
+        const res = await fetch(API_ENDPOINTS.CAROUSEL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -209,7 +210,7 @@ const ProductsManager = () => {
         }
       } else {
         // Delete existing slide
-        const res = await fetch(`/api/carousel/${existing._id}`, {
+        const res = await fetch(`${API_ENDPOINTS.CAROUSEL}/${existing._id}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         })
@@ -242,7 +243,7 @@ const ProductsManager = () => {
       const formDataVideo = new FormData()
       formDataVideo.append('video', file)
 
-      const response = await fetch('/api/upload/video', {
+      const response = await fetch(API_ENDPOINTS.UPLOAD_VIDEO, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
         body: formDataVideo
@@ -275,9 +276,8 @@ const ProductsManager = () => {
     
     try {
       const token = localStorage.getItem('adminToken')
-      const url = editingProduct 
-        ? `/api/products/${editingProduct._id}`
-        : '/api/products'
+        ? `${API_ENDPOINTS.PRODUCTS}/${editingProduct._id}`
+        : API_ENDPOINTS.PRODUCTS
       
       // Calculate total stock from sizeStock
       const totalStock = formData.sizeStock.reduce((sum, item) => sum + item.quantity, 0)
@@ -329,7 +329,7 @@ const ProductsManager = () => {
 
     try {
       const token = localStorage.getItem('adminToken')
-      const response = await fetch(`/api/products/${id}`, {
+      const response = await fetch(`${API_ENDPOINTS.PRODUCTS}/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       })

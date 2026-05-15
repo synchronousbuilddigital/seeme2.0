@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import './AdminDashboard.css'
+import { API_ENDPOINTS } from '../../config/api'
 import NewArrivalsManager from './components/NewArrivalsManager'
 import ProductsManager from './components/ProductsManager'
 import OrdersManager from './components/OrdersManager'
@@ -37,13 +38,13 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('adminToken')
       
       // Fetch orders
-      const ordersRes = await fetch('/api/orders', {
+      const ordersRes = await fetch(API_ENDPOINTS.ORDERS, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const ordersData = await ordersRes.json()
       
       // Fetch products
-      const productsRes = await fetch('/api/products')
+      const productsRes = await fetch(API_ENDPOINTS.PRODUCTS)
       const productsData = await productsRes.json()
 
       if (ordersData.success && productsData.success) {

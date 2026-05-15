@@ -33,7 +33,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
 
   useEffect(() => {
     // Fetch logo from API
-    fetch('/api/site-settings')
+    fetch(API_ENDPOINTS.SITE_SETTINGS)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data.logo) {

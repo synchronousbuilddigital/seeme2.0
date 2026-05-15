@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { API_ENDPOINTS } from '../config/api'
 import './Auth.css'
 
 const Auth = () => {
@@ -24,7 +25,7 @@ const Auth = () => {
 
   useEffect(() => {
     // Fetch logo from API
-    fetch('/api/site-settings')
+    fetch(API_ENDPOINTS.SITE_SETTINGS)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data.logo) {

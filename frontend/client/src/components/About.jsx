@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
+import { API_ENDPOINTS } from '../config/api'
 import './About.css'
 
 const About = () => {
@@ -11,7 +12,7 @@ const About = () => {
   const [ref, inView] = useInView({ once: true, threshold: 0.2 })
 
   useEffect(() => {
-    fetch('/api/site-settings')
+    fetch(API_ENDPOINTS.SITE_SETTINGS)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data.aboutImage) {

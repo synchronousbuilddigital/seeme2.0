@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
+import { API_ENDPOINTS } from '../config/api'
 
 export const CartContext = createContext()
 
@@ -58,8 +59,8 @@ export const CartProvider = ({ children }) => {
       const fetchUserData = async () => {
         try {
           const [cartRes, wishlistRes] = await Promise.all([
-            fetch('/api/users/cart', { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch('/api/users/wishlist', { headers: { 'Authorization': `Bearer ${token}` } })
+            fetch(API_ENDPOINTS.USERS_CART, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(API_ENDPOINTS.USERS_WISHLIST, { headers: { 'Authorization': `Bearer ${token}` } })
           ])
           const cartData = await cartRes.json()
           const wishlistData = await wishlistRes.json()
@@ -84,7 +85,7 @@ export const CartProvider = ({ children }) => {
     if (user && token && cart.length > 0) {
       const sync = async () => {
         try {
-          await fetch('/api/users/cart/sync', {
+          await fetch(`${API_ENDPOINTS.USERS_CART}/sync`, {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/json',

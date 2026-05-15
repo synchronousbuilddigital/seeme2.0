@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import './SiteSettingsManager.css'
+import { API_ENDPOINTS } from '../../../config/api'
 
 const SiteSettingsManager = () => {
   const [settings, setSettings] = useState(null)
@@ -17,7 +18,7 @@ const SiteSettingsManager = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/site-settings')
+      const response = await fetch(API_ENDPOINTS.SITE_SETTINGS)
       const data = await response.json()
       if (data.success) {
         setSettings(data.data)
@@ -34,7 +35,7 @@ const SiteSettingsManager = () => {
     formData.append('image', file)
     const token = localStorage.getItem('adminToken')
     
-    const response = await fetch('/api/upload/image', {
+    const response = await fetch(API_ENDPOINTS.UPLOAD_IMAGE, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: formData
@@ -47,7 +48,7 @@ const SiteSettingsManager = () => {
 
   const updateSettings = async (updatedSettings) => {
     const token = localStorage.getItem('adminToken')
-    const response = await fetch('/api/site-settings', {
+    const response = await fetch(API_ENDPOINTS.SITE_SETTINGS, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

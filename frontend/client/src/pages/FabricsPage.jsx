@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { API_ENDPOINTS } from '../config/api'
 import './FabricsPage.css'
 
 const FabricsPage = () => {
@@ -15,7 +16,7 @@ const FabricsPage = () => {
 
   const fetchFabrics = async () => {
     try {
-      const response = await fetch('/api/site-settings')
+      const response = await fetch(API_ENDPOINTS.SITE_SETTINGS)
       const data = await response.json()
       
       if (data.success && data.data.fabrics) {

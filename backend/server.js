@@ -36,6 +36,8 @@ const app = express()
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
+  'https://seeme2-0-f867.vercel.app',
+  'https://seeme2-0-inue.vercel.app',
   process.env.CLIENT_URL,
   process.env.ADMIN_URL,
 ].filter(Boolean)

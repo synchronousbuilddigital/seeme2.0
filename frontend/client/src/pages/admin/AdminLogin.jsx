@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { API_ENDPOINTS } from '../../config/api'
 import './AdminLogin.css'
 
 const AdminLogin = () => {
@@ -15,9 +16,9 @@ const AdminLogin = () => {
     setLoading(true)
 
     try {
-      console.log('🔐 Attempting login to:', '/api/auth/login')
+      console.log('🔐 Attempting login to:', API_ENDPOINTS.LOGIN)
       
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials)
