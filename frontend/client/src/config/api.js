@@ -4,17 +4,14 @@
  * In production, VITE_API_URL points to the deployed backend.
  */
 const getApiBaseUrl = () => {
-  const envUrl = import.meta.env.VITE_API_URL || ''
-  
-  // In production, if we're on a vercel.app domain, default to relative paths
-  // to ensure we hit the same deployment's API and avoid CORS issues.
+  // Use VITE_API_URL from env
+  // Fallback to the main backend URL in production if env is missing
   if (import.meta.env.PROD) {
-    if (typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app')) {
-      return ''
-    }
+    return (import.meta.env.VITE_API_URL || 'https://seeme2-0.vercel.app').replace(/\/$/, '')
   }
   
-  return envUrl.replace(/\/$/, '')
+  // Local development fallback
+  return (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '')
 }
 
 const API_BASE_URL = getApiBaseUrl()

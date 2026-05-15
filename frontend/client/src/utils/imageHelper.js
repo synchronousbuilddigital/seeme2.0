@@ -5,7 +5,7 @@ export const getImageUrl = (imageData, options = {}) => {
   // If it's a string URL
   if (typeof imageData === 'string') {
     // If it's a relative filename (no protocol and not starting with '/'), prefix with API base
-    const apiBase = import.meta.env.VITE_API_URL || ''
+    const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://seeme2-0.vercel.app' : 'http://localhost:5000')
     const looksLikeRelative = !imageData.includes('://') && !imageData.startsWith('/') && !imageData.startsWith('data:')
     if (looksLikeRelative) {
       // ensure no double slashes
