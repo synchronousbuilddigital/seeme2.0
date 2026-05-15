@@ -3,7 +3,7 @@
  * In development, Vite proxy handles /api → http://localhost:5000
  * In production, VITE_API_URL points to the deployed backend.
  */
-const API_BASE_URL = import.meta.env.VITE_API_URL || ''
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 
 export const API_ENDPOINTS = {
   // ─── Auth ──────────────────────────────────────

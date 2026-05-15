@@ -19,6 +19,10 @@
       "dest": "/backend/api/index.js"
     },
     {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
       "src": "/assets/(.*)",
       "dest": "/assets/$1"
     },
@@ -76,7 +80,7 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://res.cloudinary.com https://api.cloudinary.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://*.vercel.app https://res.cloudinary.com https://api.cloudinary.com; media-src 'self' https: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         }
       ]
     },
@@ -86,10 +90,6 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
-        },
-        {
-          "key": "Cross-Origin-Resource-Policy",
-          "value": "same-origin"
         }
       ]
     }

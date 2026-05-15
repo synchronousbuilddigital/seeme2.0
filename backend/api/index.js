@@ -51,10 +51,10 @@ async function createApp() {
 
   // Middleware
   app.use(cors({
-    origin: '*',
+    origin: true, // Reflects the request origin, compatible with credentials: true
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
   }))
 
   app.use(express.json({ limit: '50mb' }))
@@ -64,14 +64,29 @@ async function createApp() {
   app.get('/api/health', (_, res) => {
     res.json({ 
       success: true, 
-      message: 'Server is running', 
+      status: 'online',
+      message: 'See Mee API is fully functional', 
       mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      timestamp: new Date().toISOString(),
       env: {
         hasMongoUri: !!process.env.MONGODB_URI,
         hasJwtSecret: !!process.env.JWT_SECRET,
         hasCloudinary: !!process.env.CLOUDINARY_CLOUD_NAME,
         nodeEnv: process.env.NODE_ENV
       }
+    })
+  })
+
+  // Simple ping route
+  app.get('/api/ping', (_, res) => res.send('pong'))
+
+  // Root API route
+  app.get('/api', (_, res) => {
+    res.json({
+      success: true,
+      message: 'See Mee Backend API Root',
+      version: '1.0.0',
+      health: '/api/health'
     })
   })
 
