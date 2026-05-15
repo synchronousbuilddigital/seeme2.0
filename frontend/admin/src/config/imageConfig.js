@@ -148,7 +148,7 @@ export const DEFAULT_PRODUCT_IMAGES = {
   sharara: 'https://images.unsplash.com/photo-1617627143750-d86bc21e44bb?auto=format&fit=crop&q=80&w=800',
   saree: 'https://images.unsplash.com/photo-1563857671-127f341e4e3c?auto=format&fit=crop&q=80&w=800',
   lehenga: 'https://images.unsplash.com/photo-1552053831-71594a27c62d?auto=format&fit=crop&q=80&w=800',
-  placeholder: 'https://via.placeholder.com/400x500?text=Product+Image'
+  placeholder: 'https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?auto=format&fit=crop&q=80&w=800'
 }
 
 // ============================================

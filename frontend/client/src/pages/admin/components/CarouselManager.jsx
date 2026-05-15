@@ -224,31 +224,31 @@ const CarouselManager = () => {
 
     const defaultImages = [
       {
-        image: 'https://via.placeholder.com/400x600?text=Carousel+1',
+        image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200',
         title: 'Anarkali',
         subtitle: 'Timeless Grace',
         order: 0
       },
       {
-        image: 'https://via.placeholder.com/400x600?text=Carousel+2',
+        image: 'https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?auto=format&fit=crop&q=80&w=1200',
         title: 'Anarkali',
         subtitle: 'Contemporary Elegance',
         order: 1
       },
       {
-        image: 'https://via.placeholder.com/400x600?text=Carousel+3',
+        image: 'https://images.unsplash.com/photo-1610173826014-9336df76906a?auto=format&fit=crop&q=80&w=1200',
         title: 'Palazzo',
         subtitle: 'Contemporary Comfort',
         order: 2
       },
       {
-        image: 'https://via.placeholder.com/400x600?text=Carousel+4',
+        image: 'https://images.unsplash.com/photo-1589156206699-bc21e38c8a7d?auto=format&fit=crop&q=80&w=1200',
         title: 'Straight Cut',
         subtitle: 'Classic Sophistication',
         order: 3
       },
       {
-        image: 'https://via.placeholder.com/400x600?text=Carousel+5',
+        image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e44bb?auto=format&fit=crop&q=80&w=1200',
         title: 'Sharara',
         subtitle: 'Regal Charm',
         order: 4

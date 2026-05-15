@@ -133,25 +133,25 @@ const MagazineManager = () => {
       {
         title: 'Timeless Elegance',
         description: 'Crafted with passion, designed for grace. Every stitch tells a story of tradition and artistry.',
-        image: 'https://via.placeholder.com/600x800?text=Magazine+1',
+        image: 'https://images.unsplash.com/photo-1595776613215-fe04b78de7d0?auto=format&fit=crop&q=80&w=1200',
         order: 0
       },
       {
         title: 'Heritage Redefined',
         description: 'Where ancient craftsmanship meets contemporary style, creating pieces that transcend time.',
-        image: 'https://via.placeholder.com/600x800?text=Magazine+2',
+        image: 'https://images.unsplash.com/photo-1610173826014-9336df76906a?auto=format&fit=crop&q=80&w=1200',
         order: 1
       },
       {
         title: 'Artisan Excellence',
         description: 'Hand-picked fabrics, intricate embroidery, and attention to detail that defines luxury.',
-        image: 'https://via.placeholder.com/600x800?text=Magazine+3',
+        image: 'https://images.unsplash.com/photo-1589156206699-bc21e38c8a7d?auto=format&fit=crop&q=80&w=1200',
         order: 2
       },
       {
         title: 'Your Story, Our Creation',
         description: 'Each piece is a celebration of individuality, designed to make you feel extraordinary.',
-        image: 'https://via.placeholder.com/600x800?text=Magazine+4',
+        image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e44bb?auto=format&fit=crop&q=80&w=1200',
         order: 3
       }
     ]
