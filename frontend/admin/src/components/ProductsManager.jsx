@@ -5,7 +5,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
 import './ProductsManager.css'
 
-const ProductsManager = () => {
+const ProductsManager = ({ onPromoteToHero }) => {
   const MAX_IMAGE_SIZE_MB = 10
   const MAX_VIDEO_SIZE_MB = 100
   const [products, setProducts] = useState([])
@@ -96,7 +96,7 @@ const ProductsManager = () => {
           const hasNewNotifications = localStorage.getItem('lastCollectionCheck')
           const currentCount = collectionProducts.length
           const lastCount = parseInt(hasNewNotifications || '0')
-          
+
           if (currentCount > lastCount) {
             setShowNotificationModal(true)
             localStorage.setItem('lastCollectionCheck', currentCount.toString())
@@ -146,7 +146,7 @@ const ProductsManager = () => {
 
     setUploading(true)
     setUploadProgress(10) // Start
-    
+
     // Progress simulation
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => (prev < 90 ? prev + 5 : prev))
@@ -162,7 +162,7 @@ const ProductsManager = () => {
         isFormData: true,
         body: uploadFormData
       })
-      
+
       clearInterval(progressInterval)
       setUploadProgress(100)
 
@@ -215,8 +215,8 @@ const ProductsManager = () => {
 
       setUploadProgress(100)
       if (data.success) {
-        setFormData(prev => ({ 
-          ...prev, 
+        setFormData(prev => ({
+          ...prev,
           video: normalizeMediaUrl(data.data)
         }))
         showNotification('Video uploaded successfully')
@@ -238,7 +238,7 @@ const ProductsManager = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+
     if (!formData.images || formData.images.length === 0) {
       showNotification('Please upload at least one image', 'error')
       return
@@ -246,12 +246,12 @@ const ProductsManager = () => {
 
     const totalStock = formData.sizeStock.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
     const wasEditing = Boolean(editingProduct)
-    
+
     try {
-      const url = editingProduct 
+      const url = editingProduct
         ? `${API_ENDPOINTS.PRODUCTS}/${editingProduct._id}`
         : API_ENDPOINTS.PRODUCTS
-      
+
       const payload = {
         name: formData.name,
         slug: formData.slug,
@@ -259,7 +259,7 @@ const ProductsManager = () => {
         shortDescription: formData.shortDescription,
         category: formData.category,
         subcategory: formData.subcategory,
-        sku: formData.sku,
+        sku: formData.sku.trim() || undefined,
         price: parseFloat(formData.price),
         discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
         stock: totalStock,
@@ -282,7 +282,7 @@ const ProductsManager = () => {
         auth: true,
         body: payload
       })
-      
+
       if (data.success) {
         fetchProducts()
         resetForm()
@@ -357,16 +357,16 @@ const ProductsManager = () => {
       price: product.price.toString(),
       discountPrice: product.discountPrice ? product.discountPrice.toString() : '',
       stock: product.stock.toString(),
-      sizeStock: product.sizeStock && product.sizeStock.length > 0 
-        ? product.sizeStock 
+      sizeStock: product.sizeStock && product.sizeStock.length > 0
+        ? product.sizeStock
         : [
-            { size: 'XS', quantity: 0 },
-            { size: 'S', quantity: 0 },
-            { size: 'M', quantity: 0 },
-            { size: 'L', quantity: 0 },
-            { size: 'XL', quantity: 0 },
-            { size: 'XXL', quantity: 0 }
-          ],
+          { size: 'XS', quantity: 0 },
+          { size: 'S', quantity: 0 },
+          { size: 'M', quantity: 0 },
+          { size: 'L', quantity: 0 },
+          { size: 'XL', quantity: 0 },
+          { size: 'XXL', quantity: 0 }
+        ],
       sizes: product.sizes || [],
       colors: product.colors || [],
       featured: product.featured,
@@ -397,16 +397,16 @@ const ProductsManager = () => {
       price: product.price.toString(),
       discountPrice: product.discountPrice ? product.discountPrice.toString() : '',
       stock: product.stock.toString(),
-      sizeStock: product.sizeStock && product.sizeStock.length > 0 
+      sizeStock: product.sizeStock && product.sizeStock.length > 0
         ? JSON.parse(JSON.stringify(product.sizeStock))
         : [
-            { size: 'XS', quantity: 0 },
-            { size: 'S', quantity: 0 },
-            { size: 'M', quantity: 0 },
-            { size: 'L', quantity: 0 },
-            { size: 'XL', quantity: 0 },
-            { size: 'XXL', quantity: 0 }
-          ],
+          { size: 'XS', quantity: 0 },
+          { size: 'S', quantity: 0 },
+          { size: 'M', quantity: 0 },
+          { size: 'L', quantity: 0 },
+          { size: 'XL', quantity: 0 },
+          { size: 'XXL', quantity: 0 }
+        ],
       sizes: [...(product.sizes || [])],
       colors: [...(product.colors || [])],
       featured: false,
@@ -450,7 +450,7 @@ const ProductsManager = () => {
     <div className="products-manager">
       {/* Collection Notification Modal */}
       {showNotificationModal && collectionNotifications.length > 0 && (
-        <motion.div 
+        <motion.div
           className="notification-modal-overlay"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -459,7 +459,7 @@ const ProductsManager = () => {
           aria-modal="true"
           aria-label="Collection products available notification"
         >
-          <motion.div 
+          <motion.div
             className="notification-modal"
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
@@ -468,30 +468,30 @@ const ProductsManager = () => {
             <div className="notification-header">
               <div className="notification-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
               </div>
               <h3>Collection Products Available!</h3>
               <button className="close-notification-btn" onClick={() => setShowNotificationModal(false)}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            
+
             <div className="notification-body">
               <p className="notification-message">
-                You have <strong>{collectionNotifications.length} product(s)</strong> in your collection. 
+                You have <strong>{collectionNotifications.length} product(s)</strong> in your collection.
                 These products are already added to your product list and visible on the website.
               </p>
-              
+
               <div className="notification-products">
                 {collectionNotifications.slice(0, 5).map((product) => (
                   <div key={product._id} className="notification-product-item">
-                    <img 
-                      src={getImageUrl(product.images?.[0])} 
+                    <img
+                      src={getImageUrl(product.images?.[0])}
                       alt={product.name}
                       className="notification-product-thumb"
                     />
@@ -502,7 +502,7 @@ const ProductsManager = () => {
                     </div>
                     <div className="notification-product-status">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50">
-                        <polyline points="20 6 9 17 4 12"/>
+                        <polyline points="20 6 9 17 4 12" />
                       </svg>
                       <span>Active</span>
                     </div>
@@ -514,9 +514,9 @@ const ProductsManager = () => {
                   </p>
                 )}
               </div>
-              
+
               <div className="notification-actions">
-                <button 
+                <button
                   className="view-collection-btn"
                   onClick={() => {
                     setShowNotificationModal(false)
@@ -525,7 +525,7 @@ const ProductsManager = () => {
                 >
                   View Collection
                 </button>
-                <button 
+                <button
                   className="dismiss-btn"
                   onClick={() => setShowNotificationModal(false)}
                 >
@@ -544,14 +544,14 @@ const ProductsManager = () => {
         </div>
         <div className="header-actions">
           {collectionNotifications.length > 0 && (
-            <button 
+            <button
               className="notification-badge-btn"
               onClick={() => setShowNotificationModal(true)}
               title="Collection products notification"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
               <span className="notification-count">{collectionNotifications.length}</span>
             </button>
@@ -601,7 +601,7 @@ const ProductsManager = () => {
       <AnimatePresence>
         {showForm && (
           <div className="modal-overlay" onClick={resetForm}>
-            <motion.div 
+            <motion.div
               className="product-form-drawer"
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
@@ -613,245 +613,245 @@ const ProductsManager = () => {
                 <h2>{editingProduct ? 'Edit Product' : 'New Product'}</h2>
                 <button className="close-drawer-btn" onClick={resetForm}>&times;</button>
               </div>
-          <div className="form-header-tabs">
-            <button className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
-            <button className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
-            <button className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
-            <button className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
-            <button className={formTab === 'seo' ? 'active' : ''} onClick={() => setFormTab('seo')}>SEO</button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="tabbed-form">
-            {formTab === 'general' && (
-              <div className="form-tab-content">
-                <div className="form-group">
-                  <label>Product Name *</label>
-                  <input type="text" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} required placeholder="e.g. Vintage Silk Anarkali" />
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Category *</label>
-                    <select value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} required>
-                      {availableCategories.map(cat => (
-                        <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-                      ))}
-                      <option value="new">+ Add New Category</option>
-                    </select>
-                    {formData.category === 'new' && (
-                      <input 
-                        type="text" 
-                        placeholder="Type new category name" 
-                        className="mt-2"
-                        onBlur={(e) => {
-                          if (e.target.value) {
-                            setAvailableCategories(prev => [...new Set([...prev, e.target.value.toLowerCase()])])
-                            setFormData({...formData, category: e.target.value.toLowerCase()})
-                          }
-                        }}
-                      />
-                    )}
-                  </div>
-                  <div className="form-group">
-                    <label>Subcategory</label>
-                    <input type="text" value={formData.subcategory} onChange={(e) => setFormData({...formData, subcategory: e.target.value})} placeholder="e.g. Wedding Wear" />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Short Description</label>
-                  <input type="text" value={formData.shortDescription} onChange={(e) => setFormData({...formData, shortDescription: e.target.value})} placeholder="Brief highlight for product cards" />
-                </div>
-                <div className="form-group">
-                  <label>Full Description *</label>
-                  <textarea value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows="4" required placeholder="Detailed product storytelling..." />
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Price (₹) *</label>
-                    <input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} required min="0" />
-                  </div>
-                  <div className="form-group">
-                    <label>Discount Price (₹)</label>
-                    <input type="number" value={formData.discountPrice} onChange={(e) => setFormData({...formData, discountPrice: e.target.value})} min="0" />
-                  </div>
-                </div>
+              <div className="form-header-tabs">
+                <button className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
+                <button className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
+                <button className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
+                <button className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
+                <button className={formTab === 'seo' ? 'active' : ''} onClick={() => setFormTab('seo')}>SEO</button>
               </div>
-            )}
 
-            {formTab === 'media' && (
-              <div className="form-tab-content">
-                <div className="form-group">
-                  <label>Main Product Images (Max 10)</label>
-                  <div 
-                    className={`media-upload-zone ${uploading ? 'uploading' : ''}`} 
-                    onClick={() => !uploading && document.getElementById('image-upload').click()}
-                  >
-                    {uploading ? (
-                      <div className="upload-loader">
-                        <div className="spinner-luxury"></div>
-                        <p>Uploading high-resolution assets...</p>
-                        <div className="progress-bar-container">
-                          <motion.div 
-                            className="progress-bar-fill"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${uploadProgress}%` }}
+              <form onSubmit={handleSubmit} className="tabbed-form">
+                {formTab === 'general' && (
+                  <div className="form-tab-content">
+                    <div className="form-group">
+                      <label>Product Name *</label>
+                      <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required placeholder="e.g. Vintage Silk Anarkali" />
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Category *</label>
+                        <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
+                          {availableCategories.map(cat => (
+                            <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+                          ))}
+                          <option value="new">+ Add New Category</option>
+                        </select>
+                        {formData.category === 'new' && (
+                          <input
+                            type="text"
+                            placeholder="Type new category name"
+                            className="mt-2"
+                            onBlur={(e) => {
+                              if (e.target.value) {
+                                setAvailableCategories(prev => [...new Set([...prev, e.target.value.toLowerCase()])])
+                                setFormData({ ...formData, category: e.target.value.toLowerCase() })
+                              }
+                            }}
                           />
-                        </div>
-                        <span className="progress-text">{uploadProgress}% Complete</span>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <div className="upload-icon-container">
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-                          </svg>
-                        </div>
-                        <div className="upload-text">
-                          <p className="main-text">Drop Masterpiece Images Here</p>
-                          <p className="sub-text">Recommended: 1200x1600px | WEBP or JPG</p>
-                        </div>
-                      </>
-                    )}
-                    <input id="image-upload" type="file" multiple accept="image/*" style={{display:'none'}} onChange={(e) => handleMediaUpload(e.target.files, 'images')} />
+                      <div className="form-group">
+                        <label>Subcategory</label>
+                        <input type="text" value={formData.subcategory} onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })} placeholder="e.g. Wedding Wear" />
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Short Description</label>
+                      <input type="text" value={formData.shortDescription} onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })} placeholder="Brief highlight for product cards" />
+                    </div>
+                    <div className="form-group">
+                      <label>Full Description *</label>
+                      <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="4" required placeholder="Detailed product storytelling..." />
+                    </div>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Price (₹) *</label>
+                        <input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required min="0" />
+                      </div>
+                      <div className="form-group">
+                        <label>Discount Price (₹)</label>
+                        <input type="number" value={formData.discountPrice} onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })} min="0" />
+                      </div>
+                    </div>
                   </div>
-                  
-                  <div className="media-previews-grid">
-                    {formData.images.map((img, i) => (
-                      <motion.div 
-                        key={i} 
-                        className={`media-thumb-premium ${i === 0 ? 'is-cover' : ''}`}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.05 }}
+                )}
+
+                {formTab === 'media' && (
+                  <div className="form-tab-content">
+                    <div className="form-group">
+                      <label>Main Product Images (Max 10)</label>
+                      <div
+                        className={`media-upload-zone ${uploading ? 'uploading' : ''}`}
+                        onClick={() => !uploading && document.getElementById('image-upload').click()}
                       >
-                        <img src={getImageUrl(img)} alt="" />
-                        <div className="thumb-actions">
-                          <button type="button" className="action-btn delete" onClick={() => setFormData({...formData, images: formData.images.filter((_, idx) => idx !== i)})}>
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                          </button>
+                        {uploading ? (
+                          <div className="upload-loader">
+                            <div className="spinner-luxury"></div>
+                            <p>Uploading high-resolution assets...</p>
+                            <div className="progress-bar-container">
+                              <motion.div
+                                className="progress-bar-fill"
+                                initial={{ width: 0 }}
+                                animate={{ width: `${uploadProgress}%` }}
+                              />
+                            </div>
+                            <span className="progress-text">{uploadProgress}% Complete</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="upload-icon-container">
+                              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                              </svg>
+                            </div>
+                            <div className="upload-text">
+                              <p className="main-text">Drop Masterpiece Images Here</p>
+                              <p className="sub-text">Recommended: 1200x1600px | WEBP or JPG</p>
+                            </div>
+                          </>
+                        )}
+                        <input id="image-upload" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleMediaUpload(e.target.files, 'images')} />
+                      </div>
+
+                      <div className="media-previews-grid">
+                        {formData.images.map((img, i) => (
+                          <motion.div
+                            key={i}
+                            className={`media-thumb-premium ${i === 0 ? 'is-cover' : ''}`}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: i * 0.05 }}
+                          >
+                            <img src={getImageUrl(img)} alt="" />
+                            <div className="thumb-actions">
+                              <button type="button" className="action-btn delete" onClick={() => setFormData({ ...formData, images: formData.images.filter((_, idx) => idx !== i) })}>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+                              </button>
+                            </div>
+                            {i === 0 && <span className="cover-label">COVER IMAGE</span>}
+                          </motion.div>
+                        ))}
+                        {formData.images.length === 0 && !uploading && (
+                          <div className="empty-media-placeholder">
+                            <p>No images uploaded yet</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>3D Preview Assets</label>
+                        <input type="file" multiple accept="image/*" onChange={(e) => handleMediaUpload(e.target.files, 'preview3dImages')} />
+                      </div>
+                      <div className="form-group">
+                        <label>Video Showcase</label>
+                        <input type="file" accept="video/*" onChange={(e) => handleVideoUpload(e.target.files[0])} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {formTab === 'inventory' && (
+                  <div className="form-tab-content">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>SKU (Stock Keeping Unit)</label>
+                        <input type="text" value={formData.sku} onChange={(e) => setFormData({ ...formData, sku: e.target.value })} placeholder="e.g. SM-ANK-001" />
+                      </div>
+                      <div className="form-group">
+                        <label>Total Available Stock</label>
+                        <input type="number" value={formData.sizeStock.reduce((s, i) => s + i.quantity, 0)} disabled className="disabled-input" />
+                      </div>
+                    </div>
+                    <div className="inventory-grid">
+                      <h3>Size-wise Stock Distribution</h3>
+                      <div className="size-stock-grid">
+                        {formData.sizeStock.map((item, index) => (
+                          <div key={item.size} className="size-stock-item">
+                            <label>{item.size}</label>
+                            <input type="number" value={item.quantity} min="0" onChange={(e) => {
+                              const newStock = [...formData.sizeStock];
+                              newStock[index].quantity = parseInt(e.target.value) || 0;
+                              setFormData({ ...formData, sizeStock: newStock });
+                            }} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {formTab === 'advanced' && (
+                  <div className="form-tab-content">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Dimensions (LxWxH in cm)</label>
+                        <div className="triple-input">
+                          <input type="number" placeholder="L" value={formData.dimensions?.length} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })} />
+                          <input type="number" placeholder="W" value={formData.dimensions?.width} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })} />
+                          <input type="number" placeholder="H" value={formData.dimensions?.height} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} />
                         </div>
-                        {i === 0 && <span className="cover-label">COVER IMAGE</span>}
-                      </motion.div>
-                    ))}
-                    {formData.images.length === 0 && !uploading && (
-                      <div className="empty-media-placeholder">
-                        <p>No images uploaded yet</p>
                       </div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>3D Preview Assets</label>
-                    <input type="file" multiple accept="image/*" onChange={(e) => handleMediaUpload(e.target.files, 'preview3dImages')} />
-                  </div>
-                  <div className="form-group">
-                    <label>Video Showcase</label>
-                    <input type="file" accept="video/*" onChange={(e) => handleVideoUpload(e.target.files[0])} />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {formTab === 'inventory' && (
-              <div className="form-tab-content">
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>SKU (Stock Keeping Unit)</label>
-                    <input type="text" value={formData.sku} onChange={(e) => setFormData({...formData, sku: e.target.value})} placeholder="e.g. SM-ANK-001" />
-                  </div>
-                  <div className="form-group">
-                    <label>Total Available Stock</label>
-                    <input type="number" value={formData.sizeStock.reduce((s, i) => s + i.quantity, 0)} disabled className="disabled-input" />
-                  </div>
-                </div>
-                <div className="inventory-grid">
-                  <h3>Size-wise Stock Distribution</h3>
-                  <div className="size-stock-grid">
-                    {formData.sizeStock.map((item, index) => (
-                      <div key={item.size} className="size-stock-item">
-                        <label>{item.size}</label>
-                        <input type="number" value={item.quantity} min="0" onChange={(e) => {
-                          const newStock = [...formData.sizeStock];
-                          newStock[index].quantity = parseInt(e.target.value) || 0;
-                          setFormData({...formData, sizeStock: newStock});
-                        }} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {formTab === 'advanced' && (
-              <div className="form-tab-content">
-                 <div className="form-row">
-                    <div className="form-group">
-                      <label>Dimensions (LxWxH in cm)</label>
-                      <div className="triple-input">
-                        <input type="number" placeholder="L" value={formData.dimensions?.length} onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, length: e.target.value}})} />
-                        <input type="number" placeholder="W" value={formData.dimensions?.width} onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, width: e.target.value}})} />
-                        <input type="number" placeholder="H" value={formData.dimensions?.height} onChange={(e) => setFormData({...formData, dimensions: {...formData.dimensions, height: e.target.value}})} />
+                      <div className="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" value={formData.weight?.value} onChange={(e) => setFormData({ ...formData, weight: { ...formData.weight, value: e.target.value } })} />
                       </div>
                     </div>
                     <div className="form-group">
-                      <label>Weight (kg)</label>
-                      <input type="number" value={formData.weight?.value} onChange={(e) => setFormData({...formData, weight: {...formData.weight, value: e.target.value}})} />
+                      <label>Materials (e.g. Silk, Cotton)</label>
+                      <input type="text" value={Array.isArray(formData.materials) ? formData.materials.join(', ') : ''} onChange={(e) => setFormData({ ...formData, materials: e.target.value.split(',').map(m => m.trim()) })} placeholder="Comma separated" />
                     </div>
-                 </div>
-                 <div className="form-group">
-                    <label>Materials (e.g. Silk, Cotton)</label>
-                    <input type="text" value={Array.isArray(formData.materials) ? formData.materials.join(', ') : ''} onChange={(e) => setFormData({...formData, materials: e.target.value.split(',').map(m => m.trim())})} placeholder="Comma separated" />
-                 </div>
-                 <div className="checkbox-row-premium">
-                    <label className="checkbox-container">
-                      <input type="checkbox" checked={formData.featured} onChange={(e) => setFormData({...formData, featured: e.target.checked})} />
-                      <span className="checkmark"></span>
-                      Featured Product
-                    </label>
-                    <label className="checkbox-container">
-                      <input type="checkbox" checked={formData.inCollection} onChange={(e) => setFormData({...formData, inCollection: e.target.checked})} />
-                      <span className="checkmark"></span>
-                      Add to Collection
-                    </label>
-                    <label className="checkbox-container">
-                      <input type="checkbox" checked={formData.isNewArrival} onChange={(e) => setFormData({...formData, isNewArrival: e.target.checked})} />
-                      <span className="checkmark"></span>
-                      Set as New Arrival
-                    </label>
-                 </div>
-              </div>
-            )}
-
-            {formTab === 'seo' && (
-              <div className="form-tab-content">
-                <div className="form-group">
-                  <label>SEO Title</label>
-                  <input type="text" value={formData.seo?.title} onChange={(e) => setFormData({...formData, seo: {...formData.seo, title: e.target.value}})} placeholder="Google search title" />
-                </div>
-                <div className="form-group">
-                  <label>SEO Description</label>
-                  <textarea value={formData.seo?.description} onChange={(e) => setFormData({...formData, seo: {...formData.seo, description: e.target.value}})} rows="3" placeholder="Meta description for search engines" />
-                </div>
-                <div className="seo-preview">
-                  <span className="preview-label">Search Engine Preview</span>
-                  <div className="preview-content">
-                    <p className="p-title">{formData.seo?.title || formData.name}</p>
-                    <p className="p-url">seemee.com/products/{formData.slug || 'product-slug'}</p>
-                    <p className="p-desc">{formData.seo?.description || formData.shortDescription || 'Search results preview...'}</p>
+                    <div className="checkbox-row-premium">
+                      <label className="checkbox-container">
+                        <input type="checkbox" checked={formData.featured} onChange={(e) => setFormData({ ...formData, featured: e.target.checked })} />
+                        <span className="checkmark"></span>
+                        Featured Product
+                      </label>
+                      <label className="checkbox-container">
+                        <input type="checkbox" checked={formData.inCollection} onChange={(e) => setFormData({ ...formData, inCollection: e.target.checked })} />
+                        <span className="checkmark"></span>
+                        Add to Collection
+                      </label>
+                      <label className="checkbox-container">
+                        <input type="checkbox" checked={formData.isNewArrival} onChange={(e) => setFormData({ ...formData, isNewArrival: e.target.checked })} />
+                        <span className="checkmark"></span>
+                        Set as New Arrival
+                      </label>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            <div className="form-actions-sticky">
-              <button type="button" className="cancel-btn" onClick={resetForm}>Cancel</button>
-              <button type="submit" className="save-btn">{editingProduct ? 'Update Product' : 'Create Product'}</button>
-            </div>
-          </form>
-        </motion.div>
-      </div>
-      )}
+                {formTab === 'seo' && (
+                  <div className="form-tab-content">
+                    <div className="form-group">
+                      <label>SEO Title</label>
+                      <input type="text" value={formData.seo?.title} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, title: e.target.value } })} placeholder="Google search title" />
+                    </div>
+                    <div className="form-group">
+                      <label>SEO Description</label>
+                      <textarea value={formData.seo?.description} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, description: e.target.value } })} rows="3" placeholder="Meta description for search engines" />
+                    </div>
+                    <div className="seo-preview">
+                      <span className="preview-label">Search Engine Preview</span>
+                      <div className="preview-content">
+                        <p className="p-title">{formData.seo?.title || formData.name}</p>
+                        <p className="p-url">seemee.com/products/{formData.slug || 'product-slug'}</p>
+                        <p className="p-desc">{formData.seo?.description || formData.shortDescription || 'Search results preview...'}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="form-actions-sticky">
+                  <button type="button" className="cancel-btn" onClick={resetForm}>Cancel</button>
+                  <button type="submit" className="save-btn">{editingProduct ? 'Update Product' : 'Create Product'}</button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
 
       <div className="products-list">
@@ -893,17 +893,17 @@ const ProductsManager = () => {
                     <span className="table-price">₹{product.price.toLocaleString()}</span>
                   </td>
                   <td className="stock-column">
-                      <div className="table-stock-cell">
-                        <span className={`stock-dot ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}></span>
-                        <span>{product.stock} Units</span>
-                      </div>
-                      <div className="stock-health-bar">
-                        <div 
-                          className={`health-fill ${product.stock < 5 ? 'critical' : product.stock < 15 ? 'low' : 'healthy'}`} 
-                          style={{ width: `${Math.min(100, (product.stock / 50) * 100)}%` }}
-                        ></div>
-                      </div>
-                    </td>
+                    <div className="table-stock-cell">
+                      <span className={`stock-dot ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}></span>
+                      <span>{product.stock} Units</span>
+                    </div>
+                    <div className="stock-health-bar">
+                      <div
+                        className={`health-fill ${product.stock < 5 ? 'critical' : product.stock < 15 ? 'low' : 'healthy'}`}
+                        style={{ width: `${Math.min(100, (product.stock / 50) * 100)}%` }}
+                      ></div>
+                    </div>
+                  </td>
                   <td>
                     <div className="status-badges">
                       {product.featured && <span className="mini-badge featured">Featured</span>}
@@ -913,11 +913,18 @@ const ProductsManager = () => {
                   </td>
                   <td>
                     <div className="table-actions">
+                      <button 
+                        onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)} 
+                        className="action-icon-btn hero" 
+                        title="Promote to Hero"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                      </button>
                       <button onClick={() => startEdit(product)} className="action-icon-btn edit" title="Edit Product">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                       </button>
                       <button onClick={() => handleDuplicate(product)} className="action-icon-btn duplicate" title="Duplicate Product">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
                       </button>
                       <button onClick={() => setProductToDelete(product)} className="action-icon-btn delete" title="Delete Product">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -957,7 +964,7 @@ const ProductsManager = () => {
       <AnimatePresence>
         {productToDelete && (
           <div className="modal-overlay" onClick={() => setProductToDelete(null)}>
-            <motion.div 
+            <motion.div
               className="confirm-modal"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -979,7 +986,7 @@ const ProductsManager = () => {
       {/* Toast Notification */}
       <AnimatePresence>
         {notification.show && (
-          <motion.div 
+          <motion.div
             className={`toast-notification ${notification.type}`}
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}

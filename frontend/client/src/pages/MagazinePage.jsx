@@ -151,7 +151,7 @@ const MagazinePage = () => {
       } else {
         loadedStories = fallbackStories.map((story, index) => normalizeStory(story, index))
       }
-      
+
       setStories(loadedStories.slice(0, 5))
     } catch (error) {
       console.error('Error fetching magazine stories:', error)
@@ -243,9 +243,9 @@ const MagazinePage = () => {
             <div className="book-page left" onClick={handlePrev} style={{ cursor: currentPage > 0 ? 'pointer' : 'default' }}>
               <div className="page-spine"></div>
               <div className="visual-side">
-                <img 
-                  src={getOptimizedImageUrl(currentStory.image, 'large')} 
-                  alt={currentStory.title} 
+                <img
+                  src={getOptimizedImageUrl(currentStory.image, 'large')}
+                  alt={currentStory.title}
                 />
                 <div className="visual-overlay"></div>
                 <div className="visual-caption">
@@ -263,10 +263,10 @@ const MagazinePage = () => {
                   <span>{currentStory.readTime}</span>
                   <span>{currentStory.date}</span>
                 </div>
-                
+
                 <h2 className="narrative-title">{currentStory.title}</h2>
                 <p className="narrative-subtitle">{currentStory.subtitle}</p>
-                
+
                 <div className="narrative-body">
                   <p>{currentStory.description}</p>
                 </div>
@@ -283,21 +283,21 @@ const MagazinePage = () => {
       </div>
 
       <nav className="booklet-nav">
-        <button 
-          className="nav-btn" 
-          onClick={handlePrev} 
+        <button
+          className="nav-btn"
+          onClick={handlePrev}
           disabled={currentPage === 0}
         >
           ←
         </button>
-        
+
         <div className="page-indicator">
           <span>{String(currentPage + 1).padStart(2, '0')}</span> / {String(stories.length).padStart(2, '0')}
         </div>
 
-        <button 
-          className="nav-btn" 
-          onClick={handleNext} 
+        <button
+          className="nav-btn"
+          onClick={handleNext}
           disabled={currentPage === stories.length - 1}
         >
           →

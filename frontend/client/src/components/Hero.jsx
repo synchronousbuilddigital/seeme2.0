@@ -32,9 +32,9 @@ const Hero = () => {
       setLoading(true)
       const carouselResponse = await fetch(API_ENDPOINTS.CAROUSEL)
       const carouselData = await carouselResponse.json()
-      
+
       // Handle both 'isActive' and 'active' field naming variations
-      let heroSlides = carouselData.success 
+      let heroSlides = carouselData.success
         ? carouselData.data.filter(slide => (slide.isActive !== false && slide.active !== false) && slide.image)
         : []
 
@@ -62,7 +62,7 @@ const Hero = () => {
         ...(featuredData.success ? featuredData.data : []),
         ...(collectionData.success ? collectionData.data : [])
       ]
-      
+
       if (combined.length > 0) {
         // Filter out duplicate IDs
         const uniqueProducts = combined.filter(
@@ -207,80 +207,80 @@ const Hero = () => {
                 }}
               >
                 <div className="carousel-image-container">
-                    <img
-                      src={getOptimizedImageUrl(item.img, 'mobile-hero')}
-                      alt={`${item.category} - ${item.desc}`}
-                      fetchpriority={position === 0 ? "high" : "low"}
-                      loading={Math.abs(position) <= 1 ? "eager" : "lazy"}
-                    />
-                  </div>
-                  <motion.div
-                    className="carousel-label"
-                    animate={{
-                      opacity: position === 0 ? 1 : 0.7
-                    }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <span className="label-category">{item.category}</span>
-                    <span className="label-desc">{item.desc}</span>
-                  </motion.div>
-                </motion.div>
-              )
-            }
-  
-            // Desktop: use Framer Motion animations
-            const centerWidth = 380
-            const sideWidth = centerWidth * 0.72
-            const outerWidth = centerWidth * 0.52
-            const baseGap = centerWidth * 0.063
-  
-            const getGap = (pos) => {
-              if (pos === 0) return 0
-              if (pos === 1) return (centerWidth / 2) + baseGap + (sideWidth / 2)
-              if (pos === -1) return -((centerWidth / 2) + baseGap + (sideWidth / 2))
-              if (pos === 2) return (centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2)
-              if (pos === -2) return -((centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2))
-              return 0
-            }
-  
-            return (
-              <motion.div
-                key={idx}
-                className={`carousel-arch position-${position}`}
-                animate={{
-                  x: getGap(position),
-                  scale: position === 0 ? 1 : position === -1 || position === 1 ? 0.75 : 0.55,
-                  zIndex: position === 0 ? 5 : position === -1 || position === 1 ? 4 : 3,
-                  opacity: Math.abs(position) > 2 ? 0 : 1
-                }}
-                transition={{
-                  duration: 1.2,
-                  ease: [0.25, 0.1, 0.25, 1]
-                }}
-                onClick={() => {
-                  if (position === 0 && item.id) {
-                    navigate(`/product/${item.id}`);
-                  } else {
-                    setActiveIndex(idx);
-                  }
-                }}
-              >
-                <div className="carousel-image-container">
-                  <motion.img
-                    src={getOptimizedImageUrl(item.img, 'hero')}
+                  <img
+                    src={getOptimizedImageUrl(item.img, 'mobile-hero')}
                     alt={`${item.category} - ${item.desc}`}
                     fetchpriority={position === 0 ? "high" : "low"}
                     loading={Math.abs(position) <= 1 ? "eager" : "lazy"}
-                    style={{ objectPosition: 'center 20%' }}
-                    animate={Math.abs(position) > 0 ? {} : { scale: [1, 1.01] }}
-                    transition={Math.abs(position) > 0 ? {} : {
-                      duration: 4,
-                      ease: "easeInOut",
-                      repeat: Infinity,
-                      repeatType: "reverse"
-                    }}
                   />
                 </div>
+                <motion.div
+                  className="carousel-label"
+                  animate={{
+                    opacity: position === 0 ? 1 : 0.7
+                  }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <span className="label-category">{item.category}</span>
+                  <span className="label-desc">{item.desc}</span>
+                </motion.div>
+              </motion.div>
+            )
+          }
+
+          // Desktop: use Framer Motion animations
+          const centerWidth = 380
+          const sideWidth = centerWidth * 0.72
+          const outerWidth = centerWidth * 0.52
+          const baseGap = centerWidth * 0.063
+
+          const getGap = (pos) => {
+            if (pos === 0) return 0
+            if (pos === 1) return (centerWidth / 2) + baseGap + (sideWidth / 2)
+            if (pos === -1) return -((centerWidth / 2) + baseGap + (sideWidth / 2))
+            if (pos === 2) return (centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2)
+            if (pos === -2) return -((centerWidth / 2) + baseGap + sideWidth + baseGap + (outerWidth / 2))
+            return 0
+          }
+
+          return (
+            <motion.div
+              key={idx}
+              className={`carousel-arch position-${position}`}
+              animate={{
+                x: getGap(position),
+                scale: position === 0 ? 1 : position === -1 || position === 1 ? 0.75 : 0.55,
+                zIndex: position === 0 ? 5 : position === -1 || position === 1 ? 4 : 3,
+                opacity: Math.abs(position) > 2 ? 0 : 1
+              }}
+              transition={{
+                duration: 1.2,
+                ease: [0.25, 0.1, 0.25, 1]
+              }}
+              onClick={() => {
+                if (position === 0 && item.id) {
+                  navigate(`/product/${item.id}`);
+                } else {
+                  setActiveIndex(idx);
+                }
+              }}
+            >
+              <div className="carousel-image-container">
+                <motion.img
+                  src={getOptimizedImageUrl(item.img, 'hero')}
+                  alt={`${item.category} - ${item.desc}`}
+                  fetchpriority={position === 0 ? "high" : "low"}
+                  loading={Math.abs(position) <= 1 ? "eager" : "lazy"}
+                  style={{ objectPosition: 'center 20%' }}
+                  animate={Math.abs(position) > 0 ? {} : { scale: [1, 1.01] }}
+                  transition={Math.abs(position) > 0 ? {} : {
+                    duration: 4,
+                    ease: "easeInOut",
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                />
+              </div>
               <motion.div
                 className="carousel-label"
                 animate={{

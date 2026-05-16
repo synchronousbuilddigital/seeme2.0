@@ -24,5 +24,7 @@ export const API_ENDPOINTS = {
     IMAGES: `${API_BASE_URL}/api/upload/images`,
     VIDEO: `${API_BASE_URL}/api/upload/video`
   },
-  SITE_SETTINGS: `${API_BASE_URL}/api/site-settings`
+  SITE_SETTINGS: `${API_BASE_URL}/api/site-settings`,
+  HERO_CAROUSEL: `${API_BASE_URL}/api/carousel`,
+  HERO_CAROUSEL_ALL: `${API_BASE_URL}/api/carousel/all`
 }

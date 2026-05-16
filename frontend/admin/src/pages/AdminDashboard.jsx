@@ -13,6 +13,7 @@ import InventoryManager from '../components/InventoryManager'
 import CustomersManager from '../components/CustomersManager'
 import PaymentsManager from '../components/PaymentsManager'
 import ActivityManager from '../components/ActivityManager'
+import HeroCarouselManager from '../components/HeroCarouselManager'
 import { isAdminSessionValid } from '../utils/apiClient'
 
 const AdminDashboard = () => {
@@ -29,6 +30,7 @@ const AdminDashboard = () => {
   })
   const [backendStatus, setBackendStatus] = useState('checking')
   const [lastSync, setLastSync] = useState(new Date())
+  const [selectedProductForHero, setSelectedProductForHero] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -146,6 +148,10 @@ const AdminDashboard = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
             <span>Categories</span>
           </button>
+          <button className={activeTab === 'hero' ? 'active' : ''} onClick={() => setActiveTab('hero')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <span>Hero Section</span>
+          </button>
         </nav>
 
         <button className="logout-btn" onClick={handleLogout}>
@@ -166,6 +172,7 @@ const AdminDashboard = () => {
                 {activeTab === 'customers' && 'Customer Registry'}
                 {activeTab === 'activity' && 'Real-time Activity'}
                 {activeTab === 'categories' && 'Category Slides'}
+                {activeTab === 'hero' && 'Hero Carousel'}
               </h1>
               <div className="sync-indicator">
                 <div className={`status-dot ${backendStatus}`}></div>
@@ -344,12 +351,25 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {activeTab === 'products' && <ProductsManager />}
+        {activeTab === 'products' && (
+          <ProductsManager 
+            onPromoteToHero={(product) => {
+              setSelectedProductForHero(product)
+              setActiveTab('hero')
+            }} 
+          />
+        )}
         {activeTab === 'orders' && <OrdersManager />}
         {activeTab === 'inventory' && <InventoryManager />}
         {activeTab === 'customers' && <CustomersManager />}
         {activeTab === 'activity' && <ActivityManager />}
         {activeTab === 'categories' && <CategoryManager />}
+        {activeTab === 'hero' && (
+          <HeroCarouselManager 
+            preSelectedProduct={selectedProductForHero} 
+            onClearPreSelected={() => setSelectedProductForHero(null)}
+          />
+        )}
       </main>
     </div>
   )

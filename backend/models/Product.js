@@ -18,7 +18,8 @@ const productSchema = new mongoose.Schema({
   sku: {
     type: String,
     unique: true,
-    sparse: true
+    sparse: true,
+    set: v => v === '' ? undefined : v
   },
   styleCode: {
     type: String,

@@ -7,7 +7,8 @@
   --book-paper: #fcfaf7;
   --book-gold: #c5a059;
   --book-text: #1a1a1a;
-  --page-width: 48vw; /* Large pages */
+  --page-width: 48vw;
+  /* Large pages */
   --page-height: 85vh;
 }
 
@@ -39,7 +40,7 @@
   inset: 0;
   pointer-events: none;
   z-index: -1;
-  background: 
+  background:
     radial-gradient(circle at 50% 0%, rgba(197, 160, 89, 0.15) 0%, transparent 60%),
     radial-gradient(circle at 50% 100%, rgba(0, 0, 0, 0.5) 0%, transparent 80%);
 }
@@ -69,7 +70,7 @@
   width: calc(var(--page-width) * 2);
   height: var(--page-height);
   transform-style: preserve-3d;
-  box-shadow: 0 50px 100px rgba(0,0,0,0.6);
+  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6);
   margin-top: 10vh;
   margin-bottom: 5vh;
 }
@@ -94,32 +95,32 @@
 
 .book-page.left {
   border-radius: 8px 0 0 8px;
-  box-shadow: 
-    inset -10px 0 30px rgba(0,0,0,0.05),
-    -2px 0 10px rgba(0,0,0,0.1);
+  box-shadow:
+    inset -10px 0 30px rgba(0, 0, 0, 0.05),
+    -2px 0 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .book-page.right {
   border-radius: 0 8px 8px 0;
-  box-shadow: 
-    inset 10px 0 30px rgba(0,0,0,0.05),
-    2px 0 10px rgba(0,0,0,0.1);
+  box-shadow:
+    inset 10px 0 30px rgba(0, 0, 0, 0.05),
+    2px 0 10px rgba(0, 0, 0, 0.1);
   transition: transform 0.4s ease, box-shadow 0.4s ease;
 }
 
 .book-page.left:hover {
   transform: translateX(-5px) rotateY(2deg);
-  box-shadow: 
-    inset -10px 0 30px rgba(0,0,0,0.08),
-    -10px 0 30px rgba(0,0,0,0.15);
+  box-shadow:
+    inset -10px 0 30px rgba(0, 0, 0, 0.08),
+    -10px 0 30px rgba(0, 0, 0, 0.15);
 }
 
 .book-page.right:hover {
   transform: translateX(5px) rotateY(-2deg);
-  box-shadow: 
-    inset 10px 0 30px rgba(0,0,0,0.08),
-    10px 0 30px rgba(0,0,0,0.15);
+  box-shadow:
+    inset 10px 0 30px rgba(0, 0, 0, 0.08),
+    10px 0 30px rgba(0, 0, 0, 0.15);
 }
 
 /* Page Spine (The Gutter) */
@@ -134,12 +135,12 @@
 
 .left .page-spine {
   right: 0;
-  background: linear-gradient(to left, rgba(0,0,0,0.2), transparent);
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.2), transparent);
 }
 
 .right .page-spine {
   left: 0;
-  background: linear-gradient(to right, rgba(0,0,0,0.2), transparent);
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.2), transparent);
 }
 
 /* Multi-page edge effect */
@@ -149,11 +150,16 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
 }
 
-.left::before { right: -2px; }
-.right::before { left: -2px; }
+.left::before {
+  right: -2px;
+}
+
+.right::before {
+  left: -2px;
+}
 
 /* --- Layouts --- */
 .visual-side {
@@ -170,7 +176,7 @@
 .visual-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 40%);
 }
 
 .visual-caption {
@@ -256,7 +262,7 @@
 .narrative-quote {
   margin-top: auto;
   padding-top: 4vh;
-  border-top: 1px solid rgba(0,0,0,0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .narrative-quote blockquote {
@@ -321,7 +327,7 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   z-index: 1001;
 }
 
@@ -406,14 +412,14 @@
     --page-width: 46vw;
     --page-height: 70vh;
   }
-  
+
   .booklet-stage {
     width: calc(var(--page-width) * 2);
     height: var(--page-height);
     margin-top: 15vh;
     transform: scale(0.95);
   }
-  
+
   .book-spread {
     grid-template-columns: 1fr 1fr;
   }
@@ -458,11 +464,11 @@
   }
 
   .newsletter-form input {
-    background: rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.05);
     padding: 1.2rem 2rem;
     border-radius: 100px;
     width: 100%;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .newsletter-form button {

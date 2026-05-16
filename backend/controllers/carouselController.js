@@ -23,10 +23,16 @@ export const getAllCarousel = asyncHandler(async (req, res) => {
 export const createCarousel = asyncHandler(async (req, res) => {
   const { image, productId, productName, productCategory, title, subtitle, order } = req.body
 
-  const existingOrder = await HeroCarousel.findOne({ order })
-  if (existingOrder) {
-    res.status(400)
-    throw new Error(`Order ${order} already exists. Please use a different order number.`)
+  // If order is provided, shift existing slides
+  if (order !== undefined) {
+    await HeroCarousel.updateMany(
+      { order: { $gte: order } },
+      { $inc: { order: 1 } }
+    )
+  } else {
+    // If no order provided, put at the end
+    const lastSlide = await HeroCarousel.findOne().sort({ order: -1 })
+    req.body.order = lastSlide ? lastSlide.order + 1 : 1
   }
 
   const carouselImage = await HeroCarousel.create({
@@ -36,7 +42,7 @@ export const createCarousel = asyncHandler(async (req, res) => {
     productCategory: productCategory || '',
     title: title || productName || '',
     subtitle: subtitle || productCategory || '',
-    order,
+    order: req.body.order,
     isActive: true
   })
 
@@ -48,15 +54,27 @@ export const createCarousel = asyncHandler(async (req, res) => {
 // @access  Admin
 export const updateCarousel = asyncHandler(async (req, res) => {
   const { image, productId, productName, productCategory, title, subtitle, order, isActive } = req.body
+  const currentSlide = await HeroCarousel.findById(req.params.id)
 
-  if (order !== undefined) {
-    const existingOrder = await HeroCarousel.findOne({
-      order,
-      _id: { $ne: req.params.id }
-    })
-    if (existingOrder) {
-      res.status(400)
-      throw new Error(`Order ${order} already exists. Please use a different order number.`)
+  if (!currentSlide) {
+    res.status(404)
+    throw new Error('Carousel image not found')
+  }
+
+  // Handle re-ordering if order changed
+  if (order !== undefined && order !== currentSlide.order) {
+    if (order > currentSlide.order) {
+      // Moving down: shift items between old and new position up
+      await HeroCarousel.updateMany(
+        { order: { $gt: currentSlide.order, $lte: order }, _id: { $ne: currentSlide._id } },
+        { $inc: { order: -1 } }
+      )
+    } else {
+      // Moving up: shift items between new and old position down
+      await HeroCarousel.updateMany(
+        { order: { $gte: order, $lt: currentSlide.order }, _id: { $ne: currentSlide._id } },
+        { $inc: { order: 1 } }
+      )
     }
   }
 
@@ -72,11 +90,6 @@ export const updateCarousel = asyncHandler(async (req, res) => {
     updateData,
     { new: true, runValidators: true }
   )
-
-  if (!carouselImage) {
-    res.status(404)
-    throw new Error('Carousel image not found')
-  }
 
   res.json({ success: true, data: carouselImage })
 })

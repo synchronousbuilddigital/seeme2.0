@@ -28,8 +28,7 @@ const heroCarouselSchema = new mongoose.Schema({
   },
   order: {
     type: Number,
-    required: true,
-    unique: true
+    required: true
   },
   isActive: {
     type: Boolean,
