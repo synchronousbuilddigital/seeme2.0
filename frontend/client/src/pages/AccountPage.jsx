@@ -153,20 +153,6 @@ const AccountPage = () => {
   }
 
   const [selectedOrder, setSelectedOrder] = useState(null)
-  const handleDeleteAddress = async (id) => {
-    try {
-      const response = await fetch(`${API_ENDPOINTS.USERS_ADDRESSES}/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      const data = await response.json()
-      if (data.success) {
-        setAddresses(data.data)
-      }
-    } catch (err) {
-      console.error('Error deleting address:', err)
-    }
-  }
 
   const handlePrint = (order) => {
     const orderCustomer = order.customer || {

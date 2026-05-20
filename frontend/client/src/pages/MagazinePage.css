@@ -252,8 +252,8 @@
 
 /* Locking flipping containers and underlayers to a fixed width of 590px (half of 1180px) 
    during opening/closing transitions to completely prevent child squeezing or layout jumps! */
-.book-hardcase-shell.opening .3d-flipping-page-container,
-.book-hardcase-shell.closing .3d-flipping-page-container {
+.book-hardcase-shell.opening .flipping-page-container-3d,
+.book-hardcase-shell.closing .flipping-page-container-3d {
   width: 590px !important;
   left: 50% !important;
   height: 100% !important;
@@ -995,7 +995,7 @@
 }
 
 /* ─── 3D PAGE FLIP MECHANICS ─── */
-.3d-flipping-page-container {
+.flipping-page-container-3d {
   transform-style: preserve-3d;
   position: absolute;
   z-index: 50;
@@ -1489,292 +1489,270 @@
   }
 
   .magazine-immersive-stage {
-    height: auto;
-    padding: 100px 6vw 40px;
+    height: 80vh !important;
+    min-height: 520px;
+    padding: 85px 4vw 40px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
-  /* MOBILE LAYOUT COLUMN */
-  .magazine-mobile-column {
+  /* 3D Single Page booklet scaling on mobile/tablet viewports */
+  .booklet-perspective-frame {
+    perspective: 1500px;
     width: 100%;
-    max-width: 600px;
+    height: 100%;
     display: flex;
-    flex-direction: column;
-    gap: 40px;
-    z-index: 10;
-  }
-
-  /* Mobile hardcover style banner */
-  .mobile-cover-plaque {
-    width: 100%;
-    background-color: var(--j-leather);
-    border-radius: 6px;
-    position: relative;
-    padding: 60px 30px;
-    text-align: center;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-    border: 1px solid var(--j-leather-edge);
-    overflow: hidden;
-  }
-
-  .cover-leather-texture {
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.1;
-  }
-
-  .mobile-cover-inside {
-    position: relative;
-    z-index: 5;
-    display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
   }
 
-  .edition-badge {
-    font-family: var(--font-sans);
-    font-size: 0.58rem;
-    letter-spacing: 0.25em;
+  .book-hardcase-shell.mobile-shell {
+    width: 88vw !important;
+    max-width: 360px !important;
+    height: 66vh !important;
+    max-height: 520px !important;
+    min-height: 440px !important;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5) !important;
+    transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  }
+  
+  .book-hardcase-shell.mobile-shell.open {
+    transform: none !important;
+    width: 88vw !important;
+    max-width: 360px !important;
+  }
+  
+  .book-spread-overlay.mobile-spread {
+    inset: 6px 8px !important;
+    display: block !important;
+    border-radius: 4px !important;
+    background-color: var(--j-paper) !important;
+  }
+
+  .book-spine-crease.mobile-spine {
+    left: 0 !important;
+    transform: none !important;
+    width: 18px !important;
+    background: linear-gradient(to right,
+      rgba(0, 0, 0, 0.45) 0%,
+      rgba(0, 0, 0, 0.22) 25%,
+      rgba(0, 0, 0, 0.08) 60%,
+      transparent 100%
+    ) !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.15) !important;
+    z-index: 99 !important;
+  }
+
+  .mobile-spread .book-page {
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    inset: 0 !important;
+    padding: 30px 22px 24px 26px !important;
+    border-radius: 4px !important;
+    border: none !important;
+    box-shadow: inset 5px 0 15px rgba(0,0,0,0.06) !important;
+  }
+
+  .mobile-flipping {
+    width: 100% !important;
+    height: 100% !important;
+    left: 0 !important;
+  }
+  
+  .mobile-cover-flipping {
+    width: 100% !important;
+    height: 100% !important;
+    left: 0 !important;
+  }
+
+  /* Micro Typography tuning for compact mobile sheets */
+  .mobile-spread .editorial-gold-title {
+    font-size: 1.25rem !important;
+    letter-spacing: 0.03em !important;
+    line-height: 1.25 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .mobile-spread .editorial-italic-subtitle {
+    font-size: 0.82rem !important;
+    line-height: 1.35 !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .mobile-spread .vintage-drop-cap {
+    font-size: 2.5rem !important;
+    line-height: 0.8 !important;
+    padding: 2px 6px 0 0 !important;
+  }
+  
+  .mobile-spread .narrative-paragraph {
+    font-size: 0.82rem !important;
+    line-height: 1.55 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .mobile-spread .atelier-metadata-box {
+    margin-top: 10px !important;
+    padding: 10px 12px !important;
+    background: rgba(78, 70, 61, 0.03) !important;
+  }
+  
+  .mobile-spread .meta-box-title {
+    font-size: 0.52rem !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .mobile-spread .meta-text {
+    font-size: 0.6rem !important;
+  }
+  
+  .mobile-spread .meta-bullet-item {
+    gap: 6px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .mobile-spread .curator-handwritten-marginalia {
+    margin-top: 10px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* Image Visual Frame Scaling */
+  .mobile-spread .tipped-photo-frame {
+    margin: 4px auto 8px !important;
+    width: 95% !important;
+  }
+  
+  .mobile-spread .photo-matting {
+    padding: 8px 8px 14px 8px !important;
+  }
+  
+  .mobile-spread .photo-caption-tag {
+    font-size: 0.42rem !important;
+    letter-spacing: 0.12em !important;
+    margin-top: 5px !important;
+  }
+
+  .mobile-spread .curated-quote-block {
+    margin: 6px auto !important;
+    padding: 0 10px !important;
+  }
+
+  .mobile-spread .quote-text {
+    font-size: 0.82rem !important;
+    line-height: 1.35 !important;
+  }
+  
+  .mobile-spread .quote-serif-mark {
+    font-size: 1.8rem !important;
+    height: 12px !important;
+  }
+  
+  .mobile-spread .quote-author {
+    font-size: 0.52rem !important;
+    margin-top: 4px !important;
+  }
+
+  .mobile-spread .page-header {
+    padding-bottom: 6px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .mobile-spread .page-footer {
+    padding-top: 6px !important;
+    margin-top: 10px !important;
+  }
+
+  /* ─── MOBILE GLASS DOCK CONTROL CENTER ─── */
+  .mobile-glass-control-dock {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90vw;
+    max-width: 350px;
+    background: rgba(24, 21, 19, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(197, 168, 128, 0.22);
+    border-radius: 100px;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 
+      0 20px 45px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.06);
+    z-index: 999;
+  }
+
+  .mobile-dock-btn {
+    background: transparent;
+    border: none;
     color: var(--j-gold);
-    font-weight: 700;
-    margin-bottom: 20px;
-  }
-
-  .mobile-title {
-    font-family: var(--font-title);
-    font-size: 2.3rem;
-    color: #fff;
-    letter-spacing: 0.1em;
-    font-weight: 300;
-    line-height: 1.2;
-    margin: 0 0 10px 0;
-  }
-
-  .mobile-subtitle {
-    font-family: var(--font-serif);
-    font-size: 0.95rem;
-    color: rgba(255, 255, 255, 0.5);
-    font-style: italic;
-    max-width: 320px;
-    line-height: 1.5;
-    margin: 0 0 25px 0;
-  }
-
-  .gold-seal-crest {
-    font-family: var(--font-title);
-    font-size: 1.3rem;
-    color: var(--j-gold);
-    border: 1px solid var(--j-gold);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
+    font-size: 1rem;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 40px;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+  
+  .mobile-dock-btn:active {
+    background: rgba(197, 168, 128, 0.15);
+    transform: scale(0.92);
   }
 
-  .explore-nudge {
+  .mobile-dock-nav {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    color: rgba(255, 255, 255, 0.35);
+    gap: 12px;
   }
 
-  .scroll-arrow {
-    font-size: 1rem;
-    animation: bounceY 2s infinite;
-  }
-
-  .scroll-label {
-    font-family: var(--font-sans);
-    font-size: 0.55rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-
-  @keyframes bounceY {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
-  }
-
-  /* Mobile Story Sheet Cards */
-  .mobile-story-card {
-    background-color: var(--j-paper-cream);
-    border-radius: 4px;
-    border: 1px solid rgba(78, 70, 61, 0.12);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    position: relative;
-    padding: 30px 24px;
-    overflow: hidden;
-  }
-
-  .mobile-card-paper {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.08;
-    mix-blend-mode: multiply;
-  }
-
-  .mobile-card-header {
+  .mobile-dock-arrow {
+    background: rgba(197, 168, 128, 0.08);
+    border: 1px solid rgba(197, 168, 128, 0.15);
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     display: flex;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-dock-arrow:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  
+  .mobile-dock-arrow:active:not(:disabled) {
+    background: var(--j-gold);
+    color: #181513;
+    transform: scale(0.9);
+  }
+
+  .mobile-page-indicator {
     font-family: var(--font-sans);
-    font-size: 0.58rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
     color: var(--j-gold-dark);
     font-weight: 700;
-    border-bottom: 1px solid var(--j-border);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 5;
-  }
-
-  .mobile-photo-box {
-    width: 100%;
-    aspect-ratio: 1.35;
-    overflow: hidden;
-    position: relative;
-    margin-bottom: 25px;
-    border: 1px solid rgba(78,70,61,0.15);
-    padding: 6px;
-    background: #fff;
-  }
-
-  .mobile-photo-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .mobile-caption {
-    position: absolute;
-    bottom: 10px;
-    left: 12px;
-    font-family: var(--font-sans);
-    font-size: 0.48rem;
-    letter-spacing: 0.15em;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
     text-transform: uppercase;
+    min-width: 80px;
+    text-align: center;
   }
 
-  .mobile-story-body {
-    position: relative;
-    z-index: 5;
-  }
-
-  .mobile-story-title {
-    font-family: var(--font-serif);
-    font-size: 1.55rem;
-    font-weight: 300;
-    line-height: 1.2;
-    text-transform: uppercase;
-    color: var(--j-ink);
-    margin: 0 0 6px 0;
-  }
-
-  .mobile-story-subtitle {
-    font-family: var(--font-serif);
-    font-size: 0.95rem;
-    font-style: italic;
-    color: var(--j-charcoal);
-    margin: 0 0 20px 0;
-    line-height: 1.4;
-  }
-
-  .mobile-story-description {
-    font-family: var(--font-serif);
-    font-size: 0.92rem;
-    line-height: 1.65;
-    color: #2c2926;
-    margin-bottom: 20px;
-    text-align: justify;
-  }
-
-  .mobile-drop-cap {
-    float: left;
-    font-family: var(--font-title);
-    font-size: 3.2rem;
-    line-height: 0.78;
-    padding: 4px 10px 0 0;
-    color: var(--j-gold);
-    font-weight: 300;
-  }
-
-  .mobile-quote {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: 1.02rem;
-    line-height: 1.5;
-    color: var(--j-ink);
-    border-left: 2px solid var(--j-gold);
-    padding-left: 16px;
-    margin: 25px 0;
-  }
-
-  .mobile-quote-author {
-    display: block;
-    font-family: var(--font-sans);
-    font-style: normal;
-    font-size: 0.55rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--j-charcoal);
-    margin-top: 6px;
-    font-weight: 600;
-  }
-
-  .mobile-highlights {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 25px;
-    border-top: 1px dashed var(--j-border);
-    padding-top: 18px;
-  }
-
-  .mobile-highlight-tag {
-    background-color: rgba(197, 168, 128, 0.05);
-    border: 1px solid rgba(197, 168, 128, 0.18);
-    border-radius: 20px;
-    padding: 4px 12px;
-    font-family: var(--font-sans);
-    font-size: 0.58rem;
-    letter-spacing: 0.05em;
-    color: var(--j-charcoal);
-    text-transform: uppercase;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .tag-bullet {
-    color: var(--j-gold);
-    font-size: 0.5rem;
-  }
-
-  .mobile-card-footer {
-    display: flex;
-    justify-content: space-between;
-    font-family: var(--font-sans);
-    font-size: 0.58rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: rgba(78, 70, 61, 0.5);
-    font-weight: 600;
-    border-top: 1px solid var(--j-border);
-    padding-top: 12px;
-    margin-top: 25px;
-    position: relative;
-    z-index: 5;
+  /* Slide up index drawers responsive overrides */
+  .toc-drawer-panel {
+    padding: 24px 20px 40px !important;
   }
 }
 
@@ -1789,41 +1767,7 @@
   }
   
   .magazine-immersive-stage {
-    padding: 90px 4vw 40px;
-  }
-
-  .mobile-cover-plaque {
-    padding: 45px 20px;
-  }
-
-  .mobile-title {
-    font-size: 1.8rem;
-  }
-
-  .mobile-story-card {
-    padding: 24px 16px;
-  }
-
-  .mobile-story-title {
-    font-size: 1.3rem;
-  }
-  
-  .mobile-story-subtitle {
-    font-size: 0.88rem;
-  }
-
-  .mobile-story-description {
-    font-size: 0.86rem;
-    line-height: 1.55;
-  }
-  
-  .mobile-highlights {
-    gap: 6px;
-  }
-  
-  .mobile-highlight-tag {
-    padding: 3px 10px;
-    font-size: 0.52rem;
+    padding: 80px 4vw 40px !important;
   }
 
   .magazine-footer-newsletter {
