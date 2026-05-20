@@ -66,8 +66,23 @@ export const CartProvider = ({ children }) => {
           const wishlistData = await wishlistRes.json()
           
           if (cartData.success) {
-            // Merge or replace? For simplicity, we'll replace local if backend has items
-            if (cartData.data.length > 0) setCart(cartData.data)
+            // Replace local cart with flattened/normalized backend items
+            if (cartData.data.length > 0) {
+              const normalizedCart = cartData.data.map(item => {
+                if (item.product && typeof item.product === 'object') {
+                  return {
+                    ...item.product,
+                    id: item.product._id,
+                    quantity: item.quantity || 1,
+                    size: item.size || '',
+                    selectedSize: item.size || '',
+                    color: item.color || ''
+                  }
+                }
+                return item
+              })
+              setCart(normalizedCart)
+            }
           }
           if (wishlistData.success) {
             if (wishlistData.data.length > 0) setWishlist(wishlistData.data)
@@ -94,7 +109,7 @@ export const CartProvider = ({ children }) => {
             body: JSON.stringify({ cart: cart.map(item => ({
               product: item.id || item._id,
               quantity: item.quantity,
-              size: item.size,
+              size: item.size || item.selectedSize,
               color: item.color
             }))})
           })

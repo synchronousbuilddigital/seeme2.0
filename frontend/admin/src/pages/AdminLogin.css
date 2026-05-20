@@ -132,3 +132,60 @@
   font-size: 0.75rem;
   font-weight: 600;
 }
+
+/* Specific input text visibility enforcement to defeat any global overrides */
+.admin-login-container .form-group input {
+  width: 100% !important;
+  padding: 1.25rem !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.25) !important;
+  border-radius: 15px !important;
+  color: #FFFFFF !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  height: auto !important;
+}
+
+.admin-login-container .form-group input:focus {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border-color: #c5a059 !important;
+  box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.2) !important;
+}
+
+/* Password eye button styling */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  padding-right: 3.5rem !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  padding: 0;
+  z-index: 10;
+}
+
+.password-toggle-btn:hover {
+  color: #FFFFFF;
+}
+
+.password-toggle-btn svg {
+  stroke: currentColor;
+}

@@ -58,62 +58,258 @@ const Orders = () => {
   }
 
   const handlePrint = (order) => {
-    const win = window.open('', '', 'height=700,width=900')
+    const win = window.open('', '', 'height=800,width=950')
     win.document.write(`
       <html>
         <head>
-          <title>Order Receipt - ${order.orderNumber}</title>
+          <title>SEE MEE - Order Receipt #${order.orderNumber}</title>
           <style>
-            body { font-family: 'Inter', sans-serif; padding: 40px; color: #333; }
-            .header { border-bottom: 2px solid #D4AF37; padding-bottom: 20px; margin-bottom: 30px; }
-            .order-info { display: flex; justify-content: space-between; margin-bottom: 40px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
-            .total { text-align: right; font-size: 20px; font-weight: bold; margin-top: 20px; }
-            .footer { margin-top: 50px; font-size: 12px; color: #777; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
+            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+            
+            body {
+              font-family: 'Outfit', sans-serif;
+              padding: 50px;
+              color: #111;
+              background-color: #FFF;
+              line-height: 1.6;
+            }
+            .invoice-wrapper {
+              max-width: 850px;
+              margin: 0 auto;
+              border: 1.5px solid #F0F0F0;
+              padding: 50px;
+              position: relative;
+              box-shadow: 0 10px 40px rgba(0, 0, 0, 0.02);
+            }
+            .invoice-wrapper::before {
+              content: '';
+              position: absolute;
+              top: 0; left: 0; right: 0;
+              height: 4px;
+              background: linear-gradient(90deg, #D4AF37 0%, #F3E5AB 50%, #C49A27 100%);
+            }
+            .header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              border-bottom: 1.5px solid #F0F0F0;
+              padding-bottom: 30px;
+              margin-bottom: 35px;
+            }
+            .brand-logo h1 {
+              font-family: 'Playfair Display', serif;
+              font-size: 2.2rem;
+              font-weight: 700;
+              letter-spacing: 0.1em;
+              margin: 0;
+              color: #000;
+              text-transform: uppercase;
+            }
+            .brand-logo p {
+              font-family: 'Outfit', sans-serif;
+              font-size: 0.72rem;
+              text-transform: uppercase;
+              letter-spacing: 0.25em;
+              margin: 6px 0 0 0;
+              color: #C49A27;
+              font-weight: 600;
+            }
+            .invoice-meta {
+              text-align: right;
+            }
+            .invoice-meta h2 {
+              font-family: 'Playfair Display', serif;
+              font-size: 1.6rem;
+              font-weight: 400;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              margin: 0 0 8px 0;
+            }
+            .invoice-meta p {
+              font-size: 0.85rem;
+              color: #666;
+              margin: 3px 0;
+            }
+            .grid-details {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 50px;
+              margin-bottom: 40px;
+            }
+            .detail-block h3 {
+              font-size: 0.75rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: #888;
+              border-bottom: 1.5px solid #F0F0F0;
+              padding-bottom: 8px;
+              margin-bottom: 12px;
+            }
+            .detail-block p {
+              font-size: 0.88rem;
+              color: #333;
+              margin: 4px 0;
+              line-height: 1.5;
+            }
+            .detail-block strong {
+              color: #000;
+              font-size: 0.95rem;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 35px;
+            }
+            th {
+              font-size: 0.75rem;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              color: #888;
+              background-color: #FAFAFA;
+              padding: 14px 16px;
+              text-align: left;
+              border-bottom: 1.5px solid #EAEAEA;
+            }
+            td {
+              padding: 18px 16px;
+              font-size: 0.88rem;
+              color: #444;
+              border-bottom: 1px solid #F0F0F0;
+            }
+            .item-name {
+              font-weight: 600;
+              color: #000;
+            }
+            .item-spec {
+              font-size: 0.78rem;
+              color: #666;
+              margin-top: 4px;
+            }
+            .totals-container {
+              display: flex;
+              justify-content: flex-end;
+              margin-top: 25px;
+            }
+            .totals-table {
+              width: 320px;
+              border: none;
+              margin-bottom: 0;
+            }
+            .totals-table td {
+              padding: 8px 16px;
+              border: none;
+            }
+            .totals-table tr.grand-total td {
+              font-family: 'Playfair Display', serif;
+              font-size: 1.4rem;
+              font-weight: 700;
+              color: #C49A27;
+              padding-top: 15px;
+              border-top: 1.5px solid #111;
+            }
+            .footer {
+              margin-top: 70px;
+              text-align: center;
+              font-size: 0.8rem;
+              color: #777;
+              border-top: 1px solid #F0F0F0;
+              padding-top: 35px;
+            }
+            .footer p {
+              margin: 4px 0;
+            }
+            .footer-sig {
+              font-family: 'Playfair Display', serif;
+              font-style: italic;
+              color: #C49A27;
+              font-size: 1.15rem;
+              margin-bottom: 12px !important;
+            }
+            
+            @media print {
+              body { padding: 0; background: none; }
+              .invoice-wrapper { border: none; padding: 0; box-shadow: none; }
+            }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>SEE MEE</h1>
-            <p>Atelier of Heritage & Style</p>
-          </div>
-          <div class="order-info">
-            <div>
-              <h3>Order To:</h3>
-              <p>${order.customer.name}<br>${order.customer.address.street}<br>${order.customer.address.city}, ${order.customer.address.state} - ${order.customer.address.pincode}</p>
+          <div class="invoice-wrapper">
+            <div class="header">
+              <div class="brand-logo">
+                <h1>SEE MEE</h1>
+                <p>Atelier of Heritage & Style</p>
+              </div>
+              <div class="invoice-meta">
+                <h2>Invoice</h2>
+                <p>Order #: <strong>${order.orderNumber}</strong></p>
+                <p>Date: ${new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                <p>Status: ${order.status.toUpperCase()}</p>
+              </div>
             </div>
-            <div style="text-align: right">
-              <h3>Order Details:</h3>
-              <p>Order #: ${order.orderNumber}<br>Date: ${new Date(order.createdAt).toLocaleDateString()}<br>Status: ${order.status.toUpperCase()}</p>
+            
+            <div class="grid-details">
+              <div class="detail-block">
+                <h3>Delivery Address</h3>
+                <p><strong>${order.customer.name}</strong></p>
+                <p>${order.customer.address.street}</p>
+                <p>${order.customer.address.city}, ${order.customer.address.state} - ${order.customer.address.pincode}</p>
+                <p>T: ${order.customer.phone}</p>
+              </div>
+              <div class="detail-block" style="text-align: right;">
+                <h3>Billing & Payment</h3>
+                <p>Payment Method: <strong>${order.paymentMethod === 'online' ? 'Online Credit/Debit Card' : 'Cash on Delivery'}</strong></p>
+                <p>Payment Status: <strong style="color: ${order.paymentStatus === 'paid' ? '#27AE60' : '#D97706'}">${order.paymentStatus.toUpperCase()}</strong></p>
+              </div>
             </div>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Details</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map(item => `
+            
+            <table>
+              <thead>
                 <tr>
-                  <td>${item.name}</td>
-                  <td>Size: ${item.size} • Color: ${item.color || 'Standard'}</td>
-                  <td>₹${item.price.toLocaleString()}</td>
-                  <td>${item.quantity}</td>
-                  <td>₹${(item.price * item.quantity).toLocaleString()}</td>
+                  <th>Items Ordered</th>
+                  <th style="text-align: center;">Price</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: right;">Subtotal</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div class="total">Total: ₹${order.totalAmount.toLocaleString()}</div>
-          <div class="footer">
-            <p>Thank you for choosing See Mee. Each piece is crafted with care for you.</p>
-            <p>© ${new Date().getFullYear()} See Mee. All rights reserved.</p>
+              </thead>
+              <tbody>
+                ${order.items.map(item => `
+                  <tr>
+                    <td>
+                      <div class="item-name">${item.name}</div>
+                      <div class="item-spec">Size: ${item.size} • Color: ${item.color || 'Standard'}</div>
+                    </td>
+                    <td style="text-align: center;">₹${item.price.toLocaleString('en-IN')}</td>
+                    <td style="text-align: center;">${item.quantity}</td>
+                    <td style="text-align: right; font-weight: 600;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <div class="totals-container">
+              <table class="totals-table">
+                <tr>
+                  <td style="color: #666;">Subtotal</td>
+                  <td style="text-align: right; font-weight: 600;">₹${order.totalAmount.toLocaleString('en-IN')}</td>
+                </tr>
+                <tr>
+                  <td style="color: #666;">Shipping & Handling</td>
+                  <td style="text-align: right; color: #27AE60; font-weight: 600;">Complimentary</td>
+                </tr>
+                <tr class="grand-total">
+                  <td>Total</td>
+                  <td style="text-align: right;">₹${order.totalAmount.toLocaleString('en-IN')}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div class="footer">
+              <p class="footer-sig">Thank you for your patronage</p>
+              <p>Each piece is crafted with care at the Atelier of See Mee.</p>
+              <p>© ${new Date().getFullYear()} See Mee. All rights reserved.</p>
+            </div>
           </div>
         </body>
       </html>

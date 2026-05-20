@@ -89,7 +89,7 @@ const Cart = ({ isOpen, onClose }) => {
                           
                           <div className="cart-item-quantity">
                             <button 
-                              onClick={() => updateQuantity(itemId, Math.max(1, item.quantity - 1))}
+                              onClick={() => updateQuantity(itemId, item.quantity - 1)}
                               className="qty-btn"
                             >
                               -

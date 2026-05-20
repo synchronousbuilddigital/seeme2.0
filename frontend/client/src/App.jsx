@@ -10,6 +10,7 @@ import Cart from './components/Cart'
 import Wishlist from './components/Wishlist'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
+import GlobalLoader from './components/GlobalLoader'
 import './App.css'
 
 // Lazy load below-the-fold components
@@ -77,6 +78,7 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
+        <GlobalLoader />
         <Router
           future={{
             v7_startTransition: true,

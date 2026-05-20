@@ -97,11 +97,44 @@ const AdminDashboard = () => {
   }
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab)
+    setIsMobileMenuOpen(false)
+  }
 
   return (
     <div className="admin-dashboard">
-      <aside className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header" onClick={() => setActiveTab('overview')} style={{ cursor: 'pointer' }}>
+      {/* Mobile Top Header Bar */}
+      <header className="mobile-header-bar">
+        <button 
+          className="mobile-menu-btn" 
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open Navigation Menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <div className="mobile-logo-container" onClick={() => handleTabClick('overview')}>
+          <img src="/images/logoSEEMEE1.png" alt="See Mee" className="mobile-logo" />
+        </div>
+        <div className="mobile-avatar" onClick={() => handleTabClick('overview')}>A</div>
+      </header>
+
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="sidebar-overlay"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-header" onClick={() => handleTabClick('overview')} style={{ cursor: 'pointer' }}>
           <div className="logo-container">
             <img
               src="/images/logoSEEMEE1.png"
@@ -112,6 +145,18 @@ const AdminDashboard = () => {
           {!sidebarCollapsed && <span className="admin-brand-name">ADMIN PANEL</span>}
         </div>
 
+        {/* Mobile Close Button inside Sidebar */}
+        <button 
+          className="mobile-close-btn"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-label="Close Navigation Menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
         <button
           className="collapse-btn"
           onClick={() => setSidebarCollapsed(prev => !prev)}
@@ -120,35 +165,35 @@ const AdminDashboard = () => {
         </button>
 
         <nav className="sidebar-nav">
-          <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>
+          <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => handleTabClick('overview')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             <span>Overview</span>
           </button>
-          <button className={activeTab === 'products' ? 'active' : ''} onClick={() => setActiveTab('products')}>
+          <button className={activeTab === 'products' ? 'active' : ''} onClick={() => handleTabClick('products')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
             <span>Products</span>
           </button>
-          <button className={activeTab === 'orders' ? 'active' : ''} onClick={() => setActiveTab('orders')}>
+          <button className={activeTab === 'orders' ? 'active' : ''} onClick={() => handleTabClick('orders')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
             <span>Orders</span>
           </button>
-          <button className={activeTab === 'inventory' ? 'active' : ''} onClick={() => setActiveTab('inventory')}>
+          <button className={activeTab === 'inventory' ? 'active' : ''} onClick={() => handleTabClick('inventory')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
             <span>Inventory</span>
           </button>
-          <button className={activeTab === 'customers' ? 'active' : ''} onClick={() => setActiveTab('customers')}>
+          <button className={activeTab === 'customers' ? 'active' : ''} onClick={() => handleTabClick('customers')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
             <span>Customers</span>
           </button>
-          <button className={activeTab === 'activity' ? 'active' : ''} onClick={() => setActiveTab('activity')}>
+          <button className={activeTab === 'activity' ? 'active' : ''} onClick={() => handleTabClick('activity')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
             <span>Activity Log</span>
           </button>
-          <button className={activeTab === 'categories' ? 'active' : ''} onClick={() => setActiveTab('categories')}>
+          <button className={activeTab === 'categories' ? 'active' : ''} onClick={() => handleTabClick('categories')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
             <span>Categories</span>
           </button>
-          <button className={activeTab === 'hero' ? 'active' : ''} onClick={() => setActiveTab('hero')}>
+          <button className={activeTab === 'hero' ? 'active' : ''} onClick={() => handleTabClick('hero')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
             <span>Hero Section</span>
           </button>

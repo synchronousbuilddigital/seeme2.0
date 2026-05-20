@@ -97,3 +97,294 @@
   cursor: pointer;
   padding: 0;
 }
+
+/* Customer History Drawer Overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  justify-content: flex-end; /* Slide in from right */
+}
+
+/* History Drawer Styles */
+.customer-history-drawer {
+  background: #FFF;
+  width: 100%;
+  max-width: 500px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -15px 0 40px rgba(0, 0, 0, 0.15);
+  border-left: 1px solid rgba(212, 175, 55, 0.15);
+  overflow: hidden;
+}
+
+.customer-history-drawer .drawer-header {
+  padding: 30px;
+  background: #FCFCFC;
+  border-bottom: 1.5px solid #F0F0F0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-large {
+  width: 55px;
+  height: 55px;
+  background: linear-gradient(135deg, #D4AF37 0%, #C49A27 100%);
+  color: #FFF;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+}
+
+.profile-text h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 3px 0;
+}
+
+.profile-text .email {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.close-drawer {
+  background: none;
+  border: none;
+  font-size: 2.2rem;
+  color: #999;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.close-drawer:hover {
+  color: #111;
+}
+
+.drawer-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 20px 30px;
+  background: #FCFCFC;
+  border-bottom: 1.5px solid #F0F0F0;
+  text-align: center;
+  gap: 15px;
+}
+
+.drawer-stats .stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.drawer-stats .stat-box .label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #999;
+  letter-spacing: 0.05em;
+}
+
+.drawer-stats .stat-box .value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.drawer-body h3 {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #888;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.history-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 15px;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.mini-spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(212, 175, 55, 0.1);
+  border-top-color: #D4AF37;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-history {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  text-align: center;
+  gap: 10px;
+}
+
+.empty-history .icon {
+  font-size: 2.5rem;
+}
+
+.empty-history h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111;
+  margin: 0;
+}
+
+.empty-history p {
+  font-size: 0.85rem;
+  color: #777;
+  margin: 0;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.history-order-card {
+  border: 1.5px solid #F0F0F0;
+  border-radius: 12px;
+  padding: 18px;
+  background: #FCFCFC;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.history-order-card:hover {
+  border-color: #D4AF37;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.05);
+}
+
+.history-order-card .card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-order-card .order-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.history-order-card .card-middle {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.history-order-card .amount {
+  font-weight: 700;
+  color: #111;
+}
+
+.card-items {
+  border-top: 1px dashed #F0F0F0;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+}
+
+.item-row .item-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.item-row .item-details {
+  color: #888;
+}
+
+/* History Order Status Badges */
+.history-order-card .status-pill {
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.history-order-card .status-pill.pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #D97706;
+}
+
+.history-order-card .status-pill.confirmed {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563EB;
+}
+
+.history-order-card .status-pill.processing {
+  background: rgba(139, 92, 246, 0.12);
+  color: #7C3AED;
+}
+
+.history-order-card .status-pill.shipped {
+  background: rgba(6, 182, 212, 0.12);
+  color: #0891B2;
+}
+
+.history-order-card .status-pill.delivered {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+
+.history-order-card .status-pill.cancelled {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+}

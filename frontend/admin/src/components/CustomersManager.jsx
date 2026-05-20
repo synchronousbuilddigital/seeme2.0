@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
 import './CustomersManager.css'
@@ -8,6 +8,10 @@ const CustomersManager = () => {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCustomer, setSelectedCustomer] = useState(null)
+  const [customerOrders, setCustomerOrders] = useState([])
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(false)
 
   useEffect(() => {
     fetchCustomers()
@@ -23,6 +27,25 @@ const CustomersManager = () => {
       console.error('Error fetching customers:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleViewHistory = async (customer) => {
+    setSelectedCustomer(customer)
+    setIsHistoryModalOpen(true)
+    setHistoryLoading(true)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.ORDERS, { auth: true })
+      if (data.success) {
+        const filtered = data.data.filter(order => 
+          order.customer.email.toLowerCase() === customer.email.toLowerCase()
+        )
+        setCustomerOrders(filtered)
+      }
+    } catch (error) {
+      console.error('Error fetching customer orders:', error)
+    } finally {
+      setHistoryLoading(false)
     }
   }
 
@@ -77,13 +100,110 @@ const CustomersManager = () => {
                 <td>₹{(customer.totalSpending || 0).toLocaleString()}</td>
                 <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
                 <td>
-                  <button className="action-link">View History</button>
+                  <button className="action-link" onClick={() => handleViewHistory(customer)}>View History</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Customer History Drawer */}
+      <AnimatePresence>
+        {isHistoryModalOpen && selectedCustomer && (
+          <div className="modal-overlay" onClick={() => {
+            setIsHistoryModalOpen(false)
+            setSelectedCustomer(null)
+            setCustomerOrders([])
+          }}>
+            <motion.div 
+              className="customer-history-drawer"
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="drawer-header">
+                <div className="header-profile">
+                  <div className="avatar-large">{selectedCustomer.name[0]}</div>
+                  <div className="profile-text">
+                    <h2>{selectedCustomer.name}</h2>
+                    <span className="email">{selectedCustomer.email}</span>
+                  </div>
+                </div>
+                <button className="close-drawer" onClick={() => {
+                  setIsHistoryModalOpen(false)
+                  setSelectedCustomer(null)
+                  setCustomerOrders([])
+                }}>&times;</button>
+              </div>
+
+              <div className="drawer-stats">
+                <div className="stat-box">
+                  <span className="label">Total Spent</span>
+                  <span className="value">₹{(selectedCustomer.totalSpending || 0).toLocaleString()}</span>
+                </div>
+                <div className="stat-box">
+                  <span className="label">Orders Placed</span>
+                  <span className="value">{selectedCustomer.orderCount || 0}</span>
+                </div>
+                <div className="stat-box">
+                  <span className="label">Member Since</span>
+                  <span className="value">
+                    {new Date(selectedCustomer.createdAt).toLocaleDateString('en-IN', {
+                      month: 'short', year: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              <div className="drawer-body">
+                <h3>Order Log</h3>
+                
+                {historyLoading ? (
+                  <div className="history-loading">
+                    <div className="mini-spinner" />
+                    <p>Retrieving transaction ledger...</p>
+                  </div>
+                ) : customerOrders.length === 0 ? (
+                  <div className="empty-history">
+                    <span className="icon">🛍️</span>
+                    <h4>No purchases recorded</h4>
+                    <p>This client hasn't completed any checkouts yet.</p>
+                  </div>
+                ) : (
+                  <div className="history-list">
+                    {customerOrders.map(order => (
+                      <div key={order._id} className="history-order-card">
+                        <div className="card-top">
+                          <span className="order-num">#{order.orderNumber}</span>
+                          <span className={`status-pill ${order.status}`}>{order.status}</span>
+                        </div>
+                        <div className="card-middle">
+                          <span className="date">
+                            {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                              day: 'numeric', month: 'short', year: 'numeric'
+                            })}
+                          </span>
+                          <span className="amount">₹{order.totalAmount.toLocaleString()}</span>
+                        </div>
+                        <div className="card-items">
+                          {order.items?.map((item, idx) => (
+                            <div key={idx} className="item-row">
+                              <span className="item-name">{item.name}</span>
+                              <span className="item-details">Size: {item.size || 'N/A'} • Qty: {item.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

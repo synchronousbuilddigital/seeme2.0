@@ -61,6 +61,13 @@ const AdminDashboard = () => {
     }
   }
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab)
+    setIsMobileMenuOpen(false)
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken')
     localStorage.removeItem('adminUser')
@@ -69,16 +76,55 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
-      <aside className="admin-sidebar">
-        <div className="sidebar-header">
+      {/* Mobile Top Header Bar */}
+      <header className="mobile-header-bar">
+        <button 
+          className="mobile-menu-btn" 
+          onClick={() => setIsMobileMenuOpen(true)}
+          aria-label="Open Navigation Menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <div className="mobile-logo-container" onClick={() => handleTabClick('overview')}>
+          <h2 className="mobile-title">See Mee</h2>
+        </div>
+        <div className="mobile-avatar" onClick={() => handleTabClick('overview')}>A</div>
+      </header>
+
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="sidebar-overlay"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <aside className={`admin-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header" onClick={() => handleTabClick('overview')} style={{ cursor: 'pointer' }}>
           <h2>See Mee</h2>
           <span>Admin Panel</span>
         </div>
 
+        {/* Mobile Close Button inside Sidebar */}
+        <button 
+          className="mobile-close-btn"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-label="Close Navigation Menu"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
         <nav className="sidebar-nav">
           <button 
             className={activeTab === 'overview' ? 'active' : ''}
-            onClick={() => setActiveTab('overview')}
+            onClick={() => handleTabClick('overview')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <rect x="3" y="3" width="7" height="7"/>
@@ -91,7 +137,7 @@ const AdminDashboard = () => {
 
           <button 
             className={activeTab === 'new-arrivals' ? 'active' : ''}
-            onClick={() => setActiveTab('new-arrivals')}
+            onClick={() => handleTabClick('new-arrivals')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -103,7 +149,7 @@ const AdminDashboard = () => {
 
           <button 
             className={activeTab === 'products' ? 'active' : ''}
-            onClick={() => setActiveTab('products')}
+            onClick={() => handleTabClick('products')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -113,7 +159,7 @@ const AdminDashboard = () => {
 
           <button 
             className={activeTab === 'collection' ? 'active' : ''}
-            onClick={() => setActiveTab('collection')}
+            onClick={() => handleTabClick('collection')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <rect x="3" y="3" width="7" height="7"/>
@@ -126,7 +172,7 @@ const AdminDashboard = () => {
 
           <button 
             className={activeTab === 'magazine' ? 'active' : ''}
-            onClick={() => setActiveTab('magazine')}
+            onClick={() => handleTabClick('magazine')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -137,7 +183,7 @@ const AdminDashboard = () => {
 
           <button 
             className={activeTab === 'carousel' ? 'active' : ''}
-            onClick={() => setActiveTab('carousel')}
+            onClick={() => handleTabClick('carousel')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
@@ -148,7 +194,7 @@ const AdminDashboard = () => {
 
           <button 
             className={activeTab === 'site-settings' ? 'active' : ''}
-            onClick={() => setActiveTab('site-settings')}
+            onClick={() => handleTabClick('site-settings')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="12" r="3"/>
@@ -159,7 +205,7 @@ const AdminDashboard = () => {
 
           <button 
             className={activeTab === 'orders' ? 'active' : ''}
-            onClick={() => setActiveTab('orders')}
+            onClick={() => handleTabClick('orders')}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>

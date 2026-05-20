@@ -154,3 +154,61 @@
     font-size: 1.7rem;
   }
 }
+
+/* Specific input text visibility enforcement to defeat any global overrides */
+.admin-login .form-group input {
+  padding: 0.9rem 1.2rem !important;
+  border: 2px solid rgba(212, 175, 55, 0.2) !important;
+  border-radius: 12px !important;
+  font-size: 0.95rem !important;
+  background: rgba(255, 250, 245, 0.9) !important;
+  color: #2B2B2B !important;
+  display: block !important;
+  width: 100% !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  height: auto !important;
+}
+
+.admin-login .form-group input:focus {
+  border-color: #D4AF37 !important;
+  background: white !important;
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1) !important;
+}
+
+/* Password eye button styling */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  padding-right: 3.5rem !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #2B2B2B;
+  opacity: 0.6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  padding: 0;
+  z-index: 10;
+}
+
+.password-toggle-btn:hover {
+  opacity: 1;
+}
+
+.password-toggle-btn svg {
+  stroke: #2B2B2B;
+}

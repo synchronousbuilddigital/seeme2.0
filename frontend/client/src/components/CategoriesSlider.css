@@ -1,6 +1,6 @@
 /* Categories Slider - Auto Transition */
 .categories-slider {
-  padding: 4rem 2rem;
+  padding: 2rem 2rem;
   background: var(--off-white);
   position: relative;
 }
@@ -79,7 +79,7 @@
 }
 
 .categories-slider-luxury {
-  padding: 60px 0;
+  padding: 35px 0;
   background-color: var(--off-white);
   overflow: hidden;
   position: relative;
@@ -696,7 +696,7 @@
 
 @media (max-width: 768px) {
   .categories-slider {
-    padding: clamp(2.5rem, 4vw, 3rem) clamp(1rem, 2vw, 1.5rem);
+    padding: clamp(1.5rem, 2.5vw, 1.8rem) clamp(1rem, 2vw, 1.5rem);
   }
 
   .slider-subtitle {

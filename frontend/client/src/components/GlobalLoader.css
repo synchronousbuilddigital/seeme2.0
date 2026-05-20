@@ -1,0 +1,98 @@
+/* ==========================================================================
+   GLOBALLOADER.CSS - Premium Site-Wide Preloader
+   ========================================================================== */
+
+.global-site-loader {
+  position: fixed;
+  inset: 0;
+  background-color: #0c0a09; /* Deep, rich warm black */
+  z-index: 99999; /* Highest priority overlay */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  overflow: hidden;
+}
+
+/* Atmosphere spotlight behind spinner */
+.global-site-loader::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(197, 168, 128, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.loader-center-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.global-site-loader .spinner-orbit {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px solid rgba(197, 168, 128, 0.15);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: rotateOrbitGlobal 6s linear infinite;
+}
+
+.global-site-loader .orbit-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #c5a880; /* Gold */
+  border-radius: 50%;
+  position: absolute;
+  top: -3px;
+  box-shadow: 0 0 10px #c5a880;
+}
+
+.global-site-loader .orbit-text {
+  font-family: 'Italiana', serif;
+  color: #c5a880;
+  font-size: 1.4rem;
+  letter-spacing: 0.1em;
+  animation: antiRotateGlobal 6s linear infinite;
+}
+
+.global-site-loader .loading-tagline {
+  margin-top: 25px;
+  font-family: 'Montserrat', sans-serif;
+  color: rgba(229, 207, 179, 0.6);
+  font-size: 0.72rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  text-align: center;
+  animation: breatheGlobalTagline 2.5s infinite ease-in-out;
+}
+
+@keyframes rotateOrbitGlobal {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes antiRotateGlobal {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes breatheGlobalTagline {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}

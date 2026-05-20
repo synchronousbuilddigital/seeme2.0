@@ -106,7 +106,7 @@ const CartPage = () => {
 
                     <div className="item-mid-row">
                       <div className="quantity-luxury">
-                        <button onClick={() => updateQuantity(itemId, Math.max(1, item.quantity - 1))}>—</button>
+                        <button onClick={() => updateQuantity(itemId, item.quantity - 1)}>—</button>
                         <span>{item.quantity}</span>
                         <button onClick={() => updateQuantity(itemId, item.quantity + 1)}>+</button>
                       </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getImageUrl } from '../../../utils/imageHelper'
 import './OrdersManager.css'
 
@@ -7,6 +7,11 @@ const OrdersManager = () => {
   const [orders, setOrders] = useState([])
   const [filter, setFilter] = useState('all')
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [exportStep, setExportStep] = useState('options')
+  const [exportRange, setExportRange] = useState('filtered')
+  const [exportFormat, setExportFormat] = useState('csv')
+  const [exportProgressText, setExportProgressText] = useState('')
 
   useEffect(() => {
     fetchOrders()
@@ -42,10 +47,88 @@ const OrdersManager = () => {
       const data = await response.json()
       if (data.success) {
         fetchOrders()
-        alert('Order status updated!')
+        showNotification('Order status updated!')
       }
     } catch (error) {
-      alert('Failed to update order status')
+      showNotification('Failed to update order status', 'error')
+    }
+  }
+
+  const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
+  const showNotification = (message, type = 'success') => {
+    setNotification({ show: true, message, type })
+    setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000)
+  }
+
+  const openExportModal = () => {
+    setExportStep('options')
+    setExportRange('filtered')
+    setExportFormat('csv')
+    setIsExportModalOpen(true)
+  }
+
+  const triggerExportGeneration = () => {
+    setExportStep('generating')
+    
+    const steps = [
+      'Establishing secure ledger synthesis sequence...',
+      'Serializing customer purchase metrics...',
+      'Compiling cryptographic archive metadata...',
+      'Ledger payload fully structured and sealed.'
+    ]
+    
+    let currentStep = 0
+    setExportProgressText(steps[0])
+    
+    const interval = setInterval(() => {
+      currentStep++
+      if (currentStep < steps.length) {
+        setExportProgressText(steps[currentStep])
+      } else {
+        clearInterval(interval)
+        performLedgerDownload()
+        setExportStep('success')
+        showNotification('Ledger compiled successfully!')
+      }
+    }, 600)
+  }
+
+  const performLedgerDownload = () => {
+    const listToExport = exportRange === 'filtered' ? filteredOrders : orders
+    
+    if (exportFormat === 'json') {
+      const jsonContent = JSON.stringify(listToExport, null, 2)
+      const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `orders_ledger_${new Date().toISOString().split('T')[0]}.json`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } else {
+      const headers = ['Order Number', 'Date', 'Customer', 'Email', 'Amount', 'Status', 'Payment Method']
+      const rows = listToExport.map(o => [
+        o.orderNumber,
+        new Date(o.createdAt).toLocaleDateString(),
+        o.customer?.name || '',
+        o.customer?.email || '',
+        o.totalAmount,
+        o.status,
+        o.paymentMethod
+      ])
+
+      const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `orders_export_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     }
   }
 
@@ -70,7 +153,13 @@ const OrdersManager = () => {
       <div className="manager-header">
         <div>
           <h1>Orders Management</h1>
-          <p>Track and manage customer orders</p>
+          <p>Track and manage customer orders in real-time</p>
+        </div>
+        <div className="header-actions">
+          <button className="export-btn" onClick={openExportModal}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export CSV
+          </button>
         </div>
       </div>
 
@@ -217,6 +306,120 @@ const OrdersManager = () => {
           </motion.div>
         </div>
       )}
+
+      {/* Premium Export Dialog */}
+      <AnimatePresence>
+        {isExportModalOpen && (
+          <div className="modal-overlay" onClick={() => setIsExportModalOpen(false)}>
+            <motion.div 
+              className="premium-export-modal"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-topbar">
+                <h3>Atelier Ledger Export</h3>
+                <button className="close-btn" onClick={() => setIsExportModalOpen(false)}>&times;</button>
+              </div>
+
+              {exportStep === 'options' && (
+                <div className="export-modal-body">
+                  <p className="subtitle">Compile and serialize your orders metadata into a clean ledger document.</p>
+                  
+                  <div className="export-option-group">
+                    <label>Export Range</label>
+                    <div className="custom-radio-group">
+                      <div 
+                        className={`radio-card ${exportRange === 'filtered' ? 'active' : ''}`}
+                        onClick={() => setExportRange('filtered')}
+                      >
+                        <div className="radio-dot" />
+                        <div className="radio-label">
+                          <h4>Filtered View ({filteredOrders.length} Orders)</h4>
+                          <p>Current state status filters</p>
+                        </div>
+                      </div>
+                      <div 
+                        className={`radio-card ${exportRange === 'all' ? 'active' : ''}`}
+                        onClick={() => setExportRange('all')}
+                      >
+                        <div className="radio-dot" />
+                        <div className="radio-label">
+                          <h4>Entire Registry ({orders.length} Orders)</h4>
+                          <p>Export all historical records</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="export-option-group">
+                    <label>Serialization Format</label>
+                    <div className="format-grid">
+                      <button 
+                        className={`format-tile ${exportFormat === 'csv' ? 'active' : ''}`}
+                        onClick={() => setExportFormat('csv')}
+                      >
+                        <div className="tile-icon">📄</div>
+                        <span>CSV Spreadsheet</span>
+                      </button>
+                      <button 
+                        className={`format-tile ${exportFormat === 'json' ? 'active' : ''}`}
+                        onClick={() => setExportFormat('json')}
+                      >
+                        <div className="tile-icon">{"{ }"}</div>
+                        <span>JSON Payload</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <button className="primary-action-btn" onClick={triggerExportGeneration}>
+                    <span>Initiate Ledger Synthesis</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                  </button>
+                </div>
+              )}
+
+              {exportStep === 'generating' && (
+                <div className="export-modal-body loading-state">
+                  <div className="luxury-spinner">
+                    <div className="spinner-inner" />
+                  </div>
+                  <h3>Synthesizing Document</h3>
+                  <p className="progress-text">{exportProgressText}</p>
+                </div>
+              )}
+
+              {exportStep === 'success' && (
+                <div className="export-modal-body success-state">
+                  <div className="success-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <h3>Synthesis Complete</h3>
+                  <p className="success-message">Ledger document compiled and dispatched successfully.</p>
+                  <button className="done-btn" onClick={() => setIsExportModalOpen(false)}>Done</button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {notification.show && (
+          <motion.div 
+            className={`toast-notification ${notification.type}`}
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 100, opacity: 0 }}
+          >
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
