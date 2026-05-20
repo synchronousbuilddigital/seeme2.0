@@ -12,11 +12,11 @@
   --warm-beige: #E8DCC4;
   --accent-rose: #D4A5A5;
   --deep-brown: #3D2817;
-  
+
   /* Typography - Fluid Scaling */
   --font-heading: 'Playfair Display', serif;
   --font-body: 'Poppins', sans-serif;
-  
+
   /* Fluid Typography - Enhanced for Mobile First */
   --fs-xs: clamp(0.65rem, 0.6rem + 0.2vw, 0.8rem);
   --fs-sm: clamp(0.8rem, 0.75rem + 0.25vw, 0.95rem);
@@ -36,7 +36,8 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Remove touch blue highlight */
+  -webkit-tap-highlight-color: transparent;
+  /* Remove touch blue highlight */
 }
 
 html {
@@ -84,7 +85,7 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.04) 0%, transparent 50%),
     radial-gradient(circle at 80% 70%, rgba(232, 220, 196, 0.06) 0%, transparent 50%);
   pointer-events: none;
@@ -110,10 +111,13 @@ body::before {
 /* Mobile Typography Overrides */
 @media (max-width: 768px) {
   body {
-    font-size: 15px; /* Base mobile size */
+    font-size: 15px;
+    /* Base mobile size */
   }
-  
-  h1, h2, h3 {
+
+  h1,
+  h2,
+  h3 {
     letter-spacing: -0.01em;
   }
 }

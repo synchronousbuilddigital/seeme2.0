@@ -107,6 +107,14 @@ const Hero = () => {
     return diff
   }
 
+  const handlePrev = () => {
+    setActiveIndex((prev) => (prev - 1 + thumbnails.length) % thumbnails.length)
+  }
+
+  const handleNext = () => {
+    setActiveIndex((prev) => (prev + 1) % thumbnails.length)
+  }
+
   // Auto-slideshow every 5 seconds
   useEffect(() => {
     if (thumbnails.length === 0) return
@@ -133,6 +141,9 @@ const Hero = () => {
 
   return (
     <section className="hero-jewelry" id="home">
+      {/* Background Atmosphere */}
+      <div className="hero-atmosphere"></div>
+
       {/* Large Text - Left: SEE */}
       <div className="hero-text-left">SEE</div>
 
@@ -296,7 +307,73 @@ const Hero = () => {
         })}
       </div>
 
+      {/* Luxury Navigation Arrows */}
+      {!isMobile && (
+        <div className="hero-navigation-arrows">
+          <button 
+            className="hero-arrow-btn prev" 
+            onClick={handlePrev} 
+            aria-label="Previous slide"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button 
+            className="hero-arrow-btn next" 
+            onClick={handleNext} 
+            aria-label="Next slide"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+      )}
 
+      {/* Looping Scroll Down Indicator */}
+      <div className="hero-scroll-indicator">
+        <span className="scroll-text">Explore Atelier</span>
+        <div className="scroll-line-container">
+          <motion.div 
+            className="scroll-line-dot"
+            animate={{ 
+              y: [0, 28, 0],
+              opacity: [0.3, 1, 0.3]
+            }}
+            transition={{ 
+              duration: 2.2, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Horizontal Progress Timeline */}
+      <div className="hero-progress-timeline">
+        {thumbnails.map((item, idx) => (
+          <div 
+            key={idx} 
+            className={`timeline-segment ${activeIndex === idx ? 'active' : ''}`}
+            onClick={() => setActiveIndex(idx)}
+            aria-label={`Go to slide ${idx + 1}`}
+          >
+            <div className="timeline-line-bg">
+              {activeIndex === idx && (
+                <motion.div
+                  className="timeline-line-fill"
+                  initial={{ width: '0%' }}
+                  animate={{ width: '100%' }}
+                  transition={{ duration: 5, ease: 'linear' }}
+                  key={activeIndex}
+                />
+              )}
+            </div>
+            <span className="timeline-number">{String(idx + 1).padStart(2, '0')}</span>
+          </div>
+        ))}
+      </div>
     </section>
   )
 }

@@ -80,8 +80,80 @@
 
 .categories-slider-luxury {
   padding: 60px 0;
-  background-color: #fff;
+  background-color: var(--off-white);
   overflow: hidden;
+  position: relative;
+}
+
+/* Category Tab Navigation */
+.slider-tabs-row {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 50px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  padding-bottom: 15px;
+}
+
+.slider-tab-item {
+  background: transparent;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 16px;
+  position: relative;
+  transition: all 0.4s ease;
+}
+
+.slider-tab-item .tab-dot {
+  width: 5px;
+  height: 5px;
+  background-color: var(--primary-gold);
+  border-radius: 50%;
+  transform: scale(0);
+  transition: transform 0.3s ease;
+}
+
+.slider-tab-item .tab-title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--soft-gray);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.slider-tab-item:hover .tab-title {
+  color: var(--primary-gold);
+}
+
+.slider-tab-item.active .tab-dot {
+  transform: scale(1);
+}
+
+.slider-tab-item.active .tab-title {
+  color: var(--deep-brown);
+  font-weight: 700;
+}
+
+.slider-tab-item::after {
+  content: '';
+  position: absolute;
+  bottom: -16px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--primary-gold);
+  transform: scaleX(0);
+  transition: transform 0.4s ease;
+  transform-origin: center left;
+}
+
+.slider-tab-item.active::after {
+  transform: scaleX(1);
 }
 
 .luxury-slider-container {
@@ -195,14 +267,35 @@
 
 .slider-visual {
   position: relative;
+  padding: 15px;
+}
+
+.luxury-frame-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 30px;
+  bottom: 30px;
+  border: 1px solid var(--primary-gold);
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 4px;
+  transition: all 0.5s ease;
+}
+
+.slider-content-grid:hover .luxury-frame-accent {
+  transform: translate(5px, 5px);
 }
 
 .image-frame {
-  aspect-ratio: 3/4; /* Changed from 16/10 to 3/4 for full portrait view */
+  position: relative;
+  z-index: 2;
+  aspect-ratio: 3/4;
   overflow: hidden;
-  background: #f5f5f5;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.15);
-  border: 1px solid rgba(0,0,0,0.05);
+  background: var(--cream);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.12);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 4px;
 }
 
 .image-frame img {

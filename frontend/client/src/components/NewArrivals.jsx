@@ -90,7 +90,7 @@ const NewArrivals = () => {
           {arrivals.map((item, index) => (
             <motion.div 
               key={item._id || item.id || index} 
-              className="arrival-card-modern"
+              className={`arrival-card-modern card-layout-idx-${index}`}
               variants={itemVariants}
             >
               <div className="card-media" onClick={() => (item._id || item.id) ? navigate(`/product/${item._id || item.id}`) : navigate(`/collections`)}>
@@ -103,6 +103,10 @@ const NewArrivals = () => {
                 </div>
                 <div className="card-media-overlay">
                    <div className="quick-view">Quick View</div>
+                </div>
+                {/* Luxury Craftsmanship Badge */}
+                <div className="luxury-craft-badge">
+                  {item.category === 'anarkali' ? 'Atelier Silk' : item.category === 'palazzo' ? 'Zardozi Craft' : 'Chanderi Weave'}
                 </div>
                 <button 
                   className={`heart-btn ${isInWishlist(item._id || item.id) ? 'active' : ''}`}

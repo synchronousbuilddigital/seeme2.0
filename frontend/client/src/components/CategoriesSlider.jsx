@@ -125,6 +125,20 @@ const CategoriesSlider = () => {
           </div>
         </motion.div>
 
+        {/* Luxury Category Tabs Navigation */}
+        <div className="slider-tabs-row">
+          {categories.map((cat, idx) => (
+            <button
+              key={cat._id || idx}
+              className={`slider-tab-item ${activeIndex === idx ? 'active' : ''}`}
+              onClick={() => setActiveIndex(idx)}
+            >
+              <span className="tab-dot"></span>
+              <span className="tab-title">{cat.title}</span>
+            </button>
+          ))}
+        </div>
+
         <div className="slider-main">
           <AnimatePresence mode="wait">
             <motion.div
@@ -136,6 +150,7 @@ const CategoriesSlider = () => {
               transition={{ duration: 0.8, ease: "easeInOut" }}
             >
               <div className="slider-visual">
+                <div className="luxury-frame-accent"></div>
                 <div className="image-frame">
                   <img 
                     src={getImageUrl(activeCategory.image)} 

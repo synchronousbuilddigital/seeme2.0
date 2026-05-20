@@ -8,7 +8,7 @@ import './About.css'
 const About = () => {
   const navigate = useNavigate()
   const [aboutImage, setAboutImage] = useState('https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200')
-  
+
   const [ref, inView] = useInView({ once: true, threshold: 0.2 })
 
   useEffect(() => {
@@ -26,14 +26,14 @@ const About = () => {
     <section className="about-editorial-split" id="about">
       <div className="split-container" ref={ref}>
         {/* Left Side: Visuals */}
-        <motion.div 
+        <motion.div
           className="split-visuals"
           initial={{ opacity: 0, x: -60 }}
           animate={inView ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="main-image-frame">
-            <img src={aboutImage} alt="See Mee Heritage" />
+            <img src={aboutImage} alt="See Mee Heritage" loading="lazy" />
             <div className="frame-accent-line"></div>
           </div>
           <div className="est-box">
@@ -43,7 +43,7 @@ const About = () => {
         </motion.div>
 
         {/* Right Side: Content */}
-        <motion.div 
+        <motion.div
           className="split-content"
           initial={{ opacity: 0, x: 60 }}
           animate={inView ? { opacity: 1, x: 0 } : {}}
@@ -52,18 +52,18 @@ const About = () => {
           <div className="content-header">
             <span className="editorial-label">See Mee Heritage</span>
             <h2 className="editorial-main-title">
-              Where Heritage <br/>
+              Where Heritage <br />
               <span className="accent-italic">Meets Modernity</span>
             </h2>
           </div>
 
           <div className="editorial-narrative">
             <p>
-              At See Mee, we celebrate the artistry of Indian ethnic fashion. Every stitch tells a story — 
+              At See Mee, we celebrate the artistry of Indian ethnic fashion. Every stitch tells a story —
               of skilled artisans preserving techniques passed down through generations.
             </p>
             <p>
-              Crafted for the woman who wears her heritage with pride, our collections 
+              Crafted for the woman who wears her heritage with pride, our collections
               balance royal grandeur with contemporary ease.
             </p>
           </div>
@@ -85,8 +85,8 @@ const About = () => {
             <blockquote className="footer-quote">
               "Every stitch tells a story of heritage and soul."
             </blockquote>
-            
-            <motion.button 
+
+            <motion.button
               className="split-cta-btn"
               onClick={() => navigate('/magazine')}
               whileHover={{ x: 10 }}
@@ -98,6 +98,26 @@ const About = () => {
             </motion.button>
           </div>
         </motion.div>
+      </div>
+
+      {/* Infinite Luxury Scrolling Marquee */}
+      <div className="luxury-about-marquee">
+        <div className="marquee-content">
+          {[1, 2, 3].map((loopIdx) => (
+            <div key={loopIdx} className="marquee-track" aria-hidden={loopIdx > 1}>
+              <span>INTRICATELY CRAFTED</span>
+              <span className="marquee-bullet">•</span>
+              <span>ARTISAN WEAVES</span>
+              <span className="marquee-bullet">•</span>
+              <span>ETHICALLY TAILORED</span>
+              <span className="marquee-bullet">•</span>
+              <span>CURATED LUXURY</span>
+              <span className="marquee-bullet">•</span>
+              <span>TRADITIONAL HERITAGE</span>
+              <span className="marquee-bullet">•</span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   )
