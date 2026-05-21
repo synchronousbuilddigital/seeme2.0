@@ -673,3 +673,244 @@
 .spin-lux.large { width: 50px; height: 50px; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 768px) {
+  .hero-carousel-manager {
+    padding: 15px;
+  }
+
+  .manager-header-lux {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 25px;
+  }
+
+  .header-info h2 {
+    font-size: 1.8rem;
+    letter-spacing: -0.5px;
+  }
+
+  .header-info .subtitle {
+    font-size: 0.9rem;
+    margin-top: 5px;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .view-switcher {
+    width: 100%;
+  }
+
+  .view-switcher button {
+    flex: 1;
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .btn-add-hero {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+
+  .storyboard-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .story-card {
+    border-radius: 12px;
+  }
+
+  .card-info {
+    padding: 15px;
+  }
+
+  .card-info h4 {
+    font-size: 1rem;
+  }
+
+  .card-info p {
+    font-size: 0.85rem;
+  }
+
+  .card-footer {
+    padding: 10px 15px;
+  }
+
+  /* Modal responsive behavior */
+  .lux-modal-overlay {
+    padding: 15px;
+  }
+
+  .lux-modal-body {
+    padding: 24px;
+    border-radius: 20px;
+    max-height: 95vh;
+  }
+
+  .modal-top {
+    margin-bottom: 25px;
+  }
+
+  .modal-top h3 {
+    font-size: 1.25rem;
+  }
+
+  .btn-close-lux {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .lux-form-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
+  .lux-upload-zone {
+    aspect-ratio: 16/10;
+    border-radius: 12px;
+  }
+
+  .upload-prompt-lux .icon {
+    font-size: 30px;
+  }
+
+  .upload-prompt-lux p {
+    font-size: 0.85rem;
+  }
+
+  .lux-input {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+  }
+
+  .story-preview {
+    border-radius: 12px;
+  }
+
+  .story-cat {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .story-sub {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .lux-meta-controls {
+    padding: 18px;
+    border-radius: 12px;
+  }
+
+  .lux-row {
+    grid-template-columns: 100px 1fr;
+    gap: 15px;
+  }
+
+  .toggle-lux {
+    margin-top: 15px;
+    font-size: 0.85rem;
+  }
+
+  .modal-actions-lux {
+    margin-top: 30px;
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .btn-lux-primary {
+    padding: 14px;
+    width: 100%;
+    font-size: 0.9rem;
+    border-radius: 12px;
+  }
+
+  .btn-lux-text {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .lux-toast {
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    padding: 12px 24px;
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  /* List Table view on mobile */
+  .lux-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -15px;
+    padding: 10px;
+    border-radius: 0;
+  }
+
+  .lux-table {
+    min-width: 650px;
+  }
+
+  .lux-table th, .lux-table td {
+    padding: 10px;
+    font-size: 0.8rem;
+  }
+
+  .table-img-lux {
+    width: 70px;
+  }
+
+  .table-meta strong {
+    font-size: 0.85rem;
+  }
+
+  .table-meta span {
+    font-size: 0.75rem;
+  }
+
+  .status-lux {
+    padding: 4px 8px;
+    font-size: 0.65rem;
+  }
+
+  .table-actions-lux button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .lux-empty-state {
+    padding: 50px 20px;
+    border-radius: 20px;
+  }
+
+  .empty-visual {
+    font-size: 50px;
+    margin-bottom: 15px;
+  }
+
+  .lux-empty-state h3 {
+    font-size: 1.4rem;
+  }
+
+  .lux-empty-state p {
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+  }
+}

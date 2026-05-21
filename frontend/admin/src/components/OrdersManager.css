@@ -992,3 +992,212 @@
 .done-btn:hover {
   background: #D4AF37;
 }
+
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 768px) {
+  .orders-manager .manager-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .orders-manager .manager-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .orders-manager .header-actions {
+    width: 100%;
+  }
+
+  .orders-manager .export-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem;
+  }
+
+  .orders-toolbar {
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .orders-search {
+    padding: 1rem 1rem 1rem 3rem;
+    font-size: 0.9rem;
+  }
+
+  .filters-row {
+    margin: 0 -15px;
+    padding: 0 15px 8px;
+  }
+
+  .filter-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.7rem;
+  }
+
+  .orders-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -15px;
+    padding: 0 15px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .orders-table {
+    min-width: 800px; /* Forces scroll container rather than squeezing cell content */
+  }
+
+  .orders-table th, .orders-table td {
+    padding: 12px 10px;
+  }
+
+  .order-num {
+    font-size: 0.95rem;
+  }
+
+  .manage-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.7rem;
+  }
+
+  /* Order Detail Modal / Sidebar Drawer */
+  .order-detail-modal {
+    max-width: 100%;
+  }
+
+  .modal-sidebar-header {
+    padding: 20px;
+  }
+
+  .modal-sidebar-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-scroll-area {
+    padding: 20px;
+    gap: 1.8rem;
+  }
+
+  .modal-sections section {
+    margin-bottom: 1.8rem;
+  }
+
+  .info-card {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 1.2rem;
+  }
+
+  .user-profile-mini {
+    align-items: center;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .user-text h4 {
+    font-size: 0.95rem;
+  }
+
+  .status-control-card {
+    padding: 1.2rem;
+  }
+
+  .input-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .timeline-step {
+    padding-left: 1.5rem;
+  }
+
+  .step-status {
+    font-size: 0.85rem;
+  }
+
+  .step-note {
+    font-size: 0.8rem;
+  }
+
+  .pkg-item {
+    padding: 0.8rem;
+    gap: 0.8rem;
+  }
+
+  .pkg-item img {
+    width: 50px;
+    height: 65px;
+  }
+
+  .pkg-info h4 {
+    font-size: 0.85rem;
+  }
+
+  .pkg-price {
+    font-size: 0.9rem;
+  }
+
+  .order-summary-box {
+    padding: 1.2rem;
+  }
+
+  .sum-row.total {
+    font-size: 1.1rem;
+  }
+
+  /* Export modal responsive design */
+  .premium-export-modal {
+    width: 95%;
+    padding: 24px;
+    gap: 18px;
+  }
+
+  .premium-export-modal .modal-topbar {
+    padding-bottom: 12px;
+  }
+
+  .premium-export-modal .modal-topbar h3 {
+    font-size: 1.1rem;
+  }
+
+  .export-modal-body {
+    gap: 18px;
+  }
+
+  .radio-card {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .radio-label h4 {
+    font-size: 0.85rem;
+  }
+
+  .radio-label p {
+    font-size: 0.72rem;
+  }
+
+  .format-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .format-tile {
+    padding: 15px;
+    font-size: 0.8rem;
+  }
+
+  .primary-action-btn {
+    padding: 12px;
+    font-size: 0.8rem;
+    border-radius: 8px;
+  }
+}

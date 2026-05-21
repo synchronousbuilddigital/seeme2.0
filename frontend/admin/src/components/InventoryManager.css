@@ -199,3 +199,76 @@
   padding: 20px 0;
   margin: 0;
 }
+
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 768px) {
+  .inventory-stats {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+
+  .stat-pill {
+    min-width: 100%;
+    padding: 20px;
+  }
+
+  .stat-pill .count {
+    font-size: 2rem;
+  }
+
+  .inventory-section {
+    padding: 20px 15px;
+    margin-bottom: 25px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .inventory-section h3 {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    font-size: 1rem;
+  }
+
+  .inventory-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -15px;
+    padding: 0 15px;
+  }
+
+  .inventory-table {
+    min-width: 650px; /* Forces scroll container rather than squeezing cells */
+  }
+
+  .inventory-table th, .inventory-table td {
+    padding: 12px 10px;
+  }
+
+  .product-cell {
+    gap: 10px;
+  }
+
+  .table-img {
+    width: 35px;
+    height: 35px;
+  }
+
+  .table-name {
+    font-size: 0.85rem;
+  }
+
+  .sku-cell {
+    font-size: 0.75rem;
+  }
+
+  .stock-cell {
+    font-size: 0.95rem;
+  }
+
+  .restock-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.7rem;
+  }
+}

@@ -1,6 +1,13 @@
 .global-search-container {
   position: relative;
   width: 350px;
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .global-search-container {
+    width: 100%;
+  }
 }
 
 .search-input-wrapper {

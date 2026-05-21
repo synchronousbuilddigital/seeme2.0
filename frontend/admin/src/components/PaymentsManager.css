@@ -12,3 +12,21 @@
 .payment-row .status.paid { color: #15803d; }
 .payment-row .status.failed { color: #b91c1c; }
 .payment-row .date { color: #64748b; font-size: 0.8rem; }
+
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 768px) {
+  .stats-strip {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .payments-list {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
+  }
+  .payment-row {
+    min-width: 650px; /* Forces scroll container rather than squeezing cells */
+    padding: 12px 15px;
+    font-size: 0.8rem;
+  }
+}

@@ -926,3 +926,175 @@
   background: #FAFAFA;
 }
 
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 768px) {
+  .products-manager .manager-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .products-manager .manager-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .products-manager .header-actions {
+    width: 100%;
+  }
+
+  .products-manager .add-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem;
+  }
+
+  .product-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 1.2rem;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .toolbar-input {
+    padding: 1rem 1rem 1rem 3rem;
+    font-size: 0.9rem;
+  }
+
+  .toolbar-select {
+    width: 100%;
+    padding: 1rem;
+    font-size: 0.9rem;
+    background-position: right 1rem top 50%;
+  }
+
+  .toolbar-summary {
+    margin-bottom: 1.5rem;
+    font-size: 0.75rem;
+  }
+
+  .products-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -15px;
+    padding: 0 15px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .products-table {
+    min-width: 750px; /* Forces scroll container rather than squeezing cells */
+  }
+
+  .products-table th, .products-table td {
+    padding: 10px 12px;
+  }
+
+  .table-product-cell {
+    gap: 0.8rem;
+  }
+
+  .table-product-img {
+    width: 45px;
+    height: 60px;
+  }
+
+  .table-product-details h4 {
+    font-size: 0.85rem;
+  }
+
+  .table-price {
+    font-size: 0.9rem;
+  }
+
+  .pagination-bar {
+    flex-direction: column;
+    gap: 12px;
+    padding: 1.2rem;
+  }
+
+  .pagination-btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.6rem;
+  }
+
+  /* Slide-out Drawer mobile view */
+  .product-form-drawer {
+    max-width: 100%;
+  }
+
+  .drawer-header {
+    padding: 20px;
+  }
+
+  .drawer-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .form-header-tabs {
+    padding: 0 20px;
+    top: 65px; /* Sticky overlap calculation */
+    gap: 1.2rem;
+  }
+
+  .form-header-tabs button {
+    font-size: 0.75rem;
+    padding: 12px 0;
+  }
+
+  .tabbed-form {
+    padding: 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .triple-input {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .size-stock-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .media-previews-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .media-thumb-premium {
+    aspect-ratio: 1; /* Squarish is nicer in grids */
+  }
+
+  .thumb-actions {
+    opacity: 1; /* Always visible on touch screens */
+  }
+
+  .form-actions-sticky {
+    position: sticky;
+    bottom: 0;
+    background: #FFF;
+    border-top: 1px solid #EAEAEA;
+    padding: 15px 0;
+    margin-top: 25px;
+    width: 100%;
+  }
+
+  .save-btn, .cancel-btn {
+    flex: 1;
+    padding: 0.8rem;
+    font-size: 0.75rem;
+  }
+}
+

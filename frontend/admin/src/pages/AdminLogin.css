@@ -189,3 +189,57 @@
 .password-toggle-btn svg {
   stroke: currentColor;
 }
+
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 480px) {
+  .admin-login-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .login-card {
+    padding: 2.5rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .login-logo {
+    width: 140px;
+    margin-bottom: 1.5rem;
+  }
+
+  .login-card h2 {
+    font-size: 1.6rem;
+  }
+
+  .login-card p {
+    margin-bottom: 2rem;
+    font-size: 0.85rem;
+  }
+
+  .admin-login-container .form-group input {
+    padding: 1rem !important;
+    font-size: 0.9rem !important;
+    border-radius: 10px !important;
+  }
+
+  .password-toggle-btn {
+    right: 1rem;
+  }
+
+  .login-btn {
+    padding: 1rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    margin-top: 0.5rem;
+  }
+
+  .error-message {
+    padding: 0.8rem;
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .footer-text {
+    margin-top: 2rem;
+    font-size: 0.7rem;
+  }
+}

@@ -70,11 +70,6 @@ const ActivityManager = () => {
           <h1>Activity Log</h1>
           <p>Real-time updates and notifications</p>
         </div>
-        <div className="header-actions">
-          <button className="refresh-btn" onClick={fetchActivities} disabled={loading}>
-            {loading ? 'Refreshing...' : 'Refresh Now'}
-          </button>
-        </div>
       </div>
 
       <div className="activity-toolbar">

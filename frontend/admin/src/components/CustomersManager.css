@@ -388,3 +388,108 @@
   background: rgba(239, 68, 68, 0.12);
   color: #DC2626;
 }
+
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 768px) {
+  .customers-manager .toolbar {
+    margin-bottom: 20px;
+  }
+
+  .customers-manager .toolbar input {
+    max-width: 100%;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+  }
+
+  .customers-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -15px;
+    padding: 0 15px;
+    border-radius: 0;
+  }
+
+  .admin-table {
+    min-width: 650px; /* Forces scroll container rather than squeezing cell content */
+  }
+
+  .admin-table th, .admin-table td {
+    padding: 12px 10px;
+  }
+
+  .customer-cell {
+    gap: 10px;
+  }
+
+  .customer-cell .avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 0.9rem;
+  }
+
+  .customer-cell .name {
+    font-size: 0.85rem;
+  }
+
+  .customer-cell .email {
+    font-size: 0.75rem;
+  }
+
+  /* History Drawer mobile view */
+  .customer-history-drawer {
+    max-width: 100%;
+  }
+
+  .customer-history-drawer .drawer-header {
+    padding: 20px;
+  }
+
+  .avatar-large {
+    width: 45px;
+    height: 45px;
+    font-size: 1.25rem;
+  }
+
+  .profile-text h2 {
+    font-size: 1.1rem;
+  }
+
+  .profile-text .email {
+    font-size: 0.8rem;
+  }
+
+  .drawer-stats {
+    padding: 15px 20px;
+    gap: 10px;
+  }
+
+  .drawer-stats .stat-box .label {
+    font-size: 0.6rem;
+  }
+
+  .drawer-stats .stat-box .value {
+    font-size: 1rem;
+  }
+
+  .drawer-body {
+    padding: 20px;
+    gap: 15px;
+  }
+
+  .history-order-card {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .history-order-card .order-num {
+    font-size: 0.9rem;
+  }
+
+  .history-order-card .card-middle {
+    font-size: 0.8rem;
+  }
+
+  .item-row {
+    font-size: 0.78rem;
+  }
+}

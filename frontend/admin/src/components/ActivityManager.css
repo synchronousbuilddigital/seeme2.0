@@ -291,3 +291,95 @@
   font-size: 1rem;
   color: #777;
 }
+
+/* Mobile Responsiveness Optimizations */
+@media (max-width: 768px) {
+  .activity-manager .manager-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  .activity-manager .manager-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .refresh-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem;
+  }
+
+  .activity-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px;
+    margin-bottom: 2rem;
+  }
+
+  .feed-filters {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .feed-filters button {
+    flex: 1 1 calc(50% - 8px);
+    padding: 8px;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .activity-container {
+    padding: 20px 15px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .activity-timeline {
+    padding-left: 1.2rem;
+  }
+
+  .activity-timeline::before {
+    left: 2px;
+  }
+
+  .activity-card {
+    margin-bottom: 2rem;
+  }
+
+  .activity-marker {
+    left: -1.2rem;
+  }
+
+  .marker-dot {
+    width: 7px;
+    height: 7px;
+    left: -1px;
+  }
+
+  .activity-content {
+    padding: 15px;
+  }
+
+  .activity-content h3 {
+    font-size: 0.95rem;
+  }
+
+  .activity-content p {
+    font-size: 0.85rem;
+  }
+
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 0.8rem;
+  }
+
+  .timestamp {
+    font-size: 0.75rem;
+  }
+}
