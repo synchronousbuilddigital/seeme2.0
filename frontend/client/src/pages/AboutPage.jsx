@@ -154,7 +154,7 @@ const AboutPage = () => {
             animate={heroInView ? { y: 0, opacity: 1 } : {}}
             transition={{ delay: 0.5, duration: 1 }}
           >
-            <span className="hero-pre-label">ESTABLISHED 2026</span>
+            <span className="hero-pre-label">ESTABLISHED IN 2026</span>
             <div className="gold-divider-mini"></div>
             <span className="hero-pre-label">THE ATELIER OF LUXURY</span>
           </motion.div>
@@ -177,7 +177,7 @@ const AboutPage = () => {
                 transition={{ delay: 0.9, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
                 className="inline-block accent-gold-cursive"
               >
-                Heritage Couture
+                Heritage Culture
               </motion.span>
             </span>
           </h1>

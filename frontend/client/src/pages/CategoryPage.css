@@ -1,7 +1,7 @@
 .editorial-category-page {
   background-color: #fff;
   min-height: 100vh;
-  padding-bottom: 120px;
+  padding-bottom: 28px;
 }
 
 /* Header */
@@ -67,7 +67,7 @@
 .category-info-bar {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 40px;
+  padding: 28px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -102,7 +102,7 @@
 
 /* Grid Area */
 .category-main {
-  padding: 80px 0;
+  padding: 34px 0 14px;
 }
 
 .category-grid-container {
@@ -114,7 +114,7 @@
 .luxury-product-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 60px 40px;
+  gap: 42px 30px;
 }
 
 .luxury-product-card {
@@ -125,16 +125,28 @@
 
 .card-media {
   position: relative;
-  aspect-ratio: 3/4;
+  aspect-ratio: 4/5;
   overflow: hidden;
-  background: #fdfaf5;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.18) 44%, transparent 70%),
+    #fdfaf5;
+  border-radius: 18px;
 }
 
 .card-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center 18%;
   transition: transform 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.card-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 34%, rgba(26, 26, 26, 0.08) 100%);
+  pointer-events: none;
 }
 
 .luxury-product-card:hover .card-img {
@@ -310,41 +322,80 @@
 
 /* Category Footer Editorial */
 .category-footer-editorial {
-  padding: 100px 40px;
-}
-
-.editorial-divider {
-  width: 1px;
-  height: 80px;
-  background: #ece6d9;
-  margin: 0 auto 60px;
+  padding: 30px 40px 24px;
 }
 
 .editorial-content-centered {
+  position: relative;
   text-align: center;
-  max-width: 600px;
+  max-width: 760px;
   margin: 0 auto;
+  padding: 34px 36px 30px;
+  border: 1px solid #ece6d9;
+  border-radius: 24px;
+  background: linear-gradient(180deg, #fff 0%, #fdfaf5 100%);
+  box-shadow: 0 18px 38px rgba(26, 26, 26, 0.06);
+  overflow: hidden;
+}
+
+.editorial-content-centered::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #D4AF37 50%, transparent 100%);
 }
 
 .editorial-mini-label {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.08);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.4em;
+  letter-spacing: 0.28em;
   color: #D4AF37;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .editorial-heading-small {
   font-family: var(--font-serif, serif);
-  font-size: 32px;
-  margin-bottom: 24px;
+  font-size: clamp(30px, 4vw, 44px);
+  margin-bottom: 14px;
+  line-height: 1.14;
 }
 
 .editorial-text-centered {
   font-size: 16px;
   color: #666;
-  line-height: 1.8;
+  line-height: 1.75;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.editorial-pill-row {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.editorial-pill {
+  border: 1px solid #ece6d9;
+  border-radius: 999px;
+  background: #fff;
+  color: #6d6d6d;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 8px 14px;
 }
 
 /* Responsive */
@@ -376,7 +427,7 @@
   }
   
   .category-main {
-    padding: 40px 0;
+    padding: 24px 0 10px;
   }
   
   .category-grid-container {
@@ -397,9 +448,45 @@
 }
 
 @media (max-width: 480px) {
+  .editorial-category-page {
+    padding-bottom: 18px;
+  }
+
   .luxury-product-grid {
     grid-template-columns: repeat(2, 1fr); /* Keep 2 columns even on small mobile */
-    gap: 30px 12px;
+    gap: 22px 12px;
+  }
+
+  .category-footer-editorial {
+    padding: 14px 14px 14px;
+  }
+
+  .editorial-content-centered {
+    padding: 24px 16px 20px;
+    border-radius: 16px;
+  }
+
+  .editorial-mini-label {
+    margin-bottom: 14px;
+  }
+
+  .editorial-heading-small {
+    font-size: 30px;
+  }
+
+  .editorial-text-centered {
+    font-size: 15px;
+  }
+
+  .editorial-pill-row {
+    margin-top: 16px;
+    gap: 8px;
+  }
+
+  .editorial-pill {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 7px 10px;
   }
   
   .card-actions {

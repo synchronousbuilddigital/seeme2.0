@@ -106,6 +106,10 @@ const CategoryPage = () => {
                       src={getImageUrl(product.images?.[0])}
                       alt={product.name}
                       className="card-img"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = '/images/categories_straight.jpg'
+                      }}
                     />
                     <div className="card-actions">
                       <button 
@@ -156,14 +160,19 @@ const CategoryPage = () => {
 
       {/* Optional: About the Category Section */}
       <section className="category-footer-editorial">
-        <div className="editorial-divider"></div>
         <div className="editorial-content-centered">
-          <span className="editorial-mini-label">The Artisan Way</span>
-          <h2 className="editorial-heading-small">Crafted for the Contemporary Woman</h2>
+          <span className="editorial-mini-label">Modern Heritage</span>
+          <h2 className="editorial-heading-small">Tradition, Tailored for Today</h2>
           <p className="editorial-text-centered">
-            Our {displayName} collection is a testament to the enduring beauty of Indian textiles. 
-            Each piece is designed to offer a silhouette of ease without compromising on the grandeur of tradition.
+            Our {displayName} collection celebrates the richness of Indian textiles through clean,
+            contemporary silhouettes. Every piece is crafted for effortless elegance, blending cultural
+            artistry with modern confidence.
           </p>
+          <div className="editorial-pill-row" aria-hidden="true">
+            <span className="editorial-pill">Handpicked Fabrics</span>
+            <span className="editorial-pill">Refined Silhouettes</span>
+            <span className="editorial-pill">Modern Craft</span>
+          </div>
         </div>
       </section>
     </div>

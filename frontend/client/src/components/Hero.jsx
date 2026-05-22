@@ -1,317 +1,289 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import './Hero.css'
 
+const FALLBACK_SLIDES = [
+  {
+    image: '/images/home-hero.png',
+    title: 'Timeless Festive Wear',
+    subtitle: 'Elegant silhouettes shaped for everyday celebrations.',
+    category: 'Signature'
+  },
+  {
+    image: '/images/categories_straight.jpg',
+    title: 'Everyday Occasion Edit',
+    subtitle: 'Clean lines, rich fabrics, and a polished finish.',
+    category: 'Curated'
+  },
+  {
+    image: '/images/ruby_bridal_sharara.png',
+    title: 'Wedding Season Highlights',
+    subtitle: 'Premium dressing with a modern, refined feel.',
+    category: 'Featured'
+  }
+]
+
 const Hero = () => {
   const navigate = useNavigate()
-  const [thumbnails, setThumbnails] = useState([])
+  const [slides, setSlides] = useState([])
   const [activeIndex, setActiveIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Detect mobile device
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 968)
+    const updateMobileState = () => {
+      setIsMobile(window.innerWidth <= 960)
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+
+    updateMobileState()
+    window.addEventListener('resize', updateMobileState)
+    return () => window.removeEventListener('resize', updateMobileState)
   }, [])
 
   useEffect(() => {
+    let isMounted = true
+
+    const fetchCarouselImages = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch(API_ENDPOINTS.CAROUSEL)
+        const data = await response.json()
+
+        const backendSlides = data.success
+          ? data.data
+              .filter((slide) => (slide.isActive !== false && slide.active !== false) && slide.image)
+              .map((slide) => ({
+                image: slide.image,
+                title: slide.title || slide.productName || slide.productCategory || 'Featured collection',
+                subtitle: slide.subtitle || slide.productCategory || slide.productName || 'Curated for the new season',
+                category: (slide.productCategory || slide.title || 'Featured').toString(),
+                productId: slide.productId || null
+              }))
+          : []
+
+        const nextSlides = backendSlides.length > 0 ? backendSlides : FALLBACK_SLIDES
+
+        if (isMounted) {
+          setSlides(nextSlides)
+          setActiveIndex(0)
+        }
+      } catch (error) {
+        console.error('Error fetching carousel:', error)
+        if (isMounted) {
+          setSlides(FALLBACK_SLIDES)
+          setActiveIndex(0)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
     fetchCarouselImages()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
-  const fetchCarouselImages = async () => {
-    try {
-      setLoading(true)
-      const carouselResponse = await fetch(API_ENDPOINTS.CAROUSEL)
-      const carouselData = await carouselResponse.json()
-
-      // Handle both 'isActive' and 'active' field naming variations
-      let heroSlides = carouselData.success
-        ? carouselData.data.filter(slide => (slide.isActive !== false && slide.active !== false) && slide.image)
-        : []
-
-      if (heroSlides.length > 0) {
-        setThumbnails(heroSlides.map(slide => ({
-          img: slide.image,
-          category: (slide.title || slide.productName || slide.productCategory || 'FEATURED').toUpperCase(),
-          desc: slide.subtitle || slide.productCategory || slide.productName || 'Curated edit',
-          id: slide.productId || null
-        })))
-        return
-      }
-
-      // Fallback on empty carousel - fetch featured products
-      console.log('Hero: Carousel empty, falling back to featured products')
-      const [featuredResponse, collectionResponse] = await Promise.all([
-        fetch(API_ENDPOINTS.FEATURED_PRODUCTS).catch(() => null),
-        fetch(API_ENDPOINTS.COLLECTION_PRODUCTS).catch(() => null)
-      ])
-
-      let featuredData = featuredResponse ? await featuredResponse.json() : { success: false }
-      let collectionData = collectionResponse ? await collectionResponse.json() : { success: false }
-
-      const combined = [
-        ...(featuredData.success ? featuredData.data : []),
-        ...(collectionData.success ? collectionData.data : [])
-      ]
-
-      if (combined.length > 0) {
-        const uniqueProducts = combined.filter(
-          (p, idx, self) => self.findIndex(t => t._id === p._id) === idx
-        )
-
-        setThumbnails(uniqueProducts.slice(0, 5).map(p => ({
-          img: p.images?.[0] || '/images/home-hero.png',
-          category: (p.category || 'FEATURED').toUpperCase(),
-          desc: p.name || 'Premium Collection',
-          id: p._id
-        })))
-      } else {
-        // Fallback to local images
-        setThumbnails([
-          { img: '/images/home-hero.png', category: 'ANARKALI', desc: 'Timeless Grace' },
-          { img: '/images/categories_straight.jpg', category: 'PALAZZO', desc: 'Contemporary Comfort' },
-          { img: '/images/ruby_bridal_sharara.png', category: 'STRAIGHT CUT', desc: 'Classic Sophistication' },
-          { img: '/images/home-hero.png', category: 'SHARARA', desc: 'Regal Charm' }
-        ])
-      }
-    } catch (err) {
-      console.error('Error fetching carousel:', err)
-      setThumbnails([
-        { img: '/images/home-hero.png', category: 'ANARKALI', desc: 'Timeless Grace' },
-        { img: '/images/categories_straight.jpg', category: 'PALAZZO', desc: 'Contemporary Comfort' },
-        { img: '/images/ruby_bridal_sharara.png', category: 'STRAIGHT CUT', desc: 'Classic Sophistication' }
-      ])
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handlePrev = () => {
-    setActiveIndex((prev) => (prev - 1 + thumbnails.length) % thumbnails.length)
-  }
-
-  const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % thumbnails.length)
-  }
-
-  // Auto-slideshow every 6 seconds
   useEffect(() => {
-    if (thumbnails.length === 0) return
+    if (slides.length <= 1) return
 
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % thumbnails.length)
-    }, 6000)
+      setActiveIndex((prev) => (prev + 1) % slides.length)
+    }, 12000)
 
     return () => clearInterval(interval)
-  }, [thumbnails.length])
+  }, [slides.length])
 
-  if (loading || thumbnails.length === 0) {
+  const currentSlide = slides[activeIndex] || FALLBACK_SLIDES[0]
+  const titleWords = (currentSlide.title || 'Stylish Female Clothes').split(' ')
+  const firstLine = titleWords.slice(0, 1).join(' ') || 'Stylish'
+  const secondLine = titleWords.slice(1).join(' ') || 'Female Clothes'
+
+  const handlePrimaryAction = () => {
+    if (currentSlide.productId) {
+      navigate(`/product/${currentSlide.productId}`)
+      return
+    }
+
+    navigate('/collections')
+  }
+
+  if (loading || slides.length === 0) {
     return (
-      <section className="hero-jewelry skeleton-view" id="home">
-        <div className="hero-reference-container">
-          <div className="hero-ref-left">
-            <div className="skeleton-tag"></div>
-            <div className="skeleton-title-1"></div>
-            <div className="skeleton-title-2"></div>
-            <div className="skeleton-text"></div>
+      <section className="hero-banner hero-banner-loading" id="home">
+        <div className="hero-shell">
+          <div className="hero-copy skeleton-copy">
+            <div className="skeleton-pill" />
+            <div className="skeleton-line skeleton-line-lg" />
+            <div className="skeleton-line skeleton-line-lg" />
+            <div className="skeleton-line skeleton-line-md" />
+            <div className="skeleton-actions">
+              <div className="skeleton-button" />
+              <div className="skeleton-button ghost" />
+            </div>
           </div>
-          <div className="hero-ref-right">
-            <div className="skeleton-arch"></div>
-          </div>
+          <div className="hero-visual skeleton-visual" />
         </div>
       </section>
     )
   }
 
-  const currentSlide = thumbnails[activeIndex]
-  const nextSlide = thumbnails[(activeIndex + 1) % thumbnails.length]
-
-  const getCleanFirstWord = (text) => {
-    if (!text) return 'Elegance'
-    const words = text.split(' ')
-    return words[0].length > 12 ? 'Couture' : words[0]
-  }
-
   return (
-    <section className="hero-jewelry" id="home">
-      {/* Background Atmosphere */}
-      <div className="hero-atmosphere"></div>
+    <section className="hero-banner" id="home">
+      <div className="hero-bg-orb hero-bg-orb-left" />
+      <div className="hero-bg-orb hero-bg-orb-right" />
+      <div className="hero-bg-grid" />
 
-      {/* Subtle luxury sparkle layer */}
-      <div className="hero-sparkles">
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className={`sparkle sparkle-${i + 1}`}></div>
-        ))}
-      </div>
-
-      <div className="hero-reference-container">
-        {/* Left Content Column */}
-        <div className="hero-ref-left">
-          <motion.div 
-            className="hero-ref-category-tag"
-            key={`cat-${activeIndex}`}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <span>{currentSlide.category}</span>
-          </motion.div>
-
-          <h1 className="hero-ref-title">
-            <span className="title-row-1">
-              {getCleanFirstWord(currentSlide.desc)} is
-              <span className="wavy-decor-wrapper">
-                <svg className="wavy-underline" viewBox="0 0 120 10" preserveAspectRatio="none">
-                  <path d="M0,5 C15,2 30,8 45,5 C60,2 75,8 90,5 C105,2 115,5 120,5" fill="none" stroke="var(--primary-gold)" strokeWidth="3" />
-                </svg>
-              </span>
-            </span>
-            <span className="title-row-2">
-              nothing but a 
-              <span className="choice-circle-wrapper">
-                <span className="choice-text">Choice</span>
-                {/* Gold hand-drawn circle outline */}
-                <svg className="gold-circle-svg" viewBox="0 0 200 80" preserveAspectRatio="none">
-                  <path 
-                    d="M10,40 C10,18 90,12 185,25 C195,38 180,62 100,68 C20,68 8,48 25,32" 
-                    fill="none" 
-                    stroke="var(--primary-gold)" 
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                  />
-                </svg>
-                {/* Pink decorative dot */}
-                <span className="pink-circle-dot"></span>
-              </span>
-            </span>
+      <div className="hero-shell">
+        <motion.div
+          className="hero-copy"
+          initial={{ opacity: 0, y: 26 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <h1 className="hero-title">
+            <span>{firstLine}</span>
+            <span>{secondLine}</span>
           </h1>
 
-          <p className="hero-ref-description">
-            Fashion is a form of self-expression and autonomy. Our bespoke couture collections balance royal grandeur with contemporary ease, tailored for your premium lifestyle.
+          <p className="hero-description">
+            Made from soft, durable, premium fabrics with the warm, elegant feel of the SeeMee brand.
           </p>
 
-          <div className="hero-ref-actions">
-            <button 
-              className="hero-ref-readmore"
-              onClick={() => currentSlide.id ? navigate(`/product/${currentSlide.id}`) : navigate('/collections')}
+          <div className="hero-cta-row">
+            <motion.button
+              className="hero-chip hero-chip-secondary"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/collections')}
             >
-              Read more 
-              <svg width="20" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              Select Category
+            </motion.button>
+
+            <motion.button
+              className="hero-chip hero-chip-primary"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handlePrimaryAction}
+            >
+              <span>Shop Now</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8">
+                <path d="M5 12h14M13 5l7 7-7 7" />
+              </svg>
+            </motion.button>
+          </div>
+
+          <div className="hero-social-card">
+            <div className="hero-avatar-stack" aria-hidden="true">
+              <span className="hero-avatar avatar-1">A</span>
+              <span className="hero-avatar avatar-2">S</span>
+              <span className="hero-avatar avatar-3">M</span>
+            </div>
+            <div className="hero-social-copy">
+              <span>Our Happy Customers</span>
+              <strong>4.8 / 5 Stars Review</strong>
+              <div className="hero-rating" aria-hidden="true">
+                <span>★</span>
+                <span>★</span>
+                <span>★</span>
+                <span>★</span>
+                <span>★</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-member-row">
+            <span>Not yet member?</span>
+            <motion.button
+              className="hero-member-btn"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate('/auth')}
+            >
+              Sign Up Now
+            </motion.button>
+          </div>
+        </motion.div>
+
+        <div className="hero-visual-wrap">
+          <motion.div
+            className="hero-visual-frame"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="hero-visual-tag">
+              <span>Curated</span>
+              <strong>Lookbook</strong>
+            </div>
+
+            <div className="hero-visual-backdrop" />
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide.image}
+                className="hero-visual-image-wrap"
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.02 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <img
+                  src={getOptimizedImageUrl(currentSlide.image, isMobile ? 'mobile-hero' : 'hero')}
+                  alt={currentSlide.title || 'Hero banner'}
+                  className="hero-main-image"
+                  loading="eager"
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            <motion.div
+              className="hero-floating-card"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.25 }}
+            >
+              <span className="hero-floating-label">New Drop</span>
+              <strong>{currentSlide.title}</strong>
+              <p>{currentSlide.subtitle}</p>
+            </motion.div>
+
+            <button
+              type="button"
+              className="hero-visual-next"
+              onClick={() => setActiveIndex((prev) => (prev + 1) % slides.length)}
+              aria-label="Show next banner"
+            >
+              <span>Next</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M5 12h14M13 5l7 7-7 7" />
               </svg>
             </button>
-          </div>
-
-          {/* Bottom Circular Outline Badge */}
-          <button 
-            className="hero-ref-view-badge"
-            onClick={() => currentSlide.id ? navigate(`/product/${currentSlide.id}`) : navigate('/collections')}
-          >
-            <div className="badge-inner">
-              <span className="badge-text-line-1">View the</span>
-              <span className="badge-text-line-2">design</span>
-              <div className="badge-arrow-circle">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                  <path d="M5 12h14M13 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        {/* Right Media Column */}
-        <div className="hero-ref-right">
-          
-          {/* Main Large Capsule Arch Wrapper */}
-          <div className="main-arch-wrapper">
-            {/* White photo corners */}
-            <div className="corner-accent tl"></div>
-            <div className="corner-accent tr"></div>
-            <div className="corner-accent bl"></div>
-            <div className="corner-accent br"></div>
-
-            <AnimatePresence mode="wait">
-              <motion.div 
-                key={`main-img-${activeIndex}`}
-                className="main-arch-frame"
-                initial={{ scale: 1.05, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.05, opacity: 0 }}
-                transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-                onClick={() => currentSlide.id && navigate(`/product/${currentSlide.id}`)}
-              >
-                <img 
-                  src={getOptimizedImageUrl(currentSlide.img, 'hero')} 
-                  alt={currentSlide.category} 
-                />
-                <div className="frame-glow-overlay"></div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Secondary Smaller Offset Arch Frame */}
-          {nextSlide && (
-            <div className="secondary-arch-wrapper">
-              <AnimatePresence mode="wait">
-                <motion.div 
-                  key={`sub-img-${activeIndex}`}
-                  className="secondary-arch-frame"
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -20, opacity: 0 }}
-                  transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-                  onClick={handleNext}
-                  title="View next design"
-                >
-                  <img 
-                    src={getOptimizedImageUrl(nextSlide.img, 'hero')} 
-                    alt={nextSlide.category} 
-                  />
-                  <div className="secondary-overlay">
-                    <span className="sec-label">Next Design</span>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          )}
-
-          {/* Cursive vector swirl shapes for Lookbook luxury vibe */}
-          <div className="decor-swirl swirl-1">
-            <svg width="70" height="70" viewBox="0 0 100 100" fill="none" stroke="rgba(255, 255, 255, 0.18)" strokeWidth="1.5">
-              <path d="M10,40 C30,10 60,80 90,40" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div className="decor-swirl swirl-2">
-            <svg width="45" height="45" viewBox="0 0 100 100" fill="none" stroke="var(--primary-gold)" strokeWidth="1.5" strokeDasharray="3 3">
-              <path d="M80,20 C50,60 20,40 10,80" strokeLinecap="round" />
-            </svg>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Slide Navigation Pagination */}
-      <div className="hero-ref-controls">
-        <div className="timeline-segment-group">
-          {thumbnails.map((item, idx) => (
-            <button 
-              key={idx}
-              className={`timeline-dot-btn ${activeIndex === idx ? 'active' : ''}`}
-              onClick={() => setActiveIndex(idx)}
-              aria-label={`Go to slide ${idx + 1}`}
-            >
-              <span className="dot-number">{String(idx + 1).padStart(2, '0')}</span>
-              <span className="dot-bar"></span>
-            </button>
-          ))}
-        </div>
+      <div className="hero-controls">
+        {slides.map((slide, index) => (
+          <button
+            key={`${slide.title}-${index}`}
+            type="button"
+            className={`hero-dot ${activeIndex === index ? 'active' : ''}`}
+            onClick={() => setActiveIndex(index)}
+            aria-label={`Go to banner ${index + 1}`}
+          >
+            <span className="hero-dot-number">{String(index + 1).padStart(2, '0')}</span>
+            <span className="hero-dot-line">
+              {activeIndex === index && <span className="hero-dot-progress" />}
+            </span>
+          </button>
+        ))}
       </div>
     </section>
   )
