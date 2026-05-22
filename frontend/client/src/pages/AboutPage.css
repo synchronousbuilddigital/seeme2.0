@@ -30,6 +30,7 @@
   line-height: 0.8;
   pointer-events: none;
   z-index: 0;
+  -webkit-user-select: none;
   user-select: none;
   width: 90%;
   text-align: center;
@@ -393,6 +394,7 @@
   bottom: 15px;
   left: 15px;
   background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(212, 175, 55, 0.3);
   color: var(--deep-brown);
@@ -888,7 +890,7 @@
 @media (max-width: 960px) {
   .pillars-accordion-container {
     flex-direction: column;
-    min-height: auto;
+    min-height: 0;
     gap: 20px;
   }
 
@@ -1114,8 +1116,8 @@
   position: relative;
   z-index: 3;
   background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   max-width: 700px;
   padding: clamp(2rem, 4vw, 4rem) clamp(1.5rem, 3.5vw, 3.5rem);
@@ -1337,12 +1339,234 @@
 }
 
 @media (max-width: 768px) {
+  .about-page .container {
+    padding: 0 1rem;
+  }
+
+  .watermark-logo {
+    top: 10vh;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(4rem, 18vw, 7rem);
+    width: 100%;
+  }
+
+  .about-hero-premium {
+    min-height: 92svh;
+    height: auto;
+    padding: 6.5rem 0 4rem;
+  }
+
+  .hero-image-container {
+    opacity: 0.3;
+  }
+
+  .hero-overlay-content {
+    padding: 0 1rem;
+  }
+
+  .hero-tagline-wrapper {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .gold-divider-mini {
+    margin: 0;
+  }
+
+  .hero-pre-label {
+    letter-spacing: 3px;
+    text-align: center;
+  }
+
+  .hero-main-title {
+    font-size: clamp(2.4rem, 13vw, 4rem);
+    margin-bottom: 26px;
+  }
+
+  .hero-scroll-indicator {
+    gap: 10px;
+    margin-top: 8px;
+  }
+
   .values-grid-premium {
     grid-template-columns: 1fr;
   }
 
   .metrics-interactive-grid {
     grid-template-columns: 1fr;
+  }
+
+  .about-narrative-section,
+  .about-journey-section,
+  .about-values-section,
+  .about-metrics-section,
+  .about-cta-premium {
+    padding-top: 3.5rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .narrative-grid {
+    gap: 32px;
+  }
+
+  .narrative-lead {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+
+  .drop-cap {
+    font-size: 3.6rem;
+    padding-right: 8px;
+  }
+
+  .narrative-body p {
+    text-align: left;
+    font-size: 0.98rem;
+    line-height: 1.75;
+  }
+
+  .narrative-collage-box {
+    padding-right: 0;
+    padding-bottom: 3rem;
+  }
+
+  .collage-frame-small {
+    width: 50%;
+  }
+
+  .section-header-centered {
+    margin-bottom: 2rem;
+  }
+
+  .header-desc {
+    margin-top: 12px;
+  }
+
+  .journey-steps-selector {
+    gap: 12px;
+  }
+
+  .journey-step-btn {
+    padding: 16px 14px;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .step-num {
+    margin-right: 0;
+    font-size: 1.8rem;
+  }
+
+  .step-btn-title {
+    font-size: 1rem;
+  }
+
+  .step-btn-short {
+    font-size: 0.85rem;
+  }
+
+  .display-image-frame {
+    height: 220px;
+  }
+
+  .stage-card-badge {
+    top: 16px;
+    right: 16px;
+    padding: 7px 14px;
+    font-size: 0.62rem;
+  }
+
+  .display-content-card {
+    padding: 1.5rem;
+  }
+
+  .display-description,
+  .pillar-expanded-desc,
+  .pillar-expanded-details,
+  .intro-paragraph,
+  .cta-description,
+  .immersive-banner-card p {
+    text-align: left;
+    line-height: 1.7;
+  }
+
+  .pillar-accordion-panel {
+    padding: 18px;
+    min-height: 150px;
+  }
+
+  .pillar-accordion-panel.active {
+    min-height: 360px;
+  }
+
+  .pillar-collapsed-title {
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+
+  .pillar-expanded-header {
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .pillar-expanded-title {
+    font-size: 1.45rem;
+  }
+
+  .metrics-outer-card {
+    padding: 2rem 1.25rem;
+    gap: 28px;
+  }
+
+  .metrics-interactive-grid {
+    gap: 16px;
+  }
+
+  .metric-item-card {
+    padding: 20px 16px;
+    min-height: 0;
+  }
+
+  .metric-desc-text {
+    font-size: 0.78rem;
+  }
+
+  .about-artisans-immersive {
+    padding: 0 1rem;
+  }
+
+  .immersive-banner-wrapper {
+    height: auto;
+    min-height: 460px;
+  }
+
+  .immersive-banner-card {
+    margin: 14px;
+  }
+
+  .immersive-banner-card h2 {
+    font-size: clamp(1.7rem, 9vw, 2.5rem);
+  }
+
+  .cta-bordered-envelope {
+    padding: 2.25rem 1.25rem;
+  }
+
+  .cta-eyebrow {
+    letter-spacing: 4px;
+  }
+
+  .cta-title {
+    font-size: clamp(1.9rem, 8vw, 2.8rem);
+  }
+
+  .luxury-gold-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 18px 18px;
+    letter-spacing: 2px;
   }
 
   .about-artisans-immersive {
@@ -1363,5 +1587,81 @@
 
   .journey-step-btn {
     padding: 20px 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-page .container {
+    padding: 0 0.9rem;
+  }
+
+  .about-hero-premium {
+    padding: 6rem 0 3rem;
+  }
+
+  .hero-main-title {
+    font-size: clamp(2.1rem, 15vw, 3.4rem);
+  }
+
+  .about-narrative-section,
+  .about-journey-section,
+  .about-values-section,
+  .about-metrics-section,
+  .about-cta-premium {
+    padding-top: 2.75rem;
+    padding-bottom: 2.75rem;
+  }
+
+  .collage-frame-small {
+    width: 58%;
+  }
+
+  .journey-step-btn,
+  .pillar-accordion-panel,
+  .metric-item-card,
+  .cta-bordered-envelope,
+  .immersive-banner-card {
+    border-radius: 4px;
+  }
+
+  .display-image-frame {
+    height: 200px;
+  }
+
+  .display-content-card {
+    padding: 1.25rem;
+  }
+
+  .premium-quote-text {
+    font-size: clamp(1.35rem, 7vw, 2rem);
+  }
+
+  .quote-icon {
+    margin-bottom: 24px;
+  }
+
+  .pillars-accordion-container {
+    margin-top: 30px;
+  }
+
+  .pillar-expanded-content {
+    margin-top: 18px;
+  }
+
+  .metric-number-val {
+    font-size: clamp(1.9rem, 10vw, 3rem);
+  }
+
+  .metric-label-val {
+    font-size: 0.74rem;
+  }
+
+  .banner-badge {
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+  }
+
+  .luxury-gold-btn {
+    font-size: 0.78rem;
   }
 }
