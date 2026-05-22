@@ -1,21 +1,27 @@
-.new-arrivals-premium {
-  padding: 35px 0;
+/* ==========================================================================
+   NEW ARRIVALS - COMPACT CONTINUOUS LOOP MARQUEE STYLES (FULL BLEED)
+   ========================================================================== */
+
+.new-arrivals-premium.small-size-section {
+  padding: 30px 0;
   background-color: #fff;
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .premium-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 5%;
+  position: relative;
 }
 
-/* Header Styles */
-.arrivals-header {
-  margin-bottom: 80px;
+/* Header Styles - Compact and Elegant */
+.arrivals-header.compact-header {
+  margin-bottom: 30px;
   text-align: center;
-  max-width: 800px;
+  max-width: 700px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -24,30 +30,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 12px;
 }
 
 .accent-line {
-  width: 40px;
+  width: 30px;
   height: 1px;
   background-color: var(--editorial-accent, #d4af37);
 }
 
 .premium-subtitle {
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.25em;
   color: var(--editorial-accent, #d4af37);
 }
 
 .premium-title {
   font-family: var(--font-heading);
-  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-size: clamp(2.0rem, 3.5vw, 2.8rem);
   font-weight: 300;
   color: #1a1a1a;
-  margin-bottom: 25px;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
 }
 
 .premium-title span {
@@ -57,36 +64,87 @@
 
 .premium-desc {
   font-family: var(--font-body);
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-size: 0.95rem;
+  line-height: 1.5;
   color: #767676;
-  max-width: 600px;
+  max-width: 550px;
   margin: 0 auto;
 }
 
-/* Grid Styles */
-.arrivals-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
-  margin-bottom: 80px;
-}
+/* ==========================================================================
+   CAROUSEL CONTINUOUS MARQUEE STRUCTURE (FULL BLEED)
+   ========================================================================== */
 
-/* Card Styles */
-.arrival-card-modern {
+.arrivals-carousel-container.full-bleed-carousel {
   position: relative;
-  background: var(--off-white);
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid rgba(212, 175, 55, 0.08);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 35px;
+  box-sizing: border-box;
 }
 
-.arrival-card-modern:hover {
-  transform: translateY(-8px);
-  border-color: var(--primary-gold);
-  box-shadow: 0 24px 48px rgba(212, 175, 55, 0.1);
+.arrivals-carousel-viewport {
+  width: 100%;
+  overflow: hidden;
+  padding: 15px 0 25px 0; /* Extra vertical space so card shadow/hover doesn't clip */
+}
+
+/* Seamless Continuous Marquee Ticker Track */
+.arrivals-marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: continuousMarquee 28s linear infinite;
+}
+
+/* Pause scroll animation immediately on hover */
+.arrivals-carousel-viewport:hover .arrivals-marquee-track {
+  animation-play-state: paused;
+}
+
+/* Card Wrapper with uniform size in scrolling marquee */
+.carousel-card-wrapper {
+  width: 280px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  padding: 0 12px; /* Smooth spacing between scrolling slides */
+}
+
+/* Marquee Animation logic - shifts exactly one full copy (25% of 4x copy track width) */
+@keyframes continuousMarquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-25%, 0, 0);
+  }
+}
+
+/* ==========================================================================
+   COMPACT CARD DESIGN
+   ========================================================================== */
+
+.arrival-card-modern.compact-card {
+  position: relative;
+  background: var(--off-white, #fefdfb);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid rgba(212, 175, 55, 0.06);
+  border-radius: 6px;
+  padding: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.015);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.arrival-card-modern.compact-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-gold, #d4af37);
+  box-shadow: 0 16px 36px rgba(212, 175, 55, 0.08);
 }
 
 .card-media {
@@ -94,8 +152,8 @@
   aspect-ratio: 3/4;
   overflow: hidden;
   cursor: pointer;
-  background-color: var(--cream);
-  border-radius: 6px;
+  background-color: var(--cream, #f9f6f0);
+  border-radius: 4px;
 }
 
 .image-zoom-container {
@@ -108,11 +166,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 1.0s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.arrival-card-modern:hover .card-media img {
-  transform: scale(1.08);
+.arrival-card-modern.compact-card:hover .card-media img {
+  transform: scale(1.06);
 }
 
 .card-media-overlay {
@@ -121,183 +179,257 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(43, 43, 43, 0.3);
-  backdrop-filter: blur(10px);
+  background: rgba(43, 43, 43, 0.25);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: all 0.4s ease;
+  transition: all 0.35s ease;
 }
 
-.arrival-card-modern:hover .card-media-overlay {
+.arrival-card-modern.compact-card:hover .card-media-overlay {
   opacity: 1;
 }
 
 .quick-view {
-  color: var(--cream);
+  color: var(--cream, #f9f6f0);
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  border: 1px solid rgba(254, 253, 251, 0.4);
-  padding: 10px 20px;
-  background: rgba(43, 43, 43, 0.6);
-  border-radius: 30px;
-  backdrop-filter: blur(5px);
+  letter-spacing: 0.15em;
+  border: 1px solid rgba(254, 253, 251, 0.35);
+  padding: 8px 16px;
+  background: rgba(43, 43, 43, 0.5);
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
   transition: all 0.3s ease;
 }
 
-.arrival-card-modern:hover .quick-view {
-  border-color: var(--primary-gold);
-  color: var(--primary-gold);
-  background: rgba(43, 43, 43, 0.85);
+.arrival-card-modern.compact-card:hover .quick-view {
+  border-color: var(--primary-gold, #d4af37);
+  color: var(--primary-gold, #d4af37);
+  background: rgba(43, 43, 43, 0.8);
 }
 
 .heart-btn {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 36px;
-  height: 36px;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: rgba(254, 253, 251, 0.85);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
+  background: rgba(254, 253, 251, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
   z-index: 2;
-  color: var(--charcoal);
+  color: var(--charcoal, #2b2b2b);
+  padding: 0;
 }
 
 .heart-btn:hover {
-  transform: scale(1.1);
-  color: var(--primary-gold);
-  border-color: var(--primary-gold);
-  background: white;
+  transform: scale(1.08);
+  color: var(--primary-gold, #d4af37);
+  border-color: var(--primary-gold, #d4af37);
+  background: #fff;
 }
 
 .heart-btn.active {
-  background: var(--primary-gold);
-  border-color: var(--primary-gold);
-  color: white;
+  background: var(--primary-gold, #d4af37);
+  border-color: var(--primary-gold, #d4af37);
+  color: #fff;
 }
 
-/* Content Styles */
+.luxury-craft-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 8px;
+  background: rgba(254, 253, 251, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 3px;
+  color: var(--charcoal, #2b2b2b);
+  font-family: var(--font-body);
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+.arrival-card-modern.compact-card:hover .luxury-craft-badge {
+  background: var(--charcoal, #2b2b2b);
+  color: var(--light-gold, #f1e5c9);
+  border-color: var(--primary-gold, #d4af37);
+}
+
+/* Card Content - Compact & Refined */
 .card-content-modern {
-  padding: 20px 4px 4px;
+  padding: 12px 2px 2px;
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .card-category {
   display: block;
   font-family: var(--font-body);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--primary-gold);
-  margin-bottom: 8px;
+  letter-spacing: 0.15em;
+  color: var(--primary-gold, #d4af37);
+  margin-bottom: 6px;
   font-weight: 600;
 }
 
 .card-name-modern {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--charcoal);
-  margin-bottom: 12px;
-  line-height: 1.3;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--charcoal, #2b2b2b);
+  margin-bottom: 10px;
+  line-height: 1.25;
   transition: color 0.3s ease;
+  flex-grow: 1;
 }
 
 .arrival-card-modern:hover .card-name-modern {
-  color: var(--deep-brown);
+  color: var(--deep-brown, #5c4033);
 }
 
 .card-footer-modern {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 14px;
-  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  padding-top: 10px;
+  border-top: 1px solid rgba(212, 175, 55, 0.08);
 }
 
 .card-price {
   font-family: var(--font-heading);
-  font-size: 1.15rem;
-  color: var(--charcoal);
+  font-size: 1.0rem;
+  color: var(--charcoal, #2b2b2b);
   font-weight: 700;
 }
 
 .bag-btn-mini {
   background: transparent;
-  border: 1px solid rgba(212, 175, 55, 0.3);
+  border: 1px solid rgba(212, 175, 55, 0.25);
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--charcoal);
+  letter-spacing: 0.08em;
+  color: var(--charcoal, #2b2b2b);
   cursor: pointer;
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 5px 12px;
+  border-radius: 15px;
   transition: all 0.3s ease;
   font-weight: 600;
 }
 
 .bag-btn-mini:hover {
-  background: var(--charcoal);
-  color: var(--light-gold);
-  border-color: var(--charcoal);
+  background: var(--charcoal, #2b2b2b);
+  color: var(--light-gold, #f1e5c9);
+  border-color: var(--charcoal, #2b2b2b);
 }
 
-/* Action Styles */
-.arrivals-action {
+/* Explore Full Action */
+.arrivals-action.compact-action {
   text-align: center;
+  margin-top: 5px;
 }
 
 .explore-btn-modern {
   background: #1a1a1a;
   color: #fff;
   border: none;
-  padding: 20px 50px;
+  padding: 12px 36px;
   font-family: var(--font-body);
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.15em;
   cursor: pointer;
   transition: all 0.4s ease;
 }
 
 .explore-btn-modern:hover {
   background-color: var(--editorial-accent, #d4af37);
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(212, 175, 55, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .arrivals-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-  }
+/* Background elements */
+.premium-bg-decor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
 }
 
-@media (max-width: 768px) {
-  .new-arrivals-premium {
-    padding: 40px 0;
+.decor-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212,175,55,0.025) 0%, rgba(255,255,255,0) 70%);
+}
+
+.circle-1 {
+  width: 500px;
+  height: 500px;
+  top: -200px;
+  right: -150px;
+}
+
+.circle-2 {
+  width: 600px;
+  height: 600px;
+  bottom: -250px;
+  left: -200px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN BREAKPOINTS
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .premium-container {
+    padding: 0 4%;
   }
   
-  .arrivals-header {
-    margin-bottom: 40px;
-    padding: 0 20px;
+  .arrivals-header.compact-header {
+    margin-bottom: 25px;
   }
   
   .premium-title {
     font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .new-arrivals-premium.small-size-section {
+    padding: 25px 0;
+  }
+  
+  .arrivals-header.compact-header {
+    padding: 0 10px;
+  }
+  
+  .carousel-card-wrapper {
+    width: 230px; /* Slightly narrower on tablet/mobile */
+    padding: 0 8px;
   }
 }
 
@@ -306,77 +438,7 @@
     padding: 0 15px;
   }
   
-  .arrivals-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns on mobile */
-    gap: 20px 12px;
-  }
-  
-  .card-name-modern {
-    font-size: 1.1rem;
-  }
-  
-  .card-price {
-    font-size: 1rem;
-  }
-  
-  .bag-btn-mini {
-    font-size: 0.7rem;
-  }
-}
-
-/* ============================================
-   HIGH-FASHION EDITORIAL STAGGERED GRID & BADGES
-   ============================================ */
-
-/* Luxury Craftsmanship Badge */
-.luxury-craft-badge {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  padding: 6px 12px;
-  background: rgba(254, 253, 251, 0.75);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(212, 175, 55, 0.2);
-  border-radius: 4px;
-  color: var(--charcoal);
-  font-family: var(--font-body);
-  font-size: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-weight: 700;
-  pointer-events: none;
-  z-index: 2;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
-  transition: all 0.4s ease;
-}
-
-.arrival-card-modern:hover .luxury-craft-badge {
-  background: var(--charcoal);
-  color: var(--light-gold);
-  border-color: var(--primary-gold);
-}
-
-/* Asymmetrical Grid Offsets for Desktop to mimic elite catalog layouts */
-@media (min-width: 1025px) {
-  .card-layout-idx-1 {
-    transform: translateY(45px);
-  }
-  
-  .card-layout-idx-1:hover {
-    transform: translateY(37px);
-  }
-  
-  .card-layout-idx-2 {
-    transform: translateY(-25px);
-  }
-  
-  .card-layout-idx-2:hover {
-    transform: translateY(-33px);
-  }
-  
-  /* Increase padding to prevent overlap with neighbor segments */
-  .arrivals-grid {
-    padding: 30px 0 60px;
-    gap: 36px;
+  .carousel-card-wrapper {
+    width: 210px; /* Fully compact for smaller viewports */
   }
 }

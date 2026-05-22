@@ -3,12 +3,12 @@ import Product from '../models/Product.js'
 export const getAllProducts = async (filters) => {
   const { category, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 20 } = filters
   const filter = { isActive: true }
-  
+
   if (category) filter.category = category
   if (featured) filter.featured = true
   if (inCollection) filter.inCollection = true
   if (filters.isNewArrival) filter.isNewArrival = true
-  
+
   if (minPrice || maxPrice) {
     filter.price = {}
     if (minPrice) filter.price.$gte = Number(minPrice)
@@ -16,7 +16,7 @@ export const getAllProducts = async (filters) => {
   }
 
   const skip = (page - 1) * limit
-  
+
   let sortOptions = { createdAt: -1 }
   if (sortBy === 'price_asc') sortOptions = { price: 1 }
   if (sortBy === 'price_desc') sortOptions = { price: -1 }
@@ -34,15 +34,15 @@ export const getAllProducts = async (filters) => {
 
 export const searchProducts = async (queryParams) => {
   const { q, category, minPrice, maxPrice, sortBy, page = 1, limit = 20 } = queryParams
-  
+
   const filter = { isActive: true }
-  
+
   if (q) {
     filter.$text = { $search: q }
   }
 
   if (category) filter.category = category
-  
+
   if (minPrice || maxPrice) {
     filter.price = {}
     if (minPrice) filter.price.$gte = Number(minPrice)
@@ -51,7 +51,7 @@ export const searchProducts = async (queryParams) => {
 
   const skip = (page - 1) * limit
   let sortOptions = { score: { $meta: 'textScore' } }
-  
+
   if (sortBy === 'price_asc') sortOptions = { price: 1 }
   if (sortBy === 'price_desc') sortOptions = { price: -1 }
   if (sortBy === 'newest') sortOptions = { createdAt: -1 }
@@ -75,18 +75,18 @@ export const getTopThreeProducts = async () => {
   let products = await Product.find({ isNewArrival: true, isActive: true })
     .sort({ createdAt: -1 })
     .limit(3)
-  
+
   // If not enough new arrivals, fill with collection products
   if (products.length < 3) {
     const remaining = 3 - products.length
-    const collectionProducts = await Product.find({ 
-      inCollection: true, 
+    const collectionProducts = await Product.find({
+      inCollection: true,
       isActive: true,
-      _id: { $nin: products.map(p => p._id) } 
+      _id: { $nin: products.map(p => p._id) }
     })
-    .sort({ createdAt: -1 })
-    .limit(remaining)
-    
+      .sort({ createdAt: -1 })
+      .limit(remaining)
+
     products = [...products, ...collectionProducts]
   }
 
@@ -117,14 +117,14 @@ export const createProduct = async (productData) => {
 
 export const updateProduct = async (id, productData) => {
   const existingProduct = await getProductById(id)
-  
+
   if (productData.inCollection && !existingProduct.inCollection) {
     const collectionCount = await getCollectionCount()
     if (collectionCount >= 15) {
       throw new Error('Collection is full. Maximum 15 products allowed in collection.')
     }
   }
-  
+
   return await Product.findByIdAndUpdate(
     id,
     productData,

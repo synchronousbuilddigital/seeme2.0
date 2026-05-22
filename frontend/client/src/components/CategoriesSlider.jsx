@@ -88,7 +88,7 @@ const CategoriesSlider = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % categories.length)
-    }, 6000)
+    }, 9000)
     return () => clearInterval(interval)
   }, [categories.length])
 

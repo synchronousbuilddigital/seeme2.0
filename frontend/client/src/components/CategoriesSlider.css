@@ -79,7 +79,7 @@
 }
 
 .categories-slider-luxury {
-  padding: 35px 0;
+  padding: 20px 0;
   background-color: var(--off-white);
   overflow: hidden;
   position: relative;
@@ -89,10 +89,10 @@
 .slider-tabs-row {
   display: flex;
   justify-content: center;
-  gap: 32px;
-  margin-bottom: 50px;
+  gap: 24px;
+  margin-bottom: 25px;
   border-bottom: 1px solid rgba(212, 175, 55, 0.15);
-  padding-bottom: 15px;
+  padding-bottom: 10px;
 }
 
 .slider-tab-item {
@@ -167,7 +167,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 32px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   text-align: left;
 }
 
@@ -260,8 +260,8 @@
 
 .slider-content-grid {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  gap: clamp(40px, 8vw, 120px);
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: clamp(30px, 5vw, 60px);
   align-items: center;
 }
 
@@ -291,9 +291,11 @@
   position: relative;
   z-index: 2;
   aspect-ratio: 3/4;
+  max-width: 380px; /* Compact image size */
+  margin: 0 auto;
   overflow: hidden;
   background: var(--cream);
-  box-shadow: 0 30px 70px rgba(0,0,0,0.12);
+  box-shadow: 0 20px 45px rgba(0,0,0,0.1);
   border: 1px solid rgba(212, 175, 55, 0.15);
   border-radius: 4px;
 }
@@ -327,25 +329,25 @@
 
 .category-name {
   font-family: var(--font-serif, serif);
-  font-size: 48px;
+  font-size: 36px; /* Slightly smaller name */
   color: #1a1a1a;
-  margin-bottom: 24px;
-  line-height: 1.1;
+  margin-bottom: 16px;
+  line-height: 1.15;
 }
 
 .category-desc {
-  font-size: 18px;
+  font-size: 15px; /* Slightly smaller description */
   color: #4a4a4a;
-  line-height: 1.8;
-  margin-bottom: 32px;
+  line-height: 1.7;
+  margin-bottom: 20px;
   font-weight: 300;
 }
 
 .feature-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 40px;
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .feature-pill {
@@ -405,8 +407,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 40px;
-  margin-top: 60px;
+  gap: 30px;
+  margin-top: 30px;
 }
 
 .ctrl-btn {
