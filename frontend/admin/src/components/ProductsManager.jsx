@@ -28,7 +28,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     description: '',
     shortDescription: '',
     slug: '',
-    category: 'anarkali',
+    category: '3-piece-sets',
     subcategory: '',
     sku: '',
     price: '',
@@ -55,7 +55,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     seo: { title: '', description: '' },
     isNewArrival: false
   })
-  const [availableCategories, setAvailableCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara'])
+  const [availableCategories, setAvailableCategories] = useState(['2-piece-sets', '3-piece-sets', 'co-ord-sets'])
 
   useEffect(() => {
     fetchProducts()
@@ -259,7 +259,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         shortDescription: formData.shortDescription,
         category: formData.category,
         subcategory: formData.subcategory,
-        sku: formData.sku.trim() || undefined,
+        sku: formData.sku ? formData.sku.trim() : undefined,
         price: parseFloat(formData.price),
         discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
         stock: totalStock,
@@ -322,7 +322,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     setFormData({
       name: '',
       description: '',
-      category: 'anarkali',
+      category: '3-piece-sets',
       price: '',
       stock: '',
       sizeStock: [

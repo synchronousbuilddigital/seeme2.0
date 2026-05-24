@@ -46,7 +46,19 @@ const CollectionsPage = () => {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === selectedCategory)
+      filtered = filtered.filter(p => {
+        const cat = (p.category || '').toLowerCase().trim()
+        if (selectedCategory === '2-piece-sets') {
+          return cat === '2-piece-sets' || cat === '2-piece' || cat === '2-pieces'
+        }
+        if (selectedCategory === '3-piece-sets') {
+          return cat === '3-piece-sets' || cat === '3-piece' || cat === '3-pieces'
+        }
+        if (selectedCategory === 'co-ord-sets') {
+          return cat === 'co-ord-sets' || cat === 'co-ord-set' || cat === 'cord-set' || cat === 'cord set' || cat === 'co-ord'
+        }
+        return cat === selectedCategory
+      })
     }
 
     // Sort
@@ -80,10 +92,9 @@ const CollectionsPage = () => {
 
   const categories = [
     { value: 'all', label: 'All Collections' },
-    { value: 'anarkali', label: 'Anarkali' },
-    { value: 'palazzo', label: 'Palazzo' },
-    { value: 'straight-cut', label: 'Straight Cut' },
-    { value: 'sharara', label: 'Sharara' }
+    { value: '2-piece-sets', label: '2-Piece' },
+    { value: '3-piece-sets', label: '3-Piece' },
+    { value: 'co-ord-sets', label: 'Cord Set' }
   ]
 
   const handleAddToCart = (product) => {

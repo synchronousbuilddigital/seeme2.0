@@ -4,7 +4,7 @@ const newArrivalSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['anarkali', 'palazzo', 'straight-cut'],
+    enum: ['2-piece-sets', '3-piece-sets', 'co-ord-sets'],
     unique: true
   },
   image: {

@@ -70,14 +70,36 @@ const seedMockData = async () => {
       { title: 'Handloom Cotton', description: 'Traditional handwoven cotton', image: '/images/about/fabric5.jpg', order: 4 }
     ],
     categorySlides: [
-      { title: 'Anarkali Specials', slug: 'anarkali', subtitle: 'Regal silhouettes', description: 'Graceful floor-length anarkalis with intricate embroidery. Perfect for weddings and festivals.', features: ['Hand embroidery', 'Floor-length', 'Luxury fabrics', 'Custom fitting'], image: '/images/about/slide1.jpg', order: 0 },
-      { title: 'Palazzo Sets', slug: 'palazzo', subtitle: 'Modern comfort meets tradition', description: 'Flowing palazzo sets combining traditional kurtas with contemporary silhouettes. Ideal for gatherings.', features: ['Wide-leg comfort', 'Breathable fabrics', 'Handloom weaves', 'Festival ready'], image: '/images/about/slide2.jpg', order: 1 },
-      { title: 'Straight Cuts', slug: 'straight-cut', subtitle: 'Timeless elegance', description: 'Sophisticated straight-cut suits perfect for formal occasions. Tailored precision meets ethnic charm.', features: ['Tailored fit', 'Gold embellishments', 'Premium silk', 'All occasions'], image: '/images/about/slide3.jpg', order: 2 },
-      { title: 'Sharara Collections', slug: 'sharara', subtitle: 'Festive celebrations', description: 'Vibrant shararas with heavy embroidery and flared bottoms. Celebrate in style and elegance.', features: ['Heavily embroidered', 'Flared bottoms', 'Bright colors', 'Bridal collection'], image: '/images/about/slide4.jpg', order: 3 },
-      { title: 'New Arrivals', slug: 'new-arrivals', subtitle: 'Fresh drops weekly', description: 'Discover our latest designs blending tradition with contemporary trends. Updated collections every season.', features: ['Latest designs', 'Limited editions', 'Trendy colors', 'Seasonal updates'], image: '/images/about/slide5.jpg', order: 4 }
+      {
+        title: '2-Piece Sets',
+        slug: '2-piece-sets',
+        subtitle: 'Effortless Modernity',
+        description: 'Stunning tunic and trouser duos that redefine casual luxury with absolute ease.',
+        features: ['Tailored Tunic', 'Fluid Trousers', 'Premium Comfort'],
+        image: '/images/categories_straight.jpg',
+        order: 0
+      },
+      {
+        title: '3-Piece Sets',
+        slug: '3-piece-sets',
+        subtitle: 'Complete Regal Grace',
+        description: 'Harmonious kurta, pants, and matching dupatta sets, crafted with ancestral weaves.',
+        features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta'],
+        image: '/images/ruby_bridal_sharara.png',
+        order: 1
+      },
+      {
+        title: 'Co-ord Sets',
+        slug: 'co-ord-sets',
+        subtitle: 'Contemporary Sleekness',
+        description: 'Monochromatic, luxury structured matching co-ords engineered to silhouette your form.',
+        features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic'],
+        image: '/images/categories_straight.jpg',
+        order: 2
+      }
     ]
   })
-  console.log('✅ Seeded SiteSettings with 5 categories')
+  console.log('✅ Seeded SiteSettings with 3 premium categories')
 
   // Seed hero carousel
   await HeroCarousel.insertMany([
@@ -95,9 +117,9 @@ const seedMockData = async () => {
 
   // Seed new arrivals (one per category)
   await NewArrival.insertMany([
-    { category: 'anarkali', image: '/images/about/new-anarkali.jpg', isActive: true },
-    { category: 'palazzo', image: '/images/about/new-palazzo.jpg', isActive: true },
-    { category: 'straight-cut', image: '/images/about/4new-straight.jpg', isActive: true }
+    { category: '2-piece-sets', image: '/images/about/new-palazzo.jpg', isActive: true },
+    { category: '3-piece-sets', image: '/images/about/new-anarkali.jpg', isActive: true },
+    { category: 'co-ord-sets', image: '/images/about/4new-straight.jpg', isActive: true }
   ])
   console.log('✅ Seeded NewArrival')
 
@@ -106,7 +128,7 @@ const seedMockData = async () => {
     {
       name: 'Royal Midnight Anarkali',
       description: 'Deep navy velvet with silver Zardosi embroidery and a floor-length silhouette. Paired with a sheer georgette dupatta.',
-      category: 'anarkali',
+      category: '3-piece-sets',
       price: 18500,
       images: ['https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200'],
       video: '',
@@ -124,7 +146,7 @@ const seedMockData = async () => {
     {
       name: 'Pastel Blush Palazzo Set',
       description: 'Handloom cotton kurta with wide-leg palazzos, breathable and elegant. Perfect for summer gatherings.',
-      category: 'palazzo',
+      category: '2-piece-sets',
       price: 7200,
       images: ['https://images.unsplash.com/photo-1610173826014-9336df76906a?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -140,7 +162,7 @@ const seedMockData = async () => {
     {
       name: 'Emerald Silk Straight Cut',
       description: 'Pure silk straight-cut suit with minimal gold border and tailored fit. Transitions perfectly from office to evening.',
-      category: 'straight-cut',
+      category: 'co-ord-sets',
       price: 12400,
       images: ['https://images.unsplash.com/photo-1589156206699-bc21e38c8a7d?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -156,7 +178,7 @@ const seedMockData = async () => {
     {
       name: 'Golden Saffron Sharara',
       description: 'Vibrant saffron sharara with heavy embroidery on flares and short kurta. Ideal for festive celebrations.',
-      category: 'sharara',
+      category: '3-piece-sets',
       price: 21000,
       images: ['https://images.unsplash.com/photo-1617627143750-d86bc21e44bb?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -172,7 +194,7 @@ const seedMockData = async () => {
     {
       name: 'Maroon Velvet Anarkali',
       description: 'Luxurious maroon velvet anarkali with pearl and stone work. A statement piece for weddings.',
-      category: 'anarkali',
+      category: '3-piece-sets',
       price: 22000,
       images: ['https://images.unsplash.com/photo-1578991444433-d20a7a8d039f?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -190,7 +212,7 @@ const seedMockData = async () => {
     {
       name: 'Sage Green Palazzo',
       description: 'Soft sage green palazzo with delicate floral prints and comfortable fit. Perfect for casual elegance.',
-      category: 'palazzo',
+      category: '2-piece-sets',
       price: 5800,
       images: ['https://images.unsplash.com/photo-1597683212624-b3f48dd6b837?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -207,7 +229,7 @@ const seedMockData = async () => {
     {
       name: 'Champagne Silk Straight',
       description: 'Elegant champagne silk straight cut with delicate border work. Sophisticated and timeless.',
-      category: 'straight-cut',
+      category: 'co-ord-sets',
       price: 14200,
       images: ['https://images.unsplash.com/photo-1580952855202-8352ada4afe5?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -224,7 +246,7 @@ const seedMockData = async () => {
     {
       name: 'Cherry Red Sharara',
       description: 'Bold cherry red sharara with intricate threadwork. A perfect choice for traditional celebrations.',
-      category: 'sharara',
+      category: '3-piece-sets',
       price: 19500,
       images: ['https://images.unsplash.com/photo-1577720643272-265f434fe3d3?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -240,7 +262,7 @@ const seedMockData = async () => {
     {
       name: 'Lavender Dream Anarkali',
       description: 'Dreamy lavender anarkali with mirror work and embroidery. Light, airy, and perfect for evening events.',
-      category: 'anarkali',
+      category: '3-piece-sets',
       price: 15800,
       images: ['https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [
@@ -256,7 +278,7 @@ const seedMockData = async () => {
     {
       name: 'Rust Orange Palazzo',
       description: 'Warm rust orange palazzo set with block print details. Comfortable everyday wear with style.',
-      category: 'palazzo',
+      category: '2-piece-sets',
       price: 6500,
       images: ['https://images.unsplash.com/photo-1554568218-84f6dd1cb744?auto=format&fit=crop&q=80&w=1200'],
       sizeStock: [

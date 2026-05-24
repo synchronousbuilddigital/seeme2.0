@@ -6,6 +6,18 @@ import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
 import './Navbar.css'
 
+const formatCategoryName = (slug) => {
+  if (!slug) return ''
+  const s = slug.toLowerCase().trim()
+  if (s === '2-piece-sets' || s === '2-piece' || s === '2-pieces') return '2-Piece'
+  if (s === '3-piece-sets' || s === '3-piece' || s === '3-pieces') return '3-Piece'
+  if (s === 'co-ord-sets' || s === 'cord-set' || s === 'co-ord' || s === 'co-ord-set') return 'Cord Set'
+  
+  return slug
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
 const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -135,7 +147,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                   <div className="dropdown-grid">
                     {availableCategories.map(cat => (
                       <button key={cat} onClick={() => handleNavigation(`/category/${cat}`)}>
-                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        {formatCategoryName(cat)}
                       </button>
                     ))}
                   </div>
@@ -145,6 +157,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           </div>
 
           <button onClick={() => handleNavigation('/collections')} className="nav-item">Shop</button>
+          <button onClick={() => handleNavigation('/fabrics')} className="nav-item">Fabrics</button>
           <button onClick={() => handleNavigation('/magazine')} className="nav-item">Magazine</button>
           <button onClick={() => handleNavigation('/about')} className="nav-item">About</button>
         </div>
@@ -317,7 +330,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               <div className="mobile-submenu-items">
                 {availableCategories.map(cat => (
                   <button key={cat} onClick={() => handleNavigation(`/category/${cat}`)}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    {formatCategoryName(cat)}
                   </button>
                 ))}
               </div>
@@ -325,6 +338,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           </div>
 
           <button onClick={() => handleNavigation('/collections')}>Shop</button>
+          <button onClick={() => handleNavigation('/fabrics')}>Fabrics</button>
           <button onClick={() => handleNavigation('/magazine')}>Magazine</button>
           <button onClick={() => handleNavigation('/about')}>About</button>
         </motion.div>

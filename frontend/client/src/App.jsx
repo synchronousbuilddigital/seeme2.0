@@ -16,6 +16,8 @@ import './App.css'
 // Lazy load below-the-fold components
 const CategoriesSlider = lazy(() => import('./components/CategoriesSlider'))
 const About = lazy(() => import('./components/About'))
+const ShopSection = lazy(() => import('./components/ShopSection'))
+const FabricSection = lazy(() => import('./components/FabricSection'))
 
 // Lazy load route pages
 const Auth = lazy(() => import('./pages/Auth'))
@@ -33,6 +35,7 @@ const AccountPage = lazy(() => import('./pages/AccountPage'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Search = lazy(() => import('./pages/Search'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
+const FabricsPage = lazy(() => import('./pages/FabricsPage'))
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -48,6 +51,8 @@ function App() {
         <Hero />
         <NewArrivals />
         <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
+          <ShopSection />
+          <FabricSection />
           <CategoriesSlider />
           <About />
         </Suspense>
@@ -132,10 +137,11 @@ function App() {
 
                 {/* About Page */}
                 <Route path="/about" element={<PageWithNav><AboutPage /></PageWithNav>} />
+				<Route path="/fabrics" element={<PageWithNav><FabricsPage /></PageWithNav>} />
 
                 {/* Search Page */}
                 <Route path="/search" element={<PageWithNav><Search /></PageWithNav>} />
- 
+
                 {/* Wishlist Page */}
                 <Route path="/wishlist" element={<PageWithNav><WishlistPage /></PageWithNav>} />
 

@@ -7,26 +7,6 @@ import './MagazinePage.css'
 const fallbackStories = [
   {
     _id: 'story1',
-    title: 'The Gold Thread Archive',
-    subtitle: 'Reading a Stitch Like a Sentence',
-    description: 'Zardozi is not only embroidery. It is a written record of care, restraint, and ceremony. In this chapter, the atelier opens its ledgers, showing how metallic thread is softened by hand, how motifs are aligned with almost architectural precision, and how a single panel can hold the memory of dozens of decisions. The result feels less like ornament and more like a page preserved in silk and light.',
-    image: '/images/magazine/gold_thread_archive.png',
-    category: 'Heritage',
-    author: 'Elena Rossi',
-    quote: 'Every stitch is a line of memory, and every finish is a mark of patience.',
-    readTime: '8 MIN READ',
-    date: 'MAY 2026',
-    chapter: 'CHAPTER 01',
-    sections: [
-      'The opening spread traces the first sketch, where the motif is scaled, softened, and translated into thread.',
-      'The middle pages move through the handwork itself, where gold tones are layered, pressed, and secured by eye.',
-      'The closing note records the finishing stage, when the garment is inspected, stored, and prepared like an archive piece.'
-    ],
-    highlights: ['Hand-guided metallic embroidery', 'Royal-inspired borders', 'Low-volume atelier production'],
-    marginalia: 'Library note: This story reads like a conservator\'s log, preserving process as carefully as the garment itself.'
-  },
-  {
-    _id: 'story2',
     title: 'Silk and the River City',
     subtitle: 'The Banaras Loom as a Living Chronicle',
     description: 'The Banarasi loom turns repetition into ritual. Every shuttle movement carries a tempo that has outlived trends, and every finished textile becomes a reminder that cloth can contain geography, labor, and inheritance at once. This chapter follows the loom room from daylight to dusk, moving past dye vats, thread books, and folded lengths of silk waiting for their last inspection.',
@@ -35,8 +15,8 @@ const fallbackStories = [
     author: 'Julian Thorne',
     quote: 'A woven fabric can be read the way a city is read: slowly, by layers.',
     readTime: '7 MIN READ',
-    date: 'APRIL 2026',
-    chapter: 'CHAPTER 02',
+    date: 'MAY 2026',
+    chapter: 'CHAPTER 01',
     sections: [
       'The first paragraph introduces the loom room and the steady rhythm that shapes the cloth before it even leaves the frame.',
       'The second section studies the pattern books, where traditional references are reworked into a modern sequence of color and texture.',
@@ -46,14 +26,34 @@ const fallbackStories = [
     marginalia: 'Reading cue: Notice how the story moves from architecture to intimacy, as if the weave were drawing a floor plan.'
   },
   {
+    _id: 'story2',
+    title: 'The Banarasi Weaving Legacy',
+    subtitle: 'A Symphony of Gold and Pure Silk Threads',
+    description: 'From the looms of Varanasi to the modern wardrobe. Discover how we preserve the intricate patterns of traditional Banarasi silk while adapting them for the contemporary woman. A celebration of texture, heritage, and the dedicated hands that guide every metallic thread through the loom to form legendary motifs.',
+    image: '/images/magazine/banarasi_weaving.png',
+    category: 'Heritage',
+    author: 'Elena Rossi',
+    quote: 'We do not just weave silk; we weave the stories of generations.',
+    readTime: '8 MIN READ',
+    date: 'APRIL 2026',
+    chapter: 'CHAPTER 02',
+    sections: [
+      'The opening spread traces the first sketch, where the motif is scaled, softened, and translated into thread.',
+      'The middle pages move through the handwork itself, where gold tones are layered, pressed, and secured by eye.',
+      'The closing note records the finishing stage, when the garment is inspected, stored, and prepared like an archive piece.'
+    ],
+    highlights: ['Intricate floral patterns', 'Pure mulberry silk threads', 'Traditional metallic borders'],
+    marginalia: 'Library note: This story reads like a conservator\'s log, preserving process as carefully as the garment itself.'
+  },
+  {
     _id: 'story3',
-    title: 'Anarkali, Recut',
-    subtitle: 'A Silhouette Built for Movement',
-    description: 'Some garments begin as references and end as statements. The modern Anarkali in this spread is cut with more air, less rigidity, and a sharper sense of line, proving that volume can still feel light. The studio notes capture the balance between ceremonial presence and daily ease, while the images document how shape changes when fabric is allowed to move instead of merely stand still.',
-    image: '/images/magazine/anarkali_recut.png',
-    category: 'Collections',
+    title: 'Mastery in the Atelier',
+    subtitle: 'The Silent Dedication Behind the Seams',
+    description: 'Step inside the SEEMEE design studio where royal grandeur meets modern ease. Every cut is measured with spatial precision, every embroidery pattern is placed to silhouette the form, and every seam is hand-finished. We balance ancestral skills with contemporary tailoring, ensuring every single dress carries the human soul inside.',
+    image: '/images/magazine/artisan_craftsmanship.png',
+    category: 'Atelier',
     author: 'Aria Varma',
-    quote: 'The best volume never shouts. It simply arrives with confidence.',
+    quote: 'The best craftsmanship never shouts. It is felt in the weight and drape of the fabric.',
     readTime: '6 MIN READ',
     date: 'MARCH 2026',
     chapter: 'CHAPTER 03',
@@ -62,48 +62,48 @@ const fallbackStories = [
       'The middle section focuses on surface treatment, where embroidery and seams are placed to guide the eye rather than overwhelm it.',
       'The closing note speaks to wearability, reminding the reader that beauty must still live in the body that carries it.'
     ],
-    highlights: ['Refined volume', 'Studio-tested drape', 'Comfort-led tailoring'],
+    highlights: ['Comfort-led bespoke tailoring', 'Hand-guided embroidery', 'Architectural pattern-cutting'],
     marginalia: 'Workshop note: The pattern reads like a diagram, but the garment reads like a gesture.'
   },
   {
     _id: 'story4',
-    title: 'The Wardrobe Afterlife',
-    subtitle: 'How a Garment Becomes an Object of Care',
-    description: 'The last chapter is about life after the fitting room. A garment becomes a keepsake when it is stored, repaired, and returned to with intention. Here the magazine changes tempo and becomes a practical guide, listing the rituals that keep fabric beautiful: steaming, folding, brushing, and the quiet habit of checking seams before the next occasion arrives.',
-    image: '/images/magazine/wardrobe_afterlife.png',
-    category: 'Archive',
-    author: 'Mira Kapoor',
-    quote: 'Care is the final craft, and often the one that gives a garment its longest life.',
-    readTime: '5 MIN READ',
+    title: 'The Architecture of the Loom',
+    subtitle: 'Where Handloom Mechanics Meet Artistic Vision',
+    description: 'A study of the mechanical elegance of hand-operated looms. The warp holds the tension of history while the weft introduces the variable paths of human touch. Here, we analyze how jacquard cards translate complex botanical drawings into textile relief, showing that the loom is both a machine and an extension of the weaver\'s imagination.',
+    image: '/images/magazine/banarasi_silk_loom.png',
+    category: 'Mechanics',
+    author: 'Kavya Singh',
+    quote: 'Every thread is a choice, and every pick is a second in the weaver\'s day.',
+    readTime: '7 MIN READ',
     date: 'FEBRUARY 2026',
     chapter: 'CHAPTER 04',
     sections: [
-      'The opening note is a checklist for preservation, turning the wardrobe into a small archive of living objects.',
-      'The second passage details how finishing decisions affect longevity, from linings to closures to storage habits.',
-      'The final page reads like an instruction card, inviting the reader to treat luxury as stewardship rather than display.'
+      'The first passage explains warp preparation, where hundreds of silk threads are combed and aligned.',
+      'The second section details the weft insertions and the rhythmic click-clack of the shuttle in motion.',
+      'The final spread shows how the pattern emerges, row by row, as a physical archive of patience.'
     ],
-    highlights: ['Storage and care routines', 'Repair-first thinking', 'Long-term garment stewardship'],
-    marginalia: 'Archive note: A well-made garment should be readable years later, not just memorable on the day it is worn.'
+    highlights: ['Hand-crafted wooden frames', 'Botanical card systems', 'Precision warp alignment'],
+    marginalia: 'Studio note: The physical setup of the warp takes three weeks, before a single inch of silk is woven.'
   },
   {
     _id: 'story5',
-    title: 'The Architecture of Drape',
-    subtitle: 'How Fabric Learns to Fall',
-    description: 'Drape is not merely the absence of structure; it is structure in motion. A well-draped garment understands gravity better than a tailored one. In this study, we observe how heavy silks collapse into liquid folds and how sheer organza holds air like a second skin. It is a dialogue between the weaver\'s tension and the wearer\'s walk.',
-    image: '/images/magazine/architecture_of_drape.png',
-    category: 'Design',
-    author: 'Kavya Singh',
-    quote: 'The true shape of a garment is only revealed when it moves.',
-    readTime: '6 MIN READ',
+    title: 'The Weight of Velvet',
+    subtitle: 'Nocturnal Elegance and the Draped Silhouette',
+    description: 'As the sun sets, the richness of royal velvet takes center stage. Our nocturnal collection features deep emeralds and midnight tones, hand-embroidered with tilla work that captures the moon\'s reflection. Here, we explore the physical weight and drape of velvet, showing how it falls in heavy, majestic drapes while remaining incredibly soft and fluid.',
+    image: '/images/magazine/weight_of_velvet.png',
+    category: 'Nocturnal',
+    author: 'Mira Kapoor',
+    quote: 'Velvet absorbs light and holds shadow, creating a deep dimension that silk cannot match.',
+    readTime: '5 MIN READ',
     date: 'JANUARY 2026',
     chapter: 'CHAPTER 05',
     sections: [
-      'The opening spread analyzes the bias cut, showing how fabric relaxes when cut off-grain.',
-      'The middle pages document the pleating process, where heat and pressure create permanent rhythm in the cloth.',
-      'The closing note reflects on the final silhouette, capturing the dress in motion.'
+      'The opening note describes the pile of velvet, explaining how it feels against the skin.',
+      'The second passage details the hand-applied tilla embroidery, where silver threads are locked into the velvet fabric.',
+      'The final page reads like an invitation to slow luxury, celebrating velvet\'s timeless, majestic presence.'
     ],
-    highlights: ['Bias draping techniques', 'Fluid organza layers', 'Dynamic movement'],
-    marginalia: 'Studio note: Pinning the drape on the form takes longer than the stitching itself.'
+    highlights: ['Deep jewel tones', 'Hand-stitched silver tilla', 'Nocturnal design aesthetic'],
+    marginalia: 'Archive note: A well-made garment should be readable years later, not just memorable on the day it is worn.'
   }
 ]
 
@@ -187,7 +187,18 @@ const MagazinePage = () => {
 
       let loadedStories = []
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        loadedStories = data.data.map((story, index) => normalizeStory(story, index))
+        // Map database stories first
+        const dbStories = data.data.map((story, index) => normalizeStory(story, index))
+        loadedStories = [...dbStories]
+        
+        // Pad with fallback stories up to exactly 5
+        if (loadedStories.length < 5) {
+          const remainingCount = 5 - loadedStories.length
+          const paddings = fallbackStories.slice(loadedStories.length, 5).map((story, index) => 
+            normalizeStory(story, loadedStories.length + index)
+          )
+          loadedStories = [...loadedStories, ...paddings]
+        }
       } else {
         loadedStories = fallbackStories.map((story, index) => normalizeStory(story, index))
       }

@@ -1,0 +1,261 @@
+/* ─── Homepage Fabric Section Premium Styling ─── */
+
+.homepage-fabric-section {
+  position: relative;
+  padding: 40px 0;
+  background: linear-gradient(180deg, #ffffff 0%, #fbf9f4 50%, #ffffff 100%);
+  overflow: hidden;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.fabric-section-container {
+  width: min(1280px, calc(100% - clamp(1.5rem, 5vw, 3.5rem) * 2));
+  margin: 0 auto;
+}
+
+/* Editorial Header */
+.fabric-section-header {
+  text-align: center;
+  max-width: 650px;
+  margin: 0 auto clamp(3rem, 6vw, 4.5rem);
+}
+
+.fabric-kicker {
+  display: block;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--primary-gold);
+  margin-bottom: 0.75rem;
+}
+
+.fabric-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(2.2rem, 4.2vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--charcoal);
+  margin-bottom: 1.5rem;
+}
+
+.fabric-heading .italic {
+  font-style: italic;
+  font-weight: 400;
+}
+
+.fabric-header-line {
+  width: 5rem;
+  height: 2px;
+  background-color: var(--primary-gold);
+  margin: 0 auto 1.8rem;
+  position: relative;
+}
+
+.fabric-header-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--primary-gold);
+  border: 2px solid #fbf9f4;
+}
+
+.fabric-section-intro {
+  font-family: 'Poppins', sans-serif;
+  font-size: clamp(0.95rem, 1.05vw, 1.1rem);
+  font-weight: 300;
+  line-height: 1.8;
+  color: rgba(43, 43, 43, 0.75);
+}
+
+
+/* Fabrics Interactive Grid */
+.fabric-interactive-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  margin-bottom: clamp(3rem, 6vw, 4.5rem);
+}
+
+.fabric-texture-card {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  aspect-ratio: 4 / 5;
+  background-color: #f5eedf;
+  box-shadow: 0 15px 40px rgba(43, 43, 43, 0.08);
+  cursor: pointer;
+}
+
+.fabric-card-image-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.fabric-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fabric-texture-card:hover .fabric-card-image {
+  transform: scale(1.08);
+}
+
+/* Card Overlay Details */
+.fabric-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(13, 23, 21, 0.95) 0%, rgba(13, 23, 21, 0.45) 50%, transparent 100%);
+  padding: 2.2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  color: #ffffff;
+  transition: background 0.4s ease;
+}
+
+.fabric-texture-card:hover .fabric-card-overlay {
+  background: linear-gradient(to top, rgba(13, 23, 21, 0.98) 0%, rgba(13, 23, 21, 0.6) 60%, transparent 100%);
+}
+
+.tactile-tag {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary-gold);
+  margin-bottom: 0.5rem;
+  opacity: 0.85;
+}
+
+.fabric-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+  font-weight: 500;
+  margin-bottom: 0.75rem;
+  color: #ffffff;
+}
+
+.fabric-card-desc {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 1.2rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
+}
+
+.fabric-texture-card:hover .fabric-card-desc {
+  max-height: 80px;
+  opacity: 1;
+  margin-bottom: 1.2rem;
+}
+
+.explore-card-link {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--primary-gold);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+  padding-bottom: 2px;
+  transition: border-color 0.3s ease;
+}
+
+.fabric-texture-card:hover .explore-card-link {
+  border-color: var(--primary-gold);
+}
+
+
+/* Bottom Call to Action Button */
+.fabric-section-action {
+  text-align: center;
+}
+
+.explore-fabrics-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.1rem 2.8rem;
+  border-radius: 50px;
+  border: 1.5px solid var(--charcoal);
+  background: transparent;
+  color: var(--charcoal);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.explore-fabrics-btn:hover {
+  background-color: var(--charcoal);
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(43, 43, 43, 0.15);
+}
+
+.explore-fabrics-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.explore-fabrics-btn:hover svg {
+  transform: translateX(4px);
+}
+
+
+/* ─── RESPONSIVE BREAKPOINTS ─── */
+
+@media (max-width: 1024px) {
+  .fabric-interactive-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  .fabric-texture-card:last-child {
+    grid-column: span 2;
+    aspect-ratio: 2 / 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage-fabric-section {
+    padding: 4.5rem 0;
+  }
+  .fabric-heading {
+    font-size: 2.2rem;
+  }
+  .fabric-interactive-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .fabric-texture-card {
+    aspect-ratio: 4 / 5;
+  }
+  .fabric-texture-card:last-child {
+    grid-column: span 1;
+    aspect-ratio: 4 / 5;
+  }
+  .fabric-card-desc {
+    max-height: 80px;
+    opacity: 1;
+    margin-bottom: 1.2rem;
+  }
+  .explore-fabrics-btn {
+    padding: 1rem 2.2rem;
+  }
+}

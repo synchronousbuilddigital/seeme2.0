@@ -21,48 +21,49 @@ const Magazine = () => {
     try {
       const response = await fetch(API_ENDPOINTS.MAGAZINE)
       const data = await response.json()
+      
+      const fallbacks = [
+        {
+          _id: 'story1',
+          title: 'Silk and the River City',
+          description: 'The Banarasi loom turns repetition into ritual. Every shuttle movement carries a tempo that has outlived trends, and every finished textile becomes a reminder that cloth can contain geography, labor, and inheritance at once. This chapter follows the loom room from daylight to dusk, moving past dye vats, thread books, and folded lengths of silk waiting for their last inspection.',
+          image: '/images/magazine/silk_river_city.png'
+        },
+        {
+          _id: 'story2',
+          title: 'The Banarasi Weaving Legacy',
+          description: 'From the looms of Varanasi to the modern wardrobe. Discover how we preserve the intricate patterns of traditional Banarasi silk while adapting them for the contemporary woman. A celebration of texture, heritage, and the dedicated hands that guide every metallic thread through the loom to form legendary motifs.',
+          image: '/images/magazine/banarasi_weaving.png'
+        },
+        {
+          _id: 'story3',
+          title: 'Mastery in the Atelier',
+          description: 'Step inside the SEEMEE design studio where royal grandeur meets modern ease. Every cut is measured with spatial precision, every embroidery pattern is placed to silhouette the form, and every seam is hand-finished. We balance ancestral skills with contemporary tailoring, ensuring every single dress carries the human soul inside.',
+          image: '/images/magazine/artisan_craftsmanship.png'
+        },
+        {
+          _id: 'story4',
+          title: 'The Architecture of the Loom',
+          description: 'A study of the mechanical elegance of hand-operated looms. The warp holds the tension of history while the weft introduces the variable paths of human touch. Here, we analyze how jacquard cards translate complex botanical drawings into textile relief, showing that the loom is both a machine and an extension of the weaver\'s imagination.',
+          image: '/images/magazine/banarasi_silk_loom.png'
+        },
+        {
+          _id: 'story5',
+          title: 'The Weight of Velvet',
+          description: 'As the sun sets, the richness of royal velvet takes center stage. Our nocturnal collection features deep emeralds and midnight tones, hand-embroidered with tilla work that captures the moon\'s reflection. Here, we explore the physical weight and drape of velvet, showing how it falls in heavy, majestic drapes while remaining incredibly soft and fluid.',
+          image: '/images/magazine/weight_of_velvet.png'
+        }
+      ]
+
       if (data.success && data.data.length > 0) {
-        setMagazineStories(data.data)
+        let loaded = [...data.data]
+        if (loaded.length < 5) {
+          const remaining = fallbacks.slice(loaded.length, 5)
+          loaded = [...loaded, ...remaining]
+        }
+        setMagazineStories(loaded.slice(0, 5))
       } else {
-        // High-End Editorial Fallback Content
-        setMagazineStories([
-          {
-            _id: '1',
-            title: 'THE ART OF HAND-EMBROIDERY: REVIVING ZARDOSI',
-            description: 'A deep dive into the painstaking process of Zardosi embroidery. Our master artisans spend hundreds of hours stitching gold and silver threads into luxurious velvet, creating heirlooms that carry the soul of Indian craftsmanship.',
-            image: '/images/magazine/anarkali_editorial.png'
-          },
-          {
-            _id: '2',
-            title: 'WEAVING DREAMS: THE BANARASI LEGACY',
-            description: 'From the looms of Varanasi to the modern wardrobe. Discover how we preserve the intricate patterns of traditional Banarasi silk while adapting them for the contemporary woman. A celebration of texture and heritage.',
-            image: '/images/magazine/banarasi_weaving.png'
-          },
-          {
-            _id: '3',
-            title: 'THE MODERN ANARKALI: A TIMELESS EVOLUTION',
-            description: 'Explore the evolution of the Anarkali silhouette. We step inside the SEEMEE design studio to see how we balance royal grandeur with modern ease, ensuring every piece feels as good as it looks.',
-            image: '/images/magazine/artisan_craftsmanship.png'
-          },
-          {
-            _id: '4',
-            title: 'THE PALAZZO REVOLUTION: GRACE IN EVERY STRIDE',
-            description: 'From royal courts to contemporary aisles, the Palazzo has redefined Indian elegance. Our artisans explore the balance between fluid volume and structured tailoring, ensuring every step is a statement of effortless poise.',
-            image: 'https://images.unsplash.com/photo-1617114919297-3c8ddb01f599?auto=format&fit=crop&q=80&w=1200'
-          },
-          {
-            _id: '5',
-            title: 'CHIKANKARI: THE WHISPER OF LUCKNOW',
-            description: 'A poetic journey through the delicate shadow-work of Lucknow. Every stitch in our Chikankari collection is a testament to patience, with artisans spending weeks to create ethereal, cloud-like patterns.',
-            image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=1200'
-          },
-          {
-            _id: '6',
-            title: 'THE VELVET HOUR: NOCTURNAL OPULENCE',
-            description: 'As the sun sets, the richness of velvet takes center stage. Our nocturnal collection features deep emeralds and midnight blues, hand-embroidered with silver tilla work that captures the moonlight.',
-            image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200'
-          }
-        ])
+        setMagazineStories(fallbacks)
       }
     } catch (error) {
       console.error('Error fetching magazine stories:', error)

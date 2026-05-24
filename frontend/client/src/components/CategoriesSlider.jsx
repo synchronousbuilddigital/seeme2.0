@@ -11,33 +11,26 @@ const CategoriesSlider = () => {
   const [loading, setLoading] = useState(true)
  
   const categoryDefaults = {
-    anarkali: {
-      title: 'Anarkali Suits',
-      subtitle: 'Timeless Elegance',
-      description: 'Experience the grace of flowing silhouettes with our exquisite Anarkali collection.',
-      image: '/images/ruby_bridal_sharara.png',
-      features: ['Flowing Silhouette', 'Embroidery', 'Premium Fabrics']
-    },
-    palazzo: {
-      title: 'Palazzo Suits',
-      subtitle: 'Modern Comfort',
-      description: 'Chic and contemporary, our Palazzo suits offer the perfect blend of style and ease.',
+    '2-piece-sets': {
+      title: '2-Piece Sets',
+      subtitle: 'Effortless Modernity',
+      description: 'Stunning tunic and trouser duos that redefine casual luxury with absolute ease.',
       image: '/images/categories_straight.jpg',
-      features: ['Wide-Leg Elegance', 'Versatile Style', 'Breathable Fabrics']
+      features: ['Tailored Tunic', 'Fluid Trousers', 'Premium Comfort']
     },
-    'straight-cut': {
-      title: 'Straight Cut Suits',
-      subtitle: 'Classic Sophistication',
-      description: 'Defined by clean lines and understated luxury, our Straight Cut suits are a testament to timeless fashion.',
-      image: '/images/categories_straight.jpg',
-      features: ['Tailored Fit', 'Minimalist Design', 'Everyday Luxury']
-    },
-    sharara: {
-      title: 'Sharara Sets',
-      subtitle: 'Artisan Heritage',
-      description: 'Discover the royal charm of our Sharara collection, featuring intricate handwork and premium fabrics.',
+    '3-piece-sets': {
+      title: '3-Piece Sets',
+      subtitle: 'Complete Regal Grace',
+      description: 'Harmonious kurta, pants, and matching dupatta sets, crafted with ancestral weaves.',
       image: '/images/ruby_bridal_sharara.png',
-      features: ['Intricate Handwork', 'Royal Flare', 'Heritage Designs']
+      features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta']
+    },
+    'co-ord-sets': {
+      title: 'Co-ord Sets',
+      subtitle: 'Contemporary Sleekness',
+      description: 'Monochromatic, luxury structured matching co-ords engineered to silhouette your form.',
+      image: '/images/categories_straight.jpg',
+      features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic']
     }
   }
   const navigate = useNavigate()
@@ -48,39 +41,62 @@ const CategoriesSlider = () => {
     checkMobile()
     window.addEventListener('resize', checkMobile)
     
-    // Fetch categories from site settings
-    fetch(API_ENDPOINTS.SITE_SETTINGS)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data && data.data.categorySlides && data.data.categorySlides.length > 0) {
-          setCategories(data.data.categorySlides)
+    const loadCategories = async () => {
+      try {
+        // 1. Fetch products from backend to extract live images
+        const prodRes = await fetch(API_ENDPOINTS.PRODUCTS)
+        const prodData = await prodRes.json()
+        const activeProducts = prodData.success && prodData.data 
+          ? prodData.data.filter(p => p.isActive) 
+          : []
+
+        // 2. Fetch categories from site settings
+        const settingsRes = await fetch(API_ENDPOINTS.SITE_SETTINGS)
+        const settingsData = await settingsRes.json()
+
+        let categoryList = []
+
+        if (settingsData.success && settingsData.data && settingsData.data.categorySlides && settingsData.data.categorySlides.length > 0) {
+          categoryList = settingsData.data.categorySlides
         } else {
-          // Fallback to product-based categories if no slides defined
-          fetch(API_ENDPOINTS.GET_CATEGORIES)
-            .then(res => res.json())
-            .then(data => {
-              if (data.success && data.data.length > 0) {
-                const mapped = data.data.map((cat, idx) => {
-                  const defaults = categoryDefaults[cat.toLowerCase()] || {
-                    title: cat.charAt(0).toUpperCase() + cat.slice(1),
-                    subtitle: 'Heritage Collection',
-                    description: `Explore our ${cat} collection, crafted with artisan precision and timeless design.`,
-                    image: '/images/categories_straight.jpg',
-                    features: ['Premium Quality', 'Artisan Crafted', 'Timeless Style']
-                  }
-                  return {
-                    _id: idx,
-                    slug: cat.toLowerCase(),
-                    ...defaults
-                  }
-                })
-                setCategories(mapped)
-              }
-            })
+          // Fallback to static category slider array using default mappings
+          categoryList = [
+            { slug: '2-piece-sets', title: '2-Piece Sets', subtitle: 'Effortless Modernity', description: 'Stunning tunic and trouser duos that redefine casual luxury with absolute ease.', features: ['Tailored Tunic', 'Fluid Trousers', 'Premium Comfort'], image: '/images/categories_straight.jpg', order: 0 },
+            { slug: '3-piece-sets', title: '3-Piece Sets', subtitle: 'Complete Regal Grace', description: 'Harmonious kurta, pants, and matching dupatta sets, crafted with ancestral weaves.', features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta'], image: '/images/ruby_bridal_sharara.png', order: 1 },
+            { slug: 'co-ord-sets', title: 'Co-ord Sets', subtitle: 'Contemporary Sleekness', description: 'Monochromatic, luxury structured matching co-ords engineered to silhouette your form.', features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic'], image: '/images/categories_straight.jpg', order: 2 }
+          ]
         }
-      })
-      .catch(err => console.error('Error fetching categories:', err))
-      .finally(() => setLoading(false))
+
+        // 3. Match each category with the first product found belonging to it in the backend
+        const mappedCategories = categoryList.map(cat => {
+          const matchedProduct = activeProducts.find(
+            p => p.category?.toLowerCase() === cat.slug?.toLowerCase()
+          )
+          
+          if (matchedProduct && matchedProduct.images && matchedProduct.images.length > 0) {
+            return {
+              ...cat,
+              image: matchedProduct.images[0] // Set real product image from backend!
+            }
+          }
+          
+          // Use fallback image if no active product exists for this category yet
+          const fallback = categoryDefaults[cat.slug?.toLowerCase()]
+          return {
+            ...cat,
+            image: cat.image || fallback?.image || '/images/categories_straight.jpg'
+          }
+        })
+
+        setCategories(mappedCategories)
+      } catch (err) {
+        console.error('Error fetching live category assets:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadCategories()
 
     return () => window.removeEventListener('resize', checkMobile)
   }, [])

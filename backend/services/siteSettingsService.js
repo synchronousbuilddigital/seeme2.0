@@ -35,40 +35,31 @@ export const getSettings = async () => {
       ],
       categorySlides: [
         {
-          title: 'Anarkali Suits',
-          slug: 'anarkali',
-          subtitle: 'Timeless Elegance',
-          description: 'Experience the grace of flowing silhouettes with our exquisite Anarkali collection. Perfect for weddings, festivals, and special occasions, these suits blend traditional craftsmanship with contemporary designs.',
-          features: ['Flowing Silhouette', 'Intricate Embroidery', 'Premium Fabrics'],
-          image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200',
+          title: '2-Piece Sets',
+          slug: '2-piece-sets',
+          subtitle: 'Effortless Modernity',
+          description: 'Stunning tunic and trouser duos that redefine casual luxury with absolute ease.',
+          features: ['Tailored Tunic', 'Fluid Trousers', 'Premium Comfort'],
+          image: '/images/categories_straight.jpg',
           order: 0
         },
         {
-          title: 'Palazzo Suits',
-          slug: 'palazzo',
-          subtitle: 'Contemporary Comfort',
-          description: 'Discover the perfect fusion of style and comfort with our Palazzo suits. Featuring wide-leg pants and elegant kurtas, these outfits are ideal for both casual gatherings and formal events.',
-          features: ['Wide-Leg Comfort', 'Versatile Styling', 'Modern Appeal'],
-          image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1200',
+          title: '3-Piece Sets',
+          slug: '3-piece-sets',
+          subtitle: 'Complete Regal Grace',
+          description: 'Harmonious kurta, pants, and matching dupatta sets, crafted with ancestral weaves.',
+          features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta'],
+          image: '/images/ruby_bridal_sharara.png',
           order: 1
         },
         {
-          title: 'Straight Cut Suits',
-          slug: 'straight-cut',
-          subtitle: 'Classic Sophistication',
-          description: 'Embrace timeless elegance with our Straight Cut collection. These suits offer a sleek, sophisticated look that works beautifully for office wear, parties, and everyday occasions.',
-          features: ['Sleek Design', 'Easy to Wear', 'Versatile Choice'],
-          image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=1200',
+          title: 'Co-ord Sets',
+          slug: 'co-ord-sets',
+          subtitle: 'Contemporary Sleekness',
+          description: 'Monochromatic, luxury structured matching co-ords engineered to silhouette your form.',
+          features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic'],
+          image: '/images/categories_straight.jpg',
           order: 2
-        },
-        {
-          title: 'Sharara Suits',
-          slug: 'sharara',
-          subtitle: 'Regal Grandeur',
-          description: 'Make a statement with our stunning Sharara suits. Featuring flared pants and ornate detailing, these outfits bring royal elegance to weddings, celebrations, and festive occasions.',
-          features: ['Flared Elegance', 'Rich Embellishments', 'Festive Appeal'],
-          image: 'https://images.unsplash.com/photo-1617175548912-1ef022df7006?auto=format&fit=crop&q=80&w=1200',
-          order: 3
         }
       ]
     })
