@@ -39,18 +39,27 @@
   cursor: pointer;
   z-index: 1002;
   flex-shrink: 0;
+  height: 45px; /* Restricts the layout height so it never stretches the navbar */
+  display: flex;
+  align-items: center;
 }
 
 .logo-image {
-  height: 65px;
+  height: 105px; /* Make the actual logo image big */
   width: auto;
   object-fit: contain;
   transition: all 0.5s ease;
-  filter: drop-shadow(0 0 10px rgba(0,0,0,0.1));
+  filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.1));
+  transform: translateY(22px); /* Lets the logo hang down elegantly over the sleek navbar border */
+}
+
+.navbar.scrolled .logo {
+  height: 35px; /* Restrict scrolled container layout height */
 }
 
 .navbar.scrolled .logo-image {
-  height: 45px;
+  height: 75px; /* Make it stand out on scroll */
+  transform: translateY(15px);
 }
 
 /* Navigation Links */
@@ -118,7 +127,8 @@
 /* Dropdown Menu */
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.6rem); /* Anchors tightly below Categories button */
+  top: calc(100% + 0.6rem);
+  /* Anchors tightly below Categories button */
   left: 50%;
   transform: translateX(-50%);
   -webkit-backdrop-filter: blur(20px);
@@ -127,7 +137,7 @@
   border-radius: 4px;
   padding: 1.5rem 2rem;
   min-width: 220px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(212, 175, 55, 0.15);
   z-index: 2000;
 }
@@ -389,7 +399,7 @@
   border-top: 1px solid rgba(212, 175, 55, 0.15);
 }
 
-.mobile-menu > button,
+.mobile-menu>button,
 .mobile-submenu-trigger {
   background: none;
   border: none;
@@ -407,7 +417,7 @@
   justify-content: space-between;
 }
 
-.mobile-menu > button:hover,
+.mobile-menu>button:hover,
 .mobile-submenu-trigger:hover {
   color: var(--primary-gold);
   padding-left: 0.5rem;
@@ -461,7 +471,7 @@
   .navbar {
     background: rgba(254, 253, 251, 0.98);
   }
-  
+
   .navbar.scrolled {
     left: 0;
     right: 0;
@@ -484,12 +494,22 @@
     flex: 0 0 auto;
   }
 
+  .logo {
+    height: 35px;
+  }
+
   .logo-image {
-    height: clamp(38px, 6vw, 45px);
+    height: clamp(55px, 8vw, 75px);
+    transform: translateY(12px);
+  }
+
+  .navbar.scrolled .logo {
+    height: 30px;
   }
 
   .navbar.scrolled .logo-image {
-    height: clamp(38px, 6vw, 45px);
+    height: clamp(55px, 8vw, 75px);
+    transform: translateY(12px);
   }
 
   .nav-links {
@@ -539,7 +559,7 @@
   .navbar {
     background: rgba(254, 253, 251, 0.98);
   }
-  
+
   .navbar.scrolled {
     left: 0;
     right: 0;
@@ -557,12 +577,22 @@
     gap: 0.4rem;
   }
 
+  .logo {
+    height: 30px;
+  }
+
   .logo-image {
-    height: 40px;
+    height: 60px;
+    transform: translateY(10px);
+  }
+
+  .navbar.scrolled .logo {
+    height: 25px;
   }
 
   .navbar.scrolled .logo-image {
-    height: 40px;
+    height: 60px;
+    transform: translateY(10px);
   }
 
   .nav-actions {
@@ -621,12 +651,22 @@
     gap: 0.3rem;
   }
 
+  .logo {
+    height: 28px;
+  }
+
   .logo-image {
-    height: 38px;
+    height: 52px;
+    transform: translateY(8px);
+  }
+
+  .navbar.scrolled .logo {
+    height: 24px;
   }
 
   .navbar.scrolled .logo-image {
-    height: 38px;
+    height: 52px;
+    transform: translateY(8px);
   }
 
   .nav-actions {
@@ -670,17 +710,17 @@
   .search-btn {
     display: none;
   }
-  
+
   .mobile-menu {
     padding: 0.8rem 0.6rem;
   }
-  
-  .mobile-menu > button,
+
+  .mobile-menu>button,
   .mobile-submenu-trigger {
     font-size: 0.85rem;
     padding: 0.8rem 0;
   }
-  
+
   .mobile-submenu-items button {
     font-size: 0.8rem;
   }

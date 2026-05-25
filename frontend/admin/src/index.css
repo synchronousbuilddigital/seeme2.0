@@ -17,9 +17,9 @@
   --glass-border: rgba(255, 255, 255, 0.2);
   --sidebar-width: 280px;
   --sidebar-collapsed-width: 80px;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 20px;
@@ -40,12 +40,20 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Inter', sans-serif;
   color: var(--secondary);
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
 }
 
@@ -69,16 +77,29 @@ button, input, select, textarea {
 }
 
 /* Global Transitions */
-.fade-enter { opacity: 0; }
-.fade-enter-active { opacity: 1; transition: opacity 0.3s; }
-.fade-exit { opacity: 1; }
-.fade-exit-active { opacity: 0; transition: opacity 0.3s; }
+.fade-enter {
+  opacity: 0;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.fade-exit {
+  opacity: 1;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
 
 /* Common Modal Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   z-index: 2000;
   display: flex;
@@ -95,7 +116,7 @@ button, input, select, textarea {
   width: 100%;
   max-width: 450px;
   text-align: center;
-  box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
 }
 
 .modal-icon {
@@ -143,7 +164,9 @@ button, input, select, textarea {
   cursor: pointer;
 }
 
-.modal-actions .confirm-btn:hover { background: #d63031; }
+.modal-actions .confirm-btn:hover {
+  background: #d63031;
+}
 
 .modal-actions .cancel-btn {
   flex: 1;
@@ -165,9 +188,14 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
   color: white;
   font-weight: 700;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   z-index: 3000;
 }
 
-.toast-notification.success { background: #00b894; }
-.toast-notification.error { background: #d63031; }
+.toast-notification.success {
+  background: #00b894;
+}
+
+.toast-notification.error {
+  background: #d63031;
+}
