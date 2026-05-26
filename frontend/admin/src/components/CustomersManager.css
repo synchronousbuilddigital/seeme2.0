@@ -24,7 +24,7 @@
 .customers-table-container {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
@@ -76,8 +76,14 @@
   flex-direction: column;
 }
 
-.customer-cell .name { font-weight: 600; }
-.customer-cell .email { font-size: 0.8rem; color: #64748b; }
+.customer-cell .name {
+  font-weight: 600;
+}
+
+.customer-cell .email {
+  font-size: 0.8rem;
+  color: #64748b;
+}
 
 .status-pill {
   padding: 4px 10px;
@@ -86,8 +92,15 @@
   font-weight: 600;
 }
 
-.status-pill.active { background: #dcfce7; color: #15803d; }
-.status-pill.blocked { background: #fee2e2; color: #b91c1c; }
+.status-pill.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-pill.blocked {
+  background: #fee2e2;
+  color: #b91c1c;
+}
 
 .action-link {
   background: none;
@@ -106,7 +119,8 @@
   backdrop-filter: blur(4px);
   z-index: 2000;
   display: flex;
-  justify-content: flex-end; /* Slide in from right */
+  justify-content: flex-end;
+  /* Slide in from right */
 }
 
 /* History Drawer Styles */
@@ -248,7 +262,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-history {
@@ -410,10 +426,12 @@
   }
 
   .admin-table {
-    min-width: 650px; /* Forces scroll container rather than squeezing cell content */
+    min-width: 650px;
+    /* Forces scroll container rather than squeezing cell content */
   }
 
-  .admin-table th, .admin-table td {
+  .admin-table th,
+  .admin-table td {
     padding: 12px 10px;
   }
 

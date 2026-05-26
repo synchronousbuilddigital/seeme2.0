@@ -9,20 +9,37 @@ const FALLBACK_SLIDES = [
   {
     image: '/images/home-hero.png',
     title: 'Dressing is nothing but a Choice',
-    subtitle: 'Fashion is on form of self-expression and autonomy.',
+    subtitle: 'Fashion is a form of self-expression and autonomy.',
+    description: 'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
     category: 'Signature'
   },
   {
-    image: '/images/categories_straight.jpg',
+    image: '/images/hero/sharara_festive.png',
     title: 'Everyday Occasion Edit Elegance',
     subtitle: 'Clean lines, rich fabrics, and a highly polished contemporary finish.',
+    description: 'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
     category: 'Curated'
   },
   {
     image: '/images/ruby_bridal_sharara.png',
     title: 'Wedding Season Highlights Grandeur',
     subtitle: 'Premium hand-crafted luxury dressing with a refined royal feel.',
+    description: 'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.',
     category: 'Featured'
+  },
+  {
+    image: '/images/magazine/banarasi_silk_loom.png',
+    title: 'Woven Tales of Ancient Loom',
+    subtitle: 'Authentic handloom Banarasi silk crafted by seventh-generation master weavers.',
+    description: 'Every thread holds a centuries-old story of craftsmanship, intricately interlaced with pure gold zari and raw mulberry silk to create heirlooms for generations to come.',
+    category: 'Handloom'
+  },
+  {
+    image: '/images/magazine/weight_of_velvet.png',
+    title: 'Regal Weight of Velvet Majesty',
+    subtitle: 'Luxurious thick velvets adorned with delicate micro-pearl embellishments.',
+    description: 'Designed to drape like liquid gold, this collection features deep gemstone colors paired with traditional dabka hand-embroidery, ideal for royal winter soirées.',
+    category: 'Prestige'
   }
 ]
 
@@ -55,16 +72,108 @@ const Hero = () => {
         const backendSlides = data.success
           ? data.data
               .filter((slide) => (slide.isActive !== false && slide.active !== false) && slide.image)
-              .map((slide) => ({
-                image: slide.image,
-                title: slide.title || slide.productName || 'Dressing is nothing but a Choice',
-                subtitle: slide.subtitle || 'Fashion is on form of self-expression and autonomy.',
-                category: (slide.productCategory || 'Featured').toString(),
-                productId: slide.productId || null
-              }))
+              .map((slide, index) => {
+                // Generate a unique descriptive text matching the category or index to guarantee diverse premium content
+                let desc = 'Discover our latest curated collection of premium royal Indian wear.';
+                const category = (slide.productCategory || '').toLowerCase();
+                const titleText = (slide.title || slide.productName || '').toLowerCase();
+                
+                if (category.includes('anarkali') || titleText.includes('anarkali')) {
+                  desc = 'Flared silhouettes designed with flowy premium fabrics, perfect for grand entrances and formal festivities.';
+                } else if (category.includes('palazzo') || titleText.includes('palazzo')) {
+                  desc = 'Comfort meets luxury in our wide-leg palazzo sets, featuring detailed block prints and soft pastel hues.';
+                } else if (category.includes('straight') || titleText.includes('straight')) {
+                  desc = 'Sleek, tailored cuts made from fine chanderi silk and high-quality thread work, perfect for everyday contemporary elegance.';
+                } else if (category.includes('sharara') || titleText.includes('sharara')) {
+                  desc = 'Intricate hand-crafted sharara sets, layered with rich embroidery and regal borders for classic festive grandeur.';
+                } else {
+                  // Fallback alternating majestic copy
+                  const alternateDescriptions = [
+                    'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
+                    'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
+                    'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.'
+                  ];
+                  desc = alternateDescriptions[index % alternateDescriptions.length];
+                }
+
+                // Generate a unique title if not configured in the database
+                let slideTitle = slide.title || slide.productName;
+                if (!slideTitle || slideTitle === 'Dressing is nothing but a Choice') {
+                  if (category.includes('anarkali')) {
+                    slideTitle = 'Royal Anarkali Couture Elegance';
+                  } else if (category.includes('palazzo')) {
+                    slideTitle = 'Modern Palazzo Luxe Grace';
+                  } else if (category.includes('straight')) {
+                    slideTitle = 'Tailored Straight Cut Splendor';
+                  } else if (category.includes('sharara')) {
+                    slideTitle = 'Festive Sharara Heritage Splendor';
+                  } else {
+                    const alternateTitles = [
+                      'Dressing is nothing but a Choice',
+                      'Everyday Occasion Edit Elegance',
+                      'Wedding Season Highlights Grandeur',
+                      'Woven Tales of Ancient Loom',
+                      'Regal Weight of Velvet Majesty',
+                      'True Heritage Artisan Mastery'
+                    ];
+                    slideTitle = alternateTitles[index % alternateTitles.length];
+                  }
+                }
+
+                // Generate a unique subtitle if not configured in the database
+                let slideSubtitle = slide.subtitle;
+                if (!slideSubtitle || slideSubtitle === 'Fashion is on form of self-expression and autonomy.' || slideSubtitle === 'Fashion is a form of self-expression and autonomy.') {
+                  if (category.includes('anarkali')) {
+                    slideSubtitle = 'Exquisite flared flowy silk sets designed for royal prestige.';
+                  } else if (category.includes('palazzo')) {
+                    slideSubtitle = 'Chic contemporary style detailed with intricate handblock prints.';
+                  } else if (category.includes('straight')) {
+                    slideSubtitle = 'Sleek premium threadwork and elegant gold tilla on chanderi.';
+                  } else if (category.includes('sharara')) {
+                    slideSubtitle = 'Traditional hand-embroidered borders celebrating Indian heritage.';
+                  } else {
+                    const alternateSubtitles = [
+                      'Fashion is a form of self-expression and autonomy.',
+                      'Clean lines, rich fabrics, and highly polished finish.',
+                      'Premium hand-crafted luxury dressing with refined royal feel.',
+                      'Authentic handloom Banarasi silk by master weavers.',
+                      'Luxurious thick velvets adorned with micro-pearls.',
+                      'Preserving the craft of hand-guided gold zari embroidery.'
+                    ];
+                    slideSubtitle = alternateSubtitles[index % alternateSubtitles.length];
+                  }
+                }
+
+                return {
+                  image: slide.image,
+                  title: slideTitle,
+                  subtitle: slideSubtitle,
+                  description: desc,
+                  category: (slide.productCategory || 'Featured').toString(),
+                  productId: slide.productId || null
+                };
+              })
           : []
 
-        const nextSlides = backendSlides.length > 0 ? backendSlides : FALLBACK_SLIDES
+        // Safeguard: Check if backend slides contain duplicate images or are too repetitive
+        const uniqueImages = new Set(backendSlides.map((s) => s.image));
+        const hasDuplicates = uniqueImages.size < backendSlides.length;
+
+        let nextSlides;
+        if (backendSlides.length > 0 && !hasDuplicates) {
+          nextSlides = [...backendSlides];
+          if (nextSlides.length < 5) {
+            const remainingCount = 5 - nextSlides.length;
+            const fillerSlides = FALLBACK_SLIDES.filter(
+              (fSlide) => !nextSlides.some((bSlide) => bSlide.image === fSlide.image)
+            ).slice(0, remainingCount);
+            nextSlides = [...nextSlides, ...fillerSlides];
+          }
+          nextSlides = nextSlides.slice(0, 5);
+        } else {
+          // If database is empty or has duplicates (e.g. dummy seeds), load our premium handcrafted lookbook directly
+          nextSlides = FALLBACK_SLIDES.slice(0, 5);
+        }
 
         if (isMounted) {
           setSlides(nextSlides)
@@ -73,7 +182,7 @@ const Hero = () => {
       } catch (error) {
         console.error('Error fetching carousel:', error)
         if (isMounted) {
-          setSlides(FALLBACK_SLIDES)
+          setSlides(FALLBACK_SLIDES.slice(0, 5))
           setActiveIndex(0)
         }
       } finally {
@@ -107,13 +216,22 @@ const Hero = () => {
   // Parse Title into styled components dynamically
   const title = currentSlide.title || 'Dressing is nothing but a Choice'
   const words = title.split(' ')
-  let line1 = 'Dressing is'
-  let line2 = 'nothing but a'
-  let circleWord = 'Choice'
+  let line1 = ''
+  let line2 = ''
+  let circleWord = ''
 
-  if (words.length >= 3) {
-    line1 = words.slice(0, 2).join(' ')
-    line2 = words.slice(2, words.length - 1).join(' ')
+  if (words.length === 1) {
+    line1 = ''
+    line2 = ''
+    circleWord = words[0]
+  } else if (words.length === 2) {
+    line1 = words[0]
+    line2 = ''
+    circleWord = words[1]
+  } else if (words.length >= 3) {
+    const middleIndex = Math.ceil(words.length / 2)
+    line1 = words.slice(0, middleIndex).join(' ')
+    line2 = words.slice(middleIndex, words.length - 1).join(' ')
     circleWord = words[words.length - 1]
   }
 
@@ -174,80 +292,55 @@ const Hero = () => {
 
       <div className="hero-shell">
         {/* Left Side: Creative Typography */}
-        <motion.div
-          className="hero-copy"
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="hero-title-group">
-            <h1 className="hero-title">
-              <span className="title-line-1">
-                {line1}
-                {/* Underline pink squiggle SVG */}
-                <svg className="pink-underline-squiggle" viewBox="0 0 300 20" fill="none" preserveAspectRatio="none">
-                  <path d="M5,12 Q45,2 85,12 T165,12 T245,12 T325,12" stroke="#ff8ba7" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-                </svg>
-              </span>
-              <span className="title-line-2">
-                {line2}{' '}
-                <span className="circled-word-container">
-                  <span className="circled-word">{circleWord}</span>
-                  {/* Gold organic ellipse loop SVG */}
-                  <svg className="gold-organic-loop" viewBox="0 0 180 80" fill="none" preserveAspectRatio="none">
-                    <path
-                      d="M10,40 C10,15 80,8 150,15 C178,18 175,45 150,60 C90,80 20,70 12,45 C9,30 65,18 130,22"
-                      stroke="#d4af37"
-                      strokeWidth="3.2"
-                      strokeLinecap="round"
-                      fill="none"
-                    />
-                  </svg>
-                  <span className="organic-pink-dot" />
-                </span>
-              </span>
-            </h1>
-          </div>
-
-          <p className="hero-description">
-            {currentSlide.subtitle || 'Fashion is on form of self-expression and autonomy.'}
-            <span className="hero-description-heritage">
-              {' '}Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.
-            </span>
-          </p>
-
-          <div className="hero-navigation-links">
-            <motion.button
-              className="read-more-link"
-              onClick={handlePrimaryAction}
-              whileHover={{ x: 6 }}
-              transition={{ type: 'spring', stiffness: 200 }}
+        <div className="hero-copy">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeIndex}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'inherit', textAlign: 'inherit' }}
             >
-              <span>Read more</span>
-              <svg width="22" height="14" viewBox="0 0 30 14" fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M2,7 L28,7 M22,1 L28,7 L22,13" />
-              </svg>
-            </motion.button>
-          </div>
-
-          {/* Bottom Left Circular Golden Button */}
-          <div className="circular-btn-wrapper">
-            <motion.button
-              className="circular-outline-btn"
-              onClick={() => navigate('/collections')}
-              whileHover={{ scale: 1.06, rotate: 15 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div className="circular-btn-content">
-                <span>View</span>
-                <span>the design</span>
-                <svg width="18" height="12" viewBox="0 0 24 12" fill="none" stroke="#d4af37" strokeWidth="2.8" strokeLinecap="round">
-                  <path d="M2,6 L22,6 M16,1 L22,6 L16,11" />
-                </svg>
+              <div className="hero-title-group">
+                <h1 className="hero-title">
+                  <span className="title-line-1">
+                    {line1}
+                  </span>
+                  <span className="title-line-2">
+                    {line2}{' '}
+                    <span className="circled-word">
+                      {circleWord}
+                    </span>
+                  </span>
+                </h1>
               </div>
-            </motion.button>
-          </div>
-        </motion.div>
+
+              <p className="hero-description">
+                {currentSlide.subtitle}
+                {currentSlide.description && (
+                  <span className="hero-description-heritage">
+                    {' '}{currentSlide.description}
+                  </span>
+                )}
+              </p>
+
+              <div className="hero-navigation-links">
+                <motion.button
+                  className="read-more-link"
+                  onClick={handlePrimaryAction}
+                  whileHover={{ x: 6 }}
+                  transition={{ type: 'spring', stiffness: 200 }}
+                >
+                  <span>View design</span>
+                  <svg width="22" height="14" viewBox="0 0 30 14" fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M2,7 L28,7 M22,1 L28,7 L22,13" />
+                  </svg>
+                </motion.button>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* Right Side: Creative Capsule Visual Frames */}
         <div className="hero-visual-container-premium">
@@ -267,15 +360,16 @@ const Hero = () => {
             <div className="capsule-corner marker-bl" />
             <div className="capsule-corner marker-br" />
 
-            <div className="main-visual-capsule">
-              <AnimatePresence mode="wait">
+            <div className="main-visual-capsule" style={{ position: 'relative' }}>
+              <AnimatePresence>
                 <motion.div
                   key={currentSlide.image}
                   className="capsule-image-wrap"
                   initial={{ opacity: 0, scale: 1.05 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.02 }}
-                  transition={{ duration: 0.7 }}
+                  transition={{ duration: 0.8, ease: 'easeInOut' }}
+                  style={{ position: 'absolute', inset: 0 }}
                 >
                   <img
                     src={getOptimizedImageUrl(currentSlide.image, isMobile ? 'mobile-hero' : 'hero')}
@@ -302,15 +396,16 @@ const Hero = () => {
             {/* Soft purple glow behind secondary capsule */}
             <div className="capsule-glow purple-glow" />
 
-            <div className="secondary-visual-capsule">
-              <AnimatePresence mode="wait">
+            <div className="secondary-visual-capsule" style={{ position: 'relative' }}>
+              <AnimatePresence>
                 <motion.div
                   key={nextSlide.image}
                   className="secondary-capsule-image-wrap"
                   initial={{ opacity: 0, scale: 1.08 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 1.02 }}
-                  transition={{ duration: 0.6 }}
+                  transition={{ duration: 0.7, ease: 'easeInOut' }}
+                  style={{ position: 'absolute', inset: 0 }}
                 >
                   <img
                     src={getOptimizedImageUrl(nextSlide.image, 'thumbnail')}
@@ -329,24 +424,27 @@ const Hero = () => {
               <path d="M50,30 L60,30 L60,40" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round" fill="none" />
             </svg>
           </div>
-        </div>
-      </div>
 
-      {/* Slide Index Dot Controls */}
-      <div className="hero-controls-premium">
-        {slides.map((slide, index) => (
-          <button
-            key={`${slide.title}-${index}`}
-            type="button"
-            className={`premium-dot ${activeIndex === index ? 'active' : ''}`}
-            onClick={() => setActiveIndex(index)}
-            aria-label={`Go to slide ${index + 1}`}
-          >
-            <span className="premium-dot-line">
-              {activeIndex === index && <span className="premium-dot-progress" />}
-            </span>
-          </button>
-        ))}
+          {/* Premium Circular Thumbnail Navigation floating on the side of the photo */}
+          <div className="hero-thumbnails-container">
+            <span className="thumbnail-nav-label">Next</span>
+            <div className="hero-thumbnail-list">
+              {slides.map((slide, index) => (
+                <button
+                  key={`${slide.title}-${index}`}
+                  type="button"
+                  className={`hero-thumbnail-btn ${activeIndex === index ? 'active' : ''}`}
+                  onClick={() => setActiveIndex(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                >
+                  <div className="thumbnail-img-wrap">
+                    <img src={getOptimizedImageUrl(slide.image, 'thumbnail')} alt={slide.title || 'Slide Preview'} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   )

@@ -447,49 +447,102 @@
   opacity: 0.8;
 }
 
-/* ─── SLIDE CONTROL DOTS ─── */
-.hero-controls-premium {
-  position: relative;
-  z-index: 10;
-  width: min(1400px, calc(100% - clamp(1.5rem, 5vw, 3.5rem) * 2));
-  margin: 2rem auto 0;
-  display: flex;
-  gap: 0.8rem;
-  justify-content: flex-start;
-}
-
-.premium-dot {
-  background: transparent;
-  border: none;
-  padding: 0.65rem 0;
-  cursor: pointer;
-  width: 4rem;
-}
-
-.premium-dot-line {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 3px;
-  background-color: rgba(43, 43, 43, 0.15);
-  border-radius: 999px;
-  overflow: hidden;
-  transition: background-color 0.3s ease;
-}
-
-.premium-dot:hover .premium-dot-line {
-  background-color: rgba(43, 43, 43, 0.3);
-}
-
-.premium-dot.active .premium-dot-line {
-  background-color: rgba(43, 43, 43, 0.55);
-}
-
-.premium-dot-progress {
+/* ─── PREMIUM THUMBNAIL NAVIGATION ─── */
+.hero-thumbnails-container {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, var(--primary-gold), var(--dark-gold));
-  border-radius: inherit;
+  right: -5.5rem; /* Floats vertically on the right side of the visual capsule */
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column; /* Column stack */
+  align-items: center;
+  gap: 1.2rem;
+  z-index: 10;
+}
+
+.thumbnail-nav-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(43, 43, 43, 0.45);
+  writing-mode: vertical-lr; /* Vertical text writing mode for an editorial fashion feel */
+  margin-bottom: 0.5rem;
+}
+
+.hero-thumbnail-list {
+  display: flex;
+  flex-direction: column; /* Circular thumbnails in a vertical stack */
+  gap: 1rem;
+  align-items: center;
+}
+
+.hero-thumbnail-btn {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  padding: 0;
+  background: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.hero-thumbnail-btn::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(212, 175, 55, 0.3);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hero-thumbnail-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2);
+}
+
+.hero-thumbnail-btn:hover::before {
+  opacity: 0.6;
+  transform: scale(1);
+}
+
+.hero-thumbnail-btn.active {
+  border-color: #d4af37;
+  transform: scale(1.1);
+  box-shadow: 0 8px 25px rgba(212, 175, 55, 0.35);
+}
+
+.hero-thumbnail-btn.active::before {
+  inset: -5px;
+  border-color: #d4af37;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.thumbnail-img-wrap {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.thumbnail-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.4s ease;
+}
+
+.hero-thumbnail-btn:hover img {
+  transform: scale(1.12);
 }
 
 
@@ -501,6 +554,9 @@
   }
   .hero-title {
     font-size: 4.8rem;
+  }
+  .hero-thumbnails-container {
+    right: -3.5rem; /* Slightly closer on narrower screens */
   }
 }
 
@@ -539,7 +595,13 @@
   .curved-arrow-decor {
     left: 45%;
   }
-  .hero-controls-premium {
+  .hero-thumbnails-container {
+    position: absolute;
+    right: 2rem;
+    top: 50%;
+    transform: translateY(-50%);
+    flex-direction: column;
+    margin-top: 0;
     justify-content: center;
   }
 }
@@ -574,6 +636,13 @@
   .hero-visual-container-premium {
     height: 34rem;
   }
+  .hero-thumbnail-btn {
+    width: 48px;
+    height: 48px;
+  }
+  .hero-thumbnails-container {
+    right: 0.5rem;
+  }
 }
 
 @media (max-width: 520px) {
@@ -598,5 +667,27 @@
   .circular-outline-btn {
     width: 7.8rem;
     height: 7.8rem;
+  }
+  .hero-thumbnails-container {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    flex-direction: row;
+    margin-top: 2rem;
+    justify-content: center;
+    gap: 1rem;
+  }
+  .thumbnail-nav-label {
+    writing-mode: horizontal-tb;
+    margin-bottom: 0;
+  }
+  .hero-thumbnail-list {
+    flex-direction: row;
+    gap: 0.8rem;
+  }
+  .hero-thumbnail-btn {
+    width: 44px;
+    height: 44px;
   }
 }
