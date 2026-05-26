@@ -76,207 +76,224 @@
 }
 
 
-/* Fabrics Interactive Grid */
-.fabric-interactive-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(1.5rem, 3vw, 2.5rem);
-  margin-bottom: clamp(3rem, 6vw, 4.5rem);
-}
-
-.fabric-texture-card {
+/* Fabrics Interactive Infographic Timeline Spine */
+.fabric-timeline-container {
   position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  aspect-ratio: 4 / 5;
-  background-color: #f5eedf;
-  box-shadow: 0 15px 40px rgba(43, 43, 43, 0.08);
-  cursor: pointer;
+  max-width: 1200px;
+  margin: 0 auto 1.5rem; /* Reduced bottom margin */
+  padding: 3rem 0 1rem 0; /* Reduced bottom padding */
 }
 
-.fabric-card-image-wrap {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.fabric-card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.fabric-texture-card:hover .fabric-card-image {
-  transform: scale(1.08);
-}
-
-/* Card Overlay Details */
-.fabric-card-overlay {
+/* Central Vertical Timeline Spine */
+.timeline-spine {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(13, 23, 21, 0.95) 0%, rgba(13, 23, 21, 0.45) 50%, transparent 100%);
-  padding: 2.2rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  color: #ffffff;
-  transition: background 0.4s ease;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    rgba(212, 175, 55, 0.04) 0%,
+    rgba(212, 175, 55, 0.35) 15%,
+    rgba(212, 175, 55, 0.35) 85%,
+    rgba(212, 175, 55, 0.04) 100
+  );
+  transform: translateX(-50%);
+  z-index: 1;
 }
 
-.fabric-texture-card:hover .fabric-card-overlay {
-  background: linear-gradient(to top, rgba(13, 23, 21, 0.98) 0%, rgba(13, 23, 21, 0.6) 60%, transparent 100%);
-}
-
-.tactile-tag {
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--primary-gold);
-  margin-bottom: 0.5rem;
-  opacity: 0.85;
-}
-
-.fabric-card-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.4rem, 2.2vw, 1.8rem);
-  font-weight: 500;
-  margin-bottom: 0.75rem;
-  color: #ffffff;
-}
-
-.fabric-card-desc {
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.88rem;
-  font-weight: 300;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.75);
-  margin-bottom: 1.2rem;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, opacity 0.4s ease, margin 0.4s ease;
-}
-
-.fabric-texture-card:hover .fabric-card-desc {
-  max-height: 80px;
-  opacity: 1;
-  margin-bottom: 1.2rem;
-}
-
-.explore-card-link {
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 0.95rem;
-  color: var(--primary-gold);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-  padding-bottom: 2px;
-  transition: border-color 0.3s ease;
-}
-
-.fabric-texture-card:hover .explore-card-link {
-  border-color: var(--primary-gold);
-}
-
-
-/* Bottom Call to Action Button */
-.fabric-section-action {
-  text-align: center;
-}
-
-.explore-fabrics-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 1.1rem;
-  padding: 1.1rem 2.8rem;
-  border-radius: 50px;
-  border: 1.5px solid var(--charcoal);
-  background: transparent;
-  color: var(--charcoal);
-  font-family: 'Poppins', sans-serif;
-  font-size: 0.92rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.explore-fabrics-btn:hover {
-  background-color: var(--charcoal);
-  color: #ffffff;
-  box-shadow: 0 10px 25px rgba(43, 43, 43, 0.15);
-}
-
-.explore-fabrics-btn svg {
-  transition: transform 0.3s ease;
-}
-
-.explore-fabrics-btn:hover svg {
-  transform: translateX(4px);
-}
-
-
-/* ─── RESPONSIVE BREAKPOINTS ─── */
-
-@media (max-width: 1024px) {
-  .fabric-interactive-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-  }
-
-  .fabric-texture-card:last-child {
-    grid-column: span 2;
-    aspect-ratio: 2 / 1;
-  }
-}
-
-@media (max-width: 768px) {
-  .homepage-fabric-section {
-    padding: 4.5rem 0;
-  }
-
-  .fabric-heading {
-    font-size: 2.2rem;
-  }
-
-  .fabric-interactive-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .fabric-texture-card {
-    aspect-ratio: 4 / 5;
-  }
-
-  .fabric-texture-card:last-child {
-    grid-column: span 1;
-    aspect-ratio: 4 / 5;
-  }
-
-  .fabric-card-desc {
-    max-height: 80px;
-    opacity: 1;
-    margin-bottom: 1.2rem;
-  }
-
-  .explore-fabrics-btn {
-    padding: 1rem 2.2rem;
-  }
-}
-
-.fabric-timeline-image-container {
-  width: clamp(230px, 28vw, 320px);
-  height: clamp(230px, 28vw, 320px);
-  aspect-ratio: 1 / 1;
+.fabric-timeline-row {
   position: relative;
-  overflow: hidden;
+  min-height: 110px; /* Highly compact height so the badges flow tightly */
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.2rem; /* Minimal gap between badges to stack them like the infographic */
+  cursor: pointer;
+}
+
+.fabric-timeline-row:last-child {
+  margin-bottom: 0;
+}
+
+/* Central Timeline Badge positioned exactly on the vertical spine */
+.fabric-timeline-badge-wrap {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+}
+
+.fabric-timeline-badge {
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  box-shadow: 0 15px 45px rgba(43, 43, 43, 0.08);
-  border: 2px solid rgba(212, 175, 55, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.8rem;
+  font-weight: 700;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* Ensures the inner semi-circle does not bleed */
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: #fbfaf8;
+  z-index: 5;
+}
+
+/* Badge crescent shapes & exact colors matching the user's reference image */
+.fabric-timeline-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  z-index: 1;
+  transition: all 0.4s ease;
+}
+
+/* Brand-Cohesive Gold Crescent Badges for all steps */
+.fabric-timeline-badge {
+  background-color: #fcfbf7; /* Luxury light cream */
+  color: var(--charcoal); /* Charcoal grey for perfect contrast */
+  border: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+/* Odd timeline rows (1 & 3): Gold crescent on the left */
+.fabric-timeline-row:nth-child(odd) .fabric-timeline-badge::before {
+  left: 0;
+  background-color: var(--primary-gold); /* SeeMee signature gold thread */
+  border-top-left-radius: 42px;
+  border-bottom-left-radius: 42px;
+}
+
+/* Even timeline rows (2 & 4): Gold crescent on the right */
+.fabric-timeline-row:nth-child(even) .fabric-timeline-badge::before {
+  right: 0;
+  background-color: var(--primary-gold); /* SeeMee signature gold thread */
+  border-top-right-radius: 42px;
+  border-bottom-right-radius: 42px;
+}
+
+.badge-number {
+  position: relative;
+  z-index: 2; /* Stands out clearly over the colored semi-circle background */
+}
+
+.fabric-timeline-row:hover .fabric-timeline-badge {
+  transform: scale(1.08) rotate(5deg);
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.25);
+}
+
+/* Curved Sweeping Connector Lines branching to active side */
+.connector-line {
+  position: absolute;
+  top: 50%;
+  height: 40px; /* Reduced vertical sweep to match tighter rows */
+  width: 100px; /* Pushed out elegantly to link with the portal without any overlap */
+  pointer-events: none;
+  z-index: 2;
+  transition: all 0.4s ease;
+}
+
+.connector-line.to-right {
+  left: 50%;
+  border-top: 2px solid var(--primary-gold);
+  border-right: 2px solid var(--primary-gold);
+  border-top-right-radius: 24px;
+  transform: translateY(-80%);
+}
+
+.connector-line.to-right::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-gold);
+  box-shadow: 0 0 10px var(--primary-gold);
+}
+
+.connector-line.to-left {
+  right: 50%;
+  border-top: 2px solid var(--primary-gold);
+  border-left: 2px solid var(--primary-gold);
+  border-top-left-radius: 24px;
+  transform: translateY(-80%);
+}
+
+.connector-line.to-left::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-gold);
+  box-shadow: 0 0 10px var(--primary-gold);
+}
+
+/* Asymmetric Side Content Block holding both circular image and text */
+.fabric-timeline-card {
+  width: calc(50% - 130px); /* Pushed further out from spine to leave gap for connector line */
+  display: flex;
+  align-items: center;
+  gap: clamp(1.2rem, 2.5vw, 2.2rem);
+  padding: 0.5rem 0; /* Fully transparent, no wrapper container */
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 5;
+}
+
+.branch-right .fabric-timeline-card {
+  margin-left: auto;
+  flex-direction: row; /* Image left, text right */
+}
+
+.branch-left .fabric-timeline-card {
+  margin-right: auto;
+  flex-direction: row-reverse; /* Image right, text left */
+  text-align: right;
+}
+
+.fabric-timeline-card:hover {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.branch-right .fabric-timeline-card:hover {
+  transform: translateX(6px); /* Sophisticated micro-shift right */
+}
+
+.branch-left .fabric-timeline-card:hover {
+  transform: translateX(-6px); /* Sophisticated micro-shift left */
+}
+
+/* Circle Form Fabric Image Portal */
+.fabric-timeline-image-container {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(212, 175, 55, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  position: relative;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fabric-timeline-card:hover .fabric-timeline-image-container {
+  transform: scale(1.08) rotate(5deg);
+  border-color: var(--primary-gold);
+  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.15);
 }
 
 .fabric-row-image-frame {
@@ -293,26 +310,96 @@
   transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fabric-timeline-row:hover .fabric-row-image {
-  transform: scale(1.06);
+.fabric-timeline-card:hover .fabric-row-image {
+  transform: scale(1.12);
 }
 
 .fabric-row-image-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, transparent 100%);
-  transition: opacity 0.5s ease;
 }
 
-.fabric-timeline-row:hover .fabric-timeline-image-container {
-  border-color: var(--primary-gold);
-  box-shadow: 0 20px 45px rgba(212, 175, 55, 0.1);
+/* Editorial Text Content Block */
+.fabric-timeline-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.branch-left .fabric-timeline-content {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.fabric-row-kicker {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--primary-gold);
+  margin-bottom: 0.5rem;
+}
+
+.fabric-row-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
+  font-weight: 600;
+  color: var(--charcoal);
+  margin-bottom: 0.65rem;
+  line-height: 1.2;
+}
+
+.fabric-row-divider {
+  width: 3rem;
+  height: 1.5px;
+  background-color: var(--primary-gold);
+  margin-bottom: 0.9rem;
+  transition: width 0.4s ease;
+}
+
+.branch-left .fabric-row-divider {
+  margin-left: auto;
+}
+
+.fabric-timeline-card:hover .fabric-row-divider {
+  width: 4.5rem;
+}
+
+.fabric-row-description {
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.02rem;
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(43, 43, 43, 0.72);
+  margin-bottom: 1.1rem;
+}
+
+/* Theme-Aligned Luxury Vector Icon beneath the text block */
+.fabric-timeline-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.04);
+  border: 1px dashed rgba(212, 175, 55, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-gold);
+  transition: all 0.4s ease;
+}
+
+.fabric-timeline-card:hover .fabric-timeline-icon-wrap {
+  background: rgba(212, 175, 55, 0.1);
+  transform: scale(1.1) rotate(15deg);
 }
 
 /* Bottom Call to Action Button */
 .fabric-section-action {
   text-align: center;
-  margin-top: 3rem;
+  margin-top: 1.5rem; /* Reduced gap from timeline */
 }
 
 .explore-fabrics-btn {
@@ -350,79 +437,140 @@
 /* ─── RESPONSIVE BREAKPOINTS ─── */
 
 @media (max-width: 900px) {
+  /* Keep the infographic vertical spine line visible on mobile! */
   .timeline-spine {
-    display: none;
+    display: block !important;
   }
-
+  
+  /* Keep the elegant curved connectors active on mobile! */
   .connector-line {
-    display: none;
+    display: block !important;
+    width: 32px !important; /* Shorter gold curve to fit mobile screens perfectly */
+    height: 30px !important; /* Compact curve height */
   }
-
+  
+  .connector-line.to-right {
+    left: 50% !important;
+    border-top-right-radius: 12px !important;
+  }
+  
+  .connector-line.to-left {
+    right: 50% !important;
+    border-top-left-radius: 12px !important;
+  }
+  
   .fabric-timeline-row {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    margin-bottom: 5rem;
+    flex-direction: row !important; /* Preserve asymmetric alternating layout */
+    align-items: center !important;
+    margin-bottom: 2rem !important;
+    min-height: 130px !important;
   }
-
-  .timeline-col-left,
-  .timeline-col-right {
-    grid-column: 1;
-    padding: 0;
-    justify-content: center;
-  }
-
-  .fabric-timeline-badge-wrap {
-    grid-column: 1;
-    position: relative;
-    margin-bottom: -1rem;
-  }
-
-  .fabric-timeline-badge {
-    position: relative;
-    left: 0;
-    transform: none;
-  }
-
-  .fabric-timeline-image-container {
-    width: clamp(200px, 50vw, 260px);
-    height: clamp(200px, 50vw, 260px);
-    aspect-ratio: 1 / 1;
-    border-radius: 50%;
-    margin: 0 auto;
-    order: 1;
-  }
-
-  .fabric-timeline-content {
-    max-width: 100%;
+  
+  /* Compact cards branching left/right on mobile */
+  .fabric-timeline-card {
+    width: calc(50% - 32px) !important;
+    flex-direction: column !important; /* Stack portal & text vertically to look beautiful */
     align-items: center !important;
     text-align: center !important;
-    order: 2;
+    padding: 0 !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    gap: 0.6rem !important;
   }
-
+  
+  .branch-right .fabric-timeline-card {
+    margin-left: auto !important;
+    margin-right: 0 !important;
+  }
+  
+  .branch-left .fabric-timeline-card {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+    text-align: center !important;
+  }
+  
+  /* Absolute centered mobile badges */
+  .fabric-timeline-badge-wrap {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin-bottom: 0 !important;
+    z-index: 10;
+  }
+  
+  .fabric-timeline-badge {
+    width: 50px !important; /* Compact luxury badge for mobile */
+    height: 50px !important;
+    font-size: 1.6rem !important;
+  }
+  
+  /* Dynamic mobile crescent overlays */
+  .fabric-timeline-row:nth-child(odd) .fabric-timeline-badge::before {
+    border-top-left-radius: 25px !important;
+    border-bottom-left-radius: 25px !important;
+  }
+  
+  .fabric-timeline-row:nth-child(even) .fabric-timeline-badge::before {
+    border-top-right-radius: 25px !important;
+    border-bottom-right-radius: 25px !important;
+  }
+  
+  /* Scaled-down cute circular portals */
+  .fabric-timeline-image-container {
+    width: 76px !important;
+    height: 76px !important;
+    border-width: 2px !important;
+  }
+  
+  .fabric-timeline-content {
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  .fabric-row-kicker {
+    font-size: 0.68rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+  
+  .fabric-row-title {
+    font-size: 1.05rem !important;
+    margin-bottom: 0.3rem !important;
+  }
+  
   .fabric-row-divider {
-    margin: 0.8rem auto 1.2rem !important;
+    width: 2rem !important;
+    margin: 0.4rem auto !important;
+  }
+  
+  .fabric-row-description {
+    font-size: 0.78rem !important;
+    line-height: 1.5 !important;
+    max-width: 100% !important;
+    margin-bottom: 0.5rem !important;
+  }
+  
+  .fabric-timeline-icon-wrap {
+    width: 28px !important;
+    height: 28px !important;
+  }
+  
+  .fabric-timeline-icon-wrap svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 }
 
 @media (max-width: 600px) {
   .homepage-fabric-section {
-    padding: clamp(3rem, 8vw, 4.5rem) 0;
+    padding: clamp(2rem, 6vw, 3rem) 0;
   }
-
+  
   .fabric-heading {
     font-size: 2.1rem;
   }
-
-  .fabric-row-title {
-    font-size: 1.6rem;
-  }
-
-  .fabric-row-description {
-    font-size: 0.92rem;
-    line-height: 1.7;
-    margin-bottom: 1.5rem;
-  }
-
+  
   .explore-fabrics-btn {
     padding: 1rem 2.2rem;
     font-size: 0.88rem;
