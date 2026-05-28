@@ -39,27 +39,32 @@
   cursor: pointer;
   z-index: 1002;
   flex-shrink: 0;
-  height: 45px; /* Restricts the layout height so it never stretches the navbar */
+  height: 45px;
+  /* Restricts the layout height so it never stretches the navbar */
   display: flex;
   align-items: center;
 }
 
 .logo-image {
-  height: 105px; /* Make the actual logo image big */
+  height: 105px;
+  /* Make the actual logo image big */
   width: auto;
   object-fit: contain;
   transition: all 0.5s ease;
   filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.1));
-  transform: translateY(22px); /* Lets the logo hang down elegantly over the sleek navbar border */
+  transform: translateY(10px);
+  /* Lets the logo hang down elegantly over the sleek navbar border */
 }
 
 .navbar.scrolled .logo {
-  height: 35px; /* Restrict scrolled container layout height */
+  height: 35px;
+  /* Restrict scrolled container layout height */
 }
 
 .navbar.scrolled .logo-image {
-  height: 75px; /* Make it stand out on scroll */
-  transform: translateY(15px);
+  height: 75px;
+  /* Make it stand out on scroll */
+  transform: translateY(5px);
 }
 
 /* Navigation Links */
@@ -500,7 +505,7 @@
 
   .logo-image {
     height: clamp(55px, 8vw, 75px);
-    transform: translateY(12px);
+    transform: translateY(3px);
   }
 
   .navbar.scrolled .logo {
@@ -509,7 +514,7 @@
 
   .navbar.scrolled .logo-image {
     height: clamp(55px, 8vw, 75px);
-    transform: translateY(12px);
+    transform: translateY(3px);
   }
 
   .nav-links {
@@ -583,7 +588,7 @@
 
   .logo-image {
     height: 60px;
-    transform: translateY(10px);
+    transform: translateY(2px);
   }
 
   .navbar.scrolled .logo {
@@ -592,7 +597,7 @@
 
   .navbar.scrolled .logo-image {
     height: 60px;
-    transform: translateY(10px);
+    transform: translateY(2px);
   }
 
   .nav-actions {
@@ -657,7 +662,7 @@
 
   .logo-image {
     height: 52px;
-    transform: translateY(8px);
+    transform: translateY(1px);
   }
 
   .navbar.scrolled .logo {
@@ -666,7 +671,7 @@
 
   .navbar.scrolled .logo-image {
     height: 52px;
-    transform: translateY(8px);
+    transform: translateY(1px);
   }
 
   .nav-actions {

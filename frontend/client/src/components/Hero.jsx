@@ -43,12 +43,73 @@ const FALLBACK_SLIDES = [
   }
 ]
 
+const CATEGORY_IMAGES = {
+  'anarkali': '/images/hero/sharara_festive.png',
+  'palazzo': '/images/home-hero.png',
+  'straight-cut': '/images/ruby_bridal_sharara.png',
+  'sharara': '/images/hero/sharara_festive.png',
+  'co-ord-sets': '/images/magazine/weight_of_velvet.png',
+  '3-piece-sets': '/images/home-hero.png',
+  '2-piece-sets': '/images/ruby_bridal_sharara.png',
+}
+
+const formatCategoryName = (slug) => {
+  if (!slug) return ''
+  const s = slug.toLowerCase().trim()
+  if (s === '2-piece-sets' || s === '2-piece' || s === '2-pieces') return '2-Piece'
+  if (s === '3-piece-sets' || s === '3-piece' || s === '3-pieces') return '3-Piece'
+  if (s === 'co-ord-sets' || s === 'cord-set' || s === 'co-ord' || s === 'co-ord-set') return 'Cord Set'
+  
+  return slug
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase())
+}
+
 const Hero = () => {
   const navigate = useNavigate()
   const [slides, setSlides] = useState([])
   const [activeIndex, setActiveIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
+  const [categories, setCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara'])
+  const [categoryImages, setCategoryImages] = useState({})
+
+  const getCategoryDisplayImage = (slug) => {
+    const s = slug.toLowerCase().trim()
+    return categoryImages[s] || CATEGORY_IMAGES[s] || '/images/home-hero.png'
+  }
+
+  useEffect(() => {
+    // Fetch unique categories
+    fetch(API_ENDPOINTS.GET_CATEGORIES)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data.length > 0) {
+          setCategories(data.data)
+        }
+      })
+      .catch(err => console.error('Error fetching categories in Hero:', err))
+
+    // Fetch active products to extract real category images from database
+    fetch(API_ENDPOINTS.PRODUCTS)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          const products = data.data
+          const imageMap = {}
+          products.forEach(p => {
+            if (p.category && p.images && p.images.length > 0) {
+              const catKey = p.category.toLowerCase().trim()
+              if (!imageMap[catKey]) {
+                imageMap[catKey] = p.images[0]
+              }
+            }
+          })
+          setCategoryImages(imageMap)
+        }
+      })
+      .catch(err => console.error('Error fetching category images:', err))
+  }, [])
 
   useEffect(() => {
     const updateMobileState = () => {
@@ -446,6 +507,28 @@ const Hero = () => {
           </div>
         </div>
       </div>
+
+      {/* Dynamic Looping Category Circles Section */}
+      {categories.length > 0 && (
+        <div className="category-marquee-container">
+          <div className="category-marquee-track">
+            {/* Repeat the list 10 times for a mathematically seamless infinite loop on any screen width */}
+            {Array(10).fill(categories).flat().map((cat, idx) => (
+              <div 
+                key={`${cat}-${idx}`} 
+                className="category-circle-item"
+                onClick={() => navigate(`/category/${cat}`)}
+              >
+                <div className="category-circle-visual">
+                  <img src={getCategoryDisplayImage(cat)} alt={cat} className="category-circle-img" />
+                  <div className="category-circle-overlay" />
+                </div>
+                <span className="category-circle-name">{formatCategoryName(cat)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   )
 }
