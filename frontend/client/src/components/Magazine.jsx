@@ -21,7 +21,7 @@ const Magazine = () => {
     try {
       const response = await fetch(API_ENDPOINTS.MAGAZINE)
       const data = await response.json()
-      
+
       const fallbacks = [
         {
           _id: 'story1',
@@ -76,11 +76,11 @@ const Magazine = () => {
     if (isFlipping) return
     setIsFlipping(true)
     setDirection(dir)
-    
+
     setTimeout(() => {
-      setCurrentIndex((prev) => 
-        dir > 0 
-          ? (prev + 1) % magazineStories.length 
+      setCurrentIndex((prev) =>
+        dir > 0
+          ? (prev + 1) % magazineStories.length
           : (prev - 1 + magazineStories.length) % magazineStories.length
       )
       setIsFlipping(false)
@@ -96,22 +96,22 @@ const Magazine = () => {
       <div className="w-full max-w-screen-2xl px-6 flex flex-col items-center">
         <div className="relative w-full flex justify-center items-center mt-10">
           {/* Navigation Arrows - Positioned relative to the viewport/container */}
-          <button 
+          <button
             className="hidden lg:flex absolute left-4 xl:left-20 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/90 backdrop-blur-md border border-black/5 rounded-full items-center justify-center cursor-pointer z-50 hover:bg-[#D4AF37] hover:text-white transition-all duration-500 shadow-xl group"
-            onClick={() => flip(-1)} 
+            onClick={() => flip(-1)}
             disabled={isFlipping}
           >
             <span className="text-2xl transform group-hover:-translate-x-1 transition-transform">←</span>
           </button>
-          
-          <button 
+
+          <button
             className="hidden lg:flex absolute right-4 xl:right-20 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/90 backdrop-blur-md border border-black/5 rounded-full items-center justify-center cursor-pointer z-50 hover:bg-[#D4AF37] hover:text-white transition-all duration-500 shadow-xl group"
-            onClick={() => flip(1)} 
+            onClick={() => flip(1)}
             disabled={isFlipping}
           >
             <span className="text-2xl transform group-hover:translate-x-1 transition-transform">→</span>
           </button>
- 
+
           {/* Main Magazine Stage */}
           <div className="w-full max-w-[1100px] h-[500px] md:h-[700px] perspective-[3000px] relative mx-auto">
             <AnimatePresence initial={false} custom={direction}>
@@ -120,13 +120,13 @@ const Magazine = () => {
                 className="flex w-full h-full absolute inset-0 transform-gpu preserve-3d shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] rounded-sm overflow-hidden bg-white"
                 initial={{ rotateY: direction > 0 ? 90 : -90, opacity: 0 }}
                 animate={{ rotateY: 0, opacity: 1 }}
-                exit={{ 
-                  rotateY: direction > 0 ? -90 : 90, 
+                exit={{
+                  rotateY: direction > 0 ? -90 : 90,
                   opacity: 0,
-                  transition: { duration: 0.6, ease: [0.32, 0, 0.67, 0] } 
+                  transition: { duration: 0.6, ease: [0.32, 0, 0.67, 0] }
                 }}
-                transition={{ 
-                  duration: 1.2, 
+                transition={{
+                  duration: 1.2,
                   ease: [0.22, 1, 0.36, 1],
                   opacity: { duration: 0.4 }
                 }}
@@ -138,25 +138,25 @@ const Magazine = () => {
                   <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-8 left-8 text-[10px] tracking-[0.4em] text-white/90 uppercase font-medium">Plate No. 00{currentIndex + 1}</div>
                 </div>
- 
+
                 {/* Right Page (Editorial Spread) */}
                 <div className="relative flex-1 h-full bg-[#fdfdfc] border-l border-black/5 flex flex-col justify-start py-16 px-8 md:px-12 lg:px-16 overflow-hidden">
                   <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')]"></div>
-                  
+
                   <div className="relative z-10 w-full">
                     <span className="block text-[10px] uppercase tracking-[0.6em] text-[#D4AF37] font-bold mb-6 opacity-80">Editorial Journal</span>
-                    
+
                     <h3 className="font-serif text-2xl md:text-3xl lg:text-4xl text-[#1a1a1a] leading-[1.3] mb-6 tracking-tight flex items-start">
                       <span className="text-6xl md:text-7xl leading-[0.8] pr-4 text-[#D4AF37] font-serif font-extralight drop-shadow-sm mt-1">{currentStory.title.charAt(0)}</span>
                       <span className="pt-1">{currentStory.title.slice(1)}</span>
                     </h3>
-                    
+
                     <div className="w-12 h-[1px] bg-[#D4AF37]/50 mb-8"></div>
-                    
+
                     <p className="font-sans text-sm md:text-base lg:text-lg leading-relaxed text-[#4a4a4a] mb-10 font-light italic">
                       {currentStory.description}
                     </p>
-                    
+
                     <div className="flex justify-between items-center pt-6 border-t border-black/5 mt-auto">
                       <div className="flex flex-col">
                         <span className="text-[8px] tracking-[0.3em] text-black/30 uppercase font-bold mb-1">Curation</span>
@@ -165,12 +165,12 @@ const Magazine = () => {
                       <button className="text-[9px] font-bold uppercase tracking-[0.3em] border-b border-[#D4AF37] pb-1 hover:tracking-[0.4em] transition-all duration-300">Read Story</button>
                     </div>
                   </div>
-                  
+
                   <div className="absolute bottom-6 right-8 text-[9px] tracking-[0.3em] text-black/20 uppercase font-mono">P.{currentIndex * 2 + 2}</div>
                 </div>
               </motion.div>
             </AnimatePresence>
- 
+
             {/* Spine Shadows */}
             <div className="absolute left-1/2 top-0 bottom-0 w-16 -translate-x-1/2 bg-gradient-to-r from-transparent via-black/[0.08] to-transparent z-40 pointer-events-none"></div>
             <div className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2 bg-black/5 z-40 pointer-events-none"></div>

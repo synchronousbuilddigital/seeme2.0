@@ -474,16 +474,236 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
+/* Responsive Layouts & Mobile Optimizations */
 @media (max-width: 1024px) {
-  .narrative-grid,
-  .journal-grid,
-  .technical-grid,
+  .narrative-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .journal-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  
+  .technical-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
   .fabric-modal-layout {
     grid-template-columns: 1fr;
   }
   
   .fabric-modal-info {
     padding: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .editorial-container {
+    padding: 0 20px !important;
+  }
+
+  /* Cinematic Hero */
+  .fabrics-hero-editorial {
+    height: 55vh !important;
+  }
+  
+  .editorial-kicker {
+    font-size: 0.72rem !important;
+    letter-spacing: 4px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .editorial-title {
+    font-size: 2.6rem !important;
+    line-height: 1.05 !important;
+  }
+  
+  .hero-scroll-indicator {
+    bottom: 20px !important;
+  }
+  
+  .scroll-line {
+    height: 40px !important;
+  }
+
+  /* Narrative Section */
+  .fabrics-narrative {
+    padding: 50px 0 !important;
+  }
+  
+  .narrative-heading {
+    font-size: 2.2rem !important;
+    line-height: 1.1 !important;
+  }
+  
+  .narrative-body {
+    font-size: 0.95rem !important;
+    line-height: 1.65 !important;
+    text-align: left !important;
+  }
+
+  /* Fabric Journal */
+  .fabric-journal {
+    padding: 40px 0 !important;
+  }
+  
+  .journal-header {
+    margin-bottom: 30px !important;
+  }
+  
+  .journal-title {
+    font-size: 2.1rem !important;
+  }
+  
+  .journal-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 15px !important;
+  }
+  
+  .card-content {
+    padding: 15px 0 !important;
+  }
+  
+  .card-title {
+    font-size: 1.1rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Technical Section */
+  .fabrics-technical {
+    padding: 45px 0 !important;
+  }
+  
+  .technical-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  
+  .tech-item {
+    padding: 2.2rem 1.5rem 1.8rem !important;
+  }
+  
+  .tech-num {
+    font-size: 4rem !important;
+    top: -0.5rem !important;
+    right: 0.8rem !important;
+  }
+  
+  .tech-title {
+    font-size: 1.3rem !important;
+    margin-bottom: 0.8rem !important;
+  }
+  
+  .tech-desc {
+    font-size: 0.88rem !important;
+  }
+
+  /* Modal Styling */
+  .fabric-modal-overlay {
+    padding: 15px !important;
+  }
+  
+  .fabric-modal {
+    max-height: 95vh !important;
+    border-radius: 6px !important;
+  }
+  
+  .fabric-modal-close {
+    top: 15px !important;
+    right: 15px !important;
+    width: 32px !important;
+    height: 32px !important;
+    background: white !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    padding: 6px !important;
+  }
+  
+  .fabric-modal-image img {
+    min-height: 0 !important;
+    max-height: 250px !important;
+    width: 100% !important;
+  }
+  
+  .fabric-modal-info {
+    padding: 25px 20px !important;
+  }
+  
+  .fabric-modal-title {
+    font-size: 1.8rem !important;
+    margin-bottom: 15px !important;
+  }
+  
+  .fabric-modal-description {
+    font-size: 0.92rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .fabric-modal-features h4,
+  .fabric-modal-care h4 {
+    font-size: 0.95rem !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .fabric-modal-features ul {
+    margin-bottom: 20px !important;
+  }
+  
+  .fabric-modal-features li {
+    font-size: 0.88rem !important;
+    margin-bottom: 6px !important;
+  }
+  
+  .fabric-modal-care p {
+    font-size: 0.88rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .editorial-container {
+    padding: 0 15px !important;
+  }
+
+  .fabrics-hero-editorial {
+    height: 48vh !important;
+  }
+
+  .editorial-title {
+    font-size: 2.1rem !important;
+  }
+
+  .narrative-heading {
+    font-size: 1.8rem !important;
+  }
+
+  .journal-title {
+    font-size: 1.7rem !important;
+  }
+
+  .journal-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .card-title {
+    font-size: 0.95rem !important;
+  }
+
+  .tech-item {
+    padding: 1.8rem 1.2rem 1.5rem !important;
+  }
+
+  .tech-title {
+    font-size: 1.15rem !important;
+  }
+
+  .fabric-modal-image img {
+    max-height: 200px !important;
   }
 }

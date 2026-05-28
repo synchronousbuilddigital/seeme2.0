@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence, useScroll } from 'framer-motion'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import './MagazinePage.css'
@@ -10,7 +11,7 @@ const fallbackStories = [
     title: 'Silk and the River City',
     subtitle: 'The Banaras Loom as a Living Chronicle',
     description: 'The Banarasi loom turns repetition into ritual. Every shuttle movement carries a tempo that has outlived trends, and every finished textile becomes a reminder that cloth can contain geography, labor, and inheritance at once. This chapter follows the loom room from daylight to dusk, moving past dye vats, thread books, and folded lengths of silk waiting for their last inspection.',
-    image: '/images/magazine/silk_river_city.png',
+    image: '/images/magazine/silk_river_city_premium.png',
     category: 'Craftsmanship',
     author: 'Julian Thorne',
     quote: 'A woven fabric can be read the way a city is read: slowly, by layers.',
@@ -47,8 +48,8 @@ const fallbackStories = [
   },
   {
     _id: 'story3',
-    title: 'Mastery in the Atelier',
-    subtitle: 'The Silent Dedication Behind the Seams',
+    title: 'Atelier of Grandeur',
+    subtitle: 'Step Inside the World of Precision Tailoring',
     description: 'Step inside the SEEMEE design studio where royal grandeur meets modern ease. Every cut is measured with spatial precision, every embroidery pattern is placed to silhouette the form, and every seam is hand-finished. We balance ancestral skills with contemporary tailoring, ensuring every single dress carries the human soul inside.',
     image: '/images/magazine/artisan_craftsmanship.png',
     category: 'Atelier',
@@ -130,32 +131,49 @@ const normalizeStory = (story = {}, index = 0) => {
   }
 }
 
-// Generate background dust particles programmatically
 const MOTE_COUNT = 15
 const ambientMotes = Array.from({ length: MOTE_COUNT }, (_, i) => ({
   id: i,
   left: `${Math.random() * 100}%`,
   size: Math.random() * 4 + 2,
-  delay: Math.random() * -15, // Negative delay to start immediately
+  delay: Math.random() * -15,
   duration: Math.random() * 10 + 15,
 }))
 
 const MagazinePage = () => {
+  const navigate = useNavigate()
   const [stories, setStories] = useState([])
   const [loading, setLoading] = useState(true)
   
-  // 3D Booklet state variables
-  const [bookState, setBookState] = useState('closed') // 'closed' | 'opening' | 'open' | 'closing'
-  const isCoverOpen = bookState !== 'closed'
+  // Booklet state variables
+  const [bookState, setBookState] = useState('closed') // 'closed' | 'open'
   const [activeIdx, setActiveIdx] = useState(0)
-  const [mobilePageSide, setMobilePageSide] = useState('left') // 'left' | 'right' (single-page booklet on mobile)
+  const [previousIdx, setPreviousIdx] = useState(0)
+  const [mobilePageSide, setMobilePageSide] = useState('left')
+  const [previousSide, setPreviousSide] = useState('left')
   const [isFlipping, setIsFlipping] = useState(false)
-  const [flipDirection, setFlipDirection] = useState('next') // 'next' | 'prev' | 'open' | 'close'
-  const [isAutoplay, setIsAutoplay] = useState(false)
+  const [flipDirection, setFlipDirection] = useState('next')
   const [showTOC, setShowTOC] = useState(false)
-  
-  // Responsive check
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024)
+
+  // Target ref for extremely tight sticky scroll tracking
+  const scrollContainerRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: scrollContainerRef,
+    offset: ["start start", "end end"]
+  })
+
+  // Prevent multiple redundant state triggers
+  const lastStateRef = useRef({ bookState: 'closed', activeIdx: 0, mobilePageSide: 'left' })
+  // Ref to block scroll-event updates during manual page turns (preventing jumpy scroll motion)
+  const isManualTurningRef = useRef(false)
+
+  // State mapping ref to prevent snap-back when scrolling resumes after a click
+  const activeIdxRef = useRef(0)
+
+  useEffect(() => {
+    activeIdxRef.current = activeIdx
+  }, [activeIdx])
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024)
@@ -164,21 +182,134 @@ const MagazinePage = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Autoplay handler
+  // Sync scroll position over a short 120vh track (pages turn rapidly on light scroll)
   useEffect(() => {
-    let intervalId
-    if (isAutoplay && isCoverOpen && !isFlipping) {
-      intervalId = setInterval(() => {
-        if (activeIdx < stories.length - 1) {
-          handleNext()
+    if (loading || stories.length === 0) return
+
+    const unsubscribe = scrollYProgress.onChange((latest) => {
+      // If user clicked buttons to change page, ignore the temporary scroll event to prevent vertical jumps
+      if (isManualTurningRef.current) return
+
+      let targetBookState = 'closed'
+      let targetIdx = activeIdxRef.current
+      let targetMobileSide = 'left'
+
+      let calculatedIdx = 0
+      let calculatedMobileSide = 'left'
+      let calculatedBookState = 'closed'
+
+      if (isMobile) {
+        // Mobile Page Progression (10 segments)
+        if (latest < 0.08) {
+          calculatedBookState = 'closed'
+          calculatedIdx = 0
+          calculatedMobileSide = 'left'
+        } else if (latest >= 0.08 && latest < 0.18) {
+          calculatedBookState = 'open'
+          calculatedIdx = 0
+          calculatedMobileSide = 'left'
+        } else if (latest >= 0.18 && latest < 0.28) {
+          calculatedBookState = 'open'
+          calculatedIdx = 0
+          calculatedMobileSide = 'right'
+        } else if (latest >= 0.28 && latest < 0.38) {
+          calculatedBookState = 'open'
+          calculatedIdx = 1
+          calculatedMobileSide = 'left'
+        } else if (latest >= 0.38 && latest < 0.48) {
+          calculatedBookState = 'open'
+          calculatedIdx = 1
+          calculatedMobileSide = 'right'
+        } else if (latest >= 0.48 && latest < 0.58) {
+          calculatedBookState = 'open'
+          calculatedIdx = 2
+          calculatedMobileSide = 'left'
+        } else if (latest >= 0.58 && latest < 0.68) {
+          calculatedBookState = 'open'
+          calculatedIdx = 2
+          calculatedMobileSide = 'right'
+        } else if (latest >= 0.68 && latest < 0.78) {
+          calculatedBookState = 'open'
+          calculatedIdx = 3
+          calculatedMobileSide = 'left'
+        } else if (latest >= 0.78 && latest < 0.88) {
+          calculatedBookState = 'open'
+          calculatedIdx = 3
+          calculatedMobileSide = 'right'
+        } else if (latest >= 0.88 && latest < 0.95) {
+          calculatedBookState = 'open'
+          calculatedIdx = 4
+          calculatedMobileSide = 'left'
         } else {
-          // Wrap around to closed book or first chapter
-          setIsAutoplay(false)
+          calculatedBookState = 'open'
+          calculatedIdx = 4
+          calculatedMobileSide = 'right'
         }
-      }, 8000)
-    }
-    return () => clearInterval(intervalId)
-  }, [isAutoplay, isCoverOpen, activeIdx, isFlipping, stories])
+      } else {
+        // Desktop Layout Progression (5 chapters)
+        if (latest < 0.10) {
+          calculatedBookState = 'closed'
+          calculatedIdx = 0
+        } else if (latest >= 0.10 && latest < 0.28) {
+          calculatedBookState = 'open'
+          calculatedIdx = 0
+        } else if (latest >= 0.28 && latest < 0.46) {
+          calculatedBookState = 'open'
+          calculatedIdx = 1
+        } else if (latest >= 0.46 && latest < 0.64) {
+          calculatedBookState = 'open'
+          calculatedIdx = 2
+        } else if (latest >= 0.64 && latest < 0.82) {
+          calculatedBookState = 'open'
+          calculatedIdx = 3
+        } else {
+          calculatedBookState = 'open'
+          calculatedIdx = 4
+        }
+      }
+
+      // SENSITIVE DESYNC PROTECTION GUARD: ONLY APPLY ON DESKTOP, NEVER ON MOBILE
+      if (!isMobile && Math.abs(calculatedIdx - activeIdxRef.current) > 1) {
+        return
+      }
+
+      targetBookState = calculatedBookState
+      targetIdx = calculatedIdx
+      if (isMobile) targetMobileSide = calculatedMobileSide
+
+      // Check if state actually changed before playing sound and triggering React renders
+      const lastState = lastStateRef.current
+      const changedBookState = targetBookState !== lastState.bookState
+      const changedIdx = targetIdx !== lastState.activeIdx
+      const changedSide = isMobile && (targetMobileSide !== lastState.mobilePageSide)
+
+      if (changedBookState || changedIdx || changedSide) {
+        setPreviousIdx(lastState.activeIdx)
+        setPreviousSide(lastState.mobilePageSide)
+        if (changedIdx) {
+          setFlipDirection(targetIdx > lastState.activeIdx ? 'next' : 'prev')
+          setIsFlipping(true)
+          setTimeout(() => setIsFlipping(false), 750)
+        } else if (changedSide) {
+          setFlipDirection(targetMobileSide === 'right' ? 'next' : 'prev')
+          setIsFlipping(true)
+          setTimeout(() => setIsFlipping(false), 750)
+        } else if (changedBookState) {
+          setFlipDirection(targetBookState === 'open' ? 'open' : 'close')
+        }
+
+        setBookState(targetBookState)
+        setActiveIdx(targetIdx)
+        if (isMobile) setMobilePageSide(targetMobileSide)
+
+        playPageTurnSound()
+
+        lastStateRef.current = { bookState: targetBookState, activeIdx: targetIdx, mobilePageSide: targetMobileSide }
+      }
+    })
+
+    return () => unsubscribe()
+  }, [scrollYProgress, stories, isMobile, loading])
 
   const fetchStories = async () => {
     try {
@@ -187,13 +318,10 @@ const MagazinePage = () => {
 
       let loadedStories = []
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        // Map database stories first
         const dbStories = data.data.map((story, index) => normalizeStory(story, index))
         loadedStories = [...dbStories]
         
-        // Pad with fallback stories up to exactly 5
         if (loadedStories.length < 5) {
-          const remainingCount = 5 - loadedStories.length
           const paddings = fallbackStories.slice(loadedStories.length, 5).map((story, index) => 
             normalizeStory(story, loadedStories.length + index)
           )
@@ -219,15 +347,13 @@ const MagazinePage = () => {
       if (!AudioContext) return
       const ctx = new AudioContext()
       
-      const bufferSize = ctx.sampleRate * 0.45 // 0.45s length
+      const bufferSize = ctx.sampleRate * 0.45
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
       const data = buffer.getChannelData(0)
       
-      // Fill buffer with soft pink/brown-ish noise
       let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0
       for (let i = 0; i < bufferSize; i++) {
         const white = Math.random() * 2 - 1
-        // Pink filter approximation
         b0 = 0.99886 * b0 + white * 0.0555179
         b1 = 0.99332 * b1 + white * 0.0750759
         b2 = 0.96900 * b2 + white * 0.1538520
@@ -236,7 +362,7 @@ const MagazinePage = () => {
         b5 = -0.7616 * b5 - white * 0.0168980
         const pink = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362
         b6 = white * 0.115926
-        data[i] = pink * 0.07 // Scale volume
+        data[i] = pink * 0.07
       }
       
       const source = ctx.createBufferSource()
@@ -248,12 +374,10 @@ const MagazinePage = () => {
       
       const gain = ctx.createGain()
       
-      // Volume envelope for the turn
       gain.gain.setValueAtTime(0, ctx.currentTime)
       gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.08)
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.42)
       
-      // Filter frequency sweep
       filter.frequency.setValueAtTime(900, ctx.currentTime)
       filter.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + 0.4)
       
@@ -264,206 +388,138 @@ const MagazinePage = () => {
       source.start()
       setTimeout(() => ctx.close(), 600)
     } catch (err) {
-      console.warn('Audio Context restricted or unsupported:', err)
+      console.warn('Audio Context restricted:', err)
     }
   }
 
+  // Handle manual next turn strictly in-place (Absolutely zero screen scrolling!)
   const handleNext = () => {
     if (isFlipping) return
-
-    if (isMobile) {
-      if (mobilePageSide === 'left') {
-        setFlipDirection('next')
-        setIsFlipping(true)
-        playPageTurnSound()
-        setTimeout(() => {
-          setMobilePageSide('right')
-          setIsFlipping(false)
-        }, 900)
-      } else if (activeIdx < stories.length - 1) {
-        setFlipDirection('next')
-        setIsFlipping(true)
-        playPageTurnSound()
-        setTimeout(() => {
-          setActiveIdx(prev => prev + 1)
-          setMobilePageSide('left')
-          setIsFlipping(false)
-        }, 900)
-      }
+    
+    isManualTurningRef.current = true
+    setIsFlipping(true)
+    playPageTurnSound()
+    setPreviousIdx(activeIdx)
+    setPreviousSide(mobilePageSide)
+    
+    if (bookState === 'closed') {
+      setBookState('open')
+      setActiveIdx(0)
+      setFlipDirection('open')
+      lastStateRef.current = { bookState: 'open', activeIdx: 0, mobilePageSide: 'left' }
+      setTimeout(() => {
+        setIsFlipping(false)
+        isManualTurningRef.current = false
+      }, 750)
     } else {
-      if (activeIdx < stories.length - 1) {
+      if (isMobile) {
+        if (mobilePageSide === 'left') {
+          setMobilePageSide('right')
+          setFlipDirection('next')
+          lastStateRef.current = { bookState: 'open', activeIdx: activeIdx, mobilePageSide: 'right' }
+          setTimeout(() => {
+            setIsFlipping(false)
+            isManualTurningRef.current = false
+          }, 500)
+        } else {
+          const nextIdx = Math.min(activeIdx + 1, stories.length - 1)
+          setActiveIdx(nextIdx)
+          setMobilePageSide('left')
+          setFlipDirection('next')
+          lastStateRef.current = { bookState: 'open', activeIdx: nextIdx, mobilePageSide: 'left' }
+          setTimeout(() => {
+            setIsFlipping(false)
+            isManualTurningRef.current = false
+          }, 500)
+        }
+      } else {
+        const nextIdx = Math.min(activeIdx + 1, stories.length - 1)
         setFlipDirection('next')
-        setIsFlipping(true)
-        playPageTurnSound()
+        setActiveIdx(nextIdx)
+        lastStateRef.current = { bookState: 'open', activeIdx: nextIdx, mobilePageSide: 'left' }
         setTimeout(() => {
-          setActiveIdx(prev => prev + 1)
           setIsFlipping(false)
-        }, 900)
+          isManualTurningRef.current = false
+        }, 750)
       }
     }
   }
 
+  // Handle manual prev turn strictly in-place (Absolutely zero screen scrolling!)
   const handlePrev = () => {
     if (isFlipping) return
-
-    if (isMobile) {
-      if (mobilePageSide === 'right') {
-        setFlipDirection('prev')
-        setIsFlipping(true)
-        playPageTurnSound()
-        setTimeout(() => {
+    
+    isManualTurningRef.current = true
+    setIsFlipping(true)
+    playPageTurnSound()
+    setPreviousIdx(activeIdx)
+    setPreviousSide(mobilePageSide)
+    
+    if (activeIdx === 0 && bookState === 'open' && (!isMobile || mobilePageSide === 'left')) {
+      setBookState('closed')
+      setFlipDirection('close')
+      lastStateRef.current = { bookState: 'closed', activeIdx: 0, mobilePageSide: 'left' }
+      setTimeout(() => {
+        setIsFlipping(false)
+        isManualTurningRef.current = false
+      }, 750)
+    } else if (bookState === 'open') {
+      if (isMobile) {
+        if (mobilePageSide === 'right') {
           setMobilePageSide('left')
-          setIsFlipping(false)
-        }, 900)
-      } else if (activeIdx > 0) {
-        setFlipDirection('prev')
-        setIsFlipping(true)
-        playPageTurnSound()
-        setTimeout(() => {
-          setActiveIdx(prev => prev - 1)
+          setFlipDirection('prev')
+          lastStateRef.current = { bookState: 'open', activeIdx: activeIdx, mobilePageSide: 'left' }
+          setTimeout(() => {
+            setIsFlipping(false)
+            isManualTurningRef.current = false
+          }, 500)
+        } else {
+          const prevIdx = Math.max(activeIdx - 1, 0)
+          setActiveIdx(prevIdx)
           setMobilePageSide('right')
-          setIsFlipping(false)
-        }, 900)
-      }
-    } else {
-      if (activeIdx > 0) {
+          setFlipDirection('prev')
+          lastStateRef.current = { bookState: 'open', activeIdx: prevIdx, mobilePageSide: 'right' }
+          setTimeout(() => {
+            setIsFlipping(false)
+            isManualTurningRef.current = false
+          }, 500)
+        }
+      } else {
+        const prevIdx = Math.max(activeIdx - 1, 0)
         setFlipDirection('prev')
-        setIsFlipping(true)
-        playPageTurnSound()
+        setActiveIdx(prevIdx)
+        lastStateRef.current = { bookState: 'open', activeIdx: prevIdx, mobilePageSide: 'left' }
         setTimeout(() => {
-          setActiveIdx(prev => prev - 1)
           setIsFlipping(false)
-        }, 900)
+          isManualTurningRef.current = false
+        }, 750)
       }
     }
   }
 
-  const handleOpenBook = () => {
-    if (isFlipping) return
-    setIsFlipping(true)
-    setFlipDirection('open')
-    setBookState('opening')
-    setMobilePageSide('left')
-    playPageTurnSound()
-    setTimeout(() => {
-      setBookState('open')
-      setIsFlipping(false)
-    }, 1200)
-  }
-
-  const handleCloseBook = () => {
-    if (isFlipping) return
-    setIsFlipping(true)
-    setFlipDirection('close')
-    setBookState('closing')
-    setIsAutoplay(false)
-    playPageTurnSound()
-    setTimeout(() => {
-      setBookState('closed')
-      setIsFlipping(false)
-      setActiveIdx(0)
-      setMobilePageSide('left')
-    }, 1200)
-  }
-
+  // Handle TOC jump strictly in-place (Absolutely zero screen scrolling!)
   const handleTOCJump = (idx) => {
-    if (idx === activeIdx || isFlipping) return
-    setFlipDirection(idx > activeIdx ? 'next' : 'prev')
+    if (isFlipping) return
+    
+    isManualTurningRef.current = true
+    setPreviousIdx(activeIdx)
+    setPreviousSide(mobilePageSide)
+
+    setFlipDirection(bookState === 'closed' ? 'open' : (idx > activeIdx ? 'next' : 'prev'))
     setIsFlipping(true)
     playPageTurnSound()
     setShowTOC(false)
+    
+    setBookState('open')
+    setActiveIdx(idx)
+    setMobilePageSide('left')
+    
+    lastStateRef.current = { bookState: 'open', activeIdx: idx, mobilePageSide: 'left' }
+
     setTimeout(() => {
-      setActiveIdx(idx)
-      setMobilePageSide('left')
       setIsFlipping(false)
-    }, 900)
-  }
-
-  // Mobile Booklet Rendering Helpers
-  const renderMobileUnderlayerPage = () => {
-    if (isFlipping) {
-      if (flipDirection === 'next') {
-        if (mobilePageSide === 'left') {
-          return renderRightPageContent(stories[activeIdx], activeIdx)
-        } else {
-          return renderLeftPageContent(stories[activeIdx + 1], activeIdx + 1)
-        }
-      } else if (flipDirection === 'prev') {
-        if (mobilePageSide === 'right') {
-          return renderLeftPageContent(stories[activeIdx], activeIdx)
-        } else {
-          return renderRightPageContent(stories[activeIdx - 1], activeIdx - 1)
-        }
-      }
-    }
-    
-    return mobilePageSide === 'left'
-      ? renderLeftPageContent(stories[activeIdx], activeIdx)
-      : renderRightPageContent(stories[activeIdx], activeIdx)
-  }
-
-  const renderMobileFlippingPage = () => {
-    if (!isFlipping) return null
-
-    if (flipDirection === 'next') {
-      const frontContent = mobilePageSide === 'left'
-        ? renderLeftPageContent(stories[activeIdx], activeIdx)
-        : renderRightPageContent(stories[activeIdx], activeIdx)
-
-      const backContent = mobilePageSide === 'left'
-        ? renderRightPageContent(stories[activeIdx], activeIdx)
-        : renderLeftPageContent(stories[activeIdx + 1], activeIdx + 1)
-
-      return (
-        <motion.div
-          className="flipping-page-container-3d mobile-flipping"
-          initial={{ rotateY: 0 }}
-          animate={{ rotateY: -180 }}
-          transition={{ duration: 0.9, ease: [0.645, 0.045, 0.355, 1.0] }}
-          style={{ transformOrigin: "left center", transformStyle: "preserve-3d", position: "absolute", left: 0, width: "100%", height: "100%", zIndex: 50 }}
-        >
-          <div className="page-face front-page-face" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-            {frontContent}
-            <div className="page-turn-shadow-overlay right-shadow"></div>
-          </div>
-          
-          <div className="page-face back-page-face" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-            {backContent}
-            <div className="page-turn-shadow-overlay left-shadow"></div>
-          </div>
-        </motion.div>
-      )
-    } else if (flipDirection === 'prev') {
-      const frontContent = mobilePageSide === 'right'
-        ? renderLeftPageContent(stories[activeIdx], activeIdx)
-        : renderRightPageContent(stories[activeIdx - 1], activeIdx - 1)
-
-      const backContent = mobilePageSide === 'right'
-        ? renderRightPageContent(stories[activeIdx], activeIdx)
-        : renderLeftPageContent(stories[activeIdx], activeIdx)
-
-      return (
-        <motion.div
-          className="flipping-page-container-3d mobile-flipping"
-          initial={{ rotateY: -180 }}
-          animate={{ rotateY: 0 }}
-          transition={{ duration: 0.9, ease: [0.645, 0.045, 0.355, 1.0] }}
-          style={{ transformOrigin: "left center", transformStyle: "preserve-3d", position: "absolute", left: 0, width: "100%", height: "100%", zIndex: 50 }}
-        >
-          <div className="page-face front-page-face" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-            {frontContent}
-            <div className="page-turn-shadow-overlay right-shadow"></div>
-          </div>
-          
-          <div className="page-face back-page-face" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-            {backContent}
-            <div className="page-turn-shadow-overlay left-shadow"></div>
-          </div>
-        </motion.div>
-      )
-    }
-    
-    return null
+      isManualTurningRef.current = false
+    }, 750)
   }
 
   if (loading) {
@@ -478,8 +534,8 @@ const MagazinePage = () => {
     )
   }
 
-  // ─── BOOK PAGES RENDER HELPERS ───
   const renderLeftPageContent = (story, idx) => {
+    if (!story) return null
     return (
       <div className="book-page left-page">
         <div className="paper-grain-overlay"></div>
@@ -501,7 +557,7 @@ const MagazinePage = () => {
           <div className="photo-caption-tag">PLATE NO. 0{idx + 1} // STUDIO REF</div>
         </div>
         
-        {story.quote && (
+        {story.quote && !isMobile && (
           <div className="curated-quote-block">
             <span className="quote-serif-mark">“</span>
             <p className="quote-text">{story.quote}</p>
@@ -517,6 +573,7 @@ const MagazinePage = () => {
   }
 
   const renderRightPageContent = (story, idx) => {
+    if (!story) return null
     return (
       <div className="book-page right-page">
         <div className="paper-grain-overlay"></div>
@@ -539,7 +596,7 @@ const MagazinePage = () => {
           </p>
         </div>
         
-        {story.highlights && (
+        {story.highlights && !isMobile && (
           <div className="atelier-metadata-box">
             <h4 className="meta-box-title">ATELIER LOGS</h4>
             <div className="meta-box-list">
@@ -552,7 +609,6 @@ const MagazinePage = () => {
             </div>
           </div>
         )}
-
         
         <div className="page-footer">
           <span className="page-num-serif">II // {String(idx * 2 + 2).padStart(2, '0')}</span>
@@ -564,12 +620,20 @@ const MagazinePage = () => {
   const current = stories[activeIdx]
 
   return (
-    <div className="magazine-page-wrapper">
-      {/* Dynamic atmospheric ambient backdrop */}
+    <div className="magazine-page-wrapper" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {/* Elegant Back Navigation */}
+      <div className="editorial-back-nav">
+        <button onClick={() => navigate(-1)} className="editorial-back-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back</span>
+        </button>
+      </div>
       <div className="ambient-spotlight"></div>
       <div className="atmospheric-grid"></div>
       
-      {/* Floating Dust Particle motes */}
       <div className="ambient-particles">
         {ambientMotes.map((mote) => (
           <span
@@ -586,408 +650,253 @@ const MagazinePage = () => {
         ))}
       </div>
 
-      {/* Brand Header overlay */}
-      <header className="brand-overlay-header">
-        <div className="brand-crest">SM</div>
-        <div className="brand-masthead">SEEMEE JOURNAL</div>
-        <div className="brand-edition">VOL. IV // EST. 2024</div>
-      </header>
-
-      {/* ─── MAIN STAGE ─── */}
-      <div className="magazine-immersive-stage">
+      {/* ─── SCROLL DRIVEN BOOK CONTAINER (Padded elegantly to slide completely below navbar) ─── */}
+      <div className="magazine-scroll-container" ref={scrollContainerRef} style={{ height: '110vh', position: 'relative', width: '100%', paddingTop: '40px' }}>
         
-        {/* RESPONSIVE 3D BOOKLET STAGE */}
-        <div className="booklet-perspective-frame">
+        {/* Brand header overlay rendered as a normal static block, so it scrolls away naturally and NEVER overlaps! */}
+        <header className="brand-overlay-header" style={{ position: 'relative', top: '0', padding: '20px 4.5vw 40px', zIndex: 10, pointerEvents: 'none' }}>
+          <div className="brand-crest">SM</div>
+          <div className="brand-masthead">SEEMEE JOURNAL</div>
+          <div className="brand-edition">VOL. IV // EST. 2024</div>
+        </header>
+
+        {/* Sticky Wrapper: Changed overflow to visible so controls are 100% visible and NEVER cropped! */}
+        <div className="magazine-sticky-wrapper" style={{ position: 'sticky', top: '100px', height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'visible' }}>
           
-          {/* BOOK CASE WRAPPER */}
-          <div className={`book-hardcase-shell ${bookState} ${isMobile ? 'mobile-shell' : ''}`}>
-            <div className="shell-shadow"></div>
-            
-            {/* STATIC CLOSED COVER */}
-            {bookState === 'closed' && (
-              <div className="closed-cover-stage" onClick={handleOpenBook}>
-                <div className="hardcover-leather"></div>
-                <div className="hardcover-gold-border"></div>
-                <div className="hardcover-content">
-                  <div className="crest-seal">
-                    <span className="seal-monogram">SM</span>
+          {/* Stage Container: Added overflow: visible so buttons are guaranteed to render clear and crisp */}
+          <div className="magazine-immersive-stage" style={{ padding: 0, margin: 0, height: 'auto', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', overflow: 'visible' }}>
+            <div className="booklet-perspective-frame" style={{ height: 'auto', overflow: 'visible' }}>
+              <div className={`book-hardcase-shell ${bookState} ${isMobile ? 'mobile-shell' : ''}`} style={{ overflow: 'visible' }}>
+                <div className="shell-shadow"></div>
+                
+                {/* STATIC CLOSED COVER */}
+                {bookState === 'closed' && (
+                  <div className="closed-cover-stage">
+                    <div className="hardcover-leather"></div>
+                    <div className="hardcover-gold-border"></div>
+                    <div className="hardcover-content">
+                      <div className="crest-seal">
+                        <span className="seal-monogram">SM</span>
+                      </div>
+                      <h1 className="cover-journal-title">SEEMEE</h1>
+                      <h2 className="cover-journal-subtitle">J O U R N A L</h2>
+                      <div className="gold-foil-line"></div>
+                      <div className="cover-volume-tag">VOLUME IV // SPRING 2026</div>
+                      <p className="cover-read-prompt" style={{ border: '1px solid rgba(197, 168, 128, 0.4)', background: 'rgba(28,24,21,0.6)' }}>
+                        SCROLL DOWN TO UNFOLD
+                      </p>
+                      <div className="cover-ribbon-tag"></div>
+                    </div>
                   </div>
-                  <h1 className="cover-journal-title">SEEMEE</h1>
-                  <h2 className="cover-journal-subtitle">J O U R N A L</h2>
-                  <div className="gold-foil-line"></div>
-                  <div className="cover-volume-tag">VOLUME IV // SPRING 2026</div>
-                  
-                  <p className="cover-read-prompt">BEGIN THE READING RITUAL</p>
-                  
-                  <div className="cover-ribbon-tag"></div>
-                </div>
-              </div>
-            )}
-
-            {/* COVER FLIPPING OPEN TRANSITION */}
-            {bookState === 'opening' && (
-              <div className={`book-spread-overlay ${isMobile ? 'mobile-spread' : ''}`}>
-                {isMobile ? (
-                  <>
-                    {/* Underlay (First story left page) */}
-                    {renderLeftPageContent(stories[0], 0)}
-
-                    {/* Flipping page (the cover itself swinging left) */}
-                    <motion.div
-                      className="flipping-page-container-3d mobile-cover-flipping"
-                      initial={{ rotateY: 0 }}
-                      animate={{ rotateY: -180 }}
-                      transition={{ duration: 1.2, ease: [0.645, 0.045, 0.355, 1.0] }}
-                      style={{ transformOrigin: "left center", transformStyle: "preserve-3d", position: "absolute", left: 0, width: "100%", height: "100%", zIndex: 100 }}
-                    >
-                      {/* Front Face: The outer cover */}
-                      <div className="page-face front-face-cover" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-                        <div className="closed-cover-stage inline-cover">
-                          <div className="hardcover-leather"></div>
-                          <div className="hardcover-gold-border"></div>
-                          <div className="hardcover-content">
-                            <div className="crest-seal mini">
-                              <span className="seal-monogram">SM</span>
-                            </div>
-                            <h1 className="cover-journal-title mini">SEEMEE</h1>
-                            <div className="gold-foil-line"></div>
-                            <p className="reading-active-text">OPENING JOURNAL...</p>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Back Face: inside cover backing */}
-                      <div className="page-face back-face-cover" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-                        <div className="inside-cover-backing"></div>
-                      </div>
-                    </motion.div>
-
-                    <div className="book-spine-crease mobile-spine"></div>
-                  </>
-                ) : (
-                  <>
-                    {/* Underlay Left (inside book backing) */}
-                    <div className="book-page left-page blank-page">
-                      <div className="inside-cover-backing"></div>
-                    </div>
-                    {/* Underlay Right (First story left page) */}
-                    {renderRightPageContent(stories[0], 0)}
-
-                    {/* Flipping page (the cover itself swinging left) */}
-                    <motion.div
-                      className="flipping-page-container-3d"
-                      initial={{ rotateY: 0 }}
-                      animate={{ rotateY: -180 }}
-                      transition={{ duration: 1.2, ease: [0.645, 0.045, 0.355, 1.0] }}
-                      style={{ transformOrigin: "left center", transformStyle: "preserve-3d", position: "absolute", left: "50%", width: "50%", height: "100%", zIndex: 100 }}
-                    >
-                      {/* Front Face: The outer cover */}
-                      <div className="page-face front-face-cover" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-                        <div className="closed-cover-stage inline-cover">
-                          <div className="hardcover-leather"></div>
-                          <div className="hardcover-gold-border"></div>
-                          <div className="hardcover-content">
-                            <div className="crest-seal mini">
-                              <span className="seal-monogram">SM</span>
-                            </div>
-                            <h1 className="cover-journal-title mini">SEEMEE</h1>
-                            <div className="gold-foil-line"></div>
-                            <p className="reading-active-text">OPENING JOURNAL...</p>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Back Face: Inside first page (visual spread) */}
-                      <div className="page-face back-face-cover" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-                        {renderLeftPageContent(stories[0], 0)}
-                      </div>
-                    </motion.div>
-
-                    <div className="book-spine-crease"></div>
-                  </>
                 )}
-              </div>
-            )}
 
-            {/* COVER FLIPPING CLOSED TRANSITION */}
-            {bookState === 'closing' && (
-              <div className={`book-spread-overlay ${isMobile ? 'mobile-spread' : ''}`}>
-                {isMobile ? (
-                  <>
-                    {/* Underlay (First page) */}
-                    {renderLeftPageContent(stories[0], 0)}
+                {/* SPREAD PAGES RENDERING */}
+                {bookState === 'open' && (
+                  <div className={`book-spread-overlay ${isMobile ? 'mobile-spread' : ''} ${mobilePageSide === 'left' ? 'show-left' : 'show-right'}`} style={{ overflow: 'hidden', position: 'relative' }}>
+                    {isMobile ? (
+                      // ─── PURE CSS ADAPTIVE SINGLE PAGE ───
+                      <>
+                        {renderLeftPageContent(stories[activeIdx], activeIdx)}
+                        {renderRightPageContent(stories[activeIdx], activeIdx)}
+                        <div className="book-spine-crease mobile-spine"></div>
+                      </>
+                    ) : (
+                      // ─── DESKTOP GORGEOUS 3D REAL PAGE TURN ANIMATION SPREAD ───
+                      <>
+                        {isFlipping && (flipDirection === 'next' || flipDirection === 'prev') ? (
+                          <>
+                            {flipDirection === 'next' ? (
+                              <>
+                                {/* Underlayer Left page: shows previous chapter left page */}
+                                {renderLeftPageContent(stories[previousIdx], previousIdx)}
 
-                    {/* Flipping page (cover swinging back right) */}
-                    <motion.div
-                      className="flipping-page-container-3d mobile-cover-flipping"
-                      initial={{ rotateY: -180 }}
-                      animate={{ rotateY: 0 }}
-                      transition={{ duration: 1.2, ease: [0.645, 0.045, 0.355, 1.0] }}
-                      style={{ transformOrigin: "left center", transformStyle: "preserve-3d", position: "absolute", left: 0, width: "100%", height: "100%", zIndex: 100 }}
-                    >
-                      {/* Front Face: The outer cover */}
-                      <div className="page-face front-face-cover" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-                        <div className="closed-cover-stage inline-cover">
-                          <div className="hardcover-leather"></div>
-                          <div className="hardcover-gold-border"></div>
-                          <div className="hardcover-content">
-                            <div className="crest-seal mini">
-                              <span className="seal-monogram">SM</span>
-                            </div>
-                            <h1 className="cover-journal-title mini">SEEMEE</h1>
-                            <div className="gold-foil-line"></div>
-                            <p className="reading-active-text">CLOSING JOURNAL...</p>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Back Face: inside cover */}
-                      <div className="page-face back-face-cover" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-                        <div className="inside-cover-backing"></div>
-                      </div>
-                    </motion.div>
+                                {/* Underlayer Right page: shows new chapter right page */}
+                                {renderRightPageContent(stories[activeIdx], activeIdx)}
 
-                    <div className="book-spine-crease mobile-spine"></div>
-                  </>
-                ) : (
-                  <>
-                    {/* Underlay Left (blank) */}
-                    <div className="book-page left-page blank-page">
-                      <div className="inside-cover-backing"></div>
-                    </div>
-                    {/* Underlay Right (story 0 right page) */}
-                    {renderRightPageContent(stories[0], 0)}
+                                {/* The 3D turning sheet, pivoting from center to the left */}
+                                <div className="flipping-page-3d flip-next">
+                                  {/* Front side of turning page: shows previous chapter right content */}
+                                  <div className="flipping-side side-front">
+                                    {renderRightPageContent(stories[previousIdx], previousIdx)}
+                                  </div>
+                                  {/* Back side of turning page: shows new chapter left content */}
+                                  <div className="flipping-side side-back">
+                                    {renderLeftPageContent(stories[activeIdx], activeIdx)}
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                {/* Underlayer Left page: shows new chapter left page */}
+                                {renderLeftPageContent(stories[activeIdx], activeIdx)}
 
-                    {/* Flipping page (cover swinging back right) */}
-                    <motion.div
-                      className="flipping-page-container-3d"
-                      initial={{ rotateY: -180 }}
-                      animate={{ rotateY: 0 }}
-                      transition={{ duration: 1.2, ease: [0.645, 0.045, 0.355, 1.0] }}
-                      style={{ transformOrigin: "left center", transformStyle: "preserve-3d", position: "absolute", left: "50%", width: "50%", height: "100%", zIndex: 100 }}
-                    >
-                      {/* Front Face: The outer cover */}
-                      <div className="page-face front-face-cover" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-                        <div className="closed-cover-stage inline-cover">
-                          <div className="hardcover-leather"></div>
-                          <div className="hardcover-gold-border"></div>
-                          <div className="hardcover-content">
-                            <div className="crest-seal mini">
-                              <span className="seal-monogram">SM</span>
-                            </div>
-                            <h1 className="cover-journal-title mini">SEEMEE</h1>
-                            <div className="gold-foil-line"></div>
-                            <p className="reading-active-text">CLOSING JOURNAL...</p>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Back Face: Inside first page (visual spread) */}
-                      <div className="page-face back-face-cover" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-                        {renderLeftPageContent(stories[0], 0)}
-                      </div>
-                    </motion.div>
+                                {/* Underlayer Right page: shows previous chapter right page */}
+                                {renderRightPageContent(stories[previousIdx], previousIdx)}
 
-                    <div className="book-spine-crease"></div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* BOOK IS OPEN - RENDER SPREADS */}
-            {bookState === 'open' && (
-              <div className={`book-spread-overlay ${isMobile ? 'mobile-spread' : ''}`}>
-                {isMobile ? (
-                  <>
-                    {/* STATIC UNDERLAYER PAGE (MOBILE) */}
-                    {renderMobileUnderlayerPage()}
-
-                    {/* FLIPPING PAGE TRANSITION (MOBILE) */}
-                    {renderMobileFlippingPage()}
-
-                    {/* Spine crease placed at the left edge for single page booklet */}
-                    <div className="book-spine-crease mobile-spine"></div>
-                  </>
-                ) : (
-                  <>
-                    {/* LEFT PAGE (STATIC UNDERLAYER) */}
-                    {isFlipping && flipDirection === 'next' 
-                      ? renderLeftPageContent(stories[activeIdx], activeIdx)
-                      : isFlipping && flipDirection === 'prev'
-                        ? renderLeftPageContent(stories[activeIdx - 1], activeIdx - 1)
-                        : renderLeftPageContent(stories[activeIdx], activeIdx)
-                    }
-
-                    {/* RIGHT PAGE (STATIC UNDERLAYER) */}
-                    {isFlipping && flipDirection === 'next'
-                      ? renderRightPageContent(stories[activeIdx + 1], activeIdx + 1)
-                      : isFlipping && flipDirection === 'prev'
-                        ? renderRightPageContent(stories[activeIdx], activeIdx)
-                        : renderRightPageContent(stories[activeIdx], activeIdx)
-                    }
-
-                    {/* NEXT PAGE FLIPPING TRANSITION */}
-                    {isFlipping && flipDirection === 'next' && (
-                      <motion.div
-                        className="flipping-page-container-3d"
-                        initial={{ rotateY: 0 }}
-                        animate={{ rotateY: -180 }}
-                        transition={{ duration: 0.9, ease: [0.645, 0.045, 0.355, 1.0] }}
-                        style={{ transformOrigin: "left center", transformStyle: "preserve-3d", position: "absolute", left: "50%", width: "50%", height: "100%", zIndex: 50 }}
-                      >
-                        {/* Front Face: current right page flipping away */}
-                        <div className="page-face front-page-face" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-                          {renderRightPageContent(stories[activeIdx], activeIdx)}
-                          <div className="page-turn-shadow-overlay right-shadow"></div>
-                        </div>
-                        
-                        {/* Back Face: target left page coming in */}
-                        <div className="page-face back-page-face" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-                          {renderLeftPageContent(stories[activeIdx + 1], activeIdx + 1)}
-                          <div className="page-turn-shadow-overlay left-shadow"></div>
-                        </div>
-                      </motion.div>
+                                {/* The 3D turning sheet, pivoting from center to the right */}
+                                <div className="flipping-page-3d flip-prev">
+                                  {/* Front side of turning page: shows previous chapter left content */}
+                                  <div className="flipping-side side-front">
+                                    {renderLeftPageContent(stories[previousIdx], previousIdx)}
+                                  </div>
+                                  {/* Back side of turning page: shows new chapter right content */}
+                                  <div className="flipping-side side-back">
+                                    {renderRightPageContent(stories[activeIdx], activeIdx)}
+                                  </div>
+                                </div>
+                              </>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {renderLeftPageContent(stories[activeIdx], activeIdx)}
+                            {renderRightPageContent(stories[activeIdx], activeIdx)}
+                          </>
+                        )}
+                        <div className="book-spine-crease"></div>
+                        <div className="book-crease-highlight"></div>
+                      </>
                     )}
-
-                    {/* PREV PAGE FLIPPING TRANSITION */}
-                    {isFlipping && flipDirection === 'prev' && (
-                      <motion.div
-                        className="flipping-page-container-3d"
-                        initial={{ rotateY: -180 }}
-                        animate={{ rotateY: 0 }}
-                        transition={{ duration: 0.9, ease: [0.645, 0.045, 0.355, 1.0] }}
-                        style={{ transformOrigin: "right center", transformStyle: "preserve-3d", position: "absolute", left: "0", width: "50%", height: "100%", zIndex: 50 }}
-                      >
-                        {/* Front Face: target right page coming in */}
-                        <div className="page-face front-page-face" style={{ backfaceVisibility: "hidden", position: "absolute", inset: 0 }}>
-                          {renderRightPageContent(stories[activeIdx - 1], activeIdx - 1)}
-                          <div className="page-turn-shadow-overlay right-shadow"></div>
-                        </div>
-                        
-                        {/* Back Face: current left page flipping away */}
-                        <div className="page-face back-page-face" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)", position: "absolute", inset: 0 }}>
-                          {renderLeftPageContent(stories[activeIdx], activeIdx)}
-                          <div className="page-turn-shadow-overlay left-shadow"></div>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* 3D BOOK CENTRAL SPINE CREASE */}
-                    <div className="book-spine-crease"></div>
-                    <div className="book-crease-highlight"></div>
-                  </>
+                  </div>
                 )}
+
               </div>
-            )}
-
-          </div>
-        </div>
-
-      </div>
-
-      {/* ─── GLASS DOCK CONTROL CENTER (ONLY DESKTOP/TABLET) ─── */}
-      {bookState === 'open' && !isMobile && (
-        <nav className="glass-control-dock">
-          <div className="dock-left-actions">
-            <button className="dock-btn close-btn" onClick={handleCloseBook} title="Close Journal and Return to Cover">
-              <span className="btn-icon">📁</span>
-              <span className="btn-label">Close Archive</span>
-            </button>
-          </div>
-
-          <div className="dock-center-pages">
-            <button
-              onClick={handlePrev}
-              disabled={activeIdx === 0 || isFlipping}
-              className="dock-arrow-btn"
-              title="Previous Chapter"
-            >
-              ←
-            </button>
-            
-            <div className="dock-progress-pills">
-              {stories.map((_, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => handleTOCJump(idx)}
-                  className={`progress-pill-segment ${idx === activeIdx ? 'active' : ''}`}
-                  title={`Chapter 0${idx + 1}`}
-                >
-                  <div className="pill-fill-bar"></div>
-                </div>
-              ))}
             </div>
 
-            <button
-              onClick={handleNext}
-              disabled={activeIdx === stories.length - 1 || isFlipping}
-              className="dock-arrow-btn"
-              title="Next Chapter"
-            >
-              →
-            </button>
+            {/* CURATED BOOKLET CONTROLS - Adjusted spacing slightly for perfect balance */}
+            {!isMobile && (
+              <div className="booklet-under-controls" style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '24px',
+                marginTop: '25px',
+                zIndex: 20,
+                position: 'relative'
+              }}>
+                <button
+                  onClick={handlePrev}
+                  disabled={bookState === 'closed'}
+                  className="dock-arrow-btn"
+                  style={{
+                    background: 'rgba(24, 21, 19, 0.65)',
+                    border: '1px solid rgba(197, 168, 128, 0.2)',
+                    color: '#fff',
+                    fontSize: '1.2rem',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    opacity: bookState === 'closed' ? 0.3 : 1
+                  }}
+                >
+                  ←
+                </button>
+
+                <div className="dock-progress-pills" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {stories.map((_, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => handleTOCJump(idx)}
+                      className={`progress-pill-segment ${idx === activeIdx && bookState === 'open' ? 'active' : ''}`}
+                      title={`Chapter 0${idx + 1}`}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="pill-fill-bar"></div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleNext}
+                  disabled={activeIdx === stories.length - 1 && bookState === 'open'}
+                  className="dock-arrow-btn"
+                  style={{
+                    background: 'rgba(24, 21, 19, 0.65)',
+                    border: '1px solid rgba(197, 168, 128, 0.2)',
+                    color: '#fff',
+                    fontSize: '1.2rem',
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    opacity: (activeIdx === stories.length - 1 && bookState === 'open') ? 0.3 : 1
+                  }}
+                >
+                  →
+                </button>
+                
+                <button 
+                  className="dock-btn toc-btn" 
+                  onClick={() => setShowTOC(true)} 
+                  title="Table of Contents" 
+                  style={{ 
+                    padding: '8px 18px', 
+                    borderRadius: '100px', 
+                    border: '1px solid rgba(197, 168, 128, 0.2)',
+                    background: 'rgba(24, 21, 19, 0.65)',
+                    color: '#fff',
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: '0.65rem',
+                    letterSpacing: '0.15em',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  📜 INDEX
+                </button>
+              </div>
+            )}
+
           </div>
 
-          <div className="dock-right-actions">
-            <button className="dock-btn toc-btn" onClick={() => setShowTOC(true)} title="Table of Contents">
-              <span className="btn-icon">📜</span>
-              <span className="btn-label">Index</span>
-            </button>
+        </div>
+      </div>
 
-            <button 
-              className={`dock-btn autoplay-btn ${isAutoplay ? 'active' : ''}`} 
-              onClick={() => setIsAutoplay(!isAutoplay)}
-              title={isAutoplay ? "Pause Autoplay" : "Start Autoplay"}
-            >
-              <svg className="autoplay-ring" width="20" height="20" viewBox="0 0 20 20">
-                <circle cx="10" cy="10" r="8" stroke="rgba(197, 168, 128, 0.2)" strokeWidth="2" fill="none" />
-                {isAutoplay && (
-                  <motion.circle
-                    cx="10" cy="10" r="8"
-                    stroke="#c5a880" strokeWidth="2" fill="none"
-                    strokeDasharray="50.26"
-                    initial={{ strokeDashoffset: 50.26 }}
-                    animate={{ strokeDashoffset: 0 }}
-                    transition={{ duration: 8, ease: "linear", repeat: Infinity }}
-                  />
-                )}
-              </svg>
-              <span className="btn-label">{isAutoplay ? 'Pause' : 'Autoplay'}</span>
-            </button>
-          </div>
-        </nav>
-      )}
-
-      {/* ─── MOBILE GLASS DOCK CONTROL CENTER ─── */}
-      {bookState === 'open' && isMobile && (
-        <nav className="mobile-glass-control-dock">
-          <button className="mobile-dock-btn" onClick={handleCloseBook} title="Close Journal">
-            📁
+      {/* MOBILE FLOATING GLASS CONTROL DOCK (Directly sits over everything on mobile screens) */}
+      {isMobile && (
+        <div className="mobile-glass-control-dock">
+          <button 
+            className="mobile-dock-arrow" 
+            onClick={handlePrev} 
+            disabled={bookState === 'closed'}
+          >
+            ←
           </button>
           
-          <div className="mobile-dock-nav">
-            <button
-              onClick={handlePrev}
-              disabled={(activeIdx === 0 && mobilePageSide === 'left') || isFlipping}
-              className="mobile-dock-arrow"
-            >
-              ←
-            </button>
-            <span className="mobile-page-indicator">
-              CH. {activeIdx + 1} // {mobilePageSide === 'left' ? 'I' : 'II'}
-            </span>
-            <button
-              onClick={handleNext}
-              disabled={(activeIdx === stories.length - 1 && mobilePageSide === 'right') || isFlipping}
-              className="mobile-dock-arrow"
-            >
-              →
-            </button>
-          </div>
+          <span className="mobile-page-indicator">
+            {bookState === 'closed' ? 'COVER' : `CH. 0${activeIdx + 1} // ${mobilePageSide === 'left' ? 'P.1' : 'P.2'}`}
+          </span>
 
-          <button className="mobile-dock-btn" onClick={() => setShowTOC(true)} title="Index">
-            📜
+          <button 
+            className="mobile-dock-btn" 
+            onClick={() => setShowTOC(true)}
+            style={{ fontSize: '0.95rem' }}
+          >
+            📜 INDEX
           </button>
-        </nav>
+
+          <button 
+            className="mobile-dock-arrow" 
+            onClick={handleNext} 
+            disabled={activeIdx === stories.length - 1 && bookState === 'open' && mobilePageSide === 'right'}
+          >
+            →
+          </button>
+        </div>
       )}
 
-      {/* ─── TABLE OF CONTENTS SLIDE-UP DRAWER ─── */}
+      {/* TABLE OF CONTENTS SLIDE-UP DRAWER */}
       <AnimatePresence>
         {showTOC && (
           <motion.div
@@ -1014,7 +923,7 @@ const MagazinePage = () => {
                 {stories.map((story, idx) => (
                   <div
                     key={story._id}
-                    className={`toc-chapter-card ${idx === activeIdx ? 'viewing' : ''}`}
+                    className={`toc-chapter-card ${idx === activeIdx && bookState === 'open' ? 'viewing' : ''}`}
                     onClick={() => handleTOCJump(idx)}
                   >
                     <div className="toc-card-thumbnail">
@@ -1035,8 +944,8 @@ const MagazinePage = () => {
         )}
       </AnimatePresence>
 
-      {/* PREMIUM FOOTER: Newsletter Subscription */}
-      <section className="magazine-footer-newsletter">
+      {/* FOOTER */}
+      <section className="magazine-footer-newsletter" style={{ position: 'relative', width: '100%', marginTop: 'auto', zIndex: 100 }}>
         <div className="newsletter-cottons-wrap">
           <div className="newsletter-creed">
             <span className="creed-bullet">✦</span>

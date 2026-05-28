@@ -121,3 +121,69 @@ body::before {
     letter-spacing: -0.01em;
   }
 }
+
+/* --- Premium Editorial Back Button --- */
+.editorial-back-nav {
+  position: absolute;
+  top: clamp(80px, 12vh, 110px);
+  left: clamp(1rem, 5vw, 3rem);
+  z-index: 999; /* Lower than fixed navbar (1000) so it scrolls under it cleanly */
+  pointer-events: auto;
+}
+
+.editorial-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 8px 16px;
+  border-radius: 30px;
+  cursor: pointer;
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorial-back-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.editorial-back-btn:hover {
+  border-color: var(--primary-gold);
+  color: var(--primary-gold);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15);
+  transform: translateY(-2px);
+}
+
+.editorial-back-btn:hover svg {
+  transform: translateX(-4px);
+}
+
+@media (max-width: 768px) {
+  .editorial-back-nav {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 24px !important;
+    left: 20px !important;
+    z-index: 9999 !important; /* Float above all other elements */
+  }
+  .editorial-back-btn {
+    padding: 10px 20px !important;
+    font-size: 0.78rem !important;
+    gap: 8px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(212, 175, 55, 0.4) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+  }
+}

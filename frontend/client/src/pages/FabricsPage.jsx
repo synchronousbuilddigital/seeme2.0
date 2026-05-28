@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import './FabricsPage.css'
 
 const FabricsPage = () => {
+  const navigate = useNavigate()
   const [fabrics, setFabrics] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedFabric, setSelectedFabric] = useState(null)
@@ -57,6 +59,16 @@ const FabricsPage = () => {
 
   return (
     <div className="fabrics-page">
+      {/* Elegant Back Navigation */}
+      <div className="editorial-back-nav">
+        <button onClick={() => navigate(-1)} className="editorial-back-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back</span>
+        </button>
+      </div>
       {/* Cinematic Hero */}
       <section className="fabrics-hero-editorial">
         <motion.div 

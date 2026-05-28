@@ -537,37 +537,105 @@
 
 @media (max-width: 768px) {
   .collections-title {
-    font-size: 2.5rem;
+    font-size: 2.2rem !important;
   }
 
   .collections-subtitle {
-    font-size: 1rem;
-  }
-
-  .collections-grid {
-    grid-template-columns: 1fr;
-    padding: 20px;
-    gap: 30px;
+    font-size: 0.95rem !important;
   }
 
   .collections-controls {
-    padding: 0 20px;
+    padding: 0 12px !important;
+    gap: 15px !important;
+    margin: 20px auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .collections-search {
+    min-width: 100% !important;
+  }
+
+  .collections-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+
+  .collection-product-card {
+    border-radius: 8px !important;
+  }
+
+  .product-image-wrapper {
+    height: auto !important;
+    aspect-ratio: 3 / 4.2 !important;
+  }
+
+  .product-info {
+    padding: 10px !important;
+  }
+
+  .product-category {
+    font-size: 7.5px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .product-name {
+    font-size: 13px !important;
+    margin-bottom: 6px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .product-description {
+    display: none !important;
+  }
+
+  .product-footer {
+    gap: 8px !important;
+  }
+
+  .product-price {
+    font-size: 13px !important;
+  }
+
+  .add-to-cart-btn {
+    padding: 6px 12px !important;
+    font-size: 9.5px !important;
+    border-radius: 15px !important;
+  }
+
+  .wishlist-btn-card {
+    opacity: 1 !important;
+    transform: none !important;
+    width: 28px !important;
+    height: 28px !important;
+    top: 8px !important;
+    right: 8px !important;
+  }
+
+  .wishlist-btn-card svg {
+    width: 13px !important;
+    height: 13px !important;
   }
 
   .filter-buttons {
-    width: 100%;
+    width: 100% !important;
   }
 
   .filter-btn {
-    flex: 1;
-    min-width: 120px;
+    flex: 1 !important;
+    min-width: auto !important;
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
   }
 
   .modal-title {
-    font-size: 2rem;
+    font-size: 2rem !important;
   }
 
   .modal-details {
-    padding: 20px;
+    padding: 20px !important;
   }
 }

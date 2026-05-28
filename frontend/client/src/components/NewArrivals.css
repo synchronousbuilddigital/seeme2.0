@@ -420,11 +420,12 @@
 
 @media (max-width: 768px) {
   .new-arrivals-premium.small-size-section {
-    padding: 25px 0;
+    padding: 12px 0 10px 0 !important;
   }
   
   .arrivals-header.compact-header {
     padding: 0 10px;
+    margin-bottom: 15px !important;
   }
   
   .carousel-card-wrapper {
@@ -436,6 +437,14 @@
 @media (max-width: 480px) {
   .premium-container {
     padding: 0 15px;
+  }
+  
+  .new-arrivals-premium.small-size-section {
+    padding: 8px 0 6px 0 !important;
+  }
+  
+  .arrivals-header.compact-header {
+    margin-bottom: 10px !important;
   }
   
   .carousel-card-wrapper {

@@ -1,15 +1,26 @@
 import { useContext } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
-import { Link } from 'react-router-dom'
 import './WishlistPage.css'
 
 const WishlistPage = () => {
+  const navigate = useNavigate()
   const { wishlist, toggleWishlist, addToCart } = useContext(CartContext)
 
   return (
     <div className="wishlist-page-editorial">
+      {/* Elegant Back Navigation */}
+      <div className="editorial-back-nav">
+        <button onClick={() => navigate(-1)} className="editorial-back-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back</span>
+        </button>
+      </div>
       <header className="wishlist-header">
         <span className="editorial-kicker">CURATED SELECTION</span>
         <h1 className="wishlist-title">My Wishlist</h1>

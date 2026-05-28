@@ -104,6 +104,9 @@ const ShopSection = () => {
                 </h3>
                 <div className="product-price-row">
                   <span className="price-val">₹{product.price?.toLocaleString()}</span>
+                  <button className="shop-bag-btn-mini" onClick={() => addToCart(product)}>
+                    ADD
+                  </button>
                 </div>
               </div>
             </motion.div>

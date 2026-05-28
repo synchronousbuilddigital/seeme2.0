@@ -5,17 +5,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Italiana&family=Montserrat:wght@200;300;400;500;600;700&family=Reenie+Beanie&display=swap');
 
 :root {
-  --j-gold: #c5a880;          /* Elegant bronze-gold leaf */
-  --j-gold-light: #e5cfb3;    /* Highlight gold shine */
-  --j-gold-dark: #9f815b;     /* Deep burnished bronze */
-  --j-paper: #f5f2eb;         /* Heavyweight cotton paper texture */
-  --j-paper-cream: #faf9f5;   /* Bleached linen warm ivory */
-  --j-ink: #181615;           /* Rich carbon ink black */
-  --j-charcoal: #4e463d;      /* Graphite sepia grey */
-  --j-leather: #1c1815;       /* Warm mahogany leather hardcover */
-  --j-leather-edge: #2c2621;  /* Highlighted leather casing edge */
-  --j-border: rgba(78, 70, 61, 0.08); /* Pencil-thin fiber divider */
-  
+  --j-gold: #c5a880;
+  /* Elegant bronze-gold leaf */
+  --j-gold-light: #e5cfb3;
+  /* Highlight gold shine */
+  --j-gold-dark: #9f815b;
+  /* Deep burnished bronze */
+  --j-paper: #f5f2eb;
+  /* Heavyweight cotton paper texture */
+  --j-paper-cream: #faf9f5;
+  /* Bleached linen warm ivory */
+  --j-ink: #181615;
+  /* Rich carbon ink black */
+  --j-charcoal: #4e463d;
+  /* Graphite sepia grey */
+  --j-leather: #1c1815;
+  /* Warm mahogany leather hardcover */
+  --j-leather-edge: #2c2621;
+  /* Highlighted leather casing edge */
+  --j-border: rgba(78, 70, 61, 0.08);
+  /* Pencil-thin fiber divider */
+
   --font-serif: 'Cormorant Garamond', Georgia, serif;
   --font-title: 'Italiana', serif;
   --font-sans: 'Montserrat', sans-serif;
@@ -42,7 +52,7 @@
 .atmospheric-grid {
   position: absolute;
   inset: 0;
-  background-image: 
+  background-image:
     linear-gradient(rgba(197, 168, 128, 0.015) 1px, transparent 1px),
     linear-gradient(90deg, rgba(197, 168, 128, 0.015) 1px, transparent 1px);
   background-size: 60px 60px;
@@ -87,12 +97,15 @@
     transform: translateY(0) translateX(0) scale(1);
     opacity: 0;
   }
+
   15% {
     opacity: 0.6;
   }
+
   85% {
     opacity: 0.6;
   }
+
   100% {
     transform: translateY(-110vh) translateX(60px) scale(0.6);
     opacity: 0;
@@ -138,7 +151,8 @@
   color: var(--j-gold);
   font-size: 1.4rem;
   letter-spacing: 0.1em;
-  transform: rotate(0deg); /* keep text upright */
+  transform: rotate(0deg);
+  /* keep text upright */
   animation: antiRotate 6s linear infinite;
 }
 
@@ -152,12 +166,19 @@
 }
 
 @keyframes rotateOrbit {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes antiRotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 /* ─── BRAND OVERLAY HEADER ─── */
@@ -230,10 +251,10 @@
   border-radius: 8px;
   /* Sync exactly with 1.2s ease curve of Framer Motion for flawless, synchronized opening! */
   transition: width 1.2s cubic-bezier(0.645, 0.045, 0.355, 1.0), height 1.2s cubic-bezier(0.645, 0.045, 0.355, 1.0);
-  box-shadow: 
-    0 40px 90px rgba(0, 0, 0, 0.75), 
+  box-shadow:
+    0 40px 90px rgba(0, 0, 0, 0.75),
     0 15px 30px rgba(0, 0, 0, 0.4),
-    inset 0 0 30px rgba(0,0,0,0.5);
+    inset 0 0 30px rgba(0, 0, 0, 0.5);
   border: 1px solid var(--j-leather-edge);
 }
 
@@ -362,7 +383,7 @@
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle, var(--j-leather-edge) 0%, var(--j-leather) 100%);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(197, 168, 128, 0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(197, 168, 128, 0.2);
   margin-top: 20px;
 }
 
@@ -461,10 +482,13 @@
 }
 
 @keyframes breathingBtn {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 10px rgba(197, 168, 128, 0.08);
     border-color: rgba(197, 168, 128, 0.25);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(197, 168, 128, 0.25);
     border-color: rgba(197, 168, 128, 0.7);
@@ -479,7 +503,7 @@
   width: 24px;
   height: 55px;
   background-color: var(--j-gold-dark);
-  box-shadow: 2px 5px 12px rgba(0,0,0,0.5);
+  box-shadow: 2px 5px 12px rgba(0, 0, 0, 0.5);
   border-radius: 0 0 3px 3px;
   z-index: 10;
   transition: transform 0.4s ease;
@@ -510,7 +534,7 @@
   background-color: var(--j-paper);
   overflow: hidden;
   z-index: 5;
-  box-shadow: inset 0 0 30px rgba(0,0,0,0.06);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.06);
 }
 
 /* ─── 3D BOOK CENTRAL SPINE CREASE ─── */
@@ -522,14 +546,13 @@
   width: 32px;
   transform: translateX(-50%);
   background: linear-gradient(to right,
-    rgba(0, 0, 0, 0.0) 0%,
-    rgba(0, 0, 0, 0.12) 20%,
-    rgba(0, 0, 0, 0.28) 42%,
-    rgba(0, 0, 0, 0.48) 50%,
-    rgba(0, 0, 0, 0.28) 58%,
-    rgba(0, 0, 0, 0.12) 80%,
-    rgba(0, 0, 0, 0.0) 100%
-  );
+      rgba(0, 0, 0, 0.0) 0%,
+      rgba(0, 0, 0, 0.12) 20%,
+      rgba(0, 0, 0, 0.28) 42%,
+      rgba(0, 0, 0, 0.48) 50%,
+      rgba(0, 0, 0, 0.28) 58%,
+      rgba(0, 0, 0, 0.12) 80%,
+      rgba(0, 0, 0, 0.0) 100%);
   pointer-events: none;
   z-index: 90;
 }
@@ -607,12 +630,12 @@
 
 .left-page::before {
   right: 0;
-  background: linear-gradient(to right, transparent, rgba(0,0,0,0.03));
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.03));
 }
 
 .right-page::before {
   left: 0;
-  background: linear-gradient(to left, transparent, rgba(0,0,0,0.02));
+  background: linear-gradient(to left, transparent, rgba(0, 0, 0, 0.02));
 }
 
 /* ─── PAGE HEADERS & FOOTERS ─── */
@@ -691,10 +714,12 @@
 }
 
 .photo-matting {
-  background-color: #faf9f6; /* Bleached mounting card stock */
-  padding: 14px 14px 22px 14px; /* Deeper bottom padding matches the Golden Ratio */
+  background-color: #faf9f6;
+  /* Bleached mounting card stock */
+  padding: 14px 14px 22px 14px;
+  /* Deeper bottom padding matches the Golden Ratio */
   border: 1px solid rgba(78, 70, 61, 0.12);
-  box-shadow: 
+  box-shadow:
     0 15px 35px rgba(0, 0, 0, 0.05),
     0 3px 8px rgba(0, 0, 0, 0.02),
     inset 0 0 1px rgba(78, 70, 61, 0.15);
@@ -746,7 +771,8 @@
 }
 
 .quote-serif-mark {
-  display: none; /* hidden to prioritize minimalist bracket styling */
+  display: none;
+  /* hidden to prioritize minimalist bracket styling */
 }
 
 .quote-text {
@@ -818,7 +844,8 @@
 .narrative-paragraph {
   font-family: var(--font-serif);
   font-size: 0.98rem;
-  line-height: 1.8; /* Generous line height for ultimate coffee-table slow reading */
+  line-height: 1.8;
+  /* Generous line height for ultimate coffee-table slow reading */
   color: #2c2621;
   margin: 0;
   text-align: justify;
@@ -835,14 +862,15 @@
   padding: 4px 8px 0 0;
   color: var(--j-gold-dark);
   font-weight: 400;
-  text-shadow: 0 1px 1px rgba(255,255,255,0.7);
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
 }
 
 /* Couture Specimen Ticket Log Box */
 .atelier-metadata-box {
   background-color: #faf9f6;
   border: 1px solid rgba(197, 168, 128, 0.2);
-  border-top: 3px solid var(--j-gold); /* Solid brass top accent line */
+  border-top: 3px solid var(--j-gold);
+  /* Solid brass top accent line */
   padding: 14px 18px;
   border-radius: 2px;
   z-index: 10;
@@ -871,14 +899,16 @@
 
 .meta-bullet-item {
   display: flex;
-  justify-content: space-between; /* Elegant left-aligned label, right-aligned value */
+  justify-content: space-between;
+  /* Elegant left-aligned label, right-aligned value */
   align-items: center;
   border-bottom: 1px dashed rgba(78, 70, 61, 0.06);
   padding-bottom: 4px;
 }
 
 .meta-bullet {
-  display: none; /* hidden to transition list to direct clean keys */
+  display: none;
+  /* hidden to transition list to direct clean keys */
 }
 
 .meta-text {
@@ -892,7 +922,8 @@
 
 /* The specimen value rendered in delicate handwriting or fine italics */
 .meta-bullet-item::after {
-  content: '✦'; /* tiny gold dot divider */
+  content: '✦';
+  /* tiny gold dot divider */
   margin: 0 8px;
   color: var(--j-gold-light);
   font-size: 0.5rem;
@@ -917,7 +948,7 @@
   line-height: 1.1;
   color: #736254;
   margin: 0;
-  text-shadow: 0px 1px 1px rgba(255,255,255,0.9);
+  text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 /* Endpapers inside cover */
@@ -949,7 +980,7 @@
   border-radius: 2px;
   padding: 30px 25px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
 }
 
 .endpaper-credits-plaque h3 {
@@ -999,9 +1030,9 @@
   transform-style: preserve-3d;
   position: absolute;
   z-index: 50;
-  box-shadow: 
+  box-shadow:
     0 10px 30px rgba(0, 0, 0, 0.05),
-    -10px 0 30px rgba(0,0,0,0.05);
+    -10px 0 30px rgba(0, 0, 0, 0.05);
 }
 
 .page-face {
@@ -1042,11 +1073,11 @@
 }
 
 .right-shadow {
-  background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, transparent 30%);
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.3) 0%, transparent 30%);
 }
 
 .left-shadow {
-  background: linear-gradient(to left, rgba(0,0,0,0.3) 0%, transparent 30%);
+  background: linear-gradient(to left, rgba(0, 0, 0, 0.3) 0%, transparent 30%);
 }
 
 /* ─── GLASS DOCK CONTROL CENTER ─── */
@@ -1068,7 +1099,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 25px;
-  box-shadow: 
+  box-shadow:
     0 25px 50px rgba(0, 0, 0, 0.5),
     inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
@@ -1209,7 +1240,7 @@
   border-right: 1px solid rgba(197, 168, 128, 0.15);
   border-radius: 20px 20px 0 0;
   padding: 40px 45px 50px;
-  box-shadow: 0 -20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.5);
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -1295,7 +1326,7 @@
 .toc-thumbnail-tint {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 60%);
 }
 
 .toc-number-tag {
@@ -1478,20 +1509,21 @@
     top: 25px;
     padding: 0 6vw;
   }
-  
+
   .brand-masthead {
     font-size: 0.78rem;
     letter-spacing: 0.35em;
   }
-  
-  .brand-crest, .brand-edition {
+
+  .brand-crest,
+  .brand-edition {
     display: none;
   }
 
   .magazine-immersive-stage {
-    height: 80vh !important;
-    min-height: 520px;
-    padding: 85px 4vw 40px !important;
+    height: 82vh !important;
+    min-height: 580px !important;
+    padding: 0 !important;
     display: flex !important;
     justify-content: center !important;
     align-items: center !important;
@@ -1508,26 +1540,105 @@
   }
 
   .book-hardcase-shell.mobile-shell {
-    width: 88vw !important;
-    max-width: 360px !important;
-    height: 66vh !important;
-    max-height: 520px !important;
-    min-height: 440px !important;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5) !important;
+    width: 92vw !important;
+    max-width: 480px !important;
+    height: 74vh !important;
+    max-height: 720px !important;
+    min-height: 520px !important;
+    box-shadow: 0 35px 80px rgba(0, 0, 0, 0.6) !important;
     transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1) !important;
   }
-  
+
+  /* Compact and balanced hardcover cover styling on mobile/tablet viewports */
+  .book-hardcase-shell.mobile-shell .closed-cover-stage {
+    padding: 24px 15px !important;
+  }
+  .book-hardcase-shell.mobile-shell .hardcover-gold-border {
+    inset: 12px !important;
+  }
+  .book-hardcase-shell.mobile-shell .cover-journal-title {
+    font-size: 2.2rem !important;
+    margin-top: 15px !important;
+  }
+  .book-hardcase-shell.mobile-shell .cover-journal-subtitle {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.45em !important;
+    margin-top: 6px !important;
+  }
+  .book-hardcase-shell.mobile-shell .gold-foil-line {
+    margin: 15px auto !important;
+    width: 45px !important;
+  }
+  .book-hardcase-shell.mobile-shell .cover-volume-tag {
+    font-size: 0.52rem !important;
+    letter-spacing: 0.25em !important;
+  }
+  .book-hardcase-shell.mobile-shell .cover-read-prompt {
+    font-size: 0.58rem !important;
+    letter-spacing: 0.25em !important;
+    padding: 8px 18px !important;
+    margin-top: 20px !important;
+    margin-bottom: 5px !important;
+  }
+  .book-hardcase-shell.mobile-shell .crest-seal {
+    width: 48px !important;
+    height: 48px !important;
+    margin-top: 5px !important;
+  }
+  .book-hardcase-shell.mobile-shell .seal-monogram {
+    font-size: 1rem !important;
+  }
+
   .book-hardcase-shell.mobile-shell.open {
     transform: none !important;
-    width: 88vw !important;
-    max-width: 360px !important;
+    width: 92vw !important;
+    max-width: 480px !important;
   }
-  
+
+
   .book-spread-overlay.mobile-spread {
+    position: absolute !important;
     inset: 6px 8px !important;
     display: block !important;
     border-radius: 4px !important;
     background-color: var(--j-paper) !important;
+  }
+
+  .book-spread-overlay.mobile-spread.show-left .left-page {
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    inset: 0 !important;
+    animation: mobilePageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  }
+
+  .book-spread-overlay.mobile-spread.show-left .right-page {
+    display: none !important;
+  }
+
+  .book-spread-overlay.mobile-spread.show-right .right-page {
+    display: flex !important;
+    width: 100% !important;
+    height: 100% !important;
+    position: absolute !important;
+    inset: 0 !important;
+    animation: mobilePageEnter 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  }
+
+  .book-spread-overlay.mobile-spread.show-right .left-page {
+    display: none !important;
+  }
+
+  @keyframes mobilePageEnter {
+    0% {
+      opacity: 0.5;
+      transform: translateX(12px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   .book-spine-crease.mobile-spine {
@@ -1535,11 +1646,10 @@
     transform: none !important;
     width: 18px !important;
     background: linear-gradient(to right,
-      rgba(0, 0, 0, 0.45) 0%,
-      rgba(0, 0, 0, 0.22) 25%,
-      rgba(0, 0, 0, 0.08) 60%,
-      transparent 100%
-    ) !important;
+        rgba(0, 0, 0, 0.45) 0%,
+        rgba(0, 0, 0, 0.22) 25%,
+        rgba(0, 0, 0, 0.08) 60%,
+        transparent 100%) !important;
     border-right: 1px solid rgba(0, 0, 0, 0.15) !important;
     z-index: 99 !important;
   }
@@ -1552,7 +1662,7 @@
     padding: 30px 22px 24px 26px !important;
     border-radius: 4px !important;
     border: none !important;
-    box-shadow: inset 5px 0 15px rgba(0,0,0,0.06) !important;
+    box-shadow: inset 5px 0 15px rgba(0, 0, 0, 0.06) !important;
   }
 
   .mobile-flipping {
@@ -1560,7 +1670,7 @@
     height: 100% !important;
     left: 0 !important;
   }
-  
+
   .mobile-cover-flipping {
     width: 100% !important;
     height: 100% !important;
@@ -1580,13 +1690,13 @@
     line-height: 1.35 !important;
     margin-bottom: 12px !important;
   }
-  
+
   .mobile-spread .vintage-drop-cap {
     font-size: 2.5rem !important;
     line-height: 0.8 !important;
     padding: 2px 6px 0 0 !important;
   }
-  
+
   .mobile-spread .narrative-paragraph {
     font-size: 0.82rem !important;
     line-height: 1.55 !important;
@@ -1598,16 +1708,16 @@
     padding: 10px 12px !important;
     background: rgba(78, 70, 61, 0.03) !important;
   }
-  
+
   .mobile-spread .meta-box-title {
     font-size: 0.52rem !important;
     margin-bottom: 6px !important;
   }
-  
+
   .mobile-spread .meta-text {
     font-size: 0.6rem !important;
   }
-  
+
   .mobile-spread .meta-bullet-item {
     gap: 6px !important;
     margin-bottom: 4px !important;
@@ -1623,11 +1733,11 @@
     margin: 4px auto 8px !important;
     width: 95% !important;
   }
-  
+
   .mobile-spread .photo-matting {
     padding: 8px 8px 14px 8px !important;
   }
-  
+
   .mobile-spread .photo-caption-tag {
     font-size: 0.42rem !important;
     letter-spacing: 0.12em !important;
@@ -1643,12 +1753,12 @@
     font-size: 0.82rem !important;
     line-height: 1.35 !important;
   }
-  
+
   .mobile-spread .quote-serif-mark {
     font-size: 1.8rem !important;
     height: 12px !important;
   }
-  
+
   .mobile-spread .quote-author {
     font-size: 0.52rem !important;
     margin-top: 4px !important;
@@ -1681,9 +1791,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 
-      0 20px 45px rgba(0,0,0,0.55),
-      inset 0 1px 0 rgba(255,255,255,0.06);
+    box-shadow:
+      0 20px 45px rgba(0, 0, 0, 0.55),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
     z-index: 999;
   }
 
@@ -1701,7 +1811,7 @@
     border-radius: 50%;
     transition: all 0.3s ease;
   }
-  
+
   .mobile-dock-btn:active {
     background: rgba(197, 168, 128, 0.15);
     transform: scale(0.92);
@@ -1727,12 +1837,12 @@
     font-size: 0.9rem;
     transition: all 0.2s ease;
   }
-  
+
   .mobile-dock-arrow:disabled {
     opacity: 0.25;
     cursor: not-allowed;
   }
-  
+
   .mobile-dock-arrow:active:not(:disabled) {
     background: var(--j-gold);
     color: #181513;
@@ -1760,12 +1870,12 @@
   .brand-overlay-header {
     padding: 0 5vw;
   }
-  
+
   .brand-masthead {
     font-size: 0.72rem;
     letter-spacing: 0.3em;
   }
-  
+
   .magazine-immersive-stage {
     padding: 80px 4vw 40px !important;
   }
@@ -1804,4 +1914,148 @@
     width: 100%;
     padding: 16px;
   }
+}
+
+/* ─── 3D BOOK PAGE FLIPPING TRANSITION ANIMATIONS ─── */
+.flipping-page-3d {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  transform-style: preserve-3d;
+  z-index: 85;
+  pointer-events: none;
+}
+
+/* Next Flip: Right page flips over center spine to the Left */
+.flipping-page-3d.flip-next {
+  left: 50%;
+  transform-origin: left center;
+  animation: turnPageNext 0.75s cubic-bezier(0.645, 0.045, 0.355, 1.0) forwards;
+}
+
+@keyframes turnPageNext {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+/* Prev Flip: Left page flips over center spine to the Right */
+.flipping-page-3d.flip-prev {
+  left: 0;
+  transform-origin: right center;
+  animation: turnPagePrev 0.75s cubic-bezier(0.645, 0.045, 0.355, 1.0) forwards;
+}
+
+@keyframes turnPagePrev {
+  0% {
+    transform: rotateY(-180deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+/* Front & Back sides of the turning sheet */
+.flipping-side {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+}
+
+.flipping-side.side-front {
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+
+.flipping-side.side-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+}
+
+/* Ensure children book-pages inside the turning sheet scale correctly and occupy full sheet size */
+.flipping-side .book-page {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Add custom paper spine shadows during turning to make it look even more physical! */
+.flipping-page-3d::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  pointer-events: none;
+  z-index: 90;
+  transition: opacity 0.75s ease;
+}
+
+.flipping-page-3d.flip-next::after {
+  left: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.2) 0%, transparent 100%);
+  transform-style: preserve-3d;
+}
+
+.flipping-page-3d.flip-prev::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0,0,0,0.2) 0%, transparent 100%);
+  transform-style: preserve-3d;
+}
+
+/* ─── MOBILE 3D SINGLE-PAGE FLIPPING TRANSITION ANIMATIONS ─── */
+.mobile-spread .flipping-page-3d {
+  position: absolute;
+  top: 0;
+  width: 100% !important;
+  height: 100% !important;
+  transform-style: preserve-3d;
+  z-index: 85;
+  pointer-events: none;
+}
+
+.mobile-spread .flipping-page-3d.flip-next {
+  left: 0 !important;
+  transform-origin: left center !important;
+  animation: turnPageNextMobile 0.75s cubic-bezier(0.645, 0.045, 0.355, 1.0) forwards !important;
+}
+
+@keyframes turnPageNextMobile {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(-180deg);
+  }
+}
+
+.mobile-spread .flipping-page-3d.flip-prev {
+  left: 0 !important;
+  transform-origin: right center !important;
+  animation: turnPagePrevMobile 0.75s cubic-bezier(0.645, 0.045, 0.355, 1.0) forwards !important;
+}
+
+@keyframes turnPagePrevMobile {
+  0% {
+    transform: rotateY(-180deg);
+  }
+  100% {
+    transform: rotateY(0deg);
+  }
+}
+
+/* Ensure mobile sides occupy 100% width of the single page shell */
+.mobile-spread .flipping-side {
+  width: 100% !important;
+  height: 100% !important;
 }

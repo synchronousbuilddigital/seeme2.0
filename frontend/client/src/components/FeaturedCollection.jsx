@@ -45,7 +45,7 @@ const FeaturedCollection = () => {
     <section className="classic-featured" id="featured-collection" ref={ref}>
       <div className="container">
         {/* Section Title */}
-        <motion.div 
+        <motion.div
           className="cf-header"
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -59,7 +59,7 @@ const FeaturedCollection = () => {
         {/* Showcase Area */}
         <div className="cf-showcase">
           <AnimatePresence mode="wait">
-            <motion.div 
+            <motion.div
               key={currentIndex}
               className="cf-card"
               initial={{ opacity: 0, x: 20 }}
@@ -68,12 +68,12 @@ const FeaturedCollection = () => {
               transition={{ duration: 0.5, ease: "easeInOut" }}
             >
               {/* Image Container */}
-              <div 
+              <div
                 className="cf-image-wrapper"
                 onClick={() => navigate(`/product/${currentProduct._id}`)}
               >
-                <img 
-                  src={getOptimizedImageUrl(currentProduct.images?.[0], 'hero')} 
+                <img
+                  src={getOptimizedImageUrl(currentProduct.images?.[0], 'hero')}
                   alt={currentProduct.name}
                   className="cf-image"
                 />
@@ -84,7 +84,7 @@ const FeaturedCollection = () => {
               <div className="cf-info">
                 <div className="cf-info-header">
                   <span className="cf-counter">0{currentIndex + 1} / 0{products.length}</span>
-                  <button 
+                  <button
                     className={`cf-wishlist ${isInWishlist(currentProduct._id) ? 'active' : ''}`}
                     onClick={() => toggleWishlist(currentProduct)}
                   >
@@ -98,7 +98,7 @@ const FeaturedCollection = () => {
                 <p className="cf-product-desc">
                   {currentProduct.description || "A masterpiece of heritage craftsmanship, designed for timeless grace. Elevate your ensemble with this meticulously crafted piece."}
                 </p>
-                
+
                 <div className="cf-price">₹{currentProduct.price?.toLocaleString()}</div>
 
                 <div className="cf-actions">
@@ -113,13 +113,13 @@ const FeaturedCollection = () => {
                 {/* Navigation */}
                 <div className="cf-nav">
                   <button onClick={prevProduct} className="cf-nav-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
                   </button>
                   <div className="cf-progress">
                     <div className="cf-progress-bar" style={{ width: `${((currentIndex + 1) / products.length) * 100}%` }}></div>
                   </div>
                   <button onClick={nextProduct} className="cf-nav-btn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </button>
                 </div>
               </div>
@@ -129,7 +129,7 @@ const FeaturedCollection = () => {
 
         <div className="cf-footer">
           <button className="cf-explore" onClick={() => navigate('/collections')}>
-            Explore Full Collection <span className="cf-arrow">→</span>
+            Explore Full Collections <span className="cf-arrow">→</span>
           </button>
         </div>
       </div>

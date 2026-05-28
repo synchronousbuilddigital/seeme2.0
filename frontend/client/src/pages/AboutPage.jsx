@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './AboutPage.css'
 
 const AboutPage = () => {
+  const navigate = useNavigate()
   const [heroRef, heroInView] = useInView({ once: true, threshold: 0.1 })
   const [storyRef, storyInView] = useInView({ once: true, threshold: 0.15 })
   const [journeyRef, journeyInView] = useInView({ once: true, threshold: 0.15 })
@@ -121,6 +123,16 @@ const AboutPage = () => {
 
   return (
     <div className="about-page premium-redesign">
+      {/* Elegant Back Navigation */}
+      <div className="editorial-back-nav">
+        <button onClick={() => navigate(-1)} className="editorial-back-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Back</span>
+        </button>
+      </div>
       {/* Decorative Brand Monogram Background */}
       <div className="watermark-logo">SEEMEE</div>
 
