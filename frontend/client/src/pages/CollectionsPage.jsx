@@ -147,34 +147,9 @@ const CollectionsPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
+        style={{ justifyContent: 'space-between' }}
       >
-        <div className="collections-filters">
-          <label>Category:</label>
-          <div className="filter-buttons">
-            {categories.map(cat => (
-              <button
-                key={cat.value}
-                className={`filter-btn ${selectedCategory === cat.value ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat.value)}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="collections-sort">
-          <label>Sort By:</label>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="featured">Featured</option>
-            <option value="newest">Newest Arrivals</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
-            <option value="name">Name: A to Z</option>
-          </select>
-        </div>
-
-        <div className="collections-search">
+        <div className="collections-search" style={{ margin: 0 }}>
           <input 
             type="text" 
             placeholder="Search our heritage..." 

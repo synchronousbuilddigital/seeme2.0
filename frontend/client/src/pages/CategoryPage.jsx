@@ -75,11 +75,6 @@ const CategoryPage = () => {
         <div className="bar-left">
           <span className="product-count-luxury">{products.length} Pieces found</span>
         </div>
-        <div className="bar-right">
-          <button className="filter-trigger" onClick={() => setFilterOpen(!filterOpen)}>
-            Filter & Sort
-          </button>
-        </div>
       </div>
 
       {/* Product Grid Area */}
