@@ -4,13 +4,15 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { API_ENDPOINTS } from '../config/api'
+import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './AccountPage.css'
 
 const AccountPage = () => {
   const { user, logout, token, updateUser } = useAuth()
   const navigate = useNavigate()
-  const { wishlist } = useCart()
+  const { wishlist, toggleWishlist, addToCart } = useCart()
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [menuExpanded, setMenuExpanded] = useState(false)
   const [orders, setOrders] = useState([])
   const [addresses, setAddresses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -626,12 +628,23 @@ const AccountPage = () => {
               </div>
             ) : (
               <div className="profile-details-panel">
-                <div className="profile-detail-grid">
+                <div className="wishlist-editorial-grid">
                   {wishlist.map((item) => (
-                    <div key={item.id || item._id} className="profile-detail-item">
-                      <span className="profile-detail-label">Saved Piece</span>
-                      <strong className="profile-detail-value">{item.name}</strong>
-                      <p>{item.category || 'Collection item'}</p>
+                    <div key={item.id || item._id} className="wishlist-mini-card">
+                      <div className="mini-card-media" onClick={() => navigate(`/product/${item.id || item._id}`)} style={{ cursor: 'pointer' }}>
+                        <img src={getOptimizedImageUrl(item.images?.[0] || item.image)} alt={item.name} className="mini-card-img" />
+                      </div>
+                      <div className="mini-card-info">
+                        <span className="profile-detail-label">{item.category || 'Collection item'}</span>
+                        <h4 className="item-name" onClick={() => navigate(`/product/${item.id || item._id}`)} style={{ cursor: 'pointer' }}>{item.name}</h4>
+                        <div className="item-price-row">
+                          <strong className="item-price">₹{(typeof item.price === 'number' ? item.price : parseInt(item.price?.replace(/[₹,]/g, '')) || 0).toLocaleString('en-IN')}</strong>
+                        </div>
+                        <div className="mini-card-actions">
+                          <button type="button" className="btn-editorial gold" onClick={() => { addToCart(item); }}>ADD TO BAG</button>
+                          <button type="button" className="btn-editorial outline" onClick={() => toggleWishlist(item)}>Remove</button>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -844,9 +857,36 @@ const AccountPage = () => {
               <p>Atelier Member</p>
             </div>
           </div>
-          <nav className="side-navigation">
+          
+          {/* Mobile Tab Switcher Dropdown Toggle */}
+          <div className="mobile-nav-toggle-wrapper">
+            <button 
+              type="button" 
+              className="mobile-nav-toggle-btn" 
+              onClick={() => setMenuExpanded(!menuExpanded)}
+            >
+              <span className="active-tab-indicator">
+                <span className="dot-gold"></span>
+                {menuItems.find(item => item.id === activeTab)?.label || 'Menu'}
+              </span>
+              <div className="three-dots-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </button>
+          </div>
+
+          <nav className={`side-navigation ${menuExpanded ? 'expanded' : 'collapsed'}`}>
             {menuItems.map((item) => (
-              <button key={item.id} className={`side-nav-item ${activeTab === item.id ? 'active' : ''}`} onClick={() => setActiveTab(item.id)}>
+              <button 
+                key={item.id} 
+                className={`side-nav-item ${activeTab === item.id ? 'active' : ''}`} 
+                onClick={() => { 
+                  setActiveTab(item.id);
+                  setMenuExpanded(false);
+                }}
+              >
                 <span className="side-nav-label">{item.label}</span>
                 <div className="side-nav-indicator"></div>
               </button>
