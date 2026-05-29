@@ -108,32 +108,13 @@ const AdminDashboard = () => {
     <div className="admin-dashboard">
       {/* Mobile Top Header Bar */}
       <header className="mobile-header-bar">
-        <button 
-          className="mobile-menu-btn" 
-          onClick={() => setIsMobileMenuOpen(true)}
-          aria-label="Open Navigation Menu"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
         <div className="mobile-logo-container" onClick={() => handleTabClick('overview')}>
           <img src="/images/logoSEEMEE1.png" alt="See Mee" className="mobile-logo" />
         </div>
         <div className="mobile-avatar" onClick={() => handleTabClick('overview')}>A</div>
       </header>
 
-      {/* Mobile Sidebar Backdrop Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="sidebar-overlay"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      <aside className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+      <aside className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header" onClick={() => handleTabClick('overview')} style={{ cursor: 'pointer' }}>
           <div className="logo-container">
             <img
@@ -145,18 +126,6 @@ const AdminDashboard = () => {
           {!sidebarCollapsed && <span className="admin-brand-name">ADMIN PANEL</span>}
         </div>
 
-        {/* Mobile Close Button inside Sidebar */}
-        <button 
-          className="mobile-close-btn"
-          onClick={() => setIsMobileMenuOpen(false)}
-          aria-label="Close Navigation Menu"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-
         <button
           className="collapse-btn"
           onClick={() => setSidebarCollapsed(prev => !prev)}
@@ -164,7 +133,33 @@ const AdminDashboard = () => {
           {sidebarCollapsed ? '→' : '←'}
         </button>
 
-        <nav className="sidebar-nav">
+        {/* Mobile Tab Switcher Dropdown Toggle */}
+        <div className="mobile-nav-toggle-wrapper">
+          <button 
+            type="button" 
+            className="mobile-nav-toggle-btn" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <span className="active-tab-indicator">
+              <span className="dot-gold"></span>
+              {activeTab === 'overview' && 'Overview'}
+              {activeTab === 'products' && 'Products'}
+              {activeTab === 'orders' && 'Orders'}
+              {activeTab === 'inventory' && 'Inventory'}
+              {activeTab === 'customers' && 'Customers'}
+              {activeTab === 'activity' && 'Activity Log'}
+              {activeTab === 'categories' && 'Categories'}
+              {activeTab === 'hero' && 'Hero Section'}
+            </span>
+            <div className="three-dots-icon">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </button>
+        </div>
+
+        <nav className={`sidebar-nav ${isMobileMenuOpen ? 'expanded' : 'collapsed'}`}>
           <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => handleTabClick('overview')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             <span>Overview</span>
@@ -197,12 +192,12 @@ const AdminDashboard = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
             <span>Hero Section</span>
           </button>
-        </nav>
 
-        <button className="logout-btn" onClick={handleLogout}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          {!sidebarCollapsed && <span>Logout</span>}
-        </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            <span>Logout</span>
+          </button>
+        </nav>
       </aside>
 
       <main className="admin-content">
