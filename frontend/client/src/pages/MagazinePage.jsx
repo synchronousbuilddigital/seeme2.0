@@ -751,7 +751,7 @@ const MagazinePage = () => {
       </div>
 
       {/* Brand header overlay absolute positioned beautifully in the background */}
-      <header className="brand-overlay-header" style={{ position: 'absolute', top: '95px', padding: '0 4.5vw', zIndex: 10, pointerEvents: 'none' }}>
+      <header className="brand-overlay-header" style={{ position: 'absolute', top: isMobile ? '70px' : '95px', padding: '0 4.5vw', zIndex: 10, pointerEvents: 'none' }}>
         <div className="brand-crest">SM</div>
         <div className="brand-masthead">SEEMEE JOURNAL</div>
         <div className="brand-edition">VOL. IV // EST. 2024</div>
@@ -769,7 +769,7 @@ const MagazinePage = () => {
           justifyContent: 'center', 
           position: 'relative', 
           width: '100%', 
-          paddingTop: '110px',
+          paddingTop: isMobile ? '55px' : '110px',
           boxSizing: 'border-box'
         }}
       >

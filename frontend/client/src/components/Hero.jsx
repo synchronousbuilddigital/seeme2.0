@@ -62,7 +62,7 @@ const formatCategoryName = (slug) => {
   if (s === '2-piece-sets' || s === '2-piece' || s === '2-pieces') return '2-Piece'
   if (s === '3-piece-sets' || s === '3-piece' || s === '3-pieces') return '3-Piece'
   if (s === 'co-ord-sets' || s === 'cord-set' || s === 'co-ord' || s === 'co-ord-set') return 'Cord Set'
-  
+
   return slug
     .replace(/-/g, ' ')
     .replace(/\b\w/g, c => c.toUpperCase())
@@ -86,6 +86,7 @@ const Hero = () => {
   const [isMobile, setIsMobile] = useState(false)
   const [categories, setCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri'])
   const [categoryImages, setCategoryImages] = useState({})
+  const [typedTitle, setTypedTitle] = useState('')
 
   const getCategoryDisplayImage = (slug) => {
     const s = slug.toLowerCase().trim()
@@ -146,88 +147,88 @@ const Hero = () => {
 
         const backendSlides = data.success
           ? data.data
-              .filter((slide) => (slide.isActive !== false && slide.active !== false) && slide.image)
-              .map((slide, index) => {
-                // Generate a unique descriptive text matching the category or index to guarantee diverse premium content
-                let desc = 'Discover our latest curated collection of premium royal Indian wear.';
-                const category = (slide.productCategory || '').toLowerCase();
-                const titleText = (slide.title || slide.productName || '').toLowerCase();
-                
-                if (category.includes('anarkali') || titleText.includes('anarkali')) {
-                  desc = 'Flared silhouettes designed with flowy premium fabrics, perfect for grand entrances and formal festivities.';
-                } else if (category.includes('palazzo') || titleText.includes('palazzo')) {
-                  desc = 'Comfort meets luxury in our wide-leg palazzo sets, featuring detailed block prints and soft pastel hues.';
-                } else if (category.includes('straight') || titleText.includes('straight')) {
-                  desc = 'Sleek, tailored cuts made from fine chanderi silk and high-quality thread work, perfect for everyday contemporary elegance.';
-                } else if (category.includes('sharara') || titleText.includes('sharara')) {
-                  desc = 'Intricate hand-crafted sharara sets, layered with rich embroidery and regal borders for classic festive grandeur.';
+            .filter((slide) => (slide.isActive !== false && slide.active !== false) && slide.image)
+            .map((slide, index) => {
+              // Generate a unique descriptive text matching the category or index to guarantee diverse premium content
+              let desc = 'Discover our latest curated collection of premium royal Indian wear.';
+              const category = (slide.productCategory || '').toLowerCase();
+              const titleText = (slide.title || slide.productName || '').toLowerCase();
+
+              if (category.includes('anarkali') || titleText.includes('anarkali')) {
+                desc = 'Flared silhouettes designed with flowy premium fabrics, perfect for grand entrances and formal festivities.';
+              } else if (category.includes('palazzo') || titleText.includes('palazzo')) {
+                desc = 'Comfort meets luxury in our wide-leg palazzo sets, featuring detailed block prints and soft pastel hues.';
+              } else if (category.includes('straight') || titleText.includes('straight')) {
+                desc = 'Sleek, tailored cuts made from fine chanderi silk and high-quality thread work, perfect for everyday contemporary elegance.';
+              } else if (category.includes('sharara') || titleText.includes('sharara')) {
+                desc = 'Intricate hand-crafted sharara sets, layered with rich embroidery and regal borders for classic festive grandeur.';
+              } else {
+                // Fallback alternating majestic copy
+                const alternateDescriptions = [
+                  'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
+                  'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
+                  'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.'
+                ];
+                desc = alternateDescriptions[index % alternateDescriptions.length];
+              }
+
+              // Generate a unique title if not configured in the database
+              let slideTitle = slide.title || slide.productName;
+              if (!slideTitle || slideTitle === 'Dressing is nothing but a Choice') {
+                if (category.includes('anarkali')) {
+                  slideTitle = 'Royal Anarkali Couture Elegance';
+                } else if (category.includes('palazzo')) {
+                  slideTitle = 'Modern Palazzo Luxe Grace';
+                } else if (category.includes('straight')) {
+                  slideTitle = 'Tailored Straight Cut Splendor';
+                } else if (category.includes('sharara')) {
+                  slideTitle = 'Festive Sharara Heritage Splendor';
                 } else {
-                  // Fallback alternating majestic copy
-                  const alternateDescriptions = [
-                    'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
-                    'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
-                    'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.'
+                  const alternateTitles = [
+                    'Dressing is nothing but a Choice',
+                    'Everyday Occasion Edit Elegance',
+                    'Wedding Season Highlights Grandeur',
+                    'Woven Tales of Ancient Loom',
+                    'Regal Weight of Velvet Majesty',
+                    'True Heritage Artisan Mastery'
                   ];
-                  desc = alternateDescriptions[index % alternateDescriptions.length];
+                  slideTitle = alternateTitles[index % alternateTitles.length];
                 }
+              }
 
-                // Generate a unique title if not configured in the database
-                let slideTitle = slide.title || slide.productName;
-                if (!slideTitle || slideTitle === 'Dressing is nothing but a Choice') {
-                  if (category.includes('anarkali')) {
-                    slideTitle = 'Royal Anarkali Couture Elegance';
-                  } else if (category.includes('palazzo')) {
-                    slideTitle = 'Modern Palazzo Luxe Grace';
-                  } else if (category.includes('straight')) {
-                    slideTitle = 'Tailored Straight Cut Splendor';
-                  } else if (category.includes('sharara')) {
-                    slideTitle = 'Festive Sharara Heritage Splendor';
-                  } else {
-                    const alternateTitles = [
-                      'Dressing is nothing but a Choice',
-                      'Everyday Occasion Edit Elegance',
-                      'Wedding Season Highlights Grandeur',
-                      'Woven Tales of Ancient Loom',
-                      'Regal Weight of Velvet Majesty',
-                      'True Heritage Artisan Mastery'
-                    ];
-                    slideTitle = alternateTitles[index % alternateTitles.length];
-                  }
+              // Generate a unique subtitle if not configured in the database
+              let slideSubtitle = slide.subtitle;
+              if (!slideSubtitle || slideSubtitle === 'Fashion is on form of self-expression and autonomy.' || slideSubtitle === 'Fashion is a form of self-expression and autonomy.') {
+                if (category.includes('anarkali')) {
+                  slideSubtitle = 'Exquisite flared flowy silk sets designed for royal prestige.';
+                } else if (category.includes('palazzo')) {
+                  slideSubtitle = 'Chic contemporary style detailed with intricate handblock prints.';
+                } else if (category.includes('straight')) {
+                  slideSubtitle = 'Sleek premium threadwork and elegant gold tilla on chanderi.';
+                } else if (category.includes('sharara')) {
+                  slideSubtitle = 'Traditional hand-embroidered borders celebrating Indian heritage.';
+                } else {
+                  const alternateSubtitles = [
+                    'Fashion is a form of self-expression and autonomy.',
+                    'Clean lines, rich fabrics, and highly polished finish.',
+                    'Premium hand-crafted luxury dressing with refined royal feel.',
+                    'Authentic handloom Banarasi silk by master weavers.',
+                    'Luxurious thick velvets adorned with micro-pearls.',
+                    'Preserving the craft of hand-guided gold zari embroidery.'
+                  ];
+                  slideSubtitle = alternateSubtitles[index % alternateSubtitles.length];
                 }
+              }
 
-                // Generate a unique subtitle if not configured in the database
-                let slideSubtitle = slide.subtitle;
-                if (!slideSubtitle || slideSubtitle === 'Fashion is on form of self-expression and autonomy.' || slideSubtitle === 'Fashion is a form of self-expression and autonomy.') {
-                  if (category.includes('anarkali')) {
-                    slideSubtitle = 'Exquisite flared flowy silk sets designed for royal prestige.';
-                  } else if (category.includes('palazzo')) {
-                    slideSubtitle = 'Chic contemporary style detailed with intricate handblock prints.';
-                  } else if (category.includes('straight')) {
-                    slideSubtitle = 'Sleek premium threadwork and elegant gold tilla on chanderi.';
-                  } else if (category.includes('sharara')) {
-                    slideSubtitle = 'Traditional hand-embroidered borders celebrating Indian heritage.';
-                  } else {
-                    const alternateSubtitles = [
-                      'Fashion is a form of self-expression and autonomy.',
-                      'Clean lines, rich fabrics, and highly polished finish.',
-                      'Premium hand-crafted luxury dressing with refined royal feel.',
-                      'Authentic handloom Banarasi silk by master weavers.',
-                      'Luxurious thick velvets adorned with micro-pearls.',
-                      'Preserving the craft of hand-guided gold zari embroidery.'
-                    ];
-                    slideSubtitle = alternateSubtitles[index % alternateSubtitles.length];
-                  }
-                }
-
-                return {
-                  image: slide.image,
-                  title: slideTitle,
-                  subtitle: slideSubtitle,
-                  description: desc,
-                  category: (slide.productCategory || 'Featured').toString(),
-                  productId: slide.productId || null
-                };
-              })
+              return {
+                image: slide.image,
+                title: slideTitle,
+                subtitle: slideSubtitle,
+                description: desc,
+                category: (slide.productCategory || 'Featured').toString(),
+                productId: slide.productId || null
+              };
+            })
           : []
 
         // Safeguard: Check if backend slides contain duplicate images or are too repetitive
@@ -288,26 +289,78 @@ const Hero = () => {
   const nextSlideIndex = (activeIndex + 1) % slides.length
   const nextSlide = slides[nextSlideIndex] || FALLBACK_SLIDES[0]
 
-  // Parse Title into styled components dynamically
-  const title = currentSlide.title || 'Dressing is nothing but a Choice'
-  const words = title.split(' ')
+  useEffect(() => {
+    const fullTitle = currentSlide?.title || 'Dressing is nothing but a Choice'
+    setTypedTitle('')
+    
+    let titleInterval;
+    
+    const delayTimeout = setTimeout(() => {
+      let i = 0
+      titleInterval = setInterval(() => {
+        if (i < fullTitle.length) {
+          setTypedTitle(fullTitle.substring(0, i + 1))
+          i++
+        } else {
+          clearInterval(titleInterval)
+        }
+      }, 45)
+    }, 600) // perfectly synced with AnimatePresence exit duration
+    
+    return () => {
+      clearTimeout(delayTimeout)
+      if (titleInterval) {
+        clearInterval(titleInterval)
+      }
+    }
+  }, [activeIndex, currentSlide?.title, slides.length])
+
+  // Parse Title into segments dynamically
+  const stableTitle = currentSlide.title || 'Dressing is nothing but a Choice'
+  const stableWords = stableTitle.split(' ')
+  
+  let targetLine1 = ''
+  let targetLine2 = ''
+  let targetCircleWord = ''
+
+  if (stableWords.length === 1) {
+    targetCircleWord = stableWords[0]
+  } else if (stableWords.length === 2) {
+    targetLine1 = stableWords[0]
+    targetCircleWord = stableWords[1]
+  } else {
+    const middleIndex = Math.ceil(stableWords.length / 2)
+    targetLine1 = stableWords.slice(0, middleIndex).join(' ')
+    targetLine2 = stableWords.slice(middleIndex, stableWords.length - 1).join(' ')
+    targetCircleWord = stableWords[stableWords.length - 1]
+  }
+
+  const len1 = targetLine1.length
+  const len2 = targetLine2.length
+  const currentLength = typedTitle.length
+  
   let line1 = ''
   let line2 = ''
   let circleWord = ''
 
-  if (words.length === 1) {
-    line1 = ''
-    line2 = ''
-    circleWord = words[0]
-  } else if (words.length === 2) {
-    line1 = words[0]
-    line2 = ''
-    circleWord = words[1]
-  } else if (words.length >= 3) {
-    const middleIndex = Math.ceil(words.length / 2)
-    line1 = words.slice(0, middleIndex).join(' ')
-    line2 = words.slice(middleIndex, words.length - 1).join(' ')
-    circleWord = words[words.length - 1]
+  if (currentLength >= stableTitle.length) {
+    line1 = targetLine1
+    line2 = targetLine2
+    circleWord = targetCircleWord
+  } else {
+    if (currentLength <= len1) {
+      line1 = targetLine1.substring(0, currentLength)
+    } else {
+      line1 = targetLine1
+      const remainingLength = currentLength - len1 - (targetLine1 && targetLine2 ? 1 : 0)
+      if (remainingLength <= len2) {
+        line2 = targetLine2.substring(0, Math.max(0, remainingLength))
+      } else {
+        line2 = targetLine2
+        const circleLength = remainingLength - len2 - (targetLine2 && targetCircleWord ? 1 : 0)
+        circleWord = targetCircleWord.substring(0, Math.max(0, circleLength))
+      }
+    }
   }
 
   const handleNext = () => {
@@ -381,11 +434,14 @@ const Hero = () => {
                 <h1 className="hero-title">
                   <span className="title-line-1">
                     {line1}
+                    {currentLength > 0 && currentLength <= len1 && <span className="typing-cursor">|</span>}
                   </span>
                   <span className="title-line-2">
                     {line2}{' '}
+                    {currentLength > len1 && currentLength <= (len1 + 1 + len2) && <span className="typing-cursor">|</span>}
                     <span className="circled-word">
                       {circleWord}
+                      {currentLength > (len1 + 1 + len2) && currentLength < stableTitle.length && <span className="typing-cursor">|</span>}
                     </span>
                   </span>
                 </h1>
@@ -528,8 +584,8 @@ const Hero = () => {
           <div className="category-marquee-track">
             {/* Repeat the list 10 times for a mathematically seamless infinite loop on any screen width */}
             {Array(10).fill(categories).flat().map((cat, idx) => (
-              <div 
-                key={`${cat}-${idx}`} 
+              <div
+                key={`${cat}-${idx}`}
                 className="category-circle-item"
                 onClick={() => navigate(`/category/${cat}`)}
               >
