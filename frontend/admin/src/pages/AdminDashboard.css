@@ -22,6 +22,8 @@ body {
   background: var(--admin-bg);
   color: var(--admin-text-main);
   font-family: var(--font-body);
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 /* Sidebar Styling - Premium Dark Mode */
@@ -765,8 +767,15 @@ body {
 }
 
 @media (max-width: 768px) {
+  body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
   .admin-dashboard {
     flex-direction: column;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
 
   /* Mobile sticky top bar header */
