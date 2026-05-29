@@ -127,7 +127,21 @@ function App() {
                 <Route path="/checkout" element={<PageWithNav><Checkout /></PageWithNav>} />
 
                 {/* Magazine Page */}
-                <Route path="/magazine" element={<PageWithNav><MagazinePage /></PageWithNav>} />
+                <Route path="/magazine" element={
+                  <>
+                    <Navbar
+                      onCartOpen={() => setIsCartOpen(true)}
+                      onWishlistOpen={() => setIsWishlistOpen(true)}
+                    />
+                    <main>
+                      <Suspense fallback={<div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+                        <MagazinePage />
+                      </Suspense>
+                    </main>
+                    <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+                    <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+                  </>
+                } />
 
                 {/* Collections Page */}
                 <Route path="/collections" element={<PageWithNav><CollectionsPage /></PageWithNav>} />

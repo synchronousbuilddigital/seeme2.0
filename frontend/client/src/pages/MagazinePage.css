@@ -40,12 +40,13 @@
   color: var(--j-ink);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-bottom: 0;
+  box-sizing: border-box;
 }
 
 /* Atmospheric Subtle Digital Grid Overlay */
@@ -242,6 +243,39 @@
   width: 100%;
   max-width: 1200px;
   height: 80vh;
+  transition: transform 0.4s ease;
+}
+
+@media (max-height: 960px) and (min-width: 1024px) {
+  .booklet-perspective-frame {
+    transform: scale(0.88);
+    height: auto;
+    margin-top: 10px;
+  }
+}
+
+@media (max-height: 860px) and (min-width: 1024px) {
+  .booklet-perspective-frame {
+    transform: scale(0.78);
+    height: auto;
+    margin-top: 0px;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 1024px) {
+  .booklet-perspective-frame {
+    transform: scale(0.68);
+    height: auto;
+    margin-top: -20px;
+  }
+}
+
+@media (max-height: 660px) and (min-width: 1024px) {
+  .booklet-perspective-frame {
+    transform: scale(0.58);
+    height: auto;
+    margin-top: -40px;
+  }
 }
 
 .book-hardcase-shell {
@@ -1777,44 +1811,48 @@
   /* ─── MOBILE GLASS DOCK CONTROL CENTER ─── */
   .mobile-glass-control-dock {
     position: fixed;
-    bottom: 24px;
+    bottom: calc(28px + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     width: 90vw;
-    max-width: 350px;
-    background: rgba(24, 21, 19, 0.88);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    max-width: 360px;
+    background: rgba(24, 21, 19, 0.9);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(197, 168, 128, 0.22);
     border-radius: 100px;
-    padding: 8px 16px;
+    padding: 6px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow:
       0 20px 45px rgba(0, 0, 0, 0.55),
       inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    z-index: 999;
+    z-index: 99999;
   }
 
   .mobile-dock-btn {
-    background: transparent;
-    border: none;
+    background: rgba(197, 168, 128, 0.08);
+    border: 1px solid rgba(197, 168, 128, 0.15);
     color: var(--j-gold);
-    font-size: 1rem;
-    width: 34px;
-    height: 34px;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    width: auto;
+    height: 32px;
+    padding: 0 14px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 50%;
+    border-radius: 100px;
     transition: all 0.3s ease;
   }
 
   .mobile-dock-btn:active {
-    background: rgba(197, 168, 128, 0.15);
-    transform: scale(0.92);
+    background: rgba(197, 168, 128, 0.2);
+    transform: scale(0.95);
   }
 
   .mobile-dock-nav {

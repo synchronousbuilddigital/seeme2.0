@@ -51,6 +51,9 @@ const CATEGORY_IMAGES = {
   'co-ord-sets': '/images/magazine/weight_of_velvet.png',
   '3-piece-sets': '/images/home-hero.png',
   '2-piece-sets': '/images/ruby_bridal_sharara.png',
+  'bandhani': '/images/ruby_bridal_sharara.png',
+  'georgette': '/images/categories_straight.jpg',
+  'jaipuri': '/images/hero/sharara_festive.png',
 }
 
 const formatCategoryName = (slug) => {
@@ -65,18 +68,29 @@ const formatCategoryName = (slug) => {
     .replace(/\b\w/g, c => c.toUpperCase())
 }
 
+const getCategoryType = (slug) => {
+  if (!slug) return 'COUTURE'
+  const s = slug.toLowerCase().trim()
+  if (s.includes('saree')) return 'SAREE'
+  if (s.includes('lehenga')) return 'LEHENGA'
+  if (s.includes('set') || s.includes('co-ord') || s.includes('piece')) return 'SETS'
+  if (s.includes('palazzo') || s.includes('sharara') || s.includes('anarkali') || s.includes('kurti') || s.includes('straight') || s.includes('jalpuri') || s.includes('georgette') || s.includes('bandhani') || s.includes('jaipuri')) return 'KURTI'
+  return 'COUTURE'
+}
+
 const Hero = () => {
   const navigate = useNavigate()
   const [slides, setSlides] = useState([])
   const [activeIndex, setActiveIndex] = useState(0)
   const [loading, setLoading] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
-  const [categories, setCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara'])
+  const [categories, setCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri'])
   const [categoryImages, setCategoryImages] = useState({})
 
   const getCategoryDisplayImage = (slug) => {
     const s = slug.toLowerCase().trim()
-    return categoryImages[s] || CATEGORY_IMAGES[s] || '/images/home-hero.png'
+    const rawImage = categoryImages[s] || CATEGORY_IMAGES[s] || '/images/home-hero.png'
+    return getOptimizedImageUrl(rawImage, 'circle')
   }
 
   useEffect(() => {
@@ -520,10 +534,13 @@ const Hero = () => {
                 onClick={() => navigate(`/category/${cat}`)}
               >
                 <div className="category-circle-visual">
-                  <img src={getCategoryDisplayImage(cat)} alt={cat} className="category-circle-img" />
-                  <div className="category-circle-overlay" />
+                  <div className="category-circle-img-wrap">
+                    <img src={getCategoryDisplayImage(cat)} alt={cat} className="category-circle-img" />
+                    <div className="category-circle-overlay" />
+                  </div>
                 </div>
                 <span className="category-circle-name">{formatCategoryName(cat)}</span>
+                <span className="category-circle-tag">{getCategoryType(cat)}</span>
               </div>
             ))}
           </div>
