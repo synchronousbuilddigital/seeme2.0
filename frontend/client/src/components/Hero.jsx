@@ -292,9 +292,9 @@ const Hero = () => {
   useEffect(() => {
     const fullTitle = currentSlide?.title || 'Dressing is nothing but a Choice'
     setTypedTitle('')
-    
+
     let titleInterval;
-    
+
     const delayTimeout = setTimeout(() => {
       let i = 0
       titleInterval = setInterval(() => {
@@ -306,7 +306,7 @@ const Hero = () => {
         }
       }, 45)
     }, 600) // perfectly synced with AnimatePresence exit duration
-    
+
     return () => {
       clearTimeout(delayTimeout)
       if (titleInterval) {
@@ -318,7 +318,7 @@ const Hero = () => {
   // Parse Title into segments dynamically
   const stableTitle = currentSlide.title || 'Dressing is nothing but a Choice'
   const stableWords = stableTitle.split(' ')
-  
+
   let targetLine1 = ''
   let targetLine2 = ''
   let targetCircleWord = ''
@@ -338,7 +338,7 @@ const Hero = () => {
   const len1 = targetLine1.length
   const len2 = targetLine2.length
   const currentLength = typedTitle.length
-  
+
   let line1 = ''
   let line2 = ''
   let circleWord = ''
