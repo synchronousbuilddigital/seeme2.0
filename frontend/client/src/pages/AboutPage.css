@@ -156,10 +156,13 @@
 }
 
 @keyframes floatDust {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0) scale(1) rotate(0deg);
     opacity: 0.3;
   }
+
   50% {
     transform: translateY(-40px) scale(1.1) rotate(180deg);
     opacity: 0.7;
@@ -192,13 +195,7 @@
 }
 
 .hero-bottom-shading {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 25vh;
-  background: linear-gradient(to top, var(--off-white) 0%, transparent 100%);
-  z-index: 2;
+  display: none;
 }
 
 .hero-overlay-content {
@@ -286,6 +283,7 @@
     transform: translateY(0);
     opacity: 1;
   }
+
   100% {
     transform: translateY(14px);
     opacity: 0;
@@ -297,7 +295,7 @@
    ========================================================================== */
 
 .about-narrative-section {
-  padding: clamp(4rem, 10vw, 10rem) 0;
+  padding: clamp(1.5rem, 3vw, 3rem) 0;
   position: relative;
   z-index: 2;
 }
@@ -412,7 +410,7 @@
    ========================================================================== */
 
 .about-journey-section {
-  padding: clamp(4rem, 8vw, 8rem) 0;
+  padding: clamp(1.5rem, 3vw, 3rem) 0;
   background: var(--cream);
   position: relative;
   z-index: 2;
@@ -623,11 +621,11 @@
    ========================================================================== */
 
 .about-editorial-quote-section {
-  padding: clamp(5rem, 10vw, 11rem) 0;
+  padding: clamp(2rem, 4vw, 4rem) 0;
   position: relative;
   text-align: center;
   background: linear-gradient(rgba(21, 14, 8, 0.95), rgba(21, 14, 8, 0.95)),
-              url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1600');
+    url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1600');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -676,7 +674,7 @@
    ========================================================================== */
 
 .about-values-section {
-  padding: clamp(5rem, 9vw, 9rem) 0;
+  padding: clamp(2rem, 4vw, 4rem) 0;
   position: relative;
   z-index: 2;
 }
@@ -942,7 +940,7 @@
    ========================================================================== */
 
 .about-metrics-section {
-  padding: clamp(4rem, 8vw, 8rem) 0;
+  padding: clamp(1.5rem, 3vw, 3rem) 0;
   position: relative;
   z-index: 2;
 }
@@ -1156,7 +1154,7 @@
    ========================================================================== */
 
 .about-cta-premium {
-  padding: clamp(5rem, 11vw, 11rem) 0;
+  padding: clamp(2rem, 4vw, 4rem) 0 1rem;
   position: relative;
   z-index: 2;
   overflow: hidden;

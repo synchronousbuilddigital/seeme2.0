@@ -1990,10 +1990,10 @@
 
 @keyframes turnPagePrev {
   0% {
-    transform: rotateY(-180deg);
+    transform: rotateY(0deg);
   }
   100% {
-    transform: rotateY(0deg);
+    transform: rotateY(180deg);
   }
 }
 
@@ -2085,10 +2085,10 @@
 
 @keyframes turnPagePrevMobile {
   0% {
-    transform: rotateY(-180deg);
+    transform: rotateY(0deg);
   }
   100% {
-    transform: rotateY(0deg);
+    transform: rotateY(180deg);
   }
 }
 

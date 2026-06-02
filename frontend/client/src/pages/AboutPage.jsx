@@ -7,12 +7,12 @@ import './AboutPage.css'
 
 const AboutPage = () => {
   const navigate = useNavigate()
-  const [heroRef, heroInView] = useInView({ once: true, threshold: 0.1 })
-  const [storyRef, storyInView] = useInView({ once: true, threshold: 0.15 })
-  const [journeyRef, journeyInView] = useInView({ once: true, threshold: 0.15 })
-  const [valuesRef, valuesInView] = useInView({ once: true, threshold: 0.15 })
-  const [metricsRef, metricsInView] = useInView({ once: true, threshold: 0.2 })
-  const [bannerRef, bannerInView] = useInView({ once: true, threshold: 0.15 })
+  const [heroRef, heroInView] = useInView({ once: true, threshold: 0.02 })
+  const [storyRef, storyInView] = useInView({ once: true, threshold: 0.02 })
+  const [journeyRef, journeyInView] = useInView({ once: true, threshold: 0.02 })
+  const [valuesRef, valuesInView] = useInView({ once: true, threshold: 0.02 })
+  const [metricsRef, metricsInView] = useInView({ once: true, threshold: 0.02 })
+  const [bannerRef, bannerInView] = useInView({ once: true, threshold: 0.02 })
 
   // State for interactive journey tabs
   const [activeStage, setActiveStage] = useState(0)

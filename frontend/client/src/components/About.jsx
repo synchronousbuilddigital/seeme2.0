@@ -9,7 +9,7 @@ const About = () => {
   const navigate = useNavigate()
   const [aboutImage, setAboutImage] = useState('https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200')
 
-  const [ref, inView] = useInView({ once: true, threshold: 0.2 })
+  const [ref, inView] = useInView({ once: true, threshold: 0.02 })
 
   useEffect(() => {
     fetch(API_ENDPOINTS.SITE_SETTINGS)

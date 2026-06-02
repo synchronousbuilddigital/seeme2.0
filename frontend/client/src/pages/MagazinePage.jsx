@@ -846,13 +846,13 @@ const MagazinePage = () => {
 
                               {/* The 3D turning sheet, pivoting from center to the right */}
                               <div className="flipping-page-3d flip-prev">
-                                {/* Front side of turning page: shows new chapter right content */}
+                                {/* Front side of turning page: shows previous chapter left content */}
                                 <div className="flipping-side side-front">
-                                  {renderRightPageContent(stories[activeIdx], activeIdx)}
-                                </div>
-                                {/* Back side of turning page: shows previous chapter left content */}
-                                <div className="flipping-side side-back">
                                   {renderLeftPageContent(stories[previousIdx], previousIdx)}
+                                </div>
+                                {/* Back side of turning page: shows new chapter right content */}
+                                <div className="flipping-side side-back">
+                                  {renderRightPageContent(stories[activeIdx], activeIdx)}
                                 </div>
                               </div>
                             </>

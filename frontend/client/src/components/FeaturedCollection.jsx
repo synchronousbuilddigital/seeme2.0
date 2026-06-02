@@ -14,7 +14,7 @@ const FeaturedCollection = () => {
   const [loading, setLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const [ref, inView] = useInView({ once: true, threshold: 0.1 })
+  const [ref, inView] = useInView({ once: true, threshold: 0.02 })
 
   useEffect(() => {
     const fetchProducts = async () => {

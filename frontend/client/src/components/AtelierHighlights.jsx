@@ -5,7 +5,7 @@ import './AtelierHighlights.css'
 
 const AtelierHighlights = () => {
   const [activeTab, setActiveTab] = useState(0)
-  const [ref, inView] = useInView({ once: true, threshold: 0.15 })
+  const [ref, inView] = useInView({ once: true, threshold: 0.02 })
 
   const atelierPillars = [
     {

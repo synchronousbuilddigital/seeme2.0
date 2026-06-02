@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import './Footer.css'
 
 const Footer = () => {
-  const [ref, inView] = useInView({ once: true, threshold: 0.1 })
+  const [ref, inView] = useInView({ once: true, threshold: 0.02 })
   const navigate = useNavigate()
   
   return (

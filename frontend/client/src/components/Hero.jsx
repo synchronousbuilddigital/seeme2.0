@@ -539,7 +539,7 @@ const Hero = () => {
                   style={{ position: 'absolute', inset: 0 }}
                 >
                   <img
-                    src={getOptimizedImageUrl(nextSlide.image, 'thumbnail')}
+                    src={getOptimizedImageUrl(nextSlide.image, 'card')}
                     alt="Next Sneak Peek"
                     className="secondary-capsule-image"
                   />
