@@ -809,3 +809,35 @@
   background: var(--primary-gold) !important;
   color: var(--off-white) !important;
 }
+
+/* About Page Specific styling when transparent at top (desktop only) */
+@media (min-width: 969px) {
+  .navbar.about-navbar:not(.scrolled) .nav-item {
+    color: #ffffff;
+  }
+  
+  .navbar.about-navbar:not(.scrolled) .nav-item:hover {
+    color: var(--primary-gold);
+  }
+  
+  .navbar.about-navbar:not(.scrolled) .icon-btn {
+    color: #ffffff;
+  }
+  
+  .navbar.about-navbar:not(.scrolled) .icon-btn:hover {
+    color: var(--primary-gold);
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .navbar.about-navbar:not(.scrolled) .menu-toggle span {
+    background: #ffffff;
+  }
+  
+  .navbar.about-navbar:not(.scrolled) .dropdown-arrow {
+    color: #ffffff;
+  }
+  
+  .navbar.about-navbar:not(.scrolled) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}
