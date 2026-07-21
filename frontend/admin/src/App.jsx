@@ -6,11 +6,29 @@ import { clearAdminSession, isAdminSessionValid } from './utils/apiClient'
 import './App.css'
 
 const ProtectedRoute = ({ children }) => {
+  const query = new URLSearchParams(window.location.search)
+  const token = query.get('token')
+  const user = query.get('user')
+
+  if (token && user) {
+    localStorage.setItem('adminToken', token)
+    localStorage.setItem('adminUser', user)
+    // Clean up address bar query params
+    window.history.replaceState({}, document.title, window.location.pathname)
+  }
+
   if (!isAdminSessionValid()) {
     clearAdminSession()
     return <Navigate to="/login" replace />
   }
   return children
+}
+
+const RootRoute = () => {
+  if (isAdminSessionValid()) {
+    return <Navigate to="/dashboard" replace />
+  }
+  return <Navigate to="/login" replace />
 }
 
 function App() {
@@ -32,7 +50,7 @@ function App() {
               </ProtectedRoute>
             )}
           />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<RootRoute />} />
         </Routes>
       </div>
     </Router>

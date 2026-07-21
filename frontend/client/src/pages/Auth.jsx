@@ -68,7 +68,8 @@ const Auth = () => {
           // Store admin credentials
           localStorage.setItem('adminToken', result.token)
           localStorage.setItem('adminUser', JSON.stringify(result.user))
-          navigate('/admin/dashboard')
+          
+          window.location.href = `http://localhost:3001/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`
         } else {
           // Regular user goes to home
           navigate('/')

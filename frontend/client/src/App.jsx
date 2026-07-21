@@ -28,8 +28,6 @@ const MagazinePage = lazy(() => import('./pages/MagazinePage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const ProductPage = lazy(() => import('./pages/ProductPage'))
-const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'))
-const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
@@ -105,11 +103,6 @@ function App() {
               </div>
             }>
               <Routes>
-                {/* Admin Routes */}
-                <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-
                 {/* Auth Page */}
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
