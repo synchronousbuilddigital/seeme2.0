@@ -24,7 +24,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [logo, setLogo] = useState('/images/logoSEEMEE1.png')
   const { getCartCount, getWishlistCount } = useCart()
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, token, isAuthenticated, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const isAboutPage = location.pathname === '/about'
@@ -267,8 +267,8 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                       className="profile-menu-item" 
                       onClick={() => { 
                         setProfileMenuOpen(false); 
-                        const adminToken = token || localStorage.getItem('token') || '';
-                        const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('user') || '';
+                        const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
+                        const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || localStorage.getItem('adminUser') || '';
                         window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
                       }}
                     >
