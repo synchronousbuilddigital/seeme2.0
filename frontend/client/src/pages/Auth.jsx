@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { API_ENDPOINTS } from '../config/api'
+import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import './Auth.css'
 
 const Auth = () => {
@@ -26,7 +26,7 @@ const Auth = () => {
   useEffect(() => {
     if (user && user.role === 'admin') {
       const adminToken = token || localStorage.getItem('seemee-token') || '';
-      window.location.href = `http://localhost:3001/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(JSON.stringify(user))}`
+      window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(JSON.stringify(user))}`
     }
   }, [user, token])
 
@@ -76,7 +76,7 @@ const Auth = () => {
           localStorage.setItem('adminToken', result.token)
           localStorage.setItem('adminUser', JSON.stringify(result.user))
           
-          window.location.href = `http://localhost:3001/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`
+          window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`
         } else {
           // Regular user goes to home
           navigate('/')

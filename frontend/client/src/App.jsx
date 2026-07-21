@@ -11,6 +11,7 @@ import Wishlist from './components/Wishlist'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import GlobalLoader from './components/GlobalLoader'
+import { getAdminUrl } from './config/api'
 import './App.css'
 
 // Lazy load below-the-fold components
@@ -39,7 +40,7 @@ const AdminRedirect = () => {
   useEffect(() => {
     const cleanPath = window.location.pathname.replace(/^\/admin/, '') || '/'
     const targetPath = cleanPath + window.location.search
-    window.location.href = `http://localhost:3001${targetPath}`
+    window.location.href = `${getAdminUrl()}${targetPath}`
   }, [])
   return null
 }
