@@ -4,13 +4,8 @@
  * In production, VITE_API_URL points to the deployed backend.
  */
 export const getAdminUrl = () => {
-  if (import.meta.env.VITE_ADMIN_URL) {
-    return import.meta.env.VITE_ADMIN_URL.replace(/\/$/, '')
-  }
-  if (import.meta.env.PROD) {
-    return 'https://seeme2-0-inue.vercel.app'
-  }
-  return 'http://localhost:3001'
+  const url = import.meta.env.VITE_ADMIN_URL || (import.meta.env.PROD ? 'https://seeme2-0-inue.vercel.app' : 'http://localhost:3001')
+  return url.replace(/\/$/, '').replace(/\/dashboard$/, '')
 }
 
 const getApiBaseUrl = () => {
