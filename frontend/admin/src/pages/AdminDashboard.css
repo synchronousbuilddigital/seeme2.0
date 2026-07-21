@@ -34,7 +34,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  position: sticky;
+  position: fixed;
+  left: 0;
   top: 0;
   height: 100vh;
   z-index: 100;
@@ -169,14 +170,19 @@ body {
   display: none;
 }
 
-/* Content Area */
 .admin-content {
   flex-grow: 1;
   padding: 40px 50px;
   max-width: 1600px;
-  margin: 0 auto;
-  width: 100%;
+  margin-left: 260px;
+  width: calc(100% - 260px);
   box-sizing: border-box;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-sidebar.collapsed + .admin-content {
+  margin-left: 80px;
+  width: calc(100% - 80px);
 }
 
 .content-topbar {
@@ -975,6 +981,8 @@ body {
   .admin-content {
     padding: 15px 12px;
     margin-top: 0;
+    margin-left: 0 !important;
+    width: 100% !important;
   }
 
   /* Topbar header hides elements on mobile */

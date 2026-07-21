@@ -80,9 +80,9 @@ const getCategoryType = (slug) => {
 
 const Hero = () => {
   const navigate = useNavigate()
-  const [slides, setSlides] = useState([])
+  const [slides, setSlides] = useState(FALLBACK_SLIDES.slice(0, 5))
   const [activeIndex, setActiveIndex] = useState(0)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [categories, setCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri'])
   const [categoryImages, setCategoryImages] = useState({})
@@ -141,7 +141,6 @@ const Hero = () => {
 
     const fetchCarouselImages = async () => {
       try {
-        setLoading(true)
         const response = await fetch(API_ENDPOINTS.CAROUSEL)
         const data = await response.json()
 
@@ -262,9 +261,6 @@ const Hero = () => {
           setActiveIndex(0)
         }
       } finally {
-        if (isMounted) {
-          setLoading(false)
-        }
       }
     }
 
