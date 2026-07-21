@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 // Critical components - loaded immediately (above the fold)
 import Navbar from './components/Navbar'
@@ -34,6 +34,15 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const Search = lazy(() => import('./pages/Search'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const FabricsPage = lazy(() => import('./pages/FabricsPage'))
+
+const AdminRedirect = () => {
+  useEffect(() => {
+    const cleanPath = window.location.pathname.replace(/^\/admin/, '') || '/'
+    const targetPath = cleanPath + window.location.search
+    window.location.href = `http://localhost:3001${targetPath}`
+  }, [])
+  return null
+}
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -103,6 +112,10 @@ function App() {
               </div>
             }>
               <Routes>
+                {/* Admin Redirects to Standalone App on Port 3001 */}
+                <Route path="/admin" element={<AdminRedirect />} />
+                <Route path="/admin/*" element={<AdminRedirect />} />
+
                 {/* Auth Page */}
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />

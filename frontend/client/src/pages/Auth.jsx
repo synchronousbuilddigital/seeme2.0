@@ -20,8 +20,15 @@ const Auth = () => {
   const [showForgot, setShowForgot] = useState(false)
   const [forgotEmail, setForgotEmail] = useState('')
   
-  const { login, signup, forgotPassword } = useAuth()
+  const { user, token, login, signup, forgotPassword } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      const adminToken = token || localStorage.getItem('seemee-token') || '';
+      window.location.href = `http://localhost:3001/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(JSON.stringify(user))}`
+    }
+  }, [user, token])
 
   useEffect(() => {
     // Fetch logo from API
