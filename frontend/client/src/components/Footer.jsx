@@ -1,5 +1,5 @@
-import React from 'react'
-import { motion } from 'framer-motion'
+import React, { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
 import { useNavigate } from 'react-router-dom'
 import './Footer.css'
@@ -8,9 +8,28 @@ const Footer = () => {
   const [ref, inView] = useInView({ once: true, threshold: 0.02 })
   const navigate = useNavigate()
   
+  const [email, setEmail] = useState('')
+  const [subscribed, setSubscribed] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
+  const handleSubscribe = async (e) => {
+    e.preventDefault()
+    if (!email || !email.trim()) return
+    setSubmitting(true)
+    // Simulate premium API subscribe call
+    await new Promise(resolve => setTimeout(resolve, 1200))
+    setSubmitting(false)
+    setSubscribed(true)
+    setEmail('')
+  }
+  
   return (
     <footer className="footer-editorial" id="contact" ref={ref}>
-      {/* Massive Background Logo */}
+      {/* Ambient background glows */}
+      <div className="footer-glow footer-glow-gold"></div>
+      <div className="footer-glow footer-glow-pink"></div>
+
+      {/* Massive Accent Background Logo */}
       <div className="footer-bg-text">SEE MEE</div>
       
       <div className="footer-luxury-container">
@@ -18,9 +37,9 @@ const Footer = () => {
         <div className="footer-main-grid">
           <motion.div 
             className="footer-brand-column"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="footer-logo-premium" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
               <span className="logo-main">See Mee</span>
@@ -31,14 +50,50 @@ const Footer = () => {
               Our curated collections celebrate the timeless elegance of heritage silhouettes.
             </p>
             <div className="editorial-socials">
-              {['instagram', 'facebook', 'twitter', 'pinterest'].map((platform) => (
+              {[
+                { 
+                  name: 'Instagram', 
+                  svg: (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                  )
+                },
+                { 
+                  name: 'Facebook', 
+                  svg: (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                    </svg>
+                  )
+                },
+                { 
+                  name: 'Pinterest', 
+                  svg: (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2C6.48 2 2 6.48 2 12c0 4.27 2.68 7.91 6.46 9.32-.09-.79-.17-2 .03-2.87.19-.79 1.22-5.17 1.22-5.17s-.31-.62-.31-1.54c0-1.44.83-2.52 1.88-2.52.88 0 1.31.67 1.31 1.47 0 .89-.57 2.22-.86 3.45-.24 1.03.52 1.87 1.54 1.87 1.85 0 3.27-1.95 3.27-4.77 0-2.49-1.79-4.23-4.34-4.23-2.95 0-4.69 2.22-4.69 4.5 0 .89.34 1.85.77 2.37.08.1.1.17.07.28l-.29 1.18c-.05.18-.16.22-.36.13-1.34-.62-2.18-2.58-2.18-4.15 0-3.38 2.45-6.49 7.08-6.49 3.72 0 6.61 2.65 6.61 6.19 0 3.7-2.33 6.68-5.57 6.68-1.09 0-2.11-.56-2.46-1.23 0 0-.54 2.05-.67 2.56-.24.93-.89 2.09-1.33 2.81C10.03 21.84 11 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"></path>
+                    </svg>
+                  )
+                },
+                { 
+                  name: 'Twitter', 
+                  svg: (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                    </svg>
+                  )
+                }
+              ].map((social) => (
                 <motion.a 
-                  key={platform}
-                  href={`#${platform}`}
-                  className="social-icon-link"
-                  whileHover={{ y: -5, color: '#D4AF37' }}
+                  key={social.name}
+                  href={`#${social.name.toLowerCase()}`}
+                  className="social-icon-btn"
+                  whileHover={{ y: -3 }}
+                  aria-label={`Follow us on ${social.name}`}
                 >
-                  {platform}
+                  {social.svg}
                 </motion.a>
               ))}
             </div>
@@ -46,24 +101,24 @@ const Footer = () => {
 
           <motion.div 
             className="footer-nav-column"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.1 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           >
             <h4 className="column-title">Collections</h4>
             <ul className="column-links">
-              <li><button onClick={() => navigate('/category/anarkali')}>Anarkali Suits</button></li>
-              <li><button onClick={() => navigate('/category/palazzo')}>Palazzo Sets</button></li>
-              <li><button onClick={() => navigate('/category/straight-cut')}>Straight Cut</button></li>
-              <li><button onClick={() => navigate('/collections')}>Featured Pieces</button></li>
+              <li><button onClick={() => navigate('/category/2-piece-sets')}>2-Piece Sets</button></li>
+              <li><button onClick={() => navigate('/category/3-piece-sets')}>3-Piece Sets</button></li>
+              <li><button onClick={() => navigate('/category/co-ord-sets')}>Co-ord Sets</button></li>
+              <li><button onClick={() => navigate('/collections')}>All Collections</button></li>
             </ul>
           </motion.div>
 
           <motion.div 
             className="footer-nav-column"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           >
             <h4 className="column-title">Experience</h4>
             <ul className="column-links">
@@ -76,18 +131,49 @@ const Footer = () => {
 
           <motion.div 
             className="footer-newsletter-column"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
           >
             <h4 className="column-title">Newsletter</h4>
             <p className="newsletter-description">
               Join our list for exclusive access to new arrivals and heritage stories.
             </p>
-            <div className="editorial-input-group">
-              <input type="email" placeholder="email@example.com" />
-              <button className="input-submit">Join</button>
-            </div>
+            <AnimatePresence mode="wait">
+              {!subscribed ? (
+                <motion.form 
+                  onSubmit={handleSubscribe} 
+                  className="editorial-input-group"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0, y: -10 }}
+                >
+                  <input 
+                    type="email" 
+                    placeholder="email@example.com" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={submitting}
+                  />
+                  <button type="submit" className="input-submit" disabled={submitting}>
+                    {submitting ? '...' : 'Join'}
+                  </button>
+                </motion.form>
+              ) : (
+                <motion.div 
+                  className="newsletter-success-msg"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <span>Thank you for subscribing!</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
 

@@ -7,8 +7,22 @@ import './CategoriesSlider.css'
 
 const CategoriesSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0)
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('seemee_mapped_categories')
+      return cached ? JSON.parse(cached) : []
+    } catch {
+      return []
+    }
+  })
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('seemee_mapped_categories')
+      return cached ? false : true
+    } catch {
+      return true
+    }
+  })
  
   const categoryDefaults = {
     '2-piece-sets': {
@@ -89,6 +103,7 @@ const CategoriesSlider = () => {
         })
 
         setCategories(mappedCategories)
+        localStorage.setItem('seemee_mapped_categories', JSON.stringify(mappedCategories))
       } catch (err) {
         console.error('Error fetching live category assets:', err)
       } finally {
@@ -131,13 +146,6 @@ const CategoriesSlider = () => {
             <p className="slider-intro">
               Curated silhouettes and fabrics for every mood, crafted to feel editorial and easy to browse.
             </p>
-          </div>
-
-          <div className="header-actions">
-            <div className="category-count">
-              <strong>{String(totalCategories).padStart(2, '0')}</strong>
-              <span>Curated categories</span>
-            </div>
           </div>
         </motion.div>
 

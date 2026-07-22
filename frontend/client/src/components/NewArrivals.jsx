@@ -9,8 +9,22 @@ import './NewArrivals.css'
 const NewArrivals = () => {
   const navigate = useNavigate()
   const { toggleWishlist, isInWishlist, addToCart } = useContext(CartContext)
-  const [arrivals, setArrivals] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [arrivals, setArrivals] = useState(() => {
+    try {
+      const cached = localStorage.getItem('seemee_new_arrivals')
+      return cached ? JSON.parse(cached) : []
+    } catch {
+      return []
+    }
+  })
+  const [loading, setLoading] = useState(() => {
+    try {
+      const cached = localStorage.getItem('seemee_new_arrivals')
+      return cached ? false : true
+    } catch {
+      return true
+    }
+  })
 
   // Fetch Arrivals
   useEffect(() => {
@@ -18,23 +32,28 @@ const NewArrivals = () => {
       try {
         const response = await fetch(API_ENDPOINTS.TOP_PRODUCTS)
         const data = await response.json()
+        let result = []
         if (data.success && data.data.length > 0) {
-          setArrivals(data.data)
+          result = data.data
         } else {
-          setArrivals([
+          result = [
             { id: '1', category: 'anarkali', title: 'Anarkali Suit', price: 7500, image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800' },
             { id: '2', category: 'palazzo', title: 'Palazzo Suit', price: 6800, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800' },
             { id: '3', category: 'straight-cut', title: 'Straight Cut Suit', price: 8200, image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=800' },
             { id: '4', category: 'sharara', title: 'Sharara Suit', price: 9500, image: 'https://images.unsplash.com/photo-1608748010899-18f300247112?auto=format&fit=crop&q=80&w=800' }
-          ])
+          ]
         }
+        setArrivals(result)
+        localStorage.setItem('seemee_new_arrivals', JSON.stringify(result))
       } catch (error) {
-        setArrivals([
+        const fallback = [
           { id: '1', category: 'anarkali', title: 'Anarkali Suit', price: 7500, image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800' },
           { id: '2', category: 'palazzo', title: 'Palazzo Suit', price: 6800, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800' },
           { id: '3', category: 'straight-cut', title: 'Straight Cut Suit', price: 8200, image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=800' },
           { id: '4', category: 'sharara', title: 'Sharara Suit', price: 9500, image: 'https://images.unsplash.com/photo-1608748010899-18f300247112?auto=format&fit=crop&q=80&w=800' }
-        ])
+        ]
+        setArrivals(fallback)
+        localStorage.setItem('seemee_new_arrivals', JSON.stringify(fallback))
       } finally {
         setLoading(false)
       }

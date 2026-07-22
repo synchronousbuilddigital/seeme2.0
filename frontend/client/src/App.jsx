@@ -60,8 +60,8 @@ function App() {
         <NewArrivals />
         <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
           <ShopSection />
-          <FabricSection />
           <CategoriesSlider />
+          <FabricSection />
           <About />
         </Suspense>
       </main>

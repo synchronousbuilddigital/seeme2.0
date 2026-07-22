@@ -104,8 +104,9 @@
   height: clamp(200px, 18vw, 250px);
   border-radius: 50%;
   padding: 10px;
-  border: 3.5px solid #ebd292; /* outer embroidery frame */
-  box-shadow: 
+  border: 3.5px solid #ebd292;
+  /* outer embroidery frame */
+  box-shadow:
     0 10px 30px rgba(0, 0, 0, 0.04),
     inset 0 0 15px rgba(212, 175, 55, 0.1);
   flex-shrink: 0;
@@ -173,7 +174,8 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform 8s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* slow luxury zoom */
+  transition: transform 8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  /* slow luxury zoom */
 }
 
 .fabric-circle-overlay {
@@ -230,7 +232,7 @@
 /* Hover Zoom & Glow Effects */
 .fabric-row-alternating:hover .fabric-large-circle-portal {
   border-color: var(--primary-gold);
-  box-shadow: 
+  box-shadow:
     0 25px 55px rgba(212, 175, 55, 0.22),
     inset 0 0 25px rgba(212, 175, 55, 0.2);
   transform: scale(1.03) rotate(2deg);
@@ -326,7 +328,7 @@
     width: 160px;
     height: 160px;
   }
-  
+
   .fabric-row-title {
     font-size: 1.5rem;
   }
@@ -339,5 +341,81 @@
   .explore-fabrics-btn {
     padding: 1rem 2.2rem;
     font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .homepage-fabric-section {
+    padding: 60px 0;
+  }
+
+  .fabric-section-container {
+    width: calc(100% - 40px);
+    padding: 0;
+  }
+
+  .fabric-section-header {
+    margin-bottom: 40px;
+    padding: 0 10px;
+  }
+
+  .fabric-heading {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .fabric-section-intro {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .fabric-rows-container {
+    gap: 48px;
+    margin-bottom: 40px;
+  }
+
+  .fabric-row-alternating,
+  .fabric-row-alternating.row-reverse {
+    flex-direction: column !important;
+    gap: 20px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .fabric-large-circle-portal {
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+  }
+
+  .fabric-row-details {
+    max-width: 100%;
+    padding: 0 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .fabric-row-title {
+    font-size: 22px;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .fabric-row-description {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 0;
+    text-align: center;
+    max-width: 420px;
+  }
+
+  .explore-fabrics-btn {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+    padding: 14px 22px;
+    font-size: 13px;
+    margin-top: 10px;
   }
 }
