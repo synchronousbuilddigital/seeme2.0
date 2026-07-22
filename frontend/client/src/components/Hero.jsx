@@ -5,6 +5,45 @@ import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import './Hero.css'
 
+// Module-level eager fetch promises to optimize first-paint load speed
+let carouselPromise = null
+let categoriesPromise = null
+let productsPromise = null
+
+const startEagerFetches = () => {
+  if (typeof window === 'undefined') return
+  
+  if (!carouselPromise) {
+    carouselPromise = fetch(API_ENDPOINTS.CAROUSEL)
+      .then(res => res.ok ? res.json() : Promise.reject('Response not ok'))
+      .catch(err => {
+        console.error('Eager fetch carousel error:', err)
+        return null
+      })
+  }
+
+  if (!categoriesPromise) {
+    categoriesPromise = fetch(API_ENDPOINTS.GET_CATEGORIES)
+      .then(res => res.ok ? res.json() : Promise.reject('Response not ok'))
+      .catch(err => {
+        console.error('Eager fetch categories error:', err)
+        return null
+      })
+  }
+
+  if (!productsPromise) {
+    productsPromise = fetch(API_ENDPOINTS.PRODUCTS)
+      .then(res => res.ok ? res.json() : Promise.reject('Response not ok'))
+      .catch(err => {
+        console.error('Eager fetch products error:', err)
+        return null
+      })
+  }
+}
+
+// Start prefetching immediately upon JS loading
+startEagerFetches()
+
 const FALLBACK_SLIDES = [
   {
     image: '/images/home-hero.png',
@@ -80,12 +119,59 @@ const getCategoryType = (slug) => {
 
 const Hero = () => {
   const navigate = useNavigate()
-  const [slides, setSlides] = useState(FALLBACK_SLIDES.slice(0, 5))
+  
+  // Initialize slides state from local storage cache to avoid blank states/flashing
+  const [slides, setSlides] = useState(() => {
+    try {
+      const cached = localStorage.getItem('seemee_carousel_slides')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing cached slides:', e)
+    }
+    return FALLBACK_SLIDES.slice(0, 5)
+  })
+  
   const [activeIndex, setActiveIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const [categories, setCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri'])
-  const [categoryImages, setCategoryImages] = useState({})
+  
+  // Initialize categories from cache
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem('seemee_categories')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing cached categories:', e)
+    }
+    return ['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri']
+  })
+  
+  // Initialize category images from cache
+  const [categoryImages, setCategoryImages] = useState(() => {
+    try {
+      const cached = localStorage.getItem('seemee_category_images')
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (parsed && typeof parsed === 'object') {
+          return parsed
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing cached category images:', e)
+    }
+    return {}
+  })
+  
   const [typedTitle, setTypedTitle] = useState('')
 
   const getCategoryDisplayImage = (slug) => {
@@ -95,22 +181,41 @@ const Hero = () => {
   }
 
   useEffect(() => {
-    // Fetch unique categories
-    fetch(API_ENDPOINTS.GET_CATEGORIES)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data.length > 0) {
-          setCategories(data.data)
-        }
-      })
-      .catch(err => console.error('Error fetching categories in Hero:', err))
+    let isMounted = true
 
-    // Fetch active products to extract real category images from database
-    fetch(API_ENDPOINTS.PRODUCTS)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.data) {
-          const products = data.data
+    const fetchCategoriesAndProducts = async () => {
+      try {
+        let catPromise = categoriesPromise
+        if (catPromise) {
+          categoriesPromise = null // Consume module eager promise
+        } else {
+          catPromise = fetch(API_ENDPOINTS.GET_CATEGORIES).then(res => res.json())
+        }
+        
+        const catData = await catPromise
+        if (isMounted && catData && catData.success && catData.data.length > 0) {
+          setCategories(catData.data)
+          try {
+            localStorage.setItem('seemee_categories', JSON.stringify(catData.data))
+          } catch (e) {
+            console.error('Error caching categories:', e)
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching categories in Hero:', err)
+      }
+
+      try {
+        let prodPromise = productsPromise
+        if (prodPromise) {
+          productsPromise = null // Consume module eager promise
+        } else {
+          prodPromise = fetch(API_ENDPOINTS.PRODUCTS).then(res => res.json())
+        }
+
+        const prodData = await prodPromise
+        if (isMounted && prodData && prodData.success && prodData.data) {
+          const products = prodData.data
           const imageMap = {}
           products.forEach(p => {
             if (p.category && p.images && p.images.length > 0) {
@@ -121,9 +226,22 @@ const Hero = () => {
             }
           })
           setCategoryImages(imageMap)
+          try {
+            localStorage.setItem('seemee_category_images', JSON.stringify(imageMap))
+          } catch (e) {
+            console.error('Error caching category images:', e)
+          }
         }
-      })
-      .catch(err => console.error('Error fetching category images:', err))
+      } catch (err) {
+        console.error('Error fetching category images:', err)
+      }
+    }
+
+    fetchCategoriesAndProducts()
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   useEffect(() => {
@@ -141,8 +259,15 @@ const Hero = () => {
 
     const fetchCarouselImages = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.CAROUSEL)
-        const data = await response.json()
+        let data
+        let promise = carouselPromise
+        if (promise) {
+          carouselPromise = null // Consume module eager promise
+          data = await promise
+        } else {
+          const response = await fetch(API_ENDPOINTS.CAROUSEL)
+          data = await response.json()
+        }
 
         const backendSlides = data.success
           ? data.data
@@ -253,6 +378,11 @@ const Hero = () => {
         if (isMounted) {
           setSlides(nextSlides)
           setActiveIndex(0)
+          try {
+            localStorage.setItem('seemee_carousel_slides', JSON.stringify(nextSlides))
+          } catch (e) {
+            console.error('Error caching carousel slides:', e)
+          }
         }
       } catch (error) {
         console.error('Error fetching carousel:', error)
@@ -503,6 +633,7 @@ const Hero = () => {
                     alt={currentSlide.title || 'SeeMee Luxury'}
                     className="capsule-image"
                     loading="eager"
+                    fetchPriority="high"
                   />
                 </motion.div>
               </AnimatePresence>
@@ -538,6 +669,7 @@ const Hero = () => {
                     src={getOptimizedImageUrl(nextSlide.image, 'card')}
                     alt="Next Sneak Peek"
                     className="secondary-capsule-image"
+                    loading="lazy"
                   />
                 </motion.div>
               </AnimatePresence>
@@ -565,7 +697,11 @@ const Hero = () => {
                   aria-label={`Go to slide ${index + 1}`}
                 >
                   <div className="thumbnail-img-wrap">
-                    <img src={getOptimizedImageUrl(slide.image, 'thumbnail')} alt={slide.title || 'Slide Preview'} />
+                    <img 
+                      src={getOptimizedImageUrl(slide.image, 'thumbnail')} 
+                      alt={slide.title || 'Slide Preview'} 
+                      loading="lazy"
+                    />
                   </div>
                 </button>
               ))}
@@ -587,7 +723,12 @@ const Hero = () => {
               >
                 <div className="category-circle-visual">
                   <div className="category-circle-img-wrap">
-                    <img src={getCategoryDisplayImage(cat)} alt={cat} className="category-circle-img" />
+                    <img 
+                      src={getCategoryDisplayImage(cat)} 
+                      alt={cat} 
+                      className="category-circle-img" 
+                      loading="lazy"
+                    />
                     <div className="category-circle-overlay" />
                   </div>
                 </div>
