@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
 import { API_ENDPOINTS } from '../config/api'
+import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './About.css'
 
 const About = () => {
@@ -33,7 +34,7 @@ const About = () => {
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="main-image-frame">
-            <img src={aboutImage} alt="See Mee Heritage" loading="lazy" />
+            <img src={getOptimizedImageUrl(aboutImage, 'hero')} alt="See Mee Heritage" loading="lazy" />
             <div className="frame-accent-line"></div>
           </div>
           <div className="est-box">
