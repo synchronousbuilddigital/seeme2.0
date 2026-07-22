@@ -21,6 +21,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState(null)
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
+  const [imageUrlInput, setImageUrlInput] = useState('')
   const pageSize = 8
   const [formTab, setFormTab] = useState('general')
   const [formData, setFormData] = useState({
@@ -184,6 +185,27 @@ const ProductsManager = ({ onPromoteToHero }) => {
         setUploadProgress(0)
       }, 500)
     }
+  }
+
+  const handleAddImageUrl = (e) => {
+    e?.preventDefault()
+    const trimmed = imageUrlInput.trim()
+    if (!trimmed) {
+      showNotification('Please enter an image URL', 'error')
+      return
+    }
+
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://') && !trimmed.startsWith('/')) {
+      showNotification('Please enter a valid URL starting with http:// or https://', 'error')
+      return
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      images: [...(prev.images || []), trimmed]
+    }))
+    setImageUrlInput('')
+    showNotification('Image URL added successfully')
   }
 
   const handleVideoUpload = async (file) => {
@@ -714,6 +736,33 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         <input id="image-upload" type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={(e) => handleMediaUpload(e.target.files, 'images')} />
                       </div>
 
+                      {/* Add Image by Web URL Input */}
+                      <div className="url-upload-container">
+                        <label className="url-upload-label">Or Add Image by Web URL</label>
+                        <div className="url-upload-row">
+                          <input
+                            type="url"
+                            className="url-upload-input"
+                            placeholder="Paste image URL (e.g. https://example.com/image.jpg)"
+                            value={imageUrlInput}
+                            onChange={(e) => setImageUrlInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleAddImageUrl()
+                              }
+                            }}
+                          />
+                          <button
+                            type="button"
+                            className="url-upload-btn"
+                            onClick={handleAddImageUrl}
+                          >
+                            + Add URL
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="media-previews-grid">
                         {formData.images.map((img, i) => (
                           <motion.div
@@ -856,7 +905,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
       <div className="products-list">
         <h2>All Products ({products.length})</h2>
-        <div className="products-table-container premium-card">
+        <div className="products-table-container premium-card desktop-only-table">
           <table className="products-table">
             <thead>
               <tr>
@@ -935,6 +984,73 @@ const ProductsManager = ({ onPromoteToHero }) => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Touch Product Card Feed */}
+        <div className="mobile-product-card-feed">
+          {paginatedProducts.map((product) => (
+            <div key={product._id} className="mobile-product-card">
+              <div className="mobile-card-top">
+                <div className="mobile-card-img-wrapper">
+                  {product.images && product.images.length > 0 && product.images[0] ? (
+                    <img src={getImageUrl(product.images[0])} alt={product.name} />
+                  ) : (
+                    <div className="no-image-mini">No Img</div>
+                  )}
+                </div>
+                <div className="mobile-card-meta">
+                  <div className="mobile-card-category-row">
+                    <span className="category-pill">{product.category}</span>
+                    <span className="sku">{product.sku || 'No SKU'}</span>
+                  </div>
+                  <h4 className="mobile-card-title">{product.name}</h4>
+                  <div className="mobile-card-price-row">
+                    <span className="mobile-price">₹{product.price?.toLocaleString('en-IN')}</span>
+                    {product.discountPrice > 0 && (
+                      <span className="mobile-discount-price">₹{product.discountPrice?.toLocaleString('en-IN')}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mobile-card-body">
+                <div className="mobile-card-stock">
+                  <span className={`stock-dot ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}></span>
+                  <span className="stock-label">Stock: <strong>{product.stock} Units</strong></span>
+                </div>
+                <div className="status-badges">
+                  {product.featured && <span className="mini-badge featured">Featured</span>}
+                  {product.inCollection && <span className="mini-badge collection">Collection</span>}
+                  {!product.featured && !product.inCollection && <span className="mini-badge regular">Regular</span>}
+                </div>
+              </div>
+
+              <div className="mobile-card-actions">
+                <button 
+                  onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)} 
+                  className="mobile-action-btn hero"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                  <span>Hero</span>
+                </button>
+                <button onClick={() => startEdit(product)} className="mobile-action-btn edit">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                  <span>Edit</span>
+                </button>
+                <button onClick={() => handleDuplicate(product)} className="mobile-action-btn duplicate">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                  <span>Copy</span>
+                </button>
+                <button onClick={() => setProductToDelete(product)} className="mobile-action-btn delete">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+          ))}
+          {filteredProducts.length === 0 && (
+            <div className="mobile-no-products">No products found matching your filter criteria.</div>
+          )}
         </div>
 
         {totalPages > 1 && (

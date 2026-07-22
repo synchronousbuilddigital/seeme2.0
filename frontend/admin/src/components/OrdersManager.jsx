@@ -225,7 +225,7 @@ const OrdersManager = () => {
         </div>
       </div>
 
-      <div className="orders-table-container premium-card">
+      <div className="orders-table-container premium-card desktop-only-table">
         {visibleOrders.length === 0 ? (
           <div className="no-orders-state">
             <div className="empty-icon">📦</div>
@@ -256,8 +256,8 @@ const OrdersManager = () => {
                   </td>
                   <td>
                     <div className="customer-cell">
-                      <h4>{order.customer.name}</h4>
-                      <p>{order.customer.email}</p>
+                      <h4>{order.customer?.name}</h4>
+                      <p>{order.customer?.email}</p>
                     </div>
                   </td>
                   <td>
@@ -279,7 +279,7 @@ const OrdersManager = () => {
                     </span>
                   </td>
                   <td>
-                    <span className="amount-cell">₹{order.totalAmount.toLocaleString()}</span>
+                    <span className="amount-cell">₹{order.totalAmount?.toLocaleString('en-IN')}</span>
                   </td>
                   <td>
                     <button className="manage-btn" onClick={() => setSelectedOrder(order)}>
@@ -290,6 +290,68 @@ const OrdersManager = () => {
               ))}
             </tbody>
           </table>
+        )}
+      </div>
+
+      {/* Mobile Touch Order Card Feed */}
+      <div className="mobile-order-card-feed">
+        {visibleOrders.map((order) => (
+          <div key={order._id} className="mobile-order-card" onClick={() => setSelectedOrder(order)}>
+            <div className="mobile-order-card-top">
+              <div className="mobile-order-id-group">
+                <span className="mobile-order-num">#{order.orderNumber}</span>
+                <span className="mobile-order-date">
+                  {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short'
+                  })} • {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <span className={`status-pill ${order.status}`}>
+                {order.status}
+              </span>
+            </div>
+
+            <div className="mobile-order-card-body">
+              <div className="mobile-customer-info">
+                <div className="mobile-customer-avatar">
+                  {order.customer?.name ? order.customer.name.charAt(0).toUpperCase() : 'C'}
+                </div>
+                <div className="mobile-customer-text">
+                  <h4>{order.customer?.name || 'Customer'}</h4>
+                  <p>{order.customer?.email || order.customer?.phone || 'No contact details'}</p>
+                </div>
+              </div>
+              
+              <div className="mobile-order-financials">
+                <div className="mobile-order-items-badge">
+                  📦 {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
+                </div>
+                <div className="mobile-order-total">
+                  ₹{order.totalAmount?.toLocaleString('en-IN')}
+                </div>
+              </div>
+            </div>
+
+            <div className="mobile-order-card-footer">
+              <span className={`payment-badge ${order.paymentStatus || 'unpaid'}`}>
+                {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE PAID'}
+              </span>
+              <button className="mobile-manage-btn" onClick={(e) => {
+                e.stopPropagation()
+                setSelectedOrder(order)
+              }}>
+                <span>Manage Order</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          </div>
+        ))}
+        {visibleOrders.length === 0 && (
+          <div className="no-orders-state">
+            <div className="empty-icon">📦</div>
+            <h3>No orders found</h3>
+            <p>Try adjusting your search or filters</p>
+          </div>
         )}
       </div>
 

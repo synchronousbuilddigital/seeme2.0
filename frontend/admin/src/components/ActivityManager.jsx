@@ -66,17 +66,23 @@ const ActivityManager = () => {
   return (
     <div className="activity-manager">
       <div className="manager-header">
-        <div>
+        <div className="header-left">
           <h1>Activity Log</h1>
           <p>Real-time updates and notifications</p>
+        </div>
+        <div className="header-right">
+          <div className="live-status-pill">
+            <span className="pulse-dot"></span>
+            <span>Live Stream</span>
+          </div>
         </div>
       </div>
 
       <div className="activity-toolbar">
         <div className="feed-filters">
-          <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>All Updates</button>
-          <button className={filter === 'order' ? 'active' : ''} onClick={() => setFilter('order')}>Orders</button>
-          <button className={filter === 'inventory' ? 'active' : ''} onClick={() => setFilter('inventory')}>Inventory</button>
+          <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>All Updates ({activities.length})</button>
+          <button className={filter === 'order' ? 'active' : ''} onClick={() => setFilter('order')}>Orders ({activities.filter(a => a.type === 'order').length})</button>
+          <button className={filter === 'inventory' ? 'active' : ''} onClick={() => setFilter('inventory')}>Inventory ({activities.filter(a => a.type === 'inventory').length})</button>
         </div>
       </div>
 

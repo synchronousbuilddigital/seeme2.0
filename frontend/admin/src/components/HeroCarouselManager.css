@@ -795,7 +795,7 @@
 
   .lux-input {
     padding: 12px 14px;
-    font-size: 0.9rem;
+    font-size: 16px !important; /* Prevents iOS WebKit auto-zoom */
     border-radius: 10px;
     min-height: 46px;
   }

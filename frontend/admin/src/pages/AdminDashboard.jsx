@@ -106,25 +106,61 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
-      {/* Mobile Backdrop Overlay when menu open */}
-      {isMobileMenuOpen && (
-        <div 
-          className="mobile-nav-backdrop" 
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
+      {/* Mobile Backdrop Overlay when drawer menu is open */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            className="mobile-nav-backdrop" 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* Mobile Top Header Bar */}
+      {/* Mobile Sticky Top Header Bar */}
       <header className="mobile-header-bar">
-        <div className="mobile-logo-container" onClick={() => handleTabClick('overview')}>
-          <img src="/images/logoSEEMEE1.png" alt="See Mee" className="mobile-logo" />
+        <div className="mobile-header-left">
+          <button 
+            type="button" 
+            className="mobile-hamburger-btn"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              {isMobileMenuOpen ? (
+                <path d="M18 6L6 18M6 6l12 12" />
+              ) : (
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+          <div className="mobile-logo-container" onClick={() => handleTabClick('overview')}>
+            <img src="/images/logoSEEMEE1.png" alt="See Mee" className="mobile-logo" />
+            <span className="mobile-app-title">ADMIN</span>
+          </div>
         </div>
-        <div className="mobile-avatar" onClick={() => handleTabClick('overview')}>A</div>
+
+        <div className="mobile-header-right">
+          <span className="mobile-active-tab-name">
+            {activeTab === 'overview' && 'Overview'}
+            {activeTab === 'products' && 'Products'}
+            {activeTab === 'orders' && 'Orders'}
+            {activeTab === 'inventory' && 'Inventory'}
+            {activeTab === 'customers' && 'Customers'}
+            {activeTab === 'activity' && 'Activity'}
+            {activeTab === 'categories' && 'Categories'}
+            {activeTab === 'hero' && 'Hero'}
+          </span>
+          <div className="mobile-avatar" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>A</div>
+        </div>
       </header>
 
-      <aside className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-header" onClick={() => handleTabClick('overview')} style={{ cursor: 'pointer' }}>
-          <div className="logo-container">
+      {/* Sidebar Navigation Drawer (Desktop fixed sidebar & Mobile slide-out drawer) */}
+      <aside className={`admin-sidebar ${sidebarCollapsed ? 'collapsed' : ''} ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
+        <div className="sidebar-header">
+          <div className="logo-container" onClick={() => handleTabClick('overview')} style={{ cursor: 'pointer' }}>
             <img
               src="/images/logoSEEMEE1.png"
               alt="See Mee Logo"
@@ -132,6 +168,14 @@ const AdminDashboard = () => {
             />
           </div>
           {!sidebarCollapsed && <span className="admin-brand-name">ADMIN PANEL</span>}
+          {/* Mobile close button inside sidebar */}
+          <button 
+            type="button" 
+            className="mobile-sidebar-close" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            ✕
+          </button>
         </div>
 
         <button
@@ -141,35 +185,7 @@ const AdminDashboard = () => {
           {sidebarCollapsed ? '→' : '←'}
         </button>
 
-        {/* Mobile Tab Switcher Dropdown Toggle */}
-        <div className="mobile-nav-toggle-wrapper">
-          <button 
-            type="button" 
-            className="mobile-nav-toggle-btn" 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-expanded={isMobileMenuOpen}
-            aria-label="Toggle navigation menu"
-          >
-            <span className="active-tab-indicator">
-              <span className="dot-gold"></span>
-              {activeTab === 'overview' && 'Overview'}
-              {activeTab === 'products' && 'Products'}
-              {activeTab === 'orders' && 'Orders'}
-              {activeTab === 'inventory' && 'Inventory'}
-              {activeTab === 'customers' && 'Customers'}
-              {activeTab === 'activity' && 'Activity Log'}
-              {activeTab === 'categories' && 'Categories'}
-              {activeTab === 'hero' && 'Hero Section'}
-            </span>
-            <div className={`three-dots-icon ${isMobileMenuOpen ? 'open' : ''}`}>
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          </button>
-        </div>
-
-        <nav className={`sidebar-nav ${isMobileMenuOpen ? 'expanded' : 'collapsed'}`}>
+        <nav className="sidebar-nav">
           <button className={activeTab === 'overview' ? 'active' : ''} onClick={() => handleTabClick('overview')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             <span>Overview</span>
@@ -332,7 +348,8 @@ const AdminDashboard = () => {
                     <h3>Latest Transactions</h3>
                     <button className="view-all-link" onClick={() => setActiveTab('orders')}>View All</button>
                   </div>
-                  <div className="simple-table-wrapper">
+                  {/* Desktop Table View */}
+                  <div className="simple-table-wrapper desktop-only-table">
                     <table className="simple-table">
                       <thead>
                         <tr>
@@ -346,13 +363,35 @@ const AdminDashboard = () => {
                         {stats.recentOrders.slice(0, 5).map(o => (
                           <tr key={o._id}>
                             <td>#{o.orderNumber}</td>
-                            <td>{o.customer.name}</td>
+                            <td>{o.customer?.name}</td>
                             <td><span className={`mini-badge ${o.status}`}>{o.status}</span></td>
-                            <td>₹{o.totalAmount.toLocaleString()}</td>
+                            <td>₹{o.totalAmount?.toLocaleString('en-IN')}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
+                  </div>
+
+                  {/* Mobile Touch Transaction Card Feed */}
+                  <div className="mobile-tx-feed">
+                    {stats.recentOrders.slice(0, 5).map(o => (
+                      <div key={o._id} className="mobile-tx-item" onClick={() => setActiveTab('orders')}>
+                        <div className="mobile-tx-avatar">
+                          {o.customer?.name ? o.customer.name.charAt(0).toUpperCase() : 'O'}
+                        </div>
+                        <div className="mobile-tx-info">
+                          <div className="mobile-tx-header">
+                            <span className="mobile-tx-number">#{o.orderNumber}</span>
+                            <span className={`mini-badge ${o.status}`}>{o.status}</span>
+                          </div>
+                          <span className="mobile-tx-customer">{o.customer?.name || 'Customer'}</span>
+                        </div>
+                        <div className="mobile-tx-amount">
+                          ₹{o.totalAmount?.toLocaleString('en-IN')}
+                        </div>
+                      </div>
+                    ))}
+                    {stats.recentOrders.length === 0 && <p className="empty-state">No transactions yet</p>}
                   </div>
                 </div>
               </div>
@@ -421,6 +460,49 @@ const AdminDashboard = () => {
           />
         )}
       </main>
+
+      {/* Sticky Mobile Bottom Navigation Bar */}
+      <nav className="mobile-bottom-nav">
+        <button 
+          className={`mobile-bottom-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
+          onClick={() => handleTabClick('overview')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          <span>Overview</span>
+        </button>
+
+        <button 
+          className={`mobile-bottom-nav-item ${activeTab === 'products' ? 'active' : ''}`}
+          onClick={() => handleTabClick('products')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          <span>Products</span>
+        </button>
+
+        <button 
+          className={`mobile-bottom-nav-item ${activeTab === 'orders' ? 'active' : ''}`}
+          onClick={() => handleTabClick('orders')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+          <span>Orders</span>
+        </button>
+
+        <button 
+          className={`mobile-bottom-nav-item ${activeTab === 'inventory' ? 'active' : ''}`}
+          onClick={() => handleTabClick('inventory')}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+          <span>Inventory</span>
+        </button>
+
+        <button 
+          className={`mobile-bottom-nav-item ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <span>Menu</span>
+        </button>
+      </nav>
     </div>
   )
 }

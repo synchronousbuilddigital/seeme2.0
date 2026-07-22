@@ -477,6 +477,11 @@
     gap: 14px;
   }
 
+  .form-group input,
+  .form-group textarea {
+    font-size: 16px !important; /* Prevents iOS WebKit auto-zoom */
+  }
+
   .image-upload-wrapper {
     flex-direction: column;
     align-items: center;
