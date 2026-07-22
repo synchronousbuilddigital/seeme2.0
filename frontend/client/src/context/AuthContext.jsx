@@ -70,7 +70,15 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed')
+        let errMsg = data.message || 'Login failed'
+        if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+          const errorDetails = data.errors.map(err => {
+            const field = Object.keys(err)[0]
+            return `${field}: ${err[field]}`
+          }).join(', ')
+          errMsg = `${data.message} (${errorDetails})`
+        }
+        throw new Error(errMsg)
       }
 
       setUser(data.user)
@@ -82,20 +90,28 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const signup = async (name, email, password) => {
+  const signup = async (name, email, password, phone) => {
     try {
       const response = await fetch(API_ENDPOINTS.SIGNUP, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, phone }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Signup failed')
+        let errMsg = data.message || 'Signup failed'
+        if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+          const errorDetails = data.errors.map(err => {
+            const field = Object.keys(err)[0]
+            return `${field}: ${err[field]}`
+          }).join(', ')
+          errMsg = `${data.message} (${errorDetails})`
+        }
+        throw new Error(errMsg)
       }
 
       setUser(data.user)

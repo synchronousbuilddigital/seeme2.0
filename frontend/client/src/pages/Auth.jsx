@@ -11,6 +11,7 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: ''
   })
@@ -55,10 +56,49 @@ const Auth = () => {
     setError('')
     setLoading(true)
 
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      setLoading(false)
-      return
+    if (!isLogin) {
+      if (!formData.name || !formData.name.trim()) {
+        setError('Full Name is required')
+        setLoading(false)
+        return
+      }
+      if (!formData.email || !formData.email.trim()) {
+        setError('Email Address is required')
+        setLoading(false)
+        return
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.email)) {
+        setError('Please enter a valid email address')
+        setLoading(false)
+        return
+      }
+      if (!formData.phone || !formData.phone.trim()) {
+        setError('Phone Number is required')
+        setLoading(false)
+        return
+      }
+      if (!formData.password || formData.password.length < 6) {
+        setError('Password must be at least 6 characters long')
+        setLoading(false)
+        return
+      }
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match')
+        setLoading(false)
+        return
+      }
+    } else {
+      if (!formData.email || !formData.email.trim()) {
+        setError('Email Address is required')
+        setLoading(false)
+        return
+      }
+      if (!formData.password) {
+        setError('Password is required')
+        setLoading(false)
+        return
+      }
     }
 
     try {
@@ -66,7 +106,7 @@ const Auth = () => {
       if (isLogin) {
         result = await login(formData.email, formData.password)
       } else {
-        result = await signup(formData.name, formData.email, formData.password)
+        result = await signup(formData.name, formData.email, formData.password, formData.phone)
       }
 
       if (result.success) {
@@ -97,6 +137,7 @@ const Auth = () => {
     setFormData({
       name: '',
       email: '',
+      phone: '',
       password: '',
       confirmPassword: ''
     })

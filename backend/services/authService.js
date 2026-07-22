@@ -18,14 +18,14 @@ export const verifyRefreshToken = (token) => {
 }
 
 export const registerUser = async (userData) => {
-  const { email, password, name } = userData
+  const { email, password, name, phone } = userData
   
   const userExists = await User.findOne({ email })
   if (userExists) {
     throw new Error('User already exists')
   }
 
-  const user = await User.create({ email, password, name, role: 'customer' })
+  const user = await User.create({ email, password, name, phone, role: 'customer' })
   return user
 }
 
