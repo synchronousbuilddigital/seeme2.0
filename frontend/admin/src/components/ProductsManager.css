@@ -1060,36 +1060,48 @@
 
   /* Slide-out Drawer mobile view */
   .product-form-drawer {
+    width: 100vw;
     max-width: 100%;
+    border-radius: 0;
   }
 
   .drawer-header {
-    padding: 20px;
+    padding: 18px 16px;
   }
 
   .drawer-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
   }
 
   .form-header-tabs {
-    padding: 0 20px;
-    top: 65px;
-    /* Sticky overlap calculation */
-    gap: 1.2rem;
+    padding: 0 16px;
+    top: 60px;
+    gap: 1rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hide scrollbar for clean tab look */
+  }
+
+  .form-header-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .form-header-tabs button {
-    font-size: 0.75rem;
-    padding: 12px 0;
+    font-size: 0.8rem;
+    padding: 12px 4px;
+    flex-shrink: 0;
+    font-weight: 600;
   }
 
   .tabbed-form {
-    padding: 20px;
+    padding: 16px;
+    padding-bottom: 90px; /* Space for sticky save bar */
   }
 
   .form-row {
     grid-template-columns: 1fr;
-    gap: 15px;
+    gap: 14px;
   }
 
   .triple-input {
@@ -1103,34 +1115,46 @@
   }
 
   .media-previews-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 10px;
   }
 
   .media-thumb-premium {
     aspect-ratio: 1;
-    /* Squarish is nicer in grids */
   }
 
   .thumb-actions {
-    opacity: 1;
-    /* Always visible on touch screens */
+    opacity: 1; /* Always visible on touch screens */
+  }
+
+  .thumb-action-btn {
+    width: 32px;
+    height: 32px;
   }
 
   .form-actions-sticky {
-    position: sticky;
+    position: fixed;
     bottom: 0;
-    background: #FFF;
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
     border-top: 1px solid #EAEAEA;
-    padding: 15px 0;
-    margin-top: 25px;
+    padding: 14px 16px;
+    margin-top: 0;
     width: 100%;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    display: flex;
+    gap: 12px;
   }
 
   .save-btn,
   .cancel-btn {
     flex: 1;
-    padding: 0.8rem;
-    font-size: 0.75rem;
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    font-weight: 600;
   }
 }

@@ -323,6 +323,149 @@
   }
 }
 
+/* ─── MOBILE CAROUSEL VIEW (768px and below) ─── */
+@media (max-width: 768px) {
+  .fabric-rows-container {
+    display: none;
+  }
+
+  .fabric-mobile-carousel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem 0;
+  }
+
+  .fabric-carousel-item {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .fabric-carousel-circle-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    width: 100%;
+  }
+
+  .fabric-carousel-info {
+    width: 100%;
+    padding: 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .fabric-carousel-info .fabric-row-kicker {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--primary-gold);
+  }
+
+  .fabric-carousel-info .fabric-row-title {
+    font-size: clamp(1.5rem, 4vw, 1.8rem);
+    font-weight: 500;
+    color: var(--charcoal);
+    line-height: 1.3;
+    margin: 0;
+  }
+
+  .fabric-carousel-info .fabric-row-divider {
+    width: 3rem;
+    height: 1px;
+    background-color: var(--primary-gold);
+    margin: 0.8rem auto;
+  }
+
+  .fabric-carousel-info .fabric-row-description {
+    font-size: clamp(0.9rem, 1.8vw, 1rem);
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(43, 43, 43, 0.75);
+    max-width: 500px;
+    margin: 0;
+  }
+
+  /* Navigation Controls */
+  .fabric-carousel-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    width: 100%;
+    padding: 1.5rem 0;
+  }
+
+  .fabric-carousel-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    background: white;
+    color: var(--charcoal);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  .fabric-carousel-btn:active {
+    background: var(--primary-gold);
+    border-color: var(--primary-gold);
+    transform: scale(0.95);
+  }
+
+  .fabric-carousel-btn:hover {
+    border-color: var(--primary-gold);
+    background: rgba(212, 175, 55, 0.1);
+  }
+
+  .fabric-carousel-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Carousel Dots Indicator */
+  .fabric-carousel-dots {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+
+  .fabric-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.3);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .fabric-dot.active {
+    background: var(--primary-gold);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .fabric-dot:active {
+    transform: scale(1.1);
+  }
+}
+
 @media (max-width: 480px) {
   .fabric-large-circle-portal {
     width: 160px;
@@ -341,6 +484,46 @@
   .explore-fabrics-btn {
     padding: 1rem 2.2rem;
     font-size: 0.85rem;
+  }
+
+  .fabric-mobile-carousel {
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+  }
+
+  .fabric-carousel-info {
+    padding: 0 1rem;
+  }
+
+  .fabric-carousel-info .fabric-row-title {
+    font-size: clamp(1.3rem, 3.5vw, 1.6rem);
+  }
+
+  .fabric-carousel-info .fabric-row-description {
+    font-size: clamp(0.85rem, 1.6vw, 0.95rem);
+  }
+
+  .fabric-carousel-controls {
+    gap: 1.2rem;
+    padding: 1.5rem 1rem;
+  }
+
+  .fabric-carousel-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .fabric-carousel-dots {
+    gap: 0.6rem;
+  }
+
+  .fabric-dot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .fabric-dot.active {
+    width: 20px;
   }
 }
 
@@ -417,5 +600,169 @@
     padding: 14px 22px;
     font-size: 13px;
     margin-top: 10px;
+  }
+}
+
+/* Extra small screens (mobile devices < 375px) */
+@media (max-width: 374px) {
+  .homepage-fabric-section {
+    padding: 40px 0;
+    border-top: 1px solid rgba(212, 175, 55, 0.06);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.06);
+  }
+
+  .fabric-section-container {
+    width: calc(100% - 24px);
+    padding: 0;
+  }
+
+  .fabric-section-header {
+    margin-bottom: 30px;
+    padding: 0 8px;
+  }
+
+  .fabric-kicker {
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.6rem;
+  }
+
+  .fabric-heading {
+    font-size: 22px;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .fabric-heading .italic {
+    font-style: italic;
+  }
+
+  .fabric-header-line {
+    width: 3rem;
+    margin: 0 auto 1rem;
+  }
+
+  .fabric-section-intro {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: rgba(43, 43, 43, 0.7);
+  }
+
+  .fabric-rows-container {
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .fabric-row-alternating,
+  .fabric-row-alternating.row-reverse {
+    flex-direction: column !important;
+    gap: 1.5rem;
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  .fabric-large-circle-portal {
+    width: 140px;
+    height: 140px;
+    border: 3px solid #ebd292;
+    margin: 0 auto;
+  }
+
+  .hoop-tension-adjuster {
+    width: 24px;
+    height: 10px;
+    top: -10px;
+  }
+
+  .adjuster-screw {
+    width: 6px;
+    height: 6px;
+  }
+
+  .fabric-editorial-text-card {
+    align-items: center;
+    text-align: center;
+    max-width: calc(100% - 16px);
+    padding: 0 8px;
+  }
+
+  .fabric-row-kicker {
+    font-size: 0.78rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .fabric-row-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+  }
+
+  .fabric-row-divider {
+    width: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .fabric-row-description {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+    text-align: center;
+  }
+
+  .fabric-row-alternating:hover .fabric-large-circle-portal {
+    transform: scale(1.02);
+  }
+
+  .explore-fabrics-btn {
+    width: 90%;
+    max-width: 280px;
+    padding: 0.9rem 1.8rem;
+    font-size: 0.8rem;
+    margin-top: 8px;
+    border-radius: 40px;
+  }
+
+  .fabric-section-action {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+}
+
+/* Very small screens (< 320px) */
+@media (max-width: 319px) {
+  .fabric-section-header {
+    margin-bottom: 24px;
+  }
+
+  .fabric-heading {
+    font-size: 20px;
+    margin-bottom: 0.8rem;
+  }
+
+  .fabric-section-intro {
+    font-size: 0.85rem;
+  }
+
+  .fabric-rows-container {
+    gap: 2rem;
+  }
+
+  .fabric-large-circle-portal {
+    width: 120px;
+    height: 120px;
+  }
+
+  .fabric-row-title {
+    font-size: 1.2rem;
+  }
+
+  .fabric-row-description {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .explore-fabrics-btn {
+    padding: 0.8rem 1.6rem;
+    font-size: 0.75rem;
   }
 }

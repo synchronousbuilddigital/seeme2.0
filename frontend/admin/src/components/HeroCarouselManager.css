@@ -750,21 +750,23 @@
 
   /* Modal responsive behavior */
   .lux-modal-overlay {
-    padding: 15px;
+    padding: 12px;
   }
 
   .lux-modal-body {
-    padding: 24px;
-    border-radius: 20px;
-    max-height: 95vh;
+    width: 100%;
+    padding: 20px 16px;
+    border-radius: 16px;
+    max-height: 92vh;
+    overflow-y: auto;
   }
 
   .modal-top {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
   }
 
   .modal-top h3 {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
   }
 
   .btn-close-lux {
@@ -775,7 +777,7 @@
 
   .lux-form-grid {
     grid-template-columns: 1fr;
-    gap: 25px;
+    gap: 20px;
   }
 
   .lux-upload-zone {
@@ -784,7 +786,7 @@
   }
 
   .upload-prompt-lux .icon {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   .upload-prompt-lux p {
@@ -792,9 +794,10 @@
   }
 
   .lux-input {
-    padding: 12px 15px;
+    padding: 12px 14px;
     font-size: 0.9rem;
     border-radius: 10px;
+    min-height: 46px;
   }
 
   .story-preview {
@@ -802,34 +805,34 @@
   }
 
   .story-cat {
-    font-size: 20px;
+    font-size: 18px;
     letter-spacing: 2px;
   }
 
   .story-sub {
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 1px;
   }
 
   .lux-meta-controls {
-    padding: 18px;
+    padding: 16px;
     border-radius: 12px;
   }
 
   .lux-row {
-    grid-template-columns: 100px 1fr;
-    gap: 15px;
+    grid-template-columns: 80px 1fr;
+    gap: 12px;
   }
 
   .toggle-lux {
-    margin-top: 15px;
+    margin-top: 12px;
     font-size: 0.85rem;
   }
 
   .modal-actions-lux {
-    margin-top: 30px;
+    margin-top: 24px;
     flex-direction: column-reverse;
-    gap: 12px;
+    gap: 10px;
   }
 
   .btn-lux-primary {
@@ -837,30 +840,33 @@
     width: 100%;
     font-size: 0.9rem;
     border-radius: 12px;
+    min-height: 48px;
   }
 
   .btn-lux-text {
     width: 100%;
     text-align: center;
-    padding: 8px;
-    font-size: 0.9rem;
+    padding: 10px;
+    font-size: 0.85rem;
+    min-height: 44px;
   }
 
   .lux-toast {
     bottom: 20px;
-    right: 20px;
-    left: 20px;
-    padding: 12px 24px;
+    right: 16px;
+    left: 16px;
+    padding: 12px 20px;
     font-size: 0.85rem;
     text-align: center;
+    border-radius: 12px;
   }
 
   /* List Table view on mobile */
   .lux-table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0 -15px;
-    padding: 10px;
+    margin: 0 -16px;
+    padding: 0 16px;
     border-radius: 0;
   }
 
@@ -869,12 +875,12 @@
   }
 
   .lux-table th, .lux-table td {
-    padding: 10px;
+    padding: 10px 8px;
     font-size: 0.8rem;
   }
 
   .table-img-lux {
-    width: 70px;
+    width: 65px;
   }
 
   .table-meta strong {
@@ -891,26 +897,26 @@
   }
 
   .table-actions-lux button {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
 
   .lux-empty-state {
-    padding: 50px 20px;
-    border-radius: 20px;
+    padding: 40px 16px;
+    border-radius: 16px;
   }
 
   .empty-visual {
-    font-size: 50px;
-    margin-bottom: 15px;
+    font-size: 44px;
+    margin-bottom: 12px;
   }
 
   .lux-empty-state h3 {
-    font-size: 1.4rem;
+    font-size: 1.3rem;
   }
 
   .lux-empty-state p {
-    font-size: 0.9rem;
-    margin-bottom: 25px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
   }
 }

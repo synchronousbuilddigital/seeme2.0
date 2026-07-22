@@ -1018,78 +1018,98 @@
   }
 
   .orders-toolbar {
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 1.2rem;
   }
 
   .orders-search {
-    padding: 1rem 1rem 1rem 3rem;
+    padding: 0.8rem 1rem 0.8rem 2.8rem;
     font-size: 0.9rem;
+    min-height: 48px;
   }
 
   .filters-row {
-    margin: 0 -15px;
-    padding: 0 15px 8px;
+    margin: 0 -16px;
+    padding: 0 16px 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    gap: 8px;
+    scrollbar-width: none;
+  }
+
+  .filters-row::-webkit-scrollbar {
+    display: none;
   }
 
   .filter-tab {
-    padding: 0.5rem 1rem;
-    font-size: 0.7rem;
+    padding: 0.6rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    border-radius: 20px;
+    min-height: 36px;
   }
 
   .orders-table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0 -15px;
-    padding: 0 15px;
+    margin: 0 -16px;
+    padding: 0 16px;
     border-radius: 0;
     border-left: none;
     border-right: none;
   }
 
   .orders-table {
-    min-width: 800px; /* Forces scroll container rather than squeezing cell content */
+    min-width: 720px; /* Forces scroll container rather than squeezing cell content */
   }
 
   .orders-table th, .orders-table td {
-    padding: 12px 10px;
+    padding: 10px 8px;
   }
 
   .order-num {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .manage-btn {
-    padding: 0.4rem 0.8rem;
-    font-size: 0.7rem;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.75rem;
+    min-height: 36px;
+    border-radius: 8px;
   }
 
   /* Order Detail Modal / Sidebar Drawer */
   .order-detail-modal {
+    width: 100vw;
     max-width: 100%;
+    border-radius: 0;
   }
 
   .modal-sidebar-header {
-    padding: 20px;
+    padding: 18px 16px;
   }
 
   .modal-sidebar-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
   }
 
   .modal-scroll-area {
-    padding: 20px;
-    gap: 1.8rem;
+    padding: 16px;
+    gap: 1.5rem;
   }
 
   .modal-sections section {
-    margin-bottom: 1.8rem;
+    margin-bottom: 1.5rem;
   }
 
   .info-card {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 1.2rem;
+    gap: 1.2rem;
+    padding: 1rem;
   }
 
   .user-profile-mini {
@@ -1097,8 +1117,8 @@
   }
 
   .avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     font-size: 1.1rem;
   }
 
@@ -1107,7 +1127,7 @@
   }
 
   .status-control-card {
-    padding: 1.2rem;
+    padding: 1rem;
   }
 
   .input-row {
@@ -1146,22 +1166,24 @@
   }
 
   .order-summary-box {
-    padding: 1.2rem;
+    padding: 1rem;
   }
 
   .sum-row.total {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
   }
 
   /* Export modal responsive design */
   .premium-export-modal {
-    width: 95%;
-    padding: 24px;
-    gap: 18px;
+    width: 92vw;
+    max-width: 440px;
+    padding: 20px;
+    gap: 16px;
+    border-radius: 16px;
   }
 
   .premium-export-modal .modal-topbar {
-    padding-bottom: 12px;
+    padding-bottom: 10px;
   }
 
   .premium-export-modal .modal-topbar h3 {
@@ -1169,12 +1191,12 @@
   }
 
   .export-modal-body {
-    gap: 18px;
+    gap: 16px;
   }
 
   .radio-card {
     padding: 12px;
-    gap: 12px;
+    gap: 10px;
   }
 
   .radio-label h4 {
@@ -1186,18 +1208,20 @@
   }
 
   .format-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
 
   .format-tile {
-    padding: 15px;
+    padding: 12px 10px;
     font-size: 0.8rem;
+    min-height: 44px;
   }
 
   .primary-action-btn {
     padding: 12px;
-    font-size: 0.8rem;
-    border-radius: 8px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    min-height: 46px;
   }
 }

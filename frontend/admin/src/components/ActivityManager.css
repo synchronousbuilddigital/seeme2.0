@@ -297,26 +297,30 @@
   .activity-manager .manager-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
-    margin-bottom: 2rem;
+    gap: 12px;
+    margin-bottom: 1.5rem;
     padding-bottom: 1rem;
   }
 
   .activity-manager .manager-header h1 {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
   }
 
   .refresh-btn {
     width: 100%;
     justify-content: center;
-    padding: 0.8rem;
+    padding: 0.85rem;
+    min-height: 46px;
+    font-size: 0.85rem;
+    border-radius: 10px;
   }
 
   .activity-toolbar {
     flex-direction: column;
     align-items: stretch;
     padding: 12px;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
   }
 
   .feed-filters {
@@ -326,16 +330,17 @@
 
   .feed-filters button {
     flex: 1 1 calc(50% - 8px);
-    padding: 8px;
-    font-size: 0.75rem;
+    padding: 10px 8px;
+    font-size: 0.78rem;
+    min-height: 42px;
     text-align: center;
+    border-radius: 8px;
+    font-weight: 600;
   }
 
   .activity-container {
-    padding: 20px 15px;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
+    padding: 16px;
+    border-radius: 12px;
   }
 
   .activity-timeline {
@@ -347,7 +352,7 @@
   }
 
   .activity-card {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
   }
 
   .activity-marker {
@@ -355,31 +360,32 @@
   }
 
   .marker-dot {
-    width: 7px;
-    height: 7px;
-    left: -1px;
+    width: 8px;
+    height: 8px;
+    left: -2px;
   }
 
   .activity-content {
-    padding: 15px;
+    padding: 14px;
+    border-radius: 12px;
   }
 
   .activity-content h3 {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 
   .activity-content p {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
   }
 
   .content-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 0.8rem;
   }
 
   .timestamp {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
   }
 }

@@ -106,6 +106,14 @@ const AdminDashboard = () => {
 
   return (
     <div className="admin-dashboard">
+      {/* Mobile Backdrop Overlay when menu open */}
+      {isMobileMenuOpen && (
+        <div 
+          className="mobile-nav-backdrop" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Mobile Top Header Bar */}
       <header className="mobile-header-bar">
         <div className="mobile-logo-container" onClick={() => handleTabClick('overview')}>
@@ -139,6 +147,8 @@ const AdminDashboard = () => {
             type="button" 
             className="mobile-nav-toggle-btn" 
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle navigation menu"
           >
             <span className="active-tab-indicator">
               <span className="dot-gold"></span>
@@ -151,7 +161,7 @@ const AdminDashboard = () => {
               {activeTab === 'categories' && 'Categories'}
               {activeTab === 'hero' && 'Hero Section'}
             </span>
-            <div className="three-dots-icon">
+            <div className={`three-dots-icon ${isMobileMenuOpen ? 'open' : ''}`}>
               <span></span>
               <span></span>
               <span></span>
