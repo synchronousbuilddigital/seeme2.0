@@ -12,7 +12,19 @@ export const getDashboardSummary = asyncHandler(async (req, res) => {
     Product.countDocuments(),
     User.countDocuments({ role: 'customer' }),
     Order.aggregate([
-      { $match: { paymentStatus: 'paid' } },
+      { 
+        $match: { 
+          $and: [
+            {
+              $or: [
+                { paymentStatus: 'paid' },
+                { status: { $in: ['confirmed', 'processing', 'printing', 'packaging', 'shipped', 'delivered'] } }
+              ]
+            },
+            { status: { $nin: ['cancelled', 'refunded'] } }
+          ]
+        } 
+      },
       { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
     ])
   ])
@@ -34,9 +46,22 @@ export const getDashboardSummary = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/analytics
 // @access  Admin
 export const getAnalytics = asyncHandler(async (req, res) => {
+  const { timeframe = '6months' } = req.query
+  const monthsCount = (timeframe === '12months' || timeframe === '1year' || timeframe === 'Last Year') ? 12 : 6
+
+  const baseRevenueMatch = [
+    {
+      $or: [
+        { paymentStatus: 'paid' },
+        { status: { $in: ['confirmed', 'processing', 'printing', 'packaging', 'shipped', 'delivered'] } }
+      ]
+    },
+    { status: { $nin: ['cancelled', 'refunded'] } }
+  ]
+
   // 1. Total Revenue (all time)
   const revenueData = await Order.aggregate([
-    { $match: { paymentStatus: 'paid' } },
+    { $match: { $and: baseRevenueMatch } },
     { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
   ])
   const totalRevenue = revenueData.length > 0 ? revenueData[0].totalRevenue : 0
@@ -64,17 +89,21 @@ export const getAnalytics = asyncHandler(async (req, res) => {
   const recentOrders = await Order.find()
     .sort({ createdAt: -1 })
     .limit(10)
-    .select('customer totalAmount status createdAt')
+    .select('customer totalAmount status createdAt orderNumber')
 
-  // 5. Monthly Revenue (last 6 months)
-  const sixMonthsAgo = new Date()
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  // 5. Monthly Revenue (dynamic timeframe with continuous months)
+  const startDate = new Date()
+  startDate.setMonth(startDate.getMonth() - (monthsCount - 1))
+  startDate.setDate(1)
+  startDate.setHours(0, 0, 0, 0)
   
-  const monthlyRevenue = await Order.aggregate([
+  const rawMonthlyRevenue = await Order.aggregate([
     { 
       $match: { 
-        paymentStatus: 'paid',
-        createdAt: { $gte: sixMonthsAgo }
+        $and: [
+          ...baseRevenueMatch,
+          { createdAt: { $gte: startDate } }
+        ]
       } 
     },
     {
@@ -83,11 +112,35 @@ export const getAnalytics = asyncHandler(async (req, res) => {
           month: { $month: '$createdAt' },
           year: { $year: '$createdAt' }
         },
-        revenue: { $sum: '$totalAmount' }
+        revenue: { $sum: '$totalAmount' },
+        count: { $sum: 1 }
       }
     },
     { $sort: { '_id.year': 1, '_id.month': 1 } }
   ])
+
+  // Build continuous array for requested timeframe
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const monthlyRevenue = []
+  const now = new Date()
+
+  for (let i = monthsCount - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const mNum = d.getMonth() + 1
+    const yNum = d.getFullYear()
+
+    const found = rawMonthlyRevenue.find(item => item._id.month === mNum && item._id.year === yNum)
+
+    monthlyRevenue.push({
+      _id: { month: mNum, year: yNum },
+      year: yNum,
+      month: mNum,
+      monthLabel: monthNames[mNum - 1],
+      shortLabel: `${monthNames[mNum - 1]} '${yNum.toString().slice(-2)}`,
+      revenue: found ? found.revenue : 0,
+      count: found ? found.count : 0
+    })
+  }
 
   // 6. User Stats
   const totalUsers = await User.countDocuments({ role: 'customer' })
@@ -100,7 +153,8 @@ export const getAnalytics = asyncHandler(async (req, res) => {
       topProducts,
       recentOrders,
       monthlyRevenue,
-      totalUsers
+      totalUsers,
+      timeframe
     }
   })
 })
@@ -109,19 +163,27 @@ export const getAnalytics = asyncHandler(async (req, res) => {
 // @access  Admin
 export const getInventoryStats = asyncHandler(async (req, res) => {
   const lowStockThreshold = 10
-  const lowStockProducts = await Product.find({ stock: { $lte: lowStockThreshold } })
-    .select('name stock category images sku')
   
-  const outOfStockProducts = await Product.find({ stock: 0 })
-    .select('name stock category images sku')
+  const [allProducts, totalProducts] = await Promise.all([
+    Product.find().select('name stock category images sku price sizeStock updatedAt').sort({ stock: 1 }),
+    Product.countDocuments()
+  ])
+
+  const outOfStockProducts = allProducts.filter(p => p.stock <= 0)
+  const lowStockProducts = allProducts.filter(p => p.stock > 0 && p.stock <= lowStockThreshold)
+  const healthyProducts = allProducts.filter(p => p.stock > lowStockThreshold)
 
   res.json({
     success: true,
     data: {
-      lowStockProducts,
+      allProducts,
       outOfStockProducts,
+      lowStockProducts,
+      healthyProducts,
+      totalProducts,
       totalLowStock: lowStockProducts.length,
-      totalOutOfStock: outOfStockProducts.length
+      totalOutOfStock: outOfStockProducts.length,
+      totalHealthy: healthyProducts.length
     }
   })
 })
@@ -172,9 +234,35 @@ export const getCustomers = asyncHandler(async (req, res) => {
   const customers = await User.find({ role: 'customer' })
     .select('-password')
     .sort({ createdAt: -1 })
+    .lean()
+
+  const customerStats = await Order.aggregate([
+    {
+      $match: {
+        status: { $nin: ['cancelled', 'refunded'] }
+      }
+    },
+    {
+      $group: {
+        _id: { $toLower: '$customer.email' },
+        orderCount: { $sum: 1 },
+        totalSpending: { $sum: '$totalAmount' }
+      }
+    }
+  ])
+
+  const customersWithStats = customers.map(c => {
+    const emailKey = (c.email || '').toLowerCase().trim()
+    const stats = customerStats.find(s => s._id === emailKey)
+    return {
+      ...c,
+      orderCount: stats ? stats.orderCount : 0,
+      totalSpending: stats ? stats.totalSpending : 0
+    }
+  })
 
   res.json({
     success: true,
-    data: customers
+    data: customersWithStats
   })
 })

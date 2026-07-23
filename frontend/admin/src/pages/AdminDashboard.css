@@ -522,39 +522,168 @@ body {
   background: linear-gradient(135deg, #FFFEF9 0%, #F9F9F9 100%);
 }
 
-/* Custom Chart */
+/* Custom Chart Enhancement */
+.chart-sub-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.period-total {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.period-label {
+  font-size: 0.75rem;
+  color: #888;
+}
+
 .chart-bars {
-  height: 250px;
+  height: 260px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px;
-  padding-top: 20px;
+  gap: 16px;
+  padding-top: 35px;
+  padding-bottom: 5px;
+  position: relative;
 }
 
 .bar-wrapper {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+.bar-container {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+}
+
+.bar-top-value {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 6px;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.bar-wrapper:hover .bar-top-value {
+  color: #D4AF37;
+  opacity: 1;
 }
 
 .bar {
   width: 100%;
-  max-width: 40px;
-  background: linear-gradient(180deg, #D4AF37 0%, #C49A27 100%);
+  max-width: 36px;
+  background: linear-gradient(180deg, #D4AF37 0%, #B88E1B 100%);
   border-radius: 6px 6px 0 0;
-  min-height: 2px;
-  transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 -2px 8px rgba(212, 175, 55, 0.2);
+  min-height: 4px;
+  transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 -2px 10px rgba(212, 175, 55, 0.15);
 }
 
-.bar-wrapper span {
-  font-size: 0.7rem;
-  color: var(--admin-text-sub);
-  letter-spacing: 0.1em;
+.bar.highest {
+  background: linear-gradient(180deg, #111111 0%, #333333 100%);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.bar.empty {
+  background: #EAEAEA;
+  box-shadow: none;
+}
+
+.bar-wrapper:hover .bar {
+  transform: scaleX(1.08);
+  filter: brightness(1.1);
+}
+
+.bar-label {
+  margin-top: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #777;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.bar-wrapper:hover .bar-label {
+  color: #111;
+}
+
+/* Tooltip on Hover */
+.bar-tooltip {
+  position: absolute;
+  top: -45px;
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  background: #111;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 20;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.bar-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px 5px 0 5px;
+  border-style: solid;
+  border-color: #111 transparent transparent transparent;
+}
+
+.bar-wrapper:hover .bar-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip-amount {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #D4AF37;
+}
+
+.tooltip-date {
+  font-size: 0.68rem;
+  color: #ccc;
+}
+
+.tooltip-count {
+  font-size: 0.65rem;
+  color: #aaa;
+}
+
+.no-data-msg {
+  width: 100%;
+  text-align: center;
+  color: #888;
+  padding: 40px 0;
+  font-size: 0.9rem;
 }
 
 /* Recent Orders Table */

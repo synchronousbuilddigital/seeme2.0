@@ -37,8 +37,8 @@ const CustomersManager = () => {
     try {
       const data = await apiRequest(API_ENDPOINTS.ORDERS, { auth: true })
       if (data.success) {
-        const filtered = data.data.filter(order => 
-          order.customer.email.toLowerCase() === customer.email.toLowerCase()
+        const filtered = (data.data || []).filter(order => 
+          order.customer?.email?.toLowerCase().trim() === customer.email?.toLowerCase().trim()
         )
         setCustomerOrders(filtered)
       }
@@ -50,9 +50,14 @@ const CustomersManager = () => {
   }
 
   const filteredCustomers = customers.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email.toLowerCase().includes(searchTerm.toLowerCase())
+    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  // Compute stats for history drawer
+  const validHistoryOrders = customerOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
+  const historyTotalSpent = validHistoryOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0)
+  const historyOrderCount = customerOrders.length
 
   if (loading) return <div className="loading">Loading Customers...</div>
 
@@ -84,7 +89,7 @@ const CustomersManager = () => {
               <tr key={customer._id}>
                 <td>
                   <div className="customer-cell">
-                    <div className="avatar">{customer.name[0]}</div>
+                    <div className="avatar">{customer.name ? customer.name[0] : 'U'}</div>
                     <div className="details">
                       <span className="name">{customer.name}</span>
                       <span className="email">{customer.email}</span>
@@ -97,7 +102,7 @@ const CustomersManager = () => {
                    </span>
                 </td>
                 <td>{customer.orderCount || 0}</td>
-                <td>₹{(customer.totalSpending || 0).toLocaleString()}</td>
+                <td>₹{(customer.totalSpending || 0).toLocaleString('en-IN')}</td>
                 <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
                 <td>
                   <button className="action-link" onClick={() => handleViewHistory(customer)}>View History</button>
@@ -125,7 +130,7 @@ const CustomersManager = () => {
             >
               <div className="drawer-header">
                 <div className="header-profile">
-                  <div className="avatar-large">{selectedCustomer.name[0]}</div>
+                  <div className="avatar-large">{selectedCustomer.name ? selectedCustomer.name[0] : 'U'}</div>
                   <div className="profile-text">
                     <h2>{selectedCustomer.name}</h2>
                     <span className="email">{selectedCustomer.email}</span>
@@ -141,11 +146,11 @@ const CustomersManager = () => {
               <div className="drawer-stats">
                 <div className="stat-box">
                   <span className="label">Total Spent</span>
-                  <span className="value">₹{(selectedCustomer.totalSpending || 0).toLocaleString()}</span>
+                  <span className="value">₹{(customerOrders.length > 0 ? historyTotalSpent : (selectedCustomer.totalSpending || 0)).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="stat-box">
                   <span className="label">Orders Placed</span>
-                  <span className="value">{selectedCustomer.orderCount || 0}</span>
+                  <span className="value">{customerOrders.length > 0 ? historyOrderCount : (selectedCustomer.orderCount || 0)}</span>
                 </div>
                 <div className="stat-box">
                   <span className="label">Member Since</span>

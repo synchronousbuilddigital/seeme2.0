@@ -31,6 +31,7 @@ const AdminDashboard = () => {
   const [backendStatus, setBackendStatus] = useState('checking')
   const [lastSync, setLastSync] = useState(new Date())
   const [selectedProductForHero, setSelectedProductForHero] = useState(null)
+  const [timeframe, setTimeframe] = useState('6months')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -41,22 +42,22 @@ const AdminDashboard = () => {
     }
 
     // Initial fetch
-    fetchStats()
+    fetchStats(timeframe)
 
     // Real-time sync (polling every 30 seconds)
     const syncInterval = setInterval(() => {
-      fetchStats()
+      fetchStats(timeframe)
     }, 30000)
 
     return () => clearInterval(syncInterval)
-  }, [navigate])
+  }, [navigate, timeframe])
 
-  const fetchStats = async () => {
+  const fetchStats = async (tf = timeframe) => {
     try {
       const [healthData, summaryData, analyticsData] = await Promise.all([
         apiRequest(API_ENDPOINTS.HEALTH),
         apiRequest(API_ENDPOINTS.ADMIN.DASHBOARD_SUMMARY, { auth: true }),
-        apiRequest(API_ENDPOINTS.ADMIN.ANALYTICS, { auth: true })
+        apiRequest(`${API_ENDPOINTS.ADMIN.ANALYTICS}?timeframe=${tf}`, { auth: true })
       ])
 
       if (healthData.success) {
@@ -89,6 +90,11 @@ const AdminDashboard = () => {
         navigate('/login')
       }
     }
+  }
+
+  const handleTimeframeChange = (newTimeframe) => {
+    setTimeframe(newTimeframe)
+    fetchStats(newTimeframe)
   }
 
   const handleLogout = () => {
@@ -318,27 +324,60 @@ const AdminDashboard = () => {
               <div className="grid-left">
                 <div className="chart-card">
                   <div className="card-header">
-                    <h3>Revenue Growth</h3>
-                    <select className="minimal-select">
-                      <option>Last 6 Months</option>
-                      <option>Last Year</option>
+                    <div>
+                      <h3>Revenue Growth</h3>
+                      <div className="chart-sub-stat">
+                        <span className="period-total">₹{((stats.monthlyRevenue || []).reduce((acc, m) => acc + (m.revenue || 0), 0)).toLocaleString('en-IN')}</span>
+                        <span className="period-label">Selected Period Revenue</span>
+                      </div>
+                    </div>
+                    <select 
+                      className="minimal-select"
+                      value={timeframe}
+                      onChange={(e) => handleTimeframeChange(e.target.value)}
+                    >
+                      <option value="6months">Last 6 Months</option>
+                      <option value="12months">Last Year</option>
                     </select>
                   </div>
                   <div className="chart-placeholder">
                     {/* Custom CSS Chart bars */}
                     <div className="chart-bars">
-                      {stats.monthlyRevenue.map((m, i) => (
-                        <div key={i} className="bar-wrapper">
-                          <motion.div
-                            className="bar"
-                            initial={{ height: 0 }}
-                            animate={{ height: `${Math.min(100, (m.revenue / (stats.revenue / 3)) * 100)}%` }}
-                            transition={{ duration: 1, delay: i * 0.1 }}
-                          ></motion.div>
-                          <span>M{m._id.month}</span>
-                        </div>
-                      ))}
-                      {stats.monthlyRevenue.length === 0 && <p>No revenue data yet</p>}
+                      {(() => {
+                        const maxMonthlyRev = Math.max(...(stats.monthlyRevenue || []).map(m => m.revenue || 0), 1)
+                        return stats.monthlyRevenue.map((m, i) => {
+                          const rev = m.revenue || 0
+                          const pct = maxMonthlyRev > 0 ? (rev / maxMonthlyRev) * 100 : 0
+                          const barHeightPct = rev > 0 ? Math.max(10, pct) : 4
+                          const monthLabel = m.monthLabel || (m._id?.month ? `M${m._id.month}` : 'N/A')
+                          const isMax = rev === maxMonthlyRev && rev > 0
+
+                          return (
+                            <div key={i} className="bar-wrapper">
+                              <div className="bar-tooltip">
+                                <span className="tooltip-amount">₹{rev.toLocaleString('en-IN')}</span>
+                                <span className="tooltip-date">{monthLabel} {m.year || ''}</span>
+                                {(m.count !== undefined && m.count > 0) && (
+                                  <span className="tooltip-count">{m.count} order{m.count > 1 ? 's' : ''}</span>
+                                )}
+                              </div>
+                              <div className="bar-container">
+                                <span className="bar-top-value">
+                                  {rev > 0 ? `₹${rev >= 1000 ? (rev / 1000).toFixed(1) + 'k' : rev}` : '₹0'}
+                                </span>
+                                <motion.div
+                                  className={`bar ${isMax ? 'highest' : ''} ${rev === 0 ? 'empty' : ''}`}
+                                  initial={{ height: 0 }}
+                                  animate={{ height: `${barHeightPct}%` }}
+                                  transition={{ duration: 0.6, delay: i * 0.05 }}
+                                ></motion.div>
+                              </div>
+                              <span className="bar-label">{monthLabel}</span>
+                            </div>
+                          )
+                        })
+                      })()}
+                      {stats.monthlyRevenue.length === 0 && <p className="no-data-msg">No revenue data available for this timeframe</p>}
                     </div>
                   </div>
                 </div>

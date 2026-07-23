@@ -251,3 +251,40 @@ textarea {
     border-radius: var(--radius-sm);
   }
 }
+
+/* Global High-Contrast Input Text Visibility Enforcement */
+input,
+select,
+textarea {
+  color: #111111 !important;
+  caret-color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  opacity: 1 !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+}
+
+::placeholder,
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #888888 !important;
+  -webkit-text-fill-color: #888888 !important;
+  opacity: 1 !important;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+.disabled-input {
+  background-color: #F0F0F0 !important;
+  color: #555555 !important;
+  -webkit-text-fill-color: #555555 !important;
+  cursor: not-allowed !important;
+  opacity: 0.85 !important;
+}

@@ -102,6 +102,10 @@
   font-size: 0.95rem;
   transition: all 0.3s ease;
   font-family: inherit;
+  color: #111111 !important;
+  caret-color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  opacity: 1 !important;
 }
 
 .toolbar-input:focus {
@@ -109,6 +113,8 @@
   border-color: #000;
   background: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
 }
 
 .toolbar-select {
@@ -499,6 +505,10 @@
   transition: all 0.2s;
   background: #FAFAFA;
   font-family: inherit;
+  color: #111111 !important;
+  caret-color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  opacity: 1 !important;
 }
 
 .form-group input:focus,
@@ -507,6 +517,8 @@
   border-color: #000;
   background: #fff;
   outline: none;
+  color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
 }
 
 .form-row {
@@ -749,6 +761,16 @@
   border: 1px solid #DDD;
   border-radius: 4px;
   font-size: 0.95rem;
+  color: #111111 !important;
+  background-color: #FFFFFF !important;
+  caret-color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  opacity: 1 !important;
+}
+
+.size-stock-item input:focus {
+  border-color: #000 !important;
+  outline: none !important;
 }
 
 /* Advanced - Triple Input & Checkboxes */
@@ -756,6 +778,25 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
+}
+
+.triple-input input {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #EAEAEA;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  color: #111111 !important;
+  background: #FAFAFA !important;
+  caret-color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  opacity: 1 !important;
+}
+
+.triple-input input:focus {
+  background: #FFFFFF !important;
+  border-color: #000000 !important;
+  outline: none !important;
 }
 
 .checkbox-row-premium {
@@ -1401,4 +1442,21 @@
     border-radius: 10px;
     font-weight: 600;
   }
+}
+
+/* Explicit Product Input Visibility Rules */
+.products-manager input,
+.products-manager select,
+.products-manager textarea,
+.url-upload-input {
+  color: #111111 !important;
+  caret-color: #111111 !important;
+  -webkit-text-fill-color: #111111 !important;
+  opacity: 1 !important;
+}
+
+.url-upload-input:focus {
+  background: #FFFFFF !important;
+  border-color: #000000 !important;
+  color: #111111 !important;
 }
