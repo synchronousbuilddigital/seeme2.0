@@ -104,9 +104,6 @@ const NewArrivals = () => {
                     <div className="card-media-overlay">
                        <div className="quick-view">Quick View</div>
                     </div>
-                    <div className="luxury-craft-badge">
-                      {item.category === 'anarkali' ? 'Atelier Silk' : item.category === 'palazzo' ? 'Zardozi Craft' : 'Chanderi Weave'}
-                    </div>
                     <button 
                       className={`heart-btn ${isInWishlist(item._id || item.id) ? 'active' : ''}`}
                       onClick={(e) => {

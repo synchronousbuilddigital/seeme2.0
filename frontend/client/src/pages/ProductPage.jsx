@@ -15,7 +15,10 @@ const ProductPage = () => {
   const [relatedProducts, setRelatedProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedSize, setSelectedSize] = useState('')
+  const [selectedSize, setSelectedSize] = useState('S')
+  const [activeAccordion, setActiveAccordion] = useState('fabric')
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const [addedToast, setAddedToast] = useState(false)
 
   useEffect(() => {
     fetchProduct()
@@ -29,10 +32,10 @@ const ProductPage = () => {
       const data = await response.json()
       if (data.success) {
         setProduct(data.data)
-        if (data.data.sizes?.length > 0) {
-          setSelectedSize(data.data.sizes[0])
-        }
-        // Fetch related products
+        const initialSize = (data.data.sizes && data.data.sizes.length > 0)
+          ? data.data.sizes[0]
+          : 'S'
+        setSelectedSize(initialSize)
         fetchRelatedProducts(data.data.category, data.data._id)
       }
     } catch (error) {
@@ -47,13 +50,39 @@ const ProductPage = () => {
       const response = await fetch(`${API_ENDPOINTS.PRODUCTS}?category=${category}&limit=5`)
       const data = await response.json()
       if (data.success) {
-        // Filter out current product
         const filtered = (data.data || []).filter(p => p._id !== currentId)
         setRelatedProducts(filtered)
       }
     } catch (error) {
       console.error('Error fetching related products:', error)
     }
+  }
+
+  const formatCategoryName = (slug) => {
+    if (!slug) return 'Collection'
+    if (slug.toLowerCase() === '2-piece-sets') return '2-Piece Sets'
+    if (slug.toLowerCase() === '3-piece-sets') return '3-Piece Sets'
+    if (slug.toLowerCase() === 'co-ord-sets') return 'Co-ord Sets'
+    return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ')
+  }
+
+  const toggleAccordion = (section) => {
+    setActiveAccordion(prev => prev === section ? null : section)
+  }
+
+  // Available sizes fallback so EVERY product has size selection
+  const availableSizes = (product?.sizes && product.sizes.length > 0)
+    ? product.sizes
+    : ['XS', 'S', 'M', 'L', 'XL']
+
+  const handleAddBag = () => {
+    if (!selectedSize) {
+      alert('Please select a size to proceed')
+      return
+    }
+    addToCart({ ...product, selectedSize })
+    setAddedToast(true)
+    setTimeout(() => setAddedToast(false), 2500)
   }
 
   if (loading) {
@@ -82,6 +111,21 @@ const ProductPage = () => {
 
   return (
     <div className="editorial-product-page">
+      {/* Toast Notification */}
+      <AnimatePresence>
+        {addedToast && (
+          <motion.div 
+            className="cart-toast-banner"
+            initial={{ opacity: 0, y: -50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+          >
+            <span>✦ Added to your Shopping Bag (Size: {selectedSize})</span>
+            <button onClick={() => navigate('/cart')}>View Bag</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Elegant Back Navigation */}
       <div className="editorial-back-nav">
         <button onClick={() => navigate(-1)} className="editorial-back-btn">
@@ -89,12 +133,12 @@ const ProductPage = () => {
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
-          <span>Back</span>
+          <span>Back to Collection</span>
         </button>
       </div>
+
       <div className="product-luxury-wrapper">
-        
-        {/* Left: Cinematic Gallery */}
+        {/* Left Column: Gallery */}
         <div className="product-gallery">
           <div className="main-image-container">
             <AnimatePresence mode='wait'>
@@ -103,10 +147,10 @@ const ProductPage = () => {
                 src={getImageUrl(product.images?.[selectedImage])} 
                 alt={product.name}
                 className="main-display-img"
-                initial={{ opacity: 0, scale: 1.05 }}
+                initial={{ opacity: 0, scale: 1.04 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               />
             </AnimatePresence>
             {product.stock < 10 && <div className="limited-edition-badge">Limited Edition</div>}
@@ -125,38 +169,70 @@ const ProductPage = () => {
           </div>
         </div>
 
-        {/* Right: Refined Details */}
+        {/* Right Column: Redesigned Haute Couture Details */}
         <div className="product-details-content">
           <motion.div 
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
           >
+            {/* Formatted Breadcrumb */}
             <nav className="breadcrumb-luxury">
-              <span onClick={() => navigate('/')}>Home</span> / 
-              <span onClick={() => navigate(`/category/${product.category}`)}>{product.category}</span> / 
+              <span onClick={() => navigate('/')}>Home</span>
+              <span className="sep">/</span>
+              <span onClick={() => navigate(`/category/${product.category}`)}>
+                {formatCategoryName(product.category)}
+              </span>
+              <span className="sep">/</span>
               <span className="current">{product.name}</span>
             </nav>
 
+            {/* Category Filigree Badge */}
+            <div className="product-category-pill">
+              <span className="sparkle">✦</span>
+              <span>{formatCategoryName(product.category)}</span>
+            </div>
+
+            {/* Product Heading */}
             <h1 className="product-name-heading">{product.name}</h1>
+
+            {/* Pricing Row */}
             <div className="product-price-row">
-              <span className="price-value">₹{product.price?.toLocaleString('en-IN')}</span>
-              <span className="tax-info">Inclusive of all taxes</span>
+              <div className="price-main-block">
+                <span className="price-value">₹{product.price?.toLocaleString('en-IN')}</span>
+              </div>
+              <span className="tax-guarantee-chip">✦ Inclusive of all taxes & free shipping</span>
             </div>
 
+            {/* Editorial Description */}
             <div className="product-description-editorial">
-              <p>{product.description}</p>
+              <p>
+                {product.description || "Hand-crafted with exquisite precision, designed to bring effortless elegance and regal silhouette to your wardrobe."}
+              </p>
             </div>
 
+            {/* Size & Action Zone (ALWAYS RENDERED FOR ALL PRODUCTS) */}
             <div className="product-selection-zone">
-              {/* Size Selection */}
               <div className="selection-group">
                 <div className="selection-header">
-                  <span className="selection-label">Select Size</span>
-                  <button className="size-guide-trigger">Size Guide</button>
+                  <span className="selection-label">Select Size: <strong className="selected-size-text">{selectedSize}</strong></span>
+                  <button 
+                    className="size-guide-trigger"
+                    onClick={() => setShowSizeGuide(true)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="2" y="7" width="20" height="10" rx="2" />
+                      <line x1="6" y1="7" x2="6" y2="11" />
+                      <line x1="10" y1="7" x2="10" y2="11" />
+                      <line x1="14" y1="7" x2="14" y2="11" />
+                      <line x1="18" y1="7" x2="18" y2="11" />
+                    </svg>
+                    Size Guide
+                  </button>
                 </div>
+
                 <div className="size-options">
-                  {product.sizes?.map(size => (
+                  {availableSizes.map(size => (
                     <button 
                       key={size} 
                       className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
@@ -168,22 +244,19 @@ const ProductPage = () => {
                 </div>
               </div>
 
-              {/* Add to Cart Actions */}
+              {/* Action Buttons Stack */}
               <div className="action-stack">
                 <div className="main-actions-row">
                   <motion.button 
                     className="add-to-bag-luxury"
-                    whileHover={{ backgroundColor: '#1a1a1a', color: '#fff' }}
+                    whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      if (product.sizes?.length > 0 && !selectedSize) {
-                        alert('Please select a size to proceed')
-                        return
-                      }
-                      addToCart({ ...product, selectedSize })
-                    }}
+                    onClick={handleAddBag}
                   >
-                    Add to Bag
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
+                    </svg>
+                    <span>Add to Bag</span>
                   </motion.button>
                   
                   <motion.button 
@@ -191,7 +264,7 @@ const ProductPage = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
-                      if (product.sizes?.length > 0 && !selectedSize) {
+                      if (!selectedSize) {
                         alert('Please select a size to proceed')
                         return
                       }
@@ -207,61 +280,182 @@ const ProductPage = () => {
                   className={`wishlist-toggle-luxury ${isInWishlist(product._id) ? 'active' : ''}`}
                   onClick={() => toggleWishlist(product)}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.5">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
                   </svg>
-                  {isInWishlist(product._id) ? 'In Wishlist' : 'Add to Wishlist'}
+                  <span>{isInWishlist(product._id) ? 'Saved in Wishlist' : 'Add to Wishlist'}</span>
                 </button>
               </div>
             </div>
 
-            {/* Heritage Info Accordion */}
-            <div className="heritage-details">
-              <details open>
-                <summary>Fabric & Craftsmanship</summary>
-                <div className="details-inner">
-                  <p>Hand-selected premium textiles, meticulously embroidered by master artisans. Every piece undergoes rigorous quality checks to ensure legacy standards.</p>
-                  <ul>
-                    <li>Dry clean only</li>
-                    <li>Store in a cool, dry place</li>
-                    <li>Handle with care</li>
-                  </ul>
-                </div>
-              </details>
-              <details>
-                <summary>Shipping & Returns</summary>
-                <div className="details-inner">
-                  <p>Complimentary premium shipping on all orders. Returns accepted within 7 days in original packaging.</p>
-                </div>
-              </details>
+            {/* Custom Interactive Accordion Sections */}
+            <div className="heritage-details-custom">
+              {/* Accordion 1: Fabric & Craftsmanship */}
+              <div className={`accordion-item ${activeAccordion === 'fabric' ? 'open' : ''}`}>
+                <button 
+                  className="accordion-header-btn"
+                  onClick={() => toggleAccordion('fabric')}
+                >
+                  <div className="header-label-wrap">
+                    <span className="icon-gold">✦</span>
+                    <span className="title-text">Fabric & Craftsmanship</span>
+                  </div>
+                  <span className={`chevron-icon ${activeAccordion === 'fabric' ? 'open' : ''}`}>↓</span>
+                </button>
+
+                <AnimatePresence>
+                  {activeAccordion === 'fabric' && (
+                    <motion.div 
+                      className="accordion-body-content"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <p>
+                        Hand-selected premium textiles, meticulously embroidered by master artisans. Every piece undergoes rigorous quality checks to ensure legacy standards.
+                      </p>
+                      <ul className="care-bullets">
+                        <li><span>✦</span> Dry clean only to preserve metallic threadwork</li>
+                        <li><span>✦</span> Store in a cool, dry place away from direct sunlight</li>
+                        <li><span>✦</span> Handle delicate drapes with extra care</li>
+                      </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Accordion 2: Shipping & Returns */}
+              <div className={`accordion-item ${activeAccordion === 'shipping' ? 'open' : ''}`}>
+                <button 
+                  className="accordion-header-btn"
+                  onClick={() => toggleAccordion('shipping')}
+                >
+                  <div className="header-label-wrap">
+                    <span className="icon-gold">✦</span>
+                    <span className="title-text">Shipping & Returns</span>
+                  </div>
+                  <span className={`chevron-icon ${activeAccordion === 'shipping' ? 'open' : ''}`}>↓</span>
+                </button>
+
+                <AnimatePresence>
+                  {activeAccordion === 'shipping' && (
+                    <motion.div 
+                      className="accordion-body-content"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <p>
+                        Complimentary premium shipping across India. Orders are dispatched within 2-4 business days in our signature gift box.
+                      </p>
+                      <p className="return-note">
+                        Hassle-free returns & exchanges accepted within 7 days of delivery in original packaging.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Accordion 3: Artisanal Authenticity Guarantee */}
+              <div className={`accordion-item ${activeAccordion === 'authenticity' ? 'open' : ''}`}>
+                <button 
+                  className="accordion-header-btn"
+                  onClick={() => toggleAccordion('authenticity')}
+                >
+                  <div className="header-label-wrap">
+                    <span className="icon-gold">✦</span>
+                    <span className="title-text">100% Authentic Handloom Seal</span>
+                  </div>
+                  <span className={`chevron-icon ${activeAccordion === 'authenticity' ? 'open' : ''}`}>↓</span>
+                </button>
+
+                <AnimatePresence>
+                  {activeAccordion === 'authenticity' && (
+                    <motion.div 
+                      className="accordion-body-content"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <p>
+                        Every See Mee design comes certified with an authentic artisan seal, ensuring pure weave integrity and fair-wage support for master weavers.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </motion.div>
         </div>
-
       </div>
+
+      {/* Size Guide Modal */}
+      <AnimatePresence>
+        {showSizeGuide && (
+          <div className="size-modal-backdrop" onClick={() => setShowSizeGuide(false)}>
+            <motion.div 
+              className="size-modal-card"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+            >
+              <div className="size-modal-header">
+                <h3>ATELIER SIZE GUIDE</h3>
+                <button className="close-modal-btn" onClick={() => setShowSizeGuide(false)}>✕</button>
+              </div>
+              <p className="size-modal-sub">Measurements in inches. For custom tailoring, contact our concierge.</p>
+              
+              <div className="size-table-wrapper">
+                <table className="size-guide-table">
+                  <thead>
+                    <tr>
+                      <th>Size</th>
+                      <th>Bust (in)</th>
+                      <th>Waist (in)</th>
+                      <th>Hip (in)</th>
+                      <th>Length (in)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>XS</td><td>32 - 34</td><td>26 - 28</td><td>36 - 38</td><td>44</td></tr>
+                    <tr><td>S</td><td>34 - 36</td><td>28 - 30</td><td>38 - 40</td><td>45</td></tr>
+                    <tr><td>M</td><td>36 - 38</td><td>30 - 32</td><td>40 - 42</td><td>45</td></tr>
+                    <tr><td>L</td><td>38 - 40</td><td>32 - 34</td><td>42 - 44</td><td>46</td></tr>
+                    <tr><td>XL</td><td>40 - 42</td><td>34 - 36</td><td>44 - 46</td><td>46</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Suggested Masterpieces */}
       {relatedProducts.length > 0 && (
         <section className="suggested-section">
           <div className="suggested-header">
-            <span className="editorial-label">You May Also Admire</span>
-            <h2 className="editorial-title-small">Curated for You</h2>
+            <span className="editorial-label">✦ YOU MAY ALSO ADMIRE ✦</span>
+            <h2 className="editorial-title-small">CURATED FOR YOU</h2>
           </div>
           <div className="related-products-grid">
             {relatedProducts.map((p) => (
               <motion.div 
                 key={p._id} 
                 className="related-product-card"
-                whileHover={{ y: -10 }}
+                whileHover={{ y: -8 }}
                 onClick={() => navigate(`/product/${p._id}`)}
               >
                 <div className="related-img-wrapper">
                   <img src={getImageUrl(p.images?.[0])} alt={p.name} />
                 </div>
                 <div className="related-info">
-                  <span className="related-category">{p.category}</span>
+                  <span className="related-category">{formatCategoryName(p.category)}</span>
                   <h3>{p.name}</h3>
-                  <p>₹{p.price?.toLocaleString('en-IN')}</p>
+                  <p className="related-price">₹{p.price?.toLocaleString('en-IN')}</p>
                 </div>
               </motion.div>
             ))}

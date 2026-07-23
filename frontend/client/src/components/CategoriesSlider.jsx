@@ -8,7 +8,8 @@ import './CategoriesSlider.css'
 const CategoriesSlider = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [hoveredPanel, setHoveredPanel] = useState(null)
-  
+  const [isMobile, setIsMobile] = useState(false)
+
   const [categories, setCategories] = useState(() => {
     try {
       const cached = localStorage.getItem('seemee_mapped_categories')
@@ -53,12 +54,21 @@ const CategoriesSlider = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
     const loadCategories = async () => {
       try {
         const prodRes = await fetch(API_ENDPOINTS.PRODUCTS)
         const prodData = await prodRes.json()
-        const activeProducts = prodData.success && prodData.data 
-          ? prodData.data.filter(p => p.isActive) 
+        const activeProducts = prodData.success && prodData.data
+          ? prodData.data.filter(p => p.isActive)
           : []
 
         const settingsRes = await fetch(API_ENDPOINTS.SITE_SETTINGS)
@@ -70,32 +80,32 @@ const CategoriesSlider = () => {
           categoryList = settingsData.data.categorySlides
         } else {
           categoryList = [
-            { 
-              slug: '2-piece-sets', 
-              title: '2-Piece Sets', 
-              subtitle: 'Effortless Modernity', 
-              description: 'Stunning tunic and trouser duos that redefine casual luxury with absolute ease.', 
-              features: ['Tailored Tunic', 'Fluid Trousers', 'Premium Comfort'], 
-              image: '/images/categories_straight.jpg', 
-              order: 0 
+            {
+              slug: '2-piece-sets',
+              title: '2-Piece Sets',
+              subtitle: 'Effortless Modernity',
+              description: 'Stunning tunic and trouser duos that redefine casual luxury with absolute ease.',
+              features: ['Tailored Tunic', 'Fluid Trousers', 'Premium Comfort'],
+              image: '/images/categories_straight.jpg',
+              order: 0
             },
-            { 
-              slug: '3-piece-sets', 
-              title: '3-Piece Sets', 
-              subtitle: 'Complete Regal Grace', 
-              description: 'Harmonious kurta, pants, and matching dupatta sets, crafted with ancestral weaves.', 
-              features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta'], 
-              image: '/images/ruby_bridal_sharara.png', 
-              order: 1 
+            {
+              slug: '3-piece-sets',
+              title: '3-Piece Sets',
+              subtitle: 'Complete Regal Grace',
+              description: 'Harmonious kurta, pants, and matching dupatta sets, crafted with ancestral weaves.',
+              features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta'],
+              image: '/images/ruby_bridal_sharara.png',
+              order: 1
             },
-            { 
-              slug: 'co-ord-sets', 
-              title: 'Co-ord Sets', 
-              subtitle: 'Contemporary Sleekness', 
-              description: 'Monochromatic, luxury structured matching co-ords engineered to silhouette your form.', 
-              features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic'], 
-              image: '/images/categories_straight.jpg', 
-              order: 2 
+            {
+              slug: 'co-ord-sets',
+              title: 'Co-ord Sets',
+              subtitle: 'Contemporary Sleekness',
+              description: 'Monochromatic, luxury structured matching co-ords engineered to silhouette your form.',
+              features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic'],
+              image: '/images/categories_straight.jpg',
+              order: 2
             }
           ]
         }
@@ -106,7 +116,7 @@ const CategoriesSlider = () => {
           )
           const matchedProduct = matchingProds[0]
           const fallback = categoryDefaults[cat.slug?.toLowerCase()]
-          
+
           return {
             ...cat,
             indexCode: `0${index + 1}`,
@@ -114,8 +124,8 @@ const CategoriesSlider = () => {
             features: cat.features && cat.features.length ? cat.features : (fallback?.features || ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut']),
             subtitle: cat.subtitle || fallback?.subtitle || 'Atelier Collection',
             description: cat.description || fallback?.description || 'Exquisite artisanal creations.',
-            image: (matchedProduct && matchedProduct.images && matchedProduct.images[0]) 
-              ? matchedProduct.images[0] 
+            image: (matchedProduct && matchedProduct.images && matchedProduct.images[0])
+              ? matchedProduct.images[0]
               : (cat.image || fallback?.image || '/images/categories_straight.jpg')
           }
         })
@@ -147,7 +157,7 @@ const CategoriesSlider = () => {
 
       <div className="runway-container">
         {/* Editorial Section Header */}
-        <motion.div 
+        <motion.div
           className="runway-header"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -164,38 +174,43 @@ const CategoriesSlider = () => {
               Signature <span>Categories</span>
             </h2>
             <p className="runway-subtitle">
-              Interactive architectural panels crafted for curated discovery of drapes, tunics & heritage weaves.
+              Curated discovery of ready-to-wear drapes, tunics & heritage weaves.
             </p>
           </div>
         </motion.div>
 
-        {/* ACCORDION RUNWAY CANVAS */}
-        <motion.div 
+        {/* ACCORDION RUNWAY CANVAS (DESKTOP & MOBILE RESPONSIVE) */}
+        <motion.div
           className="accordion-canvas-wrapper"
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="accordion-canvas">
+          <div className={`accordion-canvas ${isMobile ? 'mobile-grid-2col' : ''}`}>
             {categories.map((cat, idx) => {
-              const isExpanded = (hoveredPanel !== null ? hoveredPanel === idx : activeIndex === idx)
+              const isExpanded = isMobile ? true : (hoveredPanel !== null ? hoveredPanel === idx : activeIndex === idx)
+              
               return (
-                <motion.div 
+                <motion.div
                   key={cat._id || idx}
                   className={`accordion-panel ${isExpanded ? 'expanded' : 'collapsed'}`}
                   onMouseEnter={() => {
-                    setHoveredPanel(idx)
-                    setActiveIndex(idx)
+                    if (!isMobile) {
+                      setHoveredPanel(idx)
+                      setActiveIndex(idx)
+                    }
                   }}
-                  onMouseLeave={() => setHoveredPanel(null)}
+                  onMouseLeave={() => {
+                    if (!isMobile) setHoveredPanel(null)
+                  }}
                   onClick={() => navigate(`/category/${cat.slug}`)}
                   transition={{ layout: { duration: 0.5, ease: [0.25, 1, 0.5, 1] } }}
                 >
                   {/* Background Panel Image with Ken Burns Zoom */}
                   <div className="panel-bg">
-                    <img 
-                      src={getImageUrl(cat.image)} 
-                      alt={cat.title} 
+                    <img
+                      src={getImageUrl(cat.image)}
+                      alt={cat.title}
                       onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                     />
                     <div className="panel-gradient-overlay"></div>
@@ -206,16 +221,18 @@ const CategoriesSlider = () => {
                     <span>{cat.indexCode}</span>
                   </div>
 
-                  {/* Vertical Label (Visible when collapsed) */}
-                  <div className="panel-vertical-label">
-                    <span className="v-subtitle">{cat.subtitle}</span>
-                    <span className="v-title">{cat.title}</span>
-                  </div>
+                  {/* Vertical Label (Visible when collapsed on Desktop) */}
+                  {!isMobile && (
+                    <div className="panel-vertical-label">
+                      <span className="v-subtitle">{cat.subtitle}</span>
+                      <span className="v-title">{cat.title}</span>
+                    </div>
+                  )}
 
-                  {/* Expanded Content Card (Visible when panel is expanded) */}
+                  {/* Expanded Content Card */}
                   <AnimatePresence>
                     {isExpanded && (
-                      <motion.div 
+                      <motion.div
                         className="panel-expanded-content"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -229,26 +246,30 @@ const CategoriesSlider = () => {
 
                         <h3 className="panel-category-title">{cat.title}</h3>
                         <p className="panel-category-subtitle">{cat.subtitle}</p>
-                        <p className="panel-category-desc">{cat.description}</p>
+                        
+                        {!isMobile && (
+                          <>
+                            <p className="panel-category-desc">{cat.description}</p>
+                            <div className="panel-features-wrap">
+                              {cat.features.map((ft, fIdx) => (
+                                <span key={fIdx} className="panel-feature-chip">
+                                  <span className="chip-dot"></span>
+                                  {ft}
+                                </span>
+                              ))}
+                            </div>
+                          </>
+                        )}
 
-                        <div className="panel-features-wrap">
-                          {cat.features.map((ft, fIdx) => (
-                            <span key={fIdx} className="panel-feature-chip">
-                              <span className="chip-dot"></span>
-                              {ft}
-                            </span>
-                          ))}
-                        </div>
-
-                        <button 
+                        <button
                           className="panel-cta-btn"
                           onClick={(e) => {
                             e.stopPropagation()
                             navigate(`/category/${cat.slug}`)
                           }}
                         >
-                          <span>Explore {cat.title}</span>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <span>Explore</span>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M5 12h14M12 5l7 7-7 7" />
                           </svg>
                         </button>
