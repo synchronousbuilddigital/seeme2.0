@@ -119,6 +119,28 @@
   align-items: flex-start;
 }
 
+.category-size-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.item-size-badge-luxury {
+  font-size: 11px;
+  font-family: var(--font-body, sans-serif);
+  color: #1A1A1A;
+  background: #F4EFEB;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+.item-size-badge-luxury strong {
+  color: #8C6D23;
+}
+
 .item-category-luxury {
   font-size: 10px;
   text-transform: uppercase;
@@ -204,6 +226,10 @@
 
 .cart-footer-actions {
   padding-top: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
 }
 
 .continue-shopping-luxury {
@@ -215,6 +241,30 @@
   color: #1a1a1a;
   cursor: pointer;
   font-weight: 700;
+  transition: color 0.3s ease;
+}
+
+.continue-shopping-luxury:hover {
+  color: #D4AF37;
+}
+
+.clear-cart-luxury-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 68, 68, 0.4);
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ff4444;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.clear-cart-luxury-btn:hover {
+  background: #ff4444;
+  color: #FFFFFF;
 }
 
 /* Summary Column */

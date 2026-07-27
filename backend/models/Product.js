@@ -62,17 +62,20 @@ const productSchema = new mongoose.Schema({
     default: 1,
     min: 0
   },
+  sizes: [{
+    type: String
+  }],
   sizeStock: [{
     size: {
       type: String,
-      enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+      enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size', 'Custom'],
       required: true
     },
     quantity: {
       type: Number,
       required: true,
       min: 0,
-      default: 1
+      default: 0
     }
   }],
   // Product Attributes

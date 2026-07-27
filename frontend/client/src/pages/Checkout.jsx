@@ -413,7 +413,7 @@ const Checkout = () => {
                   </div>
                   <div className="mini-item-info">
                     <h4>{item.name}</h4>
-                    <span>Qty: {item.quantity}</span>
+                    <span>Qty: {item.quantity} | Size: <strong>{item.selectedSize || item.size || 'S'}</strong></span>
                   </div>
                   <div className="mini-item-price">
                     ₹{(typeof item.price === 'number' ? item.price : parseInt(item.price.replace(/[₹,]/g, '')) || 0).toLocaleString('en-IN')}

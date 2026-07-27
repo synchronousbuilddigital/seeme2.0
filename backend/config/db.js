@@ -15,7 +15,10 @@ const connectDB = async () => {
   }
 
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/seemee', {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is missing in .env')
+    }
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
       family: 4
     })
 

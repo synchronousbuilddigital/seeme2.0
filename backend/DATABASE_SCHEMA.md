@@ -20,7 +20,7 @@ Primary collection for all clothing items and merchandise.
   sku: String (unique),
   
   // Categorization
-  category: String (required) ['anarkali', 'palazzo', 'straight-cut', 'sharara', 'saree', 'lehenga'],
+  // category: String (required) ['anarkali', 'palazzo', 'straight-cut', 'sharara', 'saree', 'lehenga'],
   subcategory: String ['casual', 'formal', 'festive', 'wedding'],
   brand: String,
   tags: [String],

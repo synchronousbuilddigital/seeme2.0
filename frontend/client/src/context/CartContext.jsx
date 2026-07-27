@@ -53,7 +53,7 @@ export const CartProvider = ({ children }) => {
     }
   }, [wishlist])
 
-  // Sync with backend
+  // Sync with backend on login / mount
   useEffect(() => {
     if (user && token) {
       const fetchUserData = async () => {
@@ -65,27 +65,27 @@ export const CartProvider = ({ children }) => {
           const cartData = await cartRes.json()
           const wishlistData = await wishlistRes.json()
           
-          if (cartData.success) {
-            // Replace local cart with flattened/normalized backend items
-            if (cartData.data.length > 0) {
-              const normalizedCart = cartData.data.map(item => {
+          if (cartData.success && Array.isArray(cartData.data)) {
+            const normalizedCart = cartData.data
+              .filter(item => item && item.product) // Filter out deleted/null products
+              .map(item => {
                 if (item.product && typeof item.product === 'object') {
+                  const itemSize = item.size || item.selectedSize || 'S'
                   return {
                     ...item.product,
                     id: item.product._id,
                     quantity: item.quantity || 1,
-                    size: item.size || '',
-                    selectedSize: item.size || '',
+                    size: itemSize,
+                    selectedSize: itemSize,
                     color: item.color || ''
                   }
                 }
                 return item
               })
-              setCart(normalizedCart)
-            }
+            setCart(normalizedCart)
           }
-          if (wishlistData.success) {
-            if (wishlistData.data.length > 0) setWishlist(wishlistData.data)
+          if (wishlistData.success && Array.isArray(wishlistData.data)) {
+            setWishlist(wishlistData.data)
           }
         } catch (err) {
           console.error('Error syncing with backend:', err)
@@ -95,9 +95,9 @@ export const CartProvider = ({ children }) => {
     }
   }, [user, token])
 
-  // Periodic sync to backend
+  // Sync cart changes to backend (including deletions and empty cart)
   useEffect(() => {
-    if (user && token && cart.length > 0) {
+    if (user && token) {
       const sync = async () => {
         try {
           await fetch(`${API_ENDPOINTS.USERS_CART}/sync`, {
@@ -109,15 +109,15 @@ export const CartProvider = ({ children }) => {
             body: JSON.stringify({ cart: cart.map(item => ({
               product: item.id || item._id,
               quantity: item.quantity,
-              size: item.size || item.selectedSize,
-              color: item.color
+              size: item.size || item.selectedSize || 'S',
+              color: item.color || ''
             }))})
           })
         } catch (err) {
           console.error('Cart sync error:', err)
         }
       }
-      const timeout = setTimeout(sync, 2000)
+      const timeout = setTimeout(sync, 300) // Fast 300ms debounce
       return () => clearTimeout(timeout)
     }
   }, [cart, user, token])
@@ -125,53 +125,58 @@ export const CartProvider = ({ children }) => {
   const addToCart = (product) => {
     console.log('Adding product to cart:', product)
     setCart(prevCart => {
-      console.log('Current cart:', prevCart)
-      
-      // Normalize product ID - use _id if id doesn't exist (MongoDB products)
       const productId = product.id || product._id
+      const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
+      const productSize = product.selectedSize || product.size || defaultSize
       const normalizedProduct = {
         ...product,
-        id: productId
+        id: productId,
+        size: productSize,
+        selectedSize: productSize
       }
       
-      const existingItem = prevCart.find(item => {
+      const existingIndex = prevCart.findIndex(item => {
         const itemId = item.id || item._id
-        return itemId === productId
+        const itemSize = item.selectedSize || item.size || 'S'
+        return itemId === productId && itemSize === productSize
       })
-      console.log('Existing item found:', existingItem)
 
-      if (existingItem) {
-        console.log('Product already in cart, increasing quantity')
-        return prevCart.map(item => {
-          const itemId = item.id || item._id
-          return itemId === productId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+      if (existingIndex > -1) {
+        return prevCart.map((item, idx) => {
+          if (idx === existingIndex) {
+            return { ...item, quantity: (item.quantity || 1) + 1 }
+          }
+          return item
         })
       }
 
-      console.log('Adding new product to cart')
       return [...prevCart, { ...normalizedProduct, quantity: 1 }]
     })
   }
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (productId, size) => {
     setCart(prevCart => prevCart.filter(item => {
       const itemId = item.id || item._id
+      const itemSize = item.selectedSize || item.size || 'S'
+      if (size) {
+        return !(itemId === productId && itemSize === size)
+      }
       return itemId !== productId
     }))
   }
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = (productId, quantity, size) => {
     if (quantity <= 0) {
-      removeFromCart(productId)
+      removeFromCart(productId, size)
       return
     }
 
     setCart(prevCart =>
       prevCart.map(item => {
         const itemId = item.id || item._id
-        return itemId === productId ? { ...item, quantity } : item
+        const itemSize = item.selectedSize || item.size || 'S'
+        const isMatch = size ? (itemId === productId && itemSize === size) : (itemId === productId)
+        return isMatch ? { ...item, quantity: Math.max(1, quantity) } : item
       })
     )
   }

@@ -64,12 +64,16 @@ const Cart = ({ isOpen, onClose }) => {
               ) : (
                 <>
                   {cart.map((item) => {
-                    // Normalize ID
                     const itemId = item.id || item._id
+                    const itemSize = item.selectedSize || item.size || 'S'
+                    const itemKey = `${itemId}-${itemSize}`
+                    const itemPrice = typeof item.price === 'number' 
+                      ? item.price 
+                      : parseInt(String(item.price || 0).replace(/[₹,]/g, '')) || 0
                     
                     return (
                       <motion.div 
-                        key={itemId}
+                        key={itemKey}
                         className="cart-item"
                         layout
                         initial={{ opacity: 0, y: 20 }}
@@ -85,19 +89,24 @@ const Cart = ({ isOpen, onClose }) => {
                         
                         <div className="cart-item-details">
                           <h3>{item.name}</h3>
-                          <p className="cart-item-price">{item.price}</p>
+                          <div className="cart-item-meta">
+                            <span className="cart-item-price">₹{itemPrice.toLocaleString('en-IN')}</span>
+                            <span className="cart-item-size-tag">Size: <strong>{itemSize}</strong></span>
+                          </div>
                           
                           <div className="cart-item-quantity">
                             <button 
-                              onClick={() => updateQuantity(itemId, item.quantity - 1)}
+                              onClick={() => updateQuantity(itemId, item.quantity - 1, itemSize)}
                               className="qty-btn"
+                              title="Decrease quantity"
                             >
                               -
                             </button>
                             <span>{item.quantity}</span>
                             <button 
-                              onClick={() => updateQuantity(itemId, item.quantity + 1)}
+                              onClick={() => updateQuantity(itemId, item.quantity + 1, itemSize)}
                               className="qty-btn"
+                              title="Increase quantity"
                             >
                               +
                             </button>
@@ -106,9 +115,10 @@ const Cart = ({ isOpen, onClose }) => {
 
                         <button 
                           className="cart-item-remove"
-                          onClick={() => removeFromCart(itemId)}
+                          onClick={() => removeFromCart(itemId, itemSize)}
+                          title="Remove item"
                         >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="3 6 5 6 21 6"/>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                           </svg>

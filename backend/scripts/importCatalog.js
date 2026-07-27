@@ -21,11 +21,14 @@ const __dirname = path.dirname(__filename)
 dns.setServers(['1.1.1.1', '8.8.8.8'])
 dotenv.config()
 
-const adminEmail = (process.env.ADMIN_EMAIL || 'admin@seemee.com').trim().toLowerCase()
-const adminPassword = (process.env.ADMIN_PASSWORD || 'admin123').trim()
+const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase()
+const adminPassword = process.env.ADMIN_PASSWORD || ''
 
 const connect = async () => {
-  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/seemee', { family: 4 })
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is missing in .env')
+  }
+  await mongoose.connect(process.env.MONGODB_URI, { family: 4 })
 }
 
 const preserveAdminAndPurge = async () => {

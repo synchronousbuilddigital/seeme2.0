@@ -18,6 +18,7 @@ const ProductPage = () => {
   const [selectedSize, setSelectedSize] = useState('S')
   const [activeAccordion, setActiveAccordion] = useState('fabric')
   const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const [sizeUnit, setSizeUnit] = useState('in') // 'in' or 'cm'
   const [addedToast, setAddedToast] = useState(false)
 
   useEffect(() => {
@@ -32,9 +33,12 @@ const ProductPage = () => {
       const data = await response.json()
       if (data.success) {
         setProduct(data.data)
-        const initialSize = (data.data.sizes && data.data.sizes.length > 0)
-          ? data.data.sizes[0]
-          : 'S'
+        const sizesList = (data.data.sizes && data.data.sizes.length > 0)
+          ? data.data.sizes
+          : (data.data.sizeStock && data.data.sizeStock.length > 0)
+            ? data.data.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
+            : []
+        const initialSize = (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
         setSelectedSize(initialSize)
         fetchRelatedProducts(data.data.category, data.data._id)
       }
@@ -70,10 +74,13 @@ const ProductPage = () => {
     setActiveAccordion(prev => prev === section ? null : section)
   }
 
-  // Available sizes fallback so EVERY product has size selection
+  // Available sizes fallback so EVERY product has complete size selection
+  const defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Custom']
   const availableSizes = (product?.sizes && product.sizes.length > 0)
     ? product.sizes
-    : ['XS', 'S', 'M', 'L', 'XL']
+    : (product?.sizeStock && product.sizeStock.some(s => s.quantity > 0))
+      ? product.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
+      : defaultSizes
 
   const handleAddBag = () => {
     if (!selectedSize) {
@@ -399,35 +406,89 @@ const ProductPage = () => {
             <motion.div 
               className="size-modal-card"
               onClick={(e) => e.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="size-modal-header">
-                <h3>ATELIER SIZE GUIDE</h3>
+                <div>
+                  <span className="size-modal-badge">✦ ATELIER GARMENT MEASUREMENTS</span>
+                  <h3>OFFICIAL SIZE CHART</h3>
+                </div>
                 <button className="close-modal-btn" onClick={() => setShowSizeGuide(false)}>✕</button>
               </div>
-              <p className="size-modal-sub">Measurements in inches. For custom tailoring, contact our concierge.</p>
+
+              {/* Unit Converter Switcher */}
+              <div className="size-unit-switcher">
+                <span className="unit-label">Display Unit:</span>
+                <div className="unit-toggle-pills">
+                  <button 
+                    className={`unit-pill ${sizeUnit === 'in' ? 'active' : ''}`}
+                    onClick={() => setSizeUnit('in')}
+                  >
+                    Inches (in)
+                  </button>
+                  <button 
+                    className={`unit-pill ${sizeUnit === 'cm' ? 'active' : ''}`}
+                    onClick={() => setSizeUnit('cm')}
+                  >
+                    Centimeters (cm)
+                  </button>
+                </div>
+              </div>
               
               <div className="size-table-wrapper">
                 <table className="size-guide-table">
                   <thead>
                     <tr>
                       <th>Size</th>
-                      <th>Bust (in)</th>
-                      <th>Waist (in)</th>
-                      <th>Hip (in)</th>
-                      <th>Length (in)</th>
+                      <th>Bust ({sizeUnit})</th>
+                      <th>Waist ({sizeUnit})</th>
+                      <th>Hip ({sizeUnit})</th>
+                      <th>Shoulder ({sizeUnit})</th>
+                      <th>Length ({sizeUnit})</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr><td>XS</td><td>32 - 34</td><td>26 - 28</td><td>36 - 38</td><td>44</td></tr>
-                    <tr><td>S</td><td>34 - 36</td><td>28 - 30</td><td>38 - 40</td><td>45</td></tr>
-                    <tr><td>M</td><td>36 - 38</td><td>30 - 32</td><td>40 - 42</td><td>45</td></tr>
-                    <tr><td>L</td><td>38 - 40</td><td>32 - 34</td><td>42 - 44</td><td>46</td></tr>
-                    <tr><td>XL</td><td>40 - 42</td><td>34 - 36</td><td>44 - 46</td><td>46</td></tr>
+                    {sizeUnit === 'in' ? (
+                      <>
+                        <tr><td><strong>XS</strong></td><td>32 - 34</td><td>26 - 28</td><td>36 - 38</td><td>14.0</td><td>44</td></tr>
+                        <tr><td><strong>S</strong></td><td>34 - 36</td><td>28 - 30</td><td>38 - 40</td><td>14.5</td><td>45</td></tr>
+                        <tr><td><strong>M</strong></td><td>36 - 38</td><td>30 - 32</td><td>40 - 42</td><td>15.0</td><td>45</td></tr>
+                        <tr><td><strong>L</strong></td><td>38 - 40</td><td>32 - 34</td><td>42 - 44</td><td>15.5</td><td>46</td></tr>
+                        <tr><td><strong>XL</strong></td><td>40 - 42</td><td>34 - 36</td><td>44 - 46</td><td>16.0</td><td>46</td></tr>
+                        <tr><td><strong>XXL</strong></td><td>42 - 44</td><td>36 - 38</td><td>46 - 48</td><td>16.5</td><td>47</td></tr>
+                        <tr><td><strong>3XL</strong></td><td>44 - 46</td><td>38 - 40</td><td>48 - 50</td><td>17.0</td><td>47</td></tr>
+                      </>
+                    ) : (
+                      <>
+                        <tr><td><strong>XS</strong></td><td>81 - 86</td><td>66 - 71</td><td>91 - 96</td><td>35.5</td><td>111.5</td></tr>
+                        <tr><td><strong>S</strong></td><td>86 - 91</td><td>71 - 76</td><td>96 - 101.5</td><td>37.0</td><td>114.0</td></tr>
+                        <tr><td><strong>M</strong></td><td>91 - 96.5</td><td>76 - 81</td><td>101.5 - 106.5</td><td>38.0</td><td>114.0</td></tr>
+                        <tr><td><strong>L</strong></td><td>96.5 - 101.5</td><td>81 - 86</td><td>106.5 - 111.5</td><td>39.5</td><td>117.0</td></tr>
+                        <tr><td><strong>XL</strong></td><td>101.5 - 106.5</td><td>86 - 91.5</td><td>111.5 - 117</td><td>40.5</td><td>117.0</td></tr>
+                        <tr><td><strong>XXL</strong></td><td>106.5 - 111.5</td><td>91.5 - 96.5</td><td>117 - 122</td><td>42.0</td><td>119.5</td></tr>
+                        <tr><td><strong>3XL</strong></td><td>111.5 - 117</td><td>96.5 - 101.5</td><td>122 - 127</td><td>43.0</td><td>119.5</td></tr>
+                      </>
+                    )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* How to Measure & Tailoring Banner */}
+              <div className="size-guide-footer">
+                <div className="how-to-measure-block">
+                  <h4>✦ HOW TO MEASURE YOURSELF</h4>
+                  <ul>
+                    <li><strong>Bust:</strong> Measure around the fullest part of your bust while keeping the tape horizontal.</li>
+                    <li><strong>Waist:</strong> Measure around the narrowest part of your waistline (typically where your body bends side to side).</li>
+                    <li><strong>Hips:</strong> Stand with feet together and measure around the fullest part of your hips.</li>
+                  </ul>
+                </div>
+                <div className="custom-tailor-note">
+                  <span>✦ <strong>Need Custom Tailoring?</strong> Select <strong>"Custom"</strong> size at checkout or contact our concierge after ordering for bespoke sizing.</span>
+                </div>
               </div>
             </motion.div>
           </div>

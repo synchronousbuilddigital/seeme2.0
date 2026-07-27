@@ -14,11 +14,14 @@ import SiteSettings from '../models/SiteSettings.js'
 dns.setServers(['1.1.1.1', '8.8.8.8'])
 dotenv.config()
 
-const adminEmail = (process.env.ADMIN_EMAIL || 'admin@seemee.com').trim().toLowerCase()
-const adminPassword = (process.env.ADMIN_PASSWORD || 'admin123').trim()
+const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase()
+const adminPassword = process.env.ADMIN_PASSWORD || ''
 
 const connect = async () => {
-  await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/seemee', { family: 4 })
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI environment variable is missing in .env')
+  }
+  await mongoose.connect(process.env.MONGODB_URI, { family: 4 })
 }
 
 const preserveAdminAndPurge = async () => {
@@ -58,7 +61,7 @@ const preserveAdminAndPurge = async () => {
 }
 
 const seedMockData = async () => {
-  // Seed site settings with 5 categories
+  // Seed site settings with 3 categories
   await SiteSettings.create({
     logo: '/images/logoSEEMEE1.png',
     aboutImage: '/images/about/aboutHero.jpg',
@@ -85,7 +88,7 @@ const seedMockData = async () => {
         subtitle: 'Complete Regal Grace',
         description: 'Harmonious kurta, pants, and matching dupatta sets, crafted with ancestral weaves.',
         features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta'],
-        image: '/images/ruby_bridal_sharara.png',
+        image: '/images/categories_straight.jpg',
         order: 1
       },
       {
@@ -115,50 +118,16 @@ const seedMockData = async () => {
   ])
   console.log('✅ Seeded Magazine')
 
-  // Seed new arrivals (one per category)
+  // Seed new arrivals
   await NewArrival.insertMany([
-    { category: '2-piece-sets', image: '/images/about/new-palazzo.jpg', isActive: true },
-    { category: '3-piece-sets', image: '/images/about/new-anarkali.jpg', isActive: true },
+    { category: '2-piece-sets', image: '/images/about/4new-straight.jpg', isActive: true },
+    { category: '3-piece-sets', image: '/images/categories_straight.jpg', isActive: true },
     { category: 'co-ord-sets', image: '/images/about/4new-straight.jpg', isActive: true }
   ])
   console.log('✅ Seeded NewArrival')
 
-  // Seed 10 products with complete mock data
+  // Seed clean luxury products (No Anarkali, Sharara, or Palazzo)
   const products = [
-    {
-      name: 'Royal Midnight Anarkali',
-      description: 'Deep navy velvet with silver Zardosi embroidery and a floor-length silhouette. Paired with a sheer georgette dupatta.',
-      category: '3-piece-sets',
-      price: 18500,
-      images: ['https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200'],
-      video: '',
-      sizeStock: [
-        { size: 'S', quantity: 5 },
-        { size: 'M', quantity: 8 },
-        { size: 'L', quantity: 4 },
-        { size: 'XL', quantity: 2 }
-      ],
-      colors: ['Navy', 'Silver'],
-      featured: true,
-      inCollection: true,
-      isActive: true
-    },
-    {
-      name: 'Pastel Blush Palazzo Set',
-      description: 'Handloom cotton kurta with wide-leg palazzos, breathable and elegant. Perfect for summer gatherings.',
-      category: '2-piece-sets',
-      price: 7200,
-      images: ['https://images.unsplash.com/photo-1610173826014-9336df76906a?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'M', quantity: 10 },
-        { size: 'L', quantity: 12 },
-        { size: 'XL', quantity: 5 }
-      ],
-      colors: ['Blush', 'Ivory'],
-      featured: true,
-      inCollection: false,
-      isActive: true
-    },
     {
       name: 'Emerald Silk Straight Cut',
       description: 'Pure silk straight-cut suit with minimal gold border and tailored fit. Transitions perfectly from office to evening.',
@@ -171,125 +140,8 @@ const seedMockData = async () => {
         { size: 'L', quantity: 8 }
       ],
       colors: ['Emerald'],
-      featured: false,
-      inCollection: false,
-      isActive: true
-    },
-    {
-      name: 'Golden Saffron Sharara',
-      description: 'Vibrant saffron sharara with heavy embroidery on flares and short kurta. Ideal for festive celebrations.',
-      category: '3-piece-sets',
-      price: 21000,
-      images: ['https://images.unsplash.com/photo-1617627143750-d86bc21e44bb?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'S', quantity: 2 },
-        { size: 'M', quantity: 5 },
-        { size: 'L', quantity: 3 }
-      ],
-      colors: ['Saffron', 'Gold'],
       featured: true,
       inCollection: true,
-      isActive: true
-    },
-    {
-      name: 'Maroon Velvet Anarkali',
-      description: 'Luxurious maroon velvet anarkali with pearl and stone work. A statement piece for weddings.',
-      category: '3-piece-sets',
-      price: 22000,
-      images: ['https://images.unsplash.com/photo-1578991444433-d20a7a8d039f?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'XS', quantity: 2 },
-        { size: 'S', quantity: 6 },
-        { size: 'M', quantity: 7 },
-        { size: 'L', quantity: 4 },
-        { size: 'XL', quantity: 2 }
-      ],
-      colors: ['Maroon', 'Gold'],
-      featured: true,
-      inCollection: false,
-      isActive: true
-    },
-    {
-      name: 'Sage Green Palazzo',
-      description: 'Soft sage green palazzo with delicate floral prints and comfortable fit. Perfect for casual elegance.',
-      category: '2-piece-sets',
-      price: 5800,
-      images: ['https://images.unsplash.com/photo-1597683212624-b3f48dd6b837?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'S', quantity: 8 },
-        { size: 'M', quantity: 15 },
-        { size: 'L', quantity: 10 },
-        { size: 'XL', quantity: 6 }
-      ],
-      colors: ['Sage', 'Cream'],
-      featured: false,
-      inCollection: true,
-      isActive: true
-    },
-    {
-      name: 'Champagne Silk Straight',
-      description: 'Elegant champagne silk straight cut with delicate border work. Sophisticated and timeless.',
-      category: 'co-ord-sets',
-      price: 14200,
-      images: ['https://images.unsplash.com/photo-1580952855202-8352ada4afe5?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'S', quantity: 4 },
-        { size: 'M', quantity: 8 },
-        { size: 'L', quantity: 6 },
-        { size: 'XL', quantity: 3 }
-      ],
-      colors: ['Champagne'],
-      featured: false,
-      inCollection: false,
-      isActive: true
-    },
-    {
-      name: 'Cherry Red Sharara',
-      description: 'Bold cherry red sharara with intricate threadwork. A perfect choice for traditional celebrations.',
-      category: '3-piece-sets',
-      price: 19500,
-      images: ['https://images.unsplash.com/photo-1577720643272-265f434fe3d3?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'S', quantity: 3 },
-        { size: 'M', quantity: 4 },
-        { size: 'L', quantity: 2 }
-      ],
-      colors: ['Cherry Red', 'Gold'],
-      featured: false,
-      inCollection: false,
-      isActive: true
-    },
-    {
-      name: 'Lavender Dream Anarkali',
-      description: 'Dreamy lavender anarkali with mirror work and embroidery. Light, airy, and perfect for evening events.',
-      category: '3-piece-sets',
-      price: 15800,
-      images: ['https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'S', quantity: 5 },
-        { size: 'M', quantity: 10 },
-        { size: 'L', quantity: 7 }
-      ],
-      colors: ['Lavender'],
-      featured: false,
-      inCollection: true,
-      isActive: true
-    },
-    {
-      name: 'Rust Orange Palazzo',
-      description: 'Warm rust orange palazzo set with block print details. Comfortable everyday wear with style.',
-      category: '2-piece-sets',
-      price: 6500,
-      images: ['https://images.unsplash.com/photo-1554568218-84f6dd1cb744?auto=format&fit=crop&q=80&w=1200'],
-      sizeStock: [
-        { size: 'S', quantity: 12 },
-        { size: 'M', quantity: 14 },
-        { size: 'L', quantity: 10 },
-        { size: 'XL', quantity: 8 }
-      ],
-      colors: ['Rust', 'Cream'],
-      featured: true,
-      inCollection: false,
       isActive: true
     }
   ]
@@ -300,16 +152,16 @@ const seedMockData = async () => {
 
 const run = async () => {
   try {
+    console.log('🔄 Resetting database & preserving canonical admin...')
     await connect()
-    console.log('✅ Connected to MongoDB')
-
     await preserveAdminAndPurge()
     await seedMockData()
-
-    console.log('🎉 Reset and seeding completed successfully')
+    console.log('\n========================================')
+    console.log('🎉 DATABASE RESET & SEEDING COMPLETED!')
+    console.log('========================================\n')
     process.exit(0)
-  } catch (err) {
-    console.error('❌ Error during resetAndSeed:', err)
+  } catch (error) {
+    console.error('❌ Error resetting database:', error.message)
     process.exit(1)
   }
 }

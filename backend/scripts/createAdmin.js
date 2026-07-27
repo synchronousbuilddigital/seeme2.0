@@ -3,38 +3,44 @@ import dotenv from 'dotenv'
 import User from '../models/User.js'
 import dns from 'dns'
 
-// Set DNS servers to bypass local DNS resolution issues with MongoDB Atlas
 dns.setServers(['1.1.1.1', '8.8.8.8'])
-
 dotenv.config()
 
 const createAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/seemee', {
-      family: 4
-    })
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is missing in .env')
+    }
 
-    const adminExists = await User.findOne({ email: process.env.ADMIN_EMAIL || 'admin@seemee.com' })
+    const adminEmail = process.env.ADMIN_EMAIL
+    const adminPassword = process.env.ADMIN_PASSWORD
+
+    if (!adminEmail || !adminPassword) {
+      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be defined in .env')
+    }
+
+    await mongoose.connect(process.env.MONGODB_URI, { family: 4 })
+
+    const adminExists = await User.findOne({ email: adminEmail.trim().toLowerCase() })
 
     if (adminExists) {
-      console.log('❌ Admin user already exists')
+      console.log(`❌ Admin user '${adminEmail}' already exists`)
       process.exit(0)
     }
 
     const admin = await User.create({
-      email: process.env.ADMIN_EMAIL || 'admin@seemee.com',
-      password: process.env.ADMIN_PASSWORD || 'admin123',
+      email: adminEmail.trim().toLowerCase(),
+      password: adminPassword,
       name: 'Admin',
       role: 'admin'
     })
 
     console.log('✅ Admin user created successfully')
     console.log('Email:', admin.email)
-    console.log('Password:', process.env.ADMIN_PASSWORD || 'admin123')
 
     process.exit(0)
   } catch (error) {
-    console.error('❌ Error creating admin:', error)
+    console.error('❌ Error creating admin:', error.message)
     process.exit(1)
   }
 }

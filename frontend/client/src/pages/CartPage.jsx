@@ -6,7 +6,7 @@ import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './CartPage.css'
 
 const CartPage = () => {
-  const { cart, removeFromCart, updateQuantity, getCartTotal } = useContext(CartContext)
+  const { cart, removeFromCart, updateQuantity, clearCart, getCartTotal } = useContext(CartContext)
   const navigate = useNavigate()
 
   const calculateSubtotal = () => {
@@ -87,9 +87,12 @@ const CartPage = () => {
               }
               const itemTotal = itemPrice * (item.quantity || 1)
 
+              const itemSize = item.selectedSize || item.size || 'S'
+              const cartItemKey = `${itemId}-${itemSize}`
+
               return (
                 <motion.div
-                  key={itemId}
+                  key={cartItemKey}
                   className="editorial-cart-item"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -106,19 +109,22 @@ const CartPage = () => {
                   <div className="item-details-luxury">
                     <div className="item-top-row">
                       <div className="item-brand-info">
-                        <span className="item-category-luxury">{item.category}</span>
+                        <div className="category-size-row">
+                          <span className="item-category-luxury">{item.category}</span>
+                          <span className="item-size-badge-luxury">Size: <strong>{itemSize}</strong></span>
+                        </div>
                         <h3 className="item-name-luxury" onClick={() => navigate(`/product/${itemId}`)}>{item.name}</h3>
                       </div>
-                      <button className="remove-luxury-btn" onClick={() => removeFromCart(itemId)}>
+                      <button className="remove-luxury-btn" onClick={() => removeFromCart(itemId, itemSize)}>
                         Remove
                       </button>
                     </div>
 
                     <div className="item-mid-row">
                       <div className="quantity-luxury">
-                        <button onClick={() => updateQuantity(itemId, item.quantity - 1)}>—</button>
+                        <button onClick={() => updateQuantity(itemId, item.quantity - 1, itemSize)}>—</button>
                         <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(itemId, item.quantity + 1)}>+</button>
+                        <button onClick={() => updateQuantity(itemId, item.quantity + 1, itemSize)}>+</button>
                       </div>
                       <div className="item-price-luxury">
                         ₹{itemPrice.toLocaleString('en-IN')}
@@ -140,6 +146,9 @@ const CartPage = () => {
           <div className="cart-footer-actions">
             <button className="continue-shopping-luxury" onClick={handleContinueShopping}>
               ← Continue Exploring
+            </button>
+            <button className="clear-cart-luxury-btn" onClick={clearCart}>
+              Clear Shopping Bag
             </button>
           </div>
         </div>
