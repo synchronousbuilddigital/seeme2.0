@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
 import { API_ENDPOINTS } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { cachedFetch } from '../utils/cachedFetch'
 import './About.css'
 
 const About = () => {
@@ -13,8 +14,7 @@ const About = () => {
   const [ref, inView] = useInView({ once: true, threshold: 0.02 })
 
   useEffect(() => {
-    fetch(API_ENDPOINTS.SITE_SETTINGS)
-      .then(res => res.json())
+    cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
       .then(data => {
         if (data.success && data.data.aboutImage) {
           setAboutImage(data.data.aboutImage)

@@ -6,25 +6,25 @@ import { API_ENDPOINTS } from '../config/api'
 import './FabricSection.css'
 
 const FALLBACK_FABRICS = [
-  { 
-    title: 'Banarasi Silk Weave', 
-    description: 'Woven in the sacred town of Varanasi, our Banarasi silk is celebrated for its deep mulberry silk base intricately hand-woven with real gold and silver metallic zari threads. Every yard requires weeks of meticulous handloom craftsmanship, creating delicate floral motifs (buttis) and architectural patterns inspired by royal Mughal aesthetics.', 
-    image: '/images/about/fabric1.jpg' 
+  {
+    title: 'Banarasi Silk Weave',
+    description: 'Woven in the sacred town of Varanasi, our Banarasi silk is celebrated for its deep mulberry silk base intricately hand-woven with real gold and silver metallic zari threads. Every yard requires weeks of meticulous handloom craftsmanship, creating delicate floral motifs (buttis) and architectural patterns inspired by royal Mughal aesthetics.',
+    image: '/images/about/fabric1.jpg'
   },
-  { 
-    title: 'Royal Velvet Luxury', 
-    description: 'Crafted with an ultra-dense, luxurious pile that catches soft ambient light, our premium royal velvet represents pure opulence. The deep silk-blend weave yields a sumptuous weight and liquid-like drape, bringing a regal structure and timeless, sophisticated sheen to SeeMee’s statement evening silhouettes.', 
-    image: '/images/about/fabric4.jpg' 
+  {
+    title: 'Royal Velvet Luxury',
+    description: 'Crafted with an ultra-dense, luxurious pile that catches soft ambient light, our premium royal velvet represents pure opulence. The deep silk-blend weave yields a sumptuous weight and liquid-like drape, bringing a regal structure and timeless, sophisticated sheen to SeeMee’s statement evening silhouettes.',
+    image: '/images/about/fabric4.jpg'
   },
-  { 
-    title: 'Lustrous Silk-Cotton Blend', 
-    description: 'This heritage textile blends the structural strength of hand-spun raw silk slubs with the breathable softness of fine cotton. Perfect for modern, structured drapes, it features subtle, natural variations in texture that proudly showcase its hand-woven, organic origin on traditional Indian pit looms.', 
-    image: '/images/about/fabric3.jpg' 
+  {
+    title: 'Lustrous Silk-Cotton Blend',
+    description: 'This heritage textile blends the structural strength of hand-spun raw silk slubs with the breathable softness of fine cotton. Perfect for modern, structured drapes, it features subtle, natural variations in texture that proudly showcase its hand-woven, organic origin on traditional Indian pit looms.',
+    image: '/images/about/fabric3.jpg'
   },
-  { 
-    title: 'Chanderi Brocade Artistry', 
-    description: 'Originating from royal looms, our translucent cotton-silk Chanderi is sheer and lightweight yet highly resilient. Hand-embellished with intricate floral buttis in gold zari, it seamlessly bridges the gap between delicate hot-weather comfort and grand, majestic celebration attire.', 
-    image: '/images/about/fabric1.jpg' 
+  {
+    title: 'Chanderi Brocade Artistry',
+    description: 'Originating from royal looms, our translucent cotton-silk Chanderi is sheer and lightweight yet highly resilient. Hand-embellished with intricate floral buttis in gold zari, it seamlessly bridges the gap between delicate hot-weather comfort and grand, majestic celebration attire.',
+    image: '/images/about/fabric1.jpg'
   }
 ]
 
@@ -82,7 +82,7 @@ const FabricSection = () => {
   return (
     <section className="homepage-fabric-section">
       <div className="fabric-section-container">
-        
+
         {/* Editorial Section Header */}
         <div className="fabric-section-header">
           <span className="fabric-kicker">Tactile Heritage</span>

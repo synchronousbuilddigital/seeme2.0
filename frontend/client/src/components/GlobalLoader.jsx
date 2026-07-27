@@ -6,10 +6,10 @@ const GlobalLoader = () => {
   const [visible, setVisible] = useState(true)
 
   useEffect(() => {
-    // Elegant fade out after 1.5 seconds of brand presentation
+    // Quick fade out as soon as initial load is ready (300ms)
     const timer = setTimeout(() => {
       setVisible(false)
-    }, 1500)
+    }, 300)
 
     return () => clearTimeout(timer)
   }, [])

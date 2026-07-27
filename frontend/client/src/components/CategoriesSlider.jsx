@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
 import { getImageUrl } from '../utils/imageHelper'
+import { cachedFetch } from '../utils/cachedFetch'
 import './CategoriesSlider.css'
 
 const CategoriesSlider = () => {
@@ -65,14 +66,12 @@ const CategoriesSlider = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const prodRes = await fetch(API_ENDPOINTS.PRODUCTS)
-        const prodData = await prodRes.json()
+        const prodData = await cachedFetch(API_ENDPOINTS.PRODUCTS)
         const activeProducts = prodData.success && prodData.data
           ? prodData.data.filter(p => p.isActive)
           : []
 
-        const settingsRes = await fetch(API_ENDPOINTS.SITE_SETTINGS)
-        const settingsData = await settingsRes.json()
+        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
 
         let categoryList = []
 
@@ -111,11 +110,17 @@ const CategoriesSlider = () => {
         }
 
         const mappedCategories = categoryList.map((cat, index) => {
-          const matchingProds = activeProducts.filter(
-            p => p.category?.toLowerCase() === cat.slug?.toLowerCase()
-          )
+          const normCatSlug = cat.slug ? cat.slug.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '') : ''
+          const matchingProds = activeProducts.filter(p => {
+            if (!p.category) return false
+            const normPCat = p.category.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+            return normPCat === normCatSlug || p.category.toLowerCase() === cat.slug?.toLowerCase()
+          })
           const matchedProduct = matchingProds[0]
           const fallback = categoryDefaults[cat.slug?.toLowerCase()]
+
+          const prodImg = matchedProduct && (matchedProduct.images?.[0] || matchedProduct.image)
+          const poolImg = activeProducts[index % activeProducts.length]?.images?.[0] || activeProducts[index % activeProducts.length]?.image
 
           return {
             ...cat,
@@ -124,9 +129,7 @@ const CategoriesSlider = () => {
             features: cat.features && cat.features.length ? cat.features : (fallback?.features || ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut']),
             subtitle: cat.subtitle || fallback?.subtitle || 'Atelier Collection',
             description: cat.description || fallback?.description || 'Exquisite artisanal creations.',
-            image: (matchedProduct && matchedProduct.images && matchedProduct.images[0])
-              ? matchedProduct.images[0]
-              : (cat.image || fallback?.image || '/images/categories_straight.jpg')
+            image: prodImg || cat.image || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
           }
         })
 

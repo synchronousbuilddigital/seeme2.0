@@ -32,22 +32,22 @@ export default defineConfig({
             }
             return 'vendor'
           }
-          
+
           // Admin pages in separate chunk
           if (id.includes('/pages/admin/')) {
             return 'admin'
           }
-          
+
           // Category pages in separate chunk
           if (id.includes('/pages/') && (
-            id.includes('AnarkaliPage') || 
-            id.includes('PalazzoPage') || 
-            id.includes('StraightCutPage') || 
+            id.includes('AnarkaliPage') ||
+            id.includes('PalazzoPage') ||
+            id.includes('StraightCutPage') ||
             id.includes('ShararaPage')
           )) {
             return 'category-pages'
           }
-          
+
           // Below-the-fold components
           if (id.includes('/components/') && (
             id.includes('NewArrivals') ||

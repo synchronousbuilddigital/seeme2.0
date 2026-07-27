@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './Hero.css'
 
 // Module-level eager fetch promises to optimize first-paint load speed
@@ -12,32 +13,26 @@ let productsPromise = null
 
 const startEagerFetches = () => {
   if (typeof window === 'undefined') return
-  
+
   if (!carouselPromise) {
-    carouselPromise = fetch(API_ENDPOINTS.CAROUSEL)
-      .then(res => res.ok ? res.json() : Promise.reject('Response not ok'))
-      .catch(err => {
-        console.error('Eager fetch carousel error:', err)
-        return null
-      })
+    carouselPromise = cachedFetch(API_ENDPOINTS.CAROUSEL).catch(err => {
+      console.error('Eager fetch carousel error:', err)
+      return null
+    })
   }
 
   if (!categoriesPromise) {
-    categoriesPromise = fetch(API_ENDPOINTS.GET_CATEGORIES)
-      .then(res => res.ok ? res.json() : Promise.reject('Response not ok'))
-      .catch(err => {
-        console.error('Eager fetch categories error:', err)
-        return null
-      })
+    categoriesPromise = cachedFetch(API_ENDPOINTS.GET_CATEGORIES).catch(err => {
+      console.error('Eager fetch categories error:', err)
+      return null
+    })
   }
 
   if (!productsPromise) {
-    productsPromise = fetch(API_ENDPOINTS.PRODUCTS)
-      .then(res => res.ok ? res.json() : Promise.reject('Response not ok'))
-      .catch(err => {
-        console.error('Eager fetch products error:', err)
-        return null
-      })
+    productsPromise = cachedFetch(API_ENDPOINTS.PRODUCTS).catch(err => {
+      console.error('Eager fetch products error:', err)
+      return null
+    })
   }
 }
 
@@ -83,16 +78,25 @@ const FALLBACK_SLIDES = [
 ]
 
 const CATEGORY_IMAGES = {
-  'anarkali': '/images/hero/sharara_festive.png',
-  'palazzo': '/images/home-hero.png',
-  'straight-cut': '/images/ruby_bridal_sharara.png',
-  'sharara': '/images/hero/sharara_festive.png',
-  'co-ord-sets': '/images/magazine/weight_of_velvet.png',
-  '3-piece-sets': '/images/home-hero.png',
-  '2-piece-sets': '/images/ruby_bridal_sharara.png',
-  'bandhani': '/images/ruby_bridal_sharara.png',
-  'georgette': '/images/categories_straight.jpg',
-  'jaipuri': '/images/hero/sharara_festive.png',
+  'anarkali': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633494/seemee/images/dxynhfe0jk9tfpew1oaq.png',
+  'palazzo': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632879/seemee/images/vb6uwnjxl3i9djqhppwp.png',
+  'straight-cut': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632709/seemee/images/q2gueskgwff99qa13jga.jpg',
+  'sharara': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633520/seemee/images/c2guxkzfginuj3mmbvyb.png',
+  'co-ord-sets': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1778901116/seemee/images/r1e8mmn3an4kdfr9lhbh.jpg',
+  '3-piece-sets': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png',
+  '2-piece-sets': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632901/seemee/images/tcyazxhcnmthagympc9u.png',
+  'bandhani': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1784630017/seemee/images/mw8woaaleqrzakketafk.png',
+  'georgette': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633567/seemee/images/v0xsdnxhyp72kp177ww3.png',
+  'jaipuri': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633604/seemee/images/y1ffyeaw19msotdv5nph.png',
+}
+
+const normalizeCategoryKey = (slug) => {
+  if (!slug) return ''
+  return slug
+    .toLowerCase()
+    .trim()
+    .replace(/sets?$/g, '')
+    .replace(/[^a-z0-9]/g, '')
 }
 
 const formatCategoryName = (slug) => {
@@ -119,7 +123,7 @@ const getCategoryType = (slug) => {
 
 const Hero = () => {
   const navigate = useNavigate()
-  
+
   // Initialize slides state from local storage cache to avoid blank states/flashing
   const [slides, setSlides] = useState(() => {
     try {
@@ -135,11 +139,11 @@ const Hero = () => {
     }
     return FALLBACK_SLIDES.slice(0, 5)
   })
-  
+
   const [activeIndex, setActiveIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  
+
   // Initialize categories from cache
   const [categories, setCategories] = useState(() => {
     try {
@@ -155,7 +159,7 @@ const Hero = () => {
     }
     return ['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri']
   })
-  
+
   // Initialize category images from cache
   const [categoryImages, setCategoryImages] = useState(() => {
     try {
@@ -171,13 +175,39 @@ const Hero = () => {
     }
     return {}
   })
-  
+
   const [typedTitle, setTypedTitle] = useState('')
 
   const getCategoryDisplayImage = (slug) => {
+    if (!slug) return 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632879/seemee/images/vb6uwnjxl3i9djqhppwp.png'
     const s = slug.toLowerCase().trim()
-    const rawImage = categoryImages[s] || CATEGORY_IMAGES[s] || '/images/home-hero.png'
-    return getOptimizedImageUrl(rawImage, 'circle')
+    const norm = normalizeCategoryKey(slug)
+
+    // 1. Check exact key match from mapped product images
+    if (categoryImages[s]) return getOptimizedImageUrl(categoryImages[s], 'circle')
+    if (categoryImages[norm]) return getOptimizedImageUrl(categoryImages[norm], 'circle')
+
+    // 2. Check partial key match from mapped product images
+    const partialKey = Object.keys(categoryImages).find(k => k !== '_allImages' && (k.includes(norm) || norm.includes(k)))
+    if (partialKey && categoryImages[partialKey]) {
+      return getOptimizedImageUrl(categoryImages[partialKey], 'circle')
+    }
+
+    // 3. Fallback to product images list or Cloudinary category images
+    const pool = (Array.isArray(categoryImages._allImages) && categoryImages._allImages.length > 0)
+      ? categoryImages._allImages
+      : [
+        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png',
+        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632901/seemee/images/tcyazxhcnmthagympc9u.png',
+        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632879/seemee/images/vb6uwnjxl3i9djqhppwp.png',
+        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1778901116/seemee/images/r1e8mmn3an4kdfr9lhbh.jpg'
+      ]
+
+    let hash = 0
+    for (let i = 0; i < s.length; i++) hash = (hash << 5) - hash + s.charCodeAt(i)
+    const idx = Math.abs(hash) % pool.length
+    const fallbackRaw = CATEGORY_IMAGES[s] || CATEGORY_IMAGES[norm] || pool[idx]
+    return getOptimizedImageUrl(fallbackRaw, 'circle')
   }
 
   useEffect(() => {
@@ -189,9 +219,9 @@ const Hero = () => {
         if (catPromise) {
           categoriesPromise = null // Consume module eager promise
         } else {
-          catPromise = fetch(API_ENDPOINTS.GET_CATEGORIES).then(res => res.json())
+          catPromise = cachedFetch(API_ENDPOINTS.GET_CATEGORIES)
         }
-        
+
         const catData = await catPromise
         if (isMounted && catData && catData.success && catData.data.length > 0) {
           setCategories(catData.data)
@@ -210,21 +240,47 @@ const Hero = () => {
         if (prodPromise) {
           productsPromise = null // Consume module eager promise
         } else {
-          prodPromise = fetch(API_ENDPOINTS.PRODUCTS).then(res => res.json())
+          prodPromise = cachedFetch(API_ENDPOINTS.PRODUCTS)
         }
 
         const prodData = await prodPromise
         if (isMounted && prodData && prodData.success && prodData.data) {
           const products = prodData.data
           const imageMap = {}
+          const allProductImgs = []
+
           products.forEach(p => {
-            if (p.category && p.images && p.images.length > 0) {
-              const catKey = p.category.toLowerCase().trim()
-              if (!imageMap[catKey]) {
-                imageMap[catKey] = p.images[0]
+            const img = (p.images && p.images[0]) || p.image
+            if (img && p.isActive !== false) {
+              allProductImgs.push(img)
+              if (p.category) {
+                const rawKey = p.category.toLowerCase().trim()
+                const normKey = normalizeCategoryKey(p.category)
+                if (!imageMap[rawKey]) imageMap[rawKey] = img
+                if (!imageMap[normKey]) imageMap[normKey] = img
               }
             }
           })
+
+          // Also pull from SiteSettings categorySlides if available
+          try {
+            const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
+            if (settingsData && settingsData.success && settingsData.data?.categorySlides) {
+              settingsData.data.categorySlides.forEach(slide => {
+                if (slide.image) {
+                  const rawSlug = (slide.slug || slide.title || '').toLowerCase().trim()
+                  const normSlug = normalizeCategoryKey(slide.slug || slide.title)
+                  if (!imageMap[rawSlug]) imageMap[rawSlug] = slide.image
+                  if (!imageMap[normSlug]) imageMap[normSlug] = slide.image
+                  allProductImgs.push(slide.image)
+                }
+              })
+            }
+          } catch (e) {
+            console.error('Error fetching site settings for category images:', e)
+          }
+
+          imageMap._allImages = allProductImgs
           setCategoryImages(imageMap)
           try {
             localStorage.setItem('seemee_category_images', JSON.stringify(imageMap))
@@ -265,8 +321,7 @@ const Hero = () => {
           carouselPromise = null // Consume module eager promise
           data = await promise
         } else {
-          const response = await fetch(API_ENDPOINTS.CAROUSEL)
-          data = await response.json()
+          data = await cachedFetch(API_ENDPOINTS.CAROUSEL)
         }
 
         const backendSlides = data.success
@@ -697,9 +752,9 @@ const Hero = () => {
                   aria-label={`Go to slide ${index + 1}`}
                 >
                   <div className="thumbnail-img-wrap">
-                    <img 
-                      src={getOptimizedImageUrl(slide.image, 'thumbnail')} 
-                      alt={slide.title || 'Slide Preview'} 
+                    <img
+                      src={getOptimizedImageUrl(slide.image, 'thumbnail')}
+                      alt={slide.title || 'Slide Preview'}
                       loading="lazy"
                     />
                   </div>
@@ -723,10 +778,10 @@ const Hero = () => {
               >
                 <div className="category-circle-visual">
                   <div className="category-circle-img-wrap">
-                    <img 
-                      src={getCategoryDisplayImage(cat)} 
-                      alt={cat} 
-                      className="category-circle-img" 
+                    <img
+                      src={getCategoryDisplayImage(cat)}
+                      alt={cat}
+                      className="category-circle-img"
                       loading="lazy"
                     />
                     <div className="category-circle-overlay" />

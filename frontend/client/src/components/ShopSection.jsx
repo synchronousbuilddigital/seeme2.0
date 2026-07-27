@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './ShopSection.css'
 
 const ShopSection = () => {
@@ -31,8 +32,7 @@ const ShopSection = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.PRODUCTS)
-        const data = await response.json()
+        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS)
         if (data.success && data.data) {
           const activeProducts = data.data.filter(p => p.isActive).slice(0, 8)
           setProducts(activeProducts)

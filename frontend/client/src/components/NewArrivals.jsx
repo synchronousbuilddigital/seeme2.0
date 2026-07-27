@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './NewArrivals.css'
 
 const NewArrivals = () => {
@@ -30,11 +31,12 @@ const NewArrivals = () => {
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.PRODUCTS)
-        const data = await response.json()
+        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS)
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
           const active = data.data.filter(p => p.isActive)
-          setArrivals(active.slice(0, 4))
+          const sliced = active.slice(0, 4)
+          setArrivals(sliced)
+          localStorage.setItem('seemee_new_arrivals', JSON.stringify(sliced))
         }
       } catch (error) {
         console.error('Error fetching new arrivals:', error)

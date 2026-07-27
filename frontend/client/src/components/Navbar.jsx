@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './Navbar.css'
 
 const formatCategoryName = (slug) => {
@@ -35,8 +36,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
 
   useEffect(() => {
     // Fetch categories
-    fetch(API_ENDPOINTS.GET_CATEGORIES)
-      .then(res => res.json())
+    cachedFetch(API_ENDPOINTS.GET_CATEGORIES)
       .then(data => {
         if (data.success && data.data.length > 0) {
           setAvailableCategories(data.data)
@@ -47,8 +47,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
 
   useEffect(() => {
     // Fetch logo from API
-    fetch(API_ENDPOINTS.SITE_SETTINGS)
-      .then(res => res.json())
+    cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
       .then(data => {
         if (data.success && data.data.logo) {
           setLogo(data.data.logo)
