@@ -71,9 +71,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
     return () => clearInterval(interval)
   }, [])
 
-  useEffect(() => {
-    checkCollectionNotifications()
-  }, [])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -473,114 +470,12 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   return (
     <div className="products-manager">
-      {/* Collection Notification Modal */}
-      {showNotificationModal && collectionNotifications.length > 0 && (
-        <motion.div
-          className="notification-modal-overlay"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => setShowNotificationModal(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Collection products available notification"
-        >
-          <motion.div
-            className="notification-modal"
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="notification-header">
-              <div className="notification-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                </svg>
-              </div>
-              <h3>Collection Products Available!</h3>
-              <button className="close-notification-btn" onClick={() => setShowNotificationModal(false)}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="notification-body">
-              <p className="notification-message">
-                You have <strong>{collectionNotifications.length} product(s)</strong> in your collection.
-                These products are already added to your product list and visible on the website.
-              </p>
-
-              <div className="notification-products">
-                {collectionNotifications.slice(0, 5).map((product) => (
-                  <div key={product._id} className="notification-product-item">
-                    <img
-                      src={getImageUrl(product.images?.[0])}
-                      alt={product.name}
-                      className="notification-product-thumb"
-                    />
-                    <div className="notification-product-info">
-                      <h4>{product.name}</h4>
-                      <p>₹{product.price?.toLocaleString('en-IN')} • {product.category}</p>
-                      <span className="stock-badge">Stock: {product.stock}</span>
-                    </div>
-                    <div className="notification-product-status">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4CAF50">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      <span>Active</span>
-                    </div>
-                  </div>
-                ))}
-                {collectionNotifications.length > 5 && (
-                  <p className="more-products">
-                    + {collectionNotifications.length - 5} more products in collection
-                  </p>
-                )}
-              </div>
-
-              <div className="notification-actions">
-                <button
-                  className="view-collection-btn"
-                  onClick={() => {
-                    setShowNotificationModal(false)
-                    setCollectionFilter('collection')
-                  }}
-                >
-                  View Collection
-                </button>
-                <button
-                  className="dismiss-btn"
-                  onClick={() => setShowNotificationModal(false)}
-                >
-                  Got it!
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-
       <div className="manager-header">
         <div>
           <h1>Products Management</h1>
           <p>Manage your product inventory and stock</p>
         </div>
         <div className="header-actions">
-          {collectionNotifications.length > 0 && (
-            <button
-              className="notification-badge-btn"
-              onClick={() => setShowNotificationModal(true)}
-              title="Collection products notification"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-              <span className="notification-count">{collectionNotifications.length}</span>
-            </button>
-          )}
           <button className="add-btn" onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Cancel' : '+ Add Product'}
           </button>

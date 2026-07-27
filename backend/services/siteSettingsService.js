@@ -1,7 +1,7 @@
 import SiteSettings from '../models/SiteSettings.js'
 
 export const getSettings = async () => {
-  let settings = await SiteSettings.findOne()
+  let settings = await SiteSettings.findOne().lean()
   if (!settings) {
     // Create default settings if none exist
     settings = await SiteSettings.create({

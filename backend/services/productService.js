@@ -26,6 +26,7 @@ export const getAllProducts = async (filters) => {
     .sort(sortOptions)
     .skip(skip)
     .limit(Number(limit))
+    .lean()
 
   const total = await Product.countDocuments(filter)
 
@@ -60,6 +61,7 @@ export const searchProducts = async (queryParams) => {
     .sort(sortOptions)
     .skip(skip)
     .limit(Number(limit))
+    .lean()
 
   const total = await Product.countDocuments(filter)
 
@@ -75,6 +77,7 @@ export const getTopThreeProducts = async () => {
   let products = await Product.find({ isNewArrival: true, isActive: true })
     .sort({ createdAt: -1 })
     .limit(3)
+    .lean()
 
   // If not enough new arrivals, fill with collection products
   if (products.length < 3) {
@@ -86,6 +89,7 @@ export const getTopThreeProducts = async () => {
     })
       .sort({ createdAt: -1 })
       .limit(remaining)
+      .lean()
 
     products = [...products, ...collectionProducts]
   }
@@ -96,13 +100,13 @@ export const getTopThreeProducts = async () => {
 export const getUniqueCategories = async () => {
   const productCats = await Product.distinct('category', { isActive: true })
   const SiteSettings = (await import('../models/SiteSettings.js')).default
-  const settings = await SiteSettings.findOne()
+  const settings = await SiteSettings.findOne().lean()
   const slideCats = (settings?.categorySlides || []).map(c => c.slug || c.title.toLowerCase().replace(/\s+/g, '-'))
   return [...new Set([...productCats, ...slideCats])].filter(Boolean)
 }
 
 export const getProductById = async (id) => {
-  const product = await Product.findById(id)
+  const product = await Product.findById(id).lean()
   if (!product) {
     throw new Error('Product not found')
   }

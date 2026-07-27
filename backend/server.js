@@ -26,10 +26,24 @@ import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import cookieParser from 'cookie-parser'
 
+import compression from 'compression'
+
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
+
+// ─── PERFORMANCE MIDDLEWARES ───────────────────────────
+app.use(compression())
+
+// Cache Control Headers for public GET requests
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET' && !req.headers.authorization) {
+    res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60')
+  }
+  next()
+})
+
 
 // ─── SECURITY MIDDLEWARES ──────────────────────────────
 // ─── CORS (Must be before limiters) ──────────────────────
