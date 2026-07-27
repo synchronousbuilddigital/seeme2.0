@@ -68,12 +68,10 @@ export const getSettings = async () => {
 }
 
 export const updateSettings = async (settingsData) => {
-  let settings = await SiteSettings.findOne()
-  if (!settings) {
-    settings = await SiteSettings.create(settingsData)
-  } else {
-    Object.assign(settings, settingsData)
-    await settings.save()
-  }
+  const settings = await SiteSettings.findOneAndUpdate(
+    {},
+    { $set: settingsData },
+    { new: true, upsert: true, runValidators: true }
+  )
   return settings
 }

@@ -94,7 +94,11 @@ export const getTopThreeProducts = async () => {
 }
 
 export const getUniqueCategories = async () => {
-  return await Product.distinct('category', { isActive: true })
+  const productCats = await Product.distinct('category', { isActive: true })
+  const SiteSettings = (await import('../models/SiteSettings.js')).default
+  const settings = await SiteSettings.findOne()
+  const slideCats = (settings?.categorySlides || []).map(c => c.slug || c.title.toLowerCase().replace(/\s+/g, '-'))
+  return [...new Set([...productCats, ...slideCats])].filter(Boolean)
 }
 
 export const getProductById = async (id) => {

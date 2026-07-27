@@ -42,44 +42,9 @@ const NewArrivalsPage = () => {
           description: categoryDescriptions[item.category] || 'Discover our latest collection'
         }))
         setArrivals(transformedArrivals)
-      } else {
-        // Fallback mock data
-        setArrivals([
-          {
-            id: 'mock1',
-            category: 'anarkali',
-            image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800',
-            title: 'Royal Zardozi Anarkali',
-            description: 'Timeless elegance meets contemporary design in our latest Anarkali collection.'
-          },
-          {
-            id: 'mock2',
-            category: 'palazzo',
-            image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800',
-            title: 'Midnight Velvet Palazzo',
-            description: 'Experience comfort and style with our new Palazzo suits. Flowing silhouettes that make a statement.'
-          },
-          {
-            id: 'mock3',
-            category: 'straight-cut',
-            image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=800',
-            title: 'Emerald Silk Straight Cut',
-            description: 'Classic sophistication redefined. Our Straight Cut suits blend tradition with modern aesthetics.'
-          }
-        ])
       }
     } catch (error) {
       console.error('Error fetching arrivals:', error)
-      // Mock data on error
-      setArrivals([
-        {
-          id: 'mock1',
-          category: 'anarkali',
-          image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800',
-          title: 'Royal Zardozi Anarkali',
-          description: 'Timeless elegance meets contemporary design in our latest Anarkali collection.'
-        }
-      ])
     } finally {
       setLoading(false)
     }

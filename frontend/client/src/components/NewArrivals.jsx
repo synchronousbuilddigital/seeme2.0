@@ -30,30 +30,14 @@ const NewArrivals = () => {
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.TOP_PRODUCTS)
+        const response = await fetch(API_ENDPOINTS.PRODUCTS)
         const data = await response.json()
-        let result = []
-        if (data.success && data.data.length > 0) {
-          result = data.data
-        } else {
-          result = [
-            { id: '1', category: 'anarkali', title: 'Anarkali Suit', price: 7500, image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800' },
-            { id: '2', category: 'palazzo', title: 'Palazzo Suit', price: 6800, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800' },
-            { id: '3', category: 'straight-cut', title: 'Straight Cut Suit', price: 8200, image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=800' },
-            { id: '4', category: 'sharara', title: 'Sharara Suit', price: 9500, image: 'https://images.unsplash.com/photo-1608748010899-18f300247112?auto=format&fit=crop&q=80&w=800' }
-          ]
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const active = data.data.filter(p => p.isActive)
+          setArrivals(active.slice(0, 4))
         }
-        setArrivals(result)
-        localStorage.setItem('seemee_new_arrivals', JSON.stringify(result))
       } catch (error) {
-        const fallback = [
-          { id: '1', category: 'anarkali', title: 'Anarkali Suit', price: 7500, image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800' },
-          { id: '2', category: 'palazzo', title: 'Palazzo Suit', price: 6800, image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800' },
-          { id: '3', category: 'straight-cut', title: 'Straight Cut Suit', price: 8200, image: 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=800' },
-          { id: '4', category: 'sharara', title: 'Sharara Suit', price: 9500, image: 'https://images.unsplash.com/photo-1608748010899-18f300247112?auto=format&fit=crop&q=80&w=800' }
-        ]
-        setArrivals(fallback)
-        localStorage.setItem('seemee_new_arrivals', JSON.stringify(fallback))
+        console.error('Error fetching new arrivals:', error)
       } finally {
         setLoading(false)
       }
