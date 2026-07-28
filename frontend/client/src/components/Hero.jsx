@@ -77,22 +77,19 @@ const FALLBACK_SLIDES = [
   }
 ]
 
-const CATEGORY_IMAGES = {
-  'anarkali': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633494/seemee/images/dxynhfe0jk9tfpew1oaq.png',
-  'palazzo': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632879/seemee/images/vb6uwnjxl3i9djqhppwp.png',
-  'straight-cut': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632709/seemee/images/q2gueskgwff99qa13jga.jpg',
-  'sharara': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633520/seemee/images/c2guxkzfginuj3mmbvyb.png',
-  'co-ord-sets': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1778901116/seemee/images/r1e8mmn3an4kdfr9lhbh.jpg',
-  '3-piece-sets': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png',
-  '2-piece-sets': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632901/seemee/images/tcyazxhcnmthagympc9u.png',
-  'bandhani': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1784630017/seemee/images/mw8woaaleqrzakketafk.png',
-  'georgette': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633567/seemee/images/v0xsdnxhyp72kp177ww3.png',
-  'jaipuri': 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779633604/seemee/images/y1ffyeaw19msotdv5nph.png',
+const getCategorySlugStr = (cat) => {
+  if (!cat) return ''
+  if (typeof cat === 'string') return cat
+  if (typeof cat === 'object') {
+    return cat.slug || cat.name || cat.title || cat.category || String(cat)
+  }
+  return String(cat)
 }
 
 const normalizeCategoryKey = (slug) => {
-  if (!slug) return ''
-  return slug
+  const str = getCategorySlugStr(slug)
+  if (!str) return ''
+  return str
     .toLowerCase()
     .trim()
     .replace(/sets?$/g, '')
@@ -100,20 +97,22 @@ const normalizeCategoryKey = (slug) => {
 }
 
 const formatCategoryName = (slug) => {
-  if (!slug) return ''
-  const s = slug.toLowerCase().trim()
+  const str = getCategorySlugStr(slug)
+  if (!str) return ''
+  const s = str.toLowerCase().trim()
   if (s === '2-piece-sets' || s === '2-piece' || s === '2-pieces') return '2-Piece'
   if (s === '3-piece-sets' || s === '3-piece' || s === '3-pieces') return '3-Piece'
   if (s === 'co-ord-sets' || s === 'cord-set' || s === 'co-ord' || s === 'co-ord-set') return 'Cord Set'
 
-  return slug
+  return str
     .replace(/-/g, ' ')
     .replace(/\b\w/g, c => c.toUpperCase())
 }
 
 const getCategoryType = (slug) => {
-  if (!slug) return 'COUTURE'
-  const s = slug.toLowerCase().trim()
+  const str = getCategorySlugStr(slug)
+  if (!str) return 'COUTURE'
+  const s = str.toLowerCase().trim()
   if (s.includes('saree')) return 'SAREE'
   if (s.includes('lehenga')) return 'LEHENGA'
   if (s.includes('set') || s.includes('co-ord') || s.includes('piece')) return 'SETS'
@@ -151,7 +150,7 @@ const Hero = () => {
       if (cached) {
         const parsed = JSON.parse(cached)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed
+          return parsed.map(getCategorySlugStr).filter(Boolean)
         }
       }
     } catch (e) {
@@ -178,7 +177,8 @@ const Hero = () => {
 
   const [typedTitle, setTypedTitle] = useState('')
 
-  const getCategoryDisplayImage = (slug) => {
+  const getCategoryDisplayImage = (slugInput) => {
+    const slug = getCategorySlugStr(slugInput)
     if (!slug) return 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632879/seemee/images/vb6uwnjxl3i9djqhppwp.png'
     const s = slug.toLowerCase().trim()
     const norm = normalizeCategoryKey(slug)
@@ -206,7 +206,7 @@ const Hero = () => {
     let hash = 0
     for (let i = 0; i < s.length; i++) hash = (hash << 5) - hash + s.charCodeAt(i)
     const idx = Math.abs(hash) % pool.length
-    const fallbackRaw = CATEGORY_IMAGES[s] || CATEGORY_IMAGES[norm] || pool[idx]
+    const fallbackRaw = pool[idx] || pool[0]
     return getOptimizedImageUrl(fallbackRaw, 'circle')
   }
 
@@ -223,10 +223,11 @@ const Hero = () => {
         }
 
         const catData = await catPromise
-        if (isMounted && catData && catData.success && catData.data.length > 0) {
-          setCategories(catData.data)
+        if (isMounted && catData && catData.success && Array.isArray(catData.data) && catData.data.length > 0) {
+          const parsedCatList = catData.data.map(getCategorySlugStr).filter(Boolean)
+          setCategories(parsedCatList)
           try {
-            localStorage.setItem('seemee_categories', JSON.stringify(catData.data))
+            localStorage.setItem('seemee_categories', JSON.stringify(parsedCatList))
           } catch (e) {
             console.error('Error caching categories:', e)
           }
@@ -769,28 +770,30 @@ const Hero = () => {
       {categories.length > 0 && (
         <div className="category-marquee-container">
           <div className="category-marquee-track">
-            {/* Repeat the list 10 times for a mathematically seamless infinite loop on any screen width */}
-            {Array(10).fill(categories).flat().map((cat, idx) => (
-              <div
-                key={`${cat}-${idx}`}
-                className="category-circle-item"
-                onClick={() => navigate(`/category/${cat}`)}
-              >
-                <div className="category-circle-visual">
-                  <div className="category-circle-img-wrap">
-                    <img
-                      src={getCategoryDisplayImage(cat)}
-                      alt={cat}
-                      className="category-circle-img"
-                      loading="lazy"
-                    />
-                    <div className="category-circle-overlay" />
+            {Array(10).fill(categories).flat().map((catItem, idx) => {
+              const catSlug = getCategorySlugStr(catItem)
+              return (
+                <div
+                  key={`${catSlug || idx}-${idx}`}
+                  className="category-circle-item"
+                  onClick={() => navigate(`/category/${catSlug}`)}
+                >
+                  <div className="category-circle-visual">
+                    <div className="category-circle-img-wrap">
+                      <img
+                        src={getCategoryDisplayImage(catSlug)}
+                        alt={catSlug}
+                        className="category-circle-img"
+                        loading="lazy"
+                      />
+                      <div className="category-circle-overlay" />
+                    </div>
                   </div>
+                  <span className="category-circle-name">{formatCategoryName(catSlug)}</span>
+                  <span className="category-circle-tag">{getCategoryType(catSlug)}</span>
                 </div>
-                <span className="category-circle-name">{formatCategoryName(cat)}</span>
-                <span className="category-circle-tag">{getCategoryType(cat)}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

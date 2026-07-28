@@ -7,16 +7,27 @@ import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import './Navbar.css'
 
-const formatCategoryName = (slug) => {
+const normalizeCategorySlug = (slug) => {
   if (!slug) return ''
-  const s = slug.toLowerCase().trim()
-  if (s === '2-piece-sets' || s === '2-piece' || s === '2-pieces') return '2-Piece'
-  if (s === '3-piece-sets' || s === '3-piece' || s === '3-pieces') return '3-Piece'
-  if (s === 'co-ord-sets' || s === 'cord-set' || s === 'co-ord' || s === 'co-ord-set') return 'Cord Set'
+  const str = typeof slug === 'object' ? (slug.slug || slug.title || slug.name || '') : String(slug)
+  return str.toLowerCase().trim().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+}
 
-  return slug
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase())
+const getCategoryLabel = (catItem) => {
+  if (!catItem) return ''
+  if (typeof catItem === 'object' && catItem.title) return catItem.title
+  const slug = typeof catItem === 'object' ? (catItem.slug || catItem.name || '') : String(catItem)
+  const s = slug.toLowerCase().trim()
+  if (s === '2-piece-sets' || s === '2-piece' || s === '2-pieces') return '2-Piece Sets'
+  if (s === '3-piece-sets' || s === '3-piece' || s === '3-pieces') return '3-Piece Sets'
+  if (s === 'co-ord-sets' || s === 'cord-set' || s === 'co-ord' || s === 'co-ord-set') return 'Co-ord Sets'
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
+
+const getCategorySlug = (catItem) => {
+  if (!catItem) return ''
+  if (typeof catItem === 'object') return catItem.slug || catItem.name || catItem.title || ''
+  return String(catItem)
 }
 
 const Navbar = ({ onCartOpen, onWishlistOpen }) => {
@@ -32,17 +43,63 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [availableCategories, setAvailableCategories] = useState(['anarkali', 'palazzo', 'straight-cut', 'sharara'])
+  const [availableCategories, setAvailableCategories] = useState([
+    { slug: '2-piece-sets', label: '2-Piece Sets' },
+    { slug: '3-piece-sets', label: '3-Piece Sets' },
+    { slug: 'co-ord-sets', label: 'Co-ord Sets' }
+  ])
 
   useEffect(() => {
-    // Fetch categories
-    cachedFetch(API_ENDPOINTS.GET_CATEGORIES)
-      .then(data => {
-        if (data.success && data.data.length > 0) {
-          setAvailableCategories(data.data)
+    const fetchNavbarCategories = async () => {
+      try {
+        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
+        let adminCategorySlides = []
+        if (settingsData?.success && settingsData.data?.categorySlides?.length > 0) {
+          adminCategorySlides = settingsData.data.categorySlides
         }
-      })
-      .catch(err => console.error('Error fetching categories:', err))
+
+        const categoriesData = await cachedFetch(API_ENDPOINTS.GET_CATEGORIES)
+        let apiCategories = []
+        if (categoriesData?.success && Array.isArray(categoriesData.data)) {
+          apiCategories = categoriesData.data
+        }
+
+        const seenKeys = new Set()
+        const mergedCategories = []
+
+        // Prioritize Admin Panel category slides
+        adminCategorySlides.forEach(cat => {
+          const normKey = normalizeCategorySlug(cat.slug || cat.title)
+          if (normKey && !seenKeys.has(normKey)) {
+            seenKeys.add(normKey)
+            mergedCategories.push({
+              slug: cat.slug || cat.title.toLowerCase().replace(/\s+/g, '-'),
+              label: cat.title || getCategoryLabel(cat.slug)
+            })
+          }
+        })
+
+        // Include other product categories
+        apiCategories.forEach(cat => {
+          const normKey = normalizeCategorySlug(cat)
+          if (normKey && !seenKeys.has(normKey)) {
+            seenKeys.add(normKey)
+            mergedCategories.push({
+              slug: getCategorySlug(cat),
+              label: getCategoryLabel(cat)
+            })
+          }
+        })
+
+        if (mergedCategories.length > 0) {
+          setAvailableCategories(mergedCategories)
+        }
+      } catch (err) {
+        console.error('Error fetching admin categories for Navbar:', err)
+      }
+    }
+
+    fetchNavbarCategories()
   }, [])
 
   useEffect(() => {
@@ -147,8 +204,8 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                 >
                   <div className="dropdown-grid">
                     {availableCategories.map(cat => (
-                      <button key={cat} onClick={() => handleNavigation(`/category/${cat}`)}>
-                        {formatCategoryName(cat)}
+                      <button key={cat.slug} onClick={() => handleNavigation(`/category/${cat.slug}`)}>
+                        {cat.label}
                       </button>
                     ))}
                   </div>

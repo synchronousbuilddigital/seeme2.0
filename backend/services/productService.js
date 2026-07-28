@@ -102,7 +102,20 @@ export const getUniqueCategories = async () => {
   const SiteSettings = (await import('../models/SiteSettings.js')).default
   const settings = await SiteSettings.findOne().lean()
   const slideCats = (settings?.categorySlides || []).map(c => c.slug || c.title.toLowerCase().replace(/\s+/g, '-'))
-  return [...new Set([...productCats, ...slideCats])].filter(Boolean)
+
+  const allCats = [...slideCats, ...productCats].filter(Boolean)
+  const seenNorm = new Set()
+  const uniqueCats = []
+
+  for (const cat of allCats) {
+    const norm = String(cat).toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+    if (!seenNorm.has(norm)) {
+      seenNorm.add(norm)
+      uniqueCats.push(cat)
+    }
+  }
+
+  return uniqueCats
 }
 
 export const getProductById = async (id) => {
