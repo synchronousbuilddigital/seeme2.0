@@ -10,24 +10,31 @@ import './Navbar.css'
 const normalizeCategorySlug = (slug) => {
   if (!slug) return ''
   const str = typeof slug === 'object' ? (slug.slug || slug.title || slug.name || '') : String(slug)
-  return str.toLowerCase().trim().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+  let s = str.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
+  if (s.startsWith('2piece')) return '2piece'
+  if (s.startsWith('3piece')) return '3piece'
+  if (s.includes('coord') || s.includes('cord')) return 'coord'
+  return s
 }
 
 const getCategoryLabel = (catItem) => {
   if (!catItem) return ''
-  if (typeof catItem === 'object' && catItem.title) return catItem.title
-  const slug = typeof catItem === 'object' ? (catItem.slug || catItem.name || '') : String(catItem)
-  const s = slug.toLowerCase().trim()
-  if (s === '2-piece-sets' || s === '2-piece' || s === '2-pieces') return '2-Piece Sets'
-  if (s === '3-piece-sets' || s === '3-piece' || s === '3-pieces') return '3-Piece Sets'
-  if (s === 'co-ord-sets' || s === 'cord-set' || s === 'co-ord' || s === 'co-ord-set') return 'Co-ord Sets'
-  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+  const str = typeof catItem === 'object' ? (catItem.title || catItem.label || catItem.name || catItem.slug || '') : String(catItem)
+  const normKey = normalizeCategorySlug(str)
+  if (normKey === '2piece') return '2-Piece Sets'
+  if (normKey === '3piece') return '3-Piece Sets'
+  if (normKey === 'coord') return 'Co-ord Sets'
+  return str.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 const getCategorySlug = (catItem) => {
   if (!catItem) return ''
-  if (typeof catItem === 'object') return catItem.slug || catItem.name || catItem.title || ''
-  return String(catItem)
+  const str = typeof catItem === 'object' ? (catItem.slug || catItem.name || catItem.title || '') : String(catItem)
+  const normKey = normalizeCategorySlug(str)
+  if (normKey === '2piece') return '2-piece-sets'
+  if (normKey === '3piece') return '3-piece-sets'
+  if (normKey === 'coord') return 'co-ord-sets'
+  return str.toLowerCase().replace(/\s+/g, '-')
 }
 
 const Navbar = ({ onCartOpen, onWishlistOpen }) => {
@@ -73,13 +80,13 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           if (normKey && !seenKeys.has(normKey)) {
             seenKeys.add(normKey)
             mergedCategories.push({
-              slug: cat.slug || cat.title.toLowerCase().replace(/\s+/g, '-'),
-              label: cat.title || getCategoryLabel(cat.slug)
+              slug: getCategorySlug(cat),
+              label: getCategoryLabel(cat)
             })
           }
         })
 
-        // Include other product categories
+        // Include other product categories from backend database
         apiCategories.forEach(cat => {
           const normKey = normalizeCategorySlug(cat)
           if (normKey && !seenKeys.has(normKey)) {
@@ -319,10 +326,10 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                   </div>
                   <div className="profile-divider"></div>
                   {user?.role === 'admin' ? (
-                    <button 
-                      className="profile-menu-item" 
-                      onClick={() => { 
-                        setProfileMenuOpen(false); 
+                    <button
+                      className="profile-menu-item"
+                      onClick={() => {
+                        setProfileMenuOpen(false);
                         const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
                         const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || localStorage.getItem('adminUser') || '';
                         window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
@@ -409,8 +416,8 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
             {categoriesOpen && (
               <div className="mobile-submenu-items">
                 {availableCategories.map(cat => (
-                  <button key={cat} onClick={() => handleNavigation(`/category/${cat}`)}>
-                    {formatCategoryName(cat)}
+                  <button key={cat.slug || cat} onClick={() => handleNavigation(`/category/${cat.slug || cat}`)}>
+                    {cat.label || getCategoryLabel(cat)}
                   </button>
                 ))}
               </div>

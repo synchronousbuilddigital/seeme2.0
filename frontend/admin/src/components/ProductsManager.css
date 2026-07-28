@@ -172,11 +172,11 @@
   background: #FAFAFA;
   padding: 1.2rem 1.5rem;
   text-align: left;
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #888;
+  letter-spacing: 0.08em;
+  color: #555;
   border-bottom: 1px solid #EAEAEA;
 }
 
@@ -184,6 +184,7 @@
   padding: 1.2rem 1.5rem;
   border-bottom: 1px solid #F5F5F5;
   vertical-align: middle;
+  font-size: 0.95rem;
 }
 
 .products-table tr:hover td {
@@ -202,9 +203,9 @@
 }
 
 .table-product-img {
-  width: 60px;
-  height: 80px;
-  border-radius: 4px;
+  width: 65px;
+  height: 85px;
+  border-radius: 6px;
   overflow: hidden;
   background: #f0f0f0;
   flex-shrink: 0;
@@ -222,31 +223,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: #999;
   text-transform: uppercase;
   background: #F5F5F5;
 }
 
 .table-product-details h4 {
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: #111;
   margin-bottom: 0.3rem;
 }
 
 .sku {
-  font-size: 0.75rem;
-  color: #888;
+  font-size: 0.82rem;
+  color: #666;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .category-pill {
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #555;
+  color: #444;
   background: #F5F5F5;
   padding: 0.3rem 0.8rem;
   border-radius: 100px;
@@ -1067,7 +1068,8 @@
   }
 
   .url-upload-input {
-    font-size: 16px !important; /* Prevents iOS WebKit auto-zoom */
+    font-size: 16px !important;
+    /* Prevents iOS WebKit auto-zoom */
     min-height: 48px;
   }
 
@@ -1076,6 +1078,7 @@
     min-height: 46px;
     border-radius: 8px;
   }
+
   .desktop-only-table {
     display: none !important;
   }
@@ -1272,14 +1275,16 @@
 
   .toolbar-input {
     padding: 0.8rem 1rem 0.8rem 2.8rem;
-    font-size: 16px; /* Prevents iOS WebKit auto-zoom */
+    font-size: 16px;
+    /* Prevents iOS WebKit auto-zoom */
     min-height: 48px;
   }
 
   .toolbar-select {
     width: 100%;
     padding: 0.8rem 1rem;
-    font-size: 16px; /* Prevents iOS WebKit auto-zoom */
+    font-size: 16px;
+    /* Prevents iOS WebKit auto-zoom */
     min-height: 48px;
     background-position: right 1rem top 50%;
   }
@@ -1292,7 +1297,8 @@
   .form-group input,
   .form-group select,
   .form-group textarea {
-    font-size: 16px !important; /* Prevents iOS WebKit auto-zoom */
+    font-size: 16px !important;
+    /* Prevents iOS WebKit auto-zoom */
   }
 
   .products-table-container {
@@ -1365,7 +1371,8 @@
     overflow-x: auto;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Hide scrollbar for clean tab look */
+    scrollbar-width: none;
+    /* Hide scrollbar for clean tab look */
   }
 
   .form-header-tabs::-webkit-scrollbar {
@@ -1381,7 +1388,8 @@
 
   .tabbed-form {
     padding: 16px;
-    padding-bottom: 90px; /* Space for sticky save bar */
+    padding-bottom: 90px;
+    /* Space for sticky save bar */
   }
 
   .form-row {
@@ -1409,7 +1417,8 @@
   }
 
   .thumb-actions {
-    opacity: 1; /* Always visible on touch screens */
+    opacity: 1;
+    /* Always visible on touch screens */
   }
 
   .thumb-action-btn {
@@ -1459,4 +1468,166 @@
   background: #FFFFFF !important;
   border-color: #000000 !important;
   color: #111111 !important;
+}
+
+/* Separate Dedicated Row for Product Status in Admin Form */
+.status-row-separate {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding: 1.2rem;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+}
+
+.status-section-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #374151;
+  margin-bottom: 0.8rem;
+}
+
+.status-radio-group-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.status-radio-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1rem;
+  background: #FFFFFF;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-radio-btn input[type="radio"] {
+  margin-top: 3px;
+}
+
+.status-radio-info strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #111827;
+  margin-bottom: 0.2rem;
+}
+
+.status-radio-info p {
+  font-size: 0.8rem;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.status-radio-btn.selected-active {
+  border-color: #10B981;
+  background: #ECFDF5;
+}
+
+.status-radio-btn.selected-inactive {
+  border-color: #EF4444;
+  background: #FEF2F2;
+}
+
+.status-radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.status-radio-dot.active-dot {
+  background-color: #10B981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.status-radio-dot.inactive-dot {
+  background-color: #EF4444;
+}
+
+/* Inline Table Row Toggle Switch */
+.active-toggle-column {
+  white-space: nowrap;
+}
+
+.inline-status-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #F3F4F6;
+  border: 1px solid #D1D5DB;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.inline-status-toggle.is-active {
+  background: #ECFDF5;
+  border-color: #A7F3D0;
+  color: #047857;
+}
+
+.inline-status-toggle.is-active:hover {
+  background: #D1FAE5;
+}
+
+.inline-status-toggle.is-inactive {
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+  color: #B91C1C;
+}
+
+.inline-status-toggle.is-inactive:hover {
+  background: #FEE2E2;
+}
+
+.toggle-switch-track {
+  width: 28px;
+  height: 16px;
+  background: #9CA3AF;
+  border-radius: 10px;
+  position: relative;
+  transition: background-color 0.2s ease;
+  display: inline-block;
+}
+
+.inline-status-toggle.is-active .toggle-switch-track {
+  background: #10B981;
+}
+
+.inline-status-toggle.is-inactive .toggle-switch-track {
+  background: #EF4444;
+}
+
+.toggle-switch-thumb {
+  width: 12px;
+  height: 12px;
+  background: #FFFFFF;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+}
+
+.inline-status-toggle.is-active .toggle-switch-thumb {
+  transform: translateX(12px);
+}
+
+.toggle-status-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }

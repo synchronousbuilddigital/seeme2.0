@@ -46,11 +46,12 @@ const uploadToCloudinary = (fileBuffer, filename, folder = 'seemee/products') =>
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
       {
-        resource_type: 'auto',
+        resource_type: 'image',
         folder: folder,
         public_id: filename,
+        format: 'webp',
         quality: 'auto',
-        fetch_format: 'auto'
+        fetch_format: 'webp'
       },
       (error, result) => {
         if (error) {
@@ -86,7 +87,8 @@ const getOptimizedCloudinaryUrl = (publicId, width = 800, quality = 80) => {
     width: width,
     crop: 'fill',
     quality: quality,
-    fetch_format: 'auto'
+    format: 'webp',
+    fetch_format: 'webp'
   })
 }
 

@@ -8,7 +8,7 @@
 const cacheMap = new Map()
 const inflightRequests = new Map()
 
-const DEFAULT_TTL_MS = 30 * 1000 // 30 seconds
+const DEFAULT_TTL_MS = 5 * 1000 // 5 seconds
 
 /**
  * Perform a cached & deduplicated GET request
@@ -43,6 +43,16 @@ export const cachedFetch = async (url, options = {}) => {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
+
+      // Ensure inactive products (isActive === false) are never returned to client storefront components
+      if (data && data.success) {
+        if (Array.isArray(data.data)) {
+          data.data = data.data.filter(item => !item || item.isActive !== false)
+        }
+        if (Array.isArray(data.products)) {
+          data.products = data.products.filter(item => !item || item.isActive !== false)
+        }
+      }
       
       // Cache successful response
       cacheMap.set(cacheKey, {

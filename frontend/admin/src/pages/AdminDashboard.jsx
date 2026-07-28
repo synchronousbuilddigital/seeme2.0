@@ -468,10 +468,6 @@ const AdminDashboard = () => {
                       <div className="tile-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
                       <span>Categories</span>
                     </button>
-                    <button className="action-tile" onClick={() => window.open('/api/health', '_blank')}>
-                      <div className="tile-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg></div>
-                      <span>API Health</span>
-                    </button>
                   </div>
                 </div>
               </div>

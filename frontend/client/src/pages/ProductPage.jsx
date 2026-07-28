@@ -31,7 +31,7 @@ const ProductPage = () => {
     try {
       const response = await fetch(`${API_ENDPOINTS.PRODUCTS}/${id}`)
       const data = await response.json()
-      if (data.success) {
+      if (data.success && data.data && data.data.isActive !== false) {
         setProduct(data.data)
         const sizesList = (data.data.sizes && data.data.sizes.length > 0)
           ? data.data.sizes
@@ -41,6 +41,8 @@ const ProductPage = () => {
         const initialSize = (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
         setSelectedSize(initialSize)
         fetchRelatedProducts(data.data.category, data.data._id)
+      } else {
+        setError('This product is currently inactive or unavailable.')
       }
     } catch (error) {
       console.error('Error fetching product:', error)

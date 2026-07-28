@@ -18,6 +18,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [collectionFilter, setCollectionFilter] = useState('all')
   const [stockFilter, setStockFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState(null)
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
@@ -57,7 +58,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
     dimensions: { length: '', width: '', height: '' },
     materials: [],
     seo: { title: '', description: '' },
-    isNewArrival: false
+    isNewArrival: false,
+    isActive: true
   })
   const [availableCategories, setAvailableCategories] = useState(['2-piece-sets', '3-piece-sets', 'co-ord-sets'])
 
@@ -74,7 +76,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, categoryFilter, collectionFilter, stockFilter])
+  }, [searchTerm, categoryFilter, collectionFilter, stockFilter, statusFilter])
 
   const normalizeMediaUrl = (media) => {
     if (!media) return ''
@@ -111,12 +113,46 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiRequest(API_ENDPOINTS.PRODUCTS)
+      const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}?includeInactive=true&limit=1000`, { auth: true })
       if (data.success) {
-        setProducts(data.data || []) // API returns .data
+        setProducts(data.data || [])
       }
     } catch (error) {
       console.error('Error fetching products:', error)
+    }
+  }
+
+  const handleToggleActive = async (product) => {
+    const newStatus = !(product.isActive !== false)
+
+    // Optimistically update local admin products state instantly
+    setProducts(prevProducts =>
+      prevProducts.map(p => (p._id === product._id ? { ...p, isActive: newStatus } : p))
+    )
+
+    try {
+      const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}/${product._id}`, {
+        method: 'PUT',
+        auth: true,
+        body: { isActive: newStatus }
+      })
+
+      if (data.success) {
+        showNotification(newStatus ? 'Product is now Active (Visible on storefront)' : 'Product is now Inactive (Hidden from storefront)')
+        fetchProducts()
+      } else {
+        // Revert local state if server request fails
+        setProducts(prevProducts =>
+          prevProducts.map(p => (p._id === product._id ? { ...p, isActive: !newStatus } : p))
+        )
+        showNotification(data.message || 'Failed to update product status', 'error')
+      }
+    } catch (error) {
+      // Revert local state if server request fails
+      setProducts(prevProducts =>
+        prevProducts.map(p => (p._id === product._id ? { ...p, isActive: !newStatus } : p))
+      )
+      showNotification('Failed to update product status: ' + error.message, 'error')
     }
   }
 
@@ -187,7 +223,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     }
   }
 
-  const handleAddImageUrl = (e) => {
+  const handleAddImageUrl = async (e) => {
     e?.preventDefault()
     const trimmed = imageUrlInput.trim()
     if (!trimmed) {
@@ -200,12 +236,42 @@ const ProductsManager = ({ onPromoteToHero }) => {
       return
     }
 
-    setFormData(prev => ({
-      ...prev,
-      images: [...(prev.images || []), trimmed]
-    }))
-    setImageUrlInput('')
-    showNotification('Image URL added successfully')
+    setUploading(true)
+    try {
+      // Send URL to Cloudinary endpoint so it gets uploaded & converted to WebP on Cloudinary
+      const data = await apiRequest(API_ENDPOINTS.UPLOAD.IMAGE_FROM_URL, {
+        method: 'POST',
+        auth: true,
+        body: { url: trimmed }
+      })
+
+      if (data.success && data.data && data.data.url) {
+        const cloudinaryUrl = data.data.url
+        setFormData(prev => ({
+          ...prev,
+          images: [...(prev.images || []), cloudinaryUrl]
+        }))
+        setImageUrlInput('')
+        showNotification('Image uploaded to Cloudinary as WebP successfully!')
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          images: [...(prev.images || []), trimmed]
+        }))
+        setImageUrlInput('')
+        showNotification('Image URL added')
+      }
+    } catch (error) {
+      console.error('Cloudinary URL upload error:', error)
+      setFormData(prev => ({
+        ...prev,
+        images: [...(prev.images || []), trimmed]
+      }))
+      setImageUrlInput('')
+      showNotification('Image URL added', 'success')
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleVideoUpload = async (file) => {
@@ -261,6 +327,17 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!formData.name || !formData.name.trim()) {
+      showNotification('Please enter a product name', 'error')
+      return
+    }
+
+    const parsedPrice = parseFloat(formData.price)
+    if (isNaN(parsedPrice) || parsedPrice <= 0) {
+      showNotification('Please enter a valid price greater than 0', 'error')
+      return
+    }
+
     if (!formData.images || formData.images.length === 0) {
       showNotification('Please upload at least one image', 'error')
       return
@@ -275,15 +352,15 @@ const ProductsManager = ({ onPromoteToHero }) => {
         : API_ENDPOINTS.PRODUCTS
 
       const payload = {
-        name: formData.name,
-        slug: formData.slug,
+        name: formData.name.trim(),
+        slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
         description: formData.description,
         shortDescription: formData.shortDescription,
         category: formData.category,
         subcategory: formData.subcategory,
         sku: formData.sku ? formData.sku.trim() : undefined,
-        price: parseFloat(formData.price),
-        discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
+        price: parsedPrice,
+        discountPrice: formData.discountPrice && !isNaN(parseFloat(formData.discountPrice)) ? parseFloat(formData.discountPrice) : undefined,
         stock: totalStock,
         images: formData.images.map(normalizeMediaUrl).filter(Boolean),
         preview3dImages: (formData.preview3dImages || []).map(normalizeMediaUrl).filter(Boolean),
@@ -296,7 +373,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         featured: formData.featured,
         inCollection: formData.inCollection,
         isNewArrival: formData.isNewArrival,
-        isActive: true
+        isActive: formData.isActive !== false
       }
 
       const data = await apiRequest(url, {
@@ -344,8 +421,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
     setFormData({
       name: '',
       description: '',
+      shortDescription: '',
+      slug: '',
       category: '3-piece-sets',
+      subcategory: '',
+      sku: '',
       price: '',
+      discountPrice: '',
       stock: '',
       sizeStock: [
         { size: 'XS', quantity: 0 },
@@ -360,6 +442,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       featured: false,
       inCollection: false,
       isNewArrival: false,
+      isActive: true,
       images: [],
       video: ''
     })
@@ -394,6 +477,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       featured: product.featured,
       inCollection: product.inCollection || false,
       isNewArrival: product.isNewArrival || false,
+      isActive: product.isActive !== false,
       images: (product.images || []).map(normalizeMediaUrl),
       preview3dImages: (product.preview3dImages || []).map(normalizeMediaUrl),
       gallery: (product.gallery || []).map(normalizeMediaUrl),
@@ -461,8 +545,11 @@ const ProductsManager = ({ onPromoteToHero }) => {
     const matchesStock = stockFilter === 'all'
       || (stockFilter === 'in-stock' && product.stock > 0)
       || (stockFilter === 'out-of-stock' && product.stock === 0)
+    const matchesStatus = statusFilter === 'all'
+      || (statusFilter === 'active' && product.isActive !== false)
+      || (statusFilter === 'inactive' && product.isActive === false)
 
-    return matchesSearch && matchesCategory && matchesCollection && matchesStock
+    return matchesSearch && matchesCategory && matchesCollection && matchesStock && matchesStatus
   })
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize))
@@ -511,6 +598,12 @@ const ProductsManager = ({ onPromoteToHero }) => {
           <option value="all">All stock levels</option>
           <option value="in-stock">In stock</option>
           <option value="out-of-stock">Out of stock</option>
+        </select>
+
+        <select className="toolbar-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <option value="all">All Statuses (Active & Inactive)</option>
+          <option value="active">Active Only (Live on Storefront)</option>
+          <option value="inactive">Inactive Only (Hidden on Storefront)</option>
         </select>
       </div>
 
@@ -592,6 +685,39 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div className="form-group">
                         <label>Discount Price (₹)</label>
                         <input type="number" value={formData.discountPrice} onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })} min="0" />
+                      </div>
+                    </div>
+
+                    {/* Dedicated Separate Row for Product Active / Inactive Status */}
+                    <div className="form-group status-row-separate">
+                      <label className="status-section-label">Product Storefront Visibility & Image Status</label>
+                      <div className="status-radio-group-row">
+                        <label className={`status-radio-btn ${formData.isActive !== false ? 'selected-active' : ''}`}>
+                          <input
+                            type="radio"
+                            name="productStatus"
+                            checked={formData.isActive !== false}
+                            onChange={() => setFormData({ ...formData, isActive: true })}
+                          />
+                          <span className="status-radio-dot active-dot"></span>
+                          <div className="status-radio-info">
+                            <strong>Active</strong>
+                            <p>Product & images are live on frontend</p>
+                          </div>
+                        </label>
+                        <label className={`status-radio-btn ${formData.isActive === false ? 'selected-inactive' : ''}`}>
+                          <input
+                            type="radio"
+                            name="productStatus"
+                            checked={formData.isActive === false}
+                            onChange={() => setFormData({ ...formData, isActive: false })}
+                          />
+                          <span className="status-radio-dot inactive-dot"></span>
+                          <div className="status-radio-info">
+                            <strong>Inactive</strong>
+                            <p>Product & images are hidden from frontend</p>
+                          </div>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -811,7 +937,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <th>Category</th>
                 <th>Price</th>
                 <th>Stock Level</th>
-                <th>Status</th>
+                <th>Tags</th>
+                <th>Active / Storefront</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -858,11 +985,29 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       {!product.featured && !product.inCollection && <span className="mini-badge regular">Regular</span>}
                     </div>
                   </td>
+                  <td className="active-toggle-column">
+                    <button
+                      type="button"
+                      className={`inline-status-toggle ${product.isActive !== false ? 'is-active' : 'is-inactive'}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleActive(product)
+                      }}
+                      title={product.isActive !== false ? "Click to set Inactive (Hide from Storefront)" : "Click to set Active (Show on Storefront)"}
+                    >
+                      <span className="toggle-switch-track">
+                        <span className="toggle-switch-thumb"></span>
+                      </span>
+                      <span className="toggle-status-label">
+                        {product.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    </button>
+                  </td>
                   <td>
                     <div className="table-actions">
-                      <button 
-                        onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)} 
-                        className="action-icon-btn hero" 
+                      <button
+                        onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)}
+                        className="action-icon-btn hero"
                         title="Promote to Hero"
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
@@ -899,7 +1044,21 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <div className="mobile-card-meta">
                   <div className="mobile-card-category-row">
                     <span className="category-pill">{product.category}</span>
-                    <span className="sku">{product.sku || 'No SKU'}</span>
+                    <button
+                      type="button"
+                      className={`inline-status-toggle ${product.isActive !== false ? 'is-active' : 'is-inactive'}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleActive(product)
+                      }}
+                    >
+                      <span className="toggle-switch-track">
+                        <span className="toggle-switch-thumb"></span>
+                      </span>
+                      <span className="toggle-status-label">
+                        {product.isActive !== false ? 'Active' : 'Inactive'}
+                      </span>
+                    </button>
                   </div>
                   <h4 className="mobile-card-title">{product.name}</h4>
                   <div className="mobile-card-price-row">
@@ -924,8 +1083,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
               </div>
 
               <div className="mobile-card-actions">
-                <button 
-                  onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)} 
+                <button
+                  onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)}
                   className="mobile-action-btn hero"
                 >
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>

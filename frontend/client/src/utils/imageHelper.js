@@ -60,9 +60,9 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
   const {
     width = 1000,
     quality = 'auto',
-    format = 'auto',
+    format = 'webp',
     crop = 'fill',
-    fetchFormat = 'auto',
+    fetchFormat = 'webp',
     blur = null
   } = options
 
@@ -99,56 +99,56 @@ export const getOptimizedImageUrl = (imageData, preset = 'default', customOption
     hero: {
       width: 1200,
       quality: 'auto:good',
-      format: 'auto',
+      format: 'webp',
       crop: 'fill'
     },
     // Mobile Hero - Smaller for mobile devices
     'mobile-hero': {
       width: 600,
       quality: 'auto:eco',
-      format: 'auto',
+      format: 'webp',
       crop: 'fill'
     },
     // Product images - Medium size
     product: {
       width: 800,
       quality: 'auto:good',
-      format: 'auto',
+      format: 'webp',
       crop: 'fill'
     },
     // Card images - Medium size
     card: {
       width: 600,
       quality: 'auto:good',
-      format: 'auto',
+      format: 'webp',
       crop: 'fill'
     },
     // Mobile Card - Smaller for mobile
     'mobile-card': {
       width: 400,
       quality: 'auto:eco',
-      format: 'auto',
+      format: 'webp',
       crop: 'fill'
     },
     // Thumbnails - Small, optimized
     thumbnail: {
       width: 200,
       quality: 'auto:eco',
-      format: 'auto',
+      format: 'webp',
       crop: 'fill'
     },
     // Category/Fabric circles
     circle: {
       width: 300,
       quality: 'auto:good',
-      format: 'auto',
+      format: 'webp',
       crop: 'fill'
     },
     // Default - Sensible optimization
     default: {
       width: 1000,
       quality: 'auto:good',
-      format: 'auto',
+      format: 'webp',
       crop: 'scale'
     }
   }

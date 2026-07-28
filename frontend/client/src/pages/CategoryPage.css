@@ -179,7 +179,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
   color: #1a1a1a;
   transition: all 0.3s ease;
 }
@@ -278,7 +278,8 @@
 }
 
 /* Loading & Empty States */
-.category-loading, .category-empty {
+.category-loading,
+.category-empty {
   text-align: center;
   padding: 100px 0;
 }
@@ -294,8 +295,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .category-empty h3 {
@@ -403,7 +409,7 @@
   .category-header {
     height: 50vh;
   }
-  
+
   .luxury-product-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 40px 20px;
@@ -414,34 +420,34 @@
   .category-header {
     height: 40vh;
   }
-  
+
   .category-title {
     font-size: clamp(32px, 8vw, 48px);
   }
-  
+
   .category-info-bar {
     padding: 20px;
     flex-direction: column;
     gap: 15px;
     align-items: flex-start;
   }
-  
+
   .category-main {
     padding: 24px 0 10px;
   }
-  
+
   .category-grid-container {
     padding: 0 15px;
   }
-  
+
   .luxury-product-card {
     gap: 15px;
   }
-  
+
   .product-name-luxury {
     font-size: 16px;
   }
-  
+
   .product-price-luxury {
     font-size: 15px;
   }
@@ -453,7 +459,8 @@
   }
 
   .luxury-product-grid {
-    grid-template-columns: repeat(2, 1fr); /* Keep 2 columns even on small mobile */
+    grid-template-columns: repeat(2, 1fr);
+    /* Keep 2 columns even on small mobile */
     gap: 22px 12px;
   }
 
@@ -488,11 +495,12 @@
     letter-spacing: 0.1em;
     padding: 7px 10px;
   }
-  
+
   .card-actions {
-    display: none; /* Remove hover actions on mobile */
+    display: none;
+    /* Remove hover actions on mobile */
   }
-  
+
   .add-to-bag-btn {
     padding: 6px 12px;
     font-size: 9px;

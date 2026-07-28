@@ -1,8 +1,18 @@
 import Product from '../models/Product.js'
 
-export const getAllProducts = async (filters) => {
-  const { category, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 20 } = filters
-  const filter = { isActive: true }
+export const getAllProducts = async (filters = {}) => {
+  const { category, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 20, includeInactive, status } = filters
+  const filter = {}
+
+  const shouldIncludeInactive = includeInactive === 'true' || includeInactive === true || includeInactive === '1' || includeInactive === 1
+
+  if (status === 'active') {
+    filter.isActive = true
+  } else if (status === 'inactive') {
+    filter.isActive = false
+  } else if (!shouldIncludeInactive) {
+    filter.isActive = { $ne: false } // Client storefront only gets active products
+  }
 
   if (category) filter.category = category
   if (featured) filter.featured = true
@@ -34,9 +44,12 @@ export const getAllProducts = async (filters) => {
 }
 
 export const searchProducts = async (queryParams) => {
-  const { q, category, minPrice, maxPrice, sortBy, page = 1, limit = 20 } = queryParams
+  const { q, category, minPrice, maxPrice, sortBy, page = 1, limit = 20, includeInactive } = queryParams
 
-  const filter = { isActive: true }
+  const filter = {}
+  if (includeInactive !== 'true' && includeInactive !== true) {
+    filter.isActive = true
+  }
 
   if (q) {
     filter.$text = { $search: q }

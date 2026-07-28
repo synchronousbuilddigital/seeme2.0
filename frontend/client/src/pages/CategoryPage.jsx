@@ -28,7 +28,7 @@ const CategoryPage = () => {
     try {
       const response = await fetch(`${API_ENDPOINTS.PRODUCTS}?category=${categoryName}`)
       const data = await response.json()
-      
+
       if (data.success) {
         const activeProducts = data.data.filter(p => p.isActive)
         setProducts(activeProducts)
@@ -107,7 +107,7 @@ const CategoryPage = () => {
                   style={{ cursor: 'pointer' }}
                 >
                   <div className="card-media">
-                    <img 
+                    <img
                       src={getImageUrl(product.images?.[0])}
                       alt={product.name}
                       className="card-img"
@@ -117,7 +117,7 @@ const CategoryPage = () => {
                       }}
                     />
                     <div className="card-actions">
-                      <button 
+                      <button
                         className={`action-wishlist ${isInWishlist(product._id) ? 'active' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -125,13 +125,13 @@ const CategoryPage = () => {
                         }}
                       >
                         <svg width="20" height="20" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                         </svg>
                       </button>
                     </div>
                     {product.stock < 5 && <div className="card-badge-limited">Limited Edition</div>}
                   </div>
-                  
+
                   <div className="card-info">
                     <div className="card-header">
                       <h3 className="product-name-luxury">{product.name}</h3>
@@ -139,12 +139,7 @@ const CategoryPage = () => {
                     </div>
                     <p className="product-excerpt">{product.description}</p>
                     <div className="card-footer-luxury">
-                      <div className="available-sizes">
-                        {product.sizes?.map(size => (
-                          <span key={size} className="size-pill">{size}</span>
-                        ))}
-                      </div>
-                      <motion.button 
+                      <motion.button
                         className="add-to-bag-btn"
                         whileHover={{ backgroundColor: '#1a1a1a', color: '#fff' }}
                         onClick={(e) => {

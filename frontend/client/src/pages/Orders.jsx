@@ -437,7 +437,7 @@ const Orders = () => {
                               </div>
                               <div className="item-info">
                                 <h5>{item.name}</h5>
-                                <p>Qty: {item.quantity} • Size: {item.size}</p>
+                                <p>Qty: {item.quantity} • Size: {item.size || item.selectedSize || 'Standard'}</p>
                               </div>
                               <div className="item-price">
                                 ₹{(item.price * item.quantity).toLocaleString('en-IN')}

@@ -30,7 +30,7 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
   const {
     width = 800,
     quality = 'auto',
-    format = 'auto',
+    format = 'webp',
     crop = 'fill',
     blur = null
   } = options

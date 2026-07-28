@@ -27,7 +27,14 @@ export const getCategories = asyncHandler(async (req, res) => {
 })
 
 export const getProduct = asyncHandler(async (req, res) => {
+  const includeInactive = req.query.includeInactive === 'true' || req.query.includeInactive === true
   const product = await productService.getProductById(req.params.id)
+  
+  if (!includeInactive && product.isActive === false) {
+    res.status(404)
+    throw new Error('Product not found or currently unavailable')
+  }
+
   res.json({ success: true, data: product })
 })
 

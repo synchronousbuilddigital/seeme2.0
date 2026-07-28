@@ -5,14 +5,15 @@ export const validate = (req, res, next) => {
   if (errors.isEmpty()) {
     return next()
   }
-  
-  const extractedErrors = []
-  errors.array().map(err => extractedErrors.push({ [err.path]: err.msg }))
+
+  const errorList = errors.array()
+  const errorDetails = errorList.map(err => `${err.path || err.param}: ${err.msg}`).join(', ')
+  console.warn(`⚠️ Validation failed on ${req.method} ${req.originalUrl}:`, errorDetails)
 
   return res.status(422).json({
     success: false,
-    message: 'Validation failed',
-    errors: extractedErrors
+    message: `Validation failed: ${errorDetails}`,
+    errors: errorList
   })
 }
 
@@ -35,11 +36,11 @@ export const loginValidationRules = () => {
 // Product Validations
 export const productValidationRules = () => {
   return [
-    body('name').optional().notEmpty().withMessage('Product name is required').trim(),
-    body('description').optional().notEmpty().withMessage('Description is required'),
-    body('price').optional().isNumeric().withMessage('Price must be a number'),
-    body('category').optional().notEmpty().withMessage('Category is required'),
-    body('stock').optional().isNumeric().withMessage('Stock must be a number'),
+    body('name').optional({ checkFalsy: true }).notEmpty().withMessage('Product name is required').trim(),
+    body('description').optional({ checkFalsy: true }).notEmpty().withMessage('Description is required'),
+    body('price').optional({ nullable: true, checkFalsy: true }).isNumeric().withMessage('Price must be a number'),
+    body('category').optional({ checkFalsy: true }).notEmpty().withMessage('Category is required'),
+    body('stock').optional({ nullable: true, checkFalsy: true }).isNumeric().withMessage('Stock must be a number'),
   ]
 }
 

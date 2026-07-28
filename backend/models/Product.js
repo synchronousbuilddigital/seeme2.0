@@ -189,7 +189,12 @@ productSchema.pre('findOneAndUpdate', function(next) {
   next()
 })
 
-// Add text index for search
+// Add indexes for fast queries
 productSchema.index({ name: 'text', description: 'text' })
+productSchema.index({ isActive: 1, category: 1 })
+productSchema.index({ isActive: 1, featured: 1 })
+productSchema.index({ isActive: 1, inCollection: 1 })
+productSchema.index({ isActive: 1, isNewArrival: 1 })
+productSchema.index({ createdAt: -1 })
 
 export default mongoose.model('Product', productSchema)

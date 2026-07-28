@@ -38,7 +38,10 @@ export const uploadImage = asyncHandler(async (req, res) => {
     const folder = req.body.folder || 'seemee/images'
     const result = await uploadToCloudinary(req.file.buffer, {
       folder: folder,
-      resource_type: 'auto'
+      resource_type: 'image',
+      format: 'webp',
+      quality: 'auto',
+      fetch_format: 'webp'
     })
 
     if (!result || !result.secure_url) {
@@ -80,7 +83,10 @@ export const uploadImages = asyncHandler(async (req, res) => {
     const uploadPromises = req.files.map(file =>
       uploadToCloudinary(file.buffer, { 
         folder: folder,
-        resource_type: 'auto'
+        resource_type: 'image',
+        format: 'webp',
+        quality: 'auto',
+        fetch_format: 'webp'
       })
     )
 
@@ -191,7 +197,11 @@ export const uploadImageFromUrl = asyncHandler(async (req, res) => {
 
   const buffer = Buffer.from(arrayBuffer)
   const result = await uploadToCloudinary(buffer, {
-    folder: 'seemee/images'
+    folder: 'seemee/images',
+    resource_type: 'image',
+    format: 'webp',
+    quality: 'auto',
+    fetch_format: 'webp'
   })
 
   res.json({
