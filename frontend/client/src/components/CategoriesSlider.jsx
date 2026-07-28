@@ -51,7 +51,7 @@ const CategoriesSlider = () => {
           ? prodData.data.filter(p => p.isActive)
           : []
 
-        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
+        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
 
         let categoryList = []
 
@@ -85,16 +85,8 @@ const CategoriesSlider = () => {
               features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic'],
               image: '/images/categories_straight.jpg',
               order: 2
-            },
-            {
-              slug: 'anarkali-sets',
-              title: 'Anarkali Sets',
-              subtitle: 'Hidden treasures for the spring season',
-              description: 'Hidden treasures for the spring season',
-              features: ['Royal Flare', 'Heritage Art', 'Festive Polish'],
-              image: '/images/ruby_bridal_sharara.png',
-              order: 3
             }
+            
           ]
         }
 
@@ -118,7 +110,7 @@ const CategoriesSlider = () => {
             features: cat.features && cat.features.length ? cat.features : (fallback?.features || ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut']),
             subtitle: cat.subtitle || fallback?.subtitle || 'Atelier Collection',
             description: cat.description || fallback?.description || 'Exquisite artisanal creations.',
-            image: prodImg || cat.image || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+            image: cat.image || prodImg || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
           }
         })
 

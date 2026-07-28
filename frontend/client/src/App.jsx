@@ -8,6 +8,7 @@ import NewArrivals from './components/NewArrivals'
 import ScrollToTop from './components/ScrollToTop'
 import Cart from './components/Cart'
 import Wishlist from './components/Wishlist'
+import ProductPage from './pages/ProductPage'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import GlobalLoader from './components/GlobalLoader'
@@ -28,7 +29,6 @@ const Checkout = lazy(() => import('./pages/Checkout'))
 const MagazinePage = lazy(() => import('./pages/MagazinePage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
-const ProductPage = lazy(() => import('./pages/ProductPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))

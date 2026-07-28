@@ -291,12 +291,27 @@
   color: #B8860B;
 }
 
+.card-price-group {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 .price-val {
   font-family: var(--font-body, sans-serif);
   font-size: 1.05rem;
   font-weight: 700;
   color: #1A1A1A;
   white-space: nowrap;
+}
+
+.mrp-val {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #888888;
+  text-decoration: line-through;
 }
 
 /* Mobile Add to Bag Option */

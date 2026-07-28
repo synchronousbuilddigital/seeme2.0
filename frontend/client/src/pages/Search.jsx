@@ -140,7 +140,7 @@ const Search = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/product/${product._id}`)}
+                  onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                 >
                   <div className="product-image">
                     <img src={product.images[0]} alt={product.name} />

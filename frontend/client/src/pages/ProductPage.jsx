@@ -1,21 +1,38 @@
 import { useState, useEffect, useContext } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './ProductPage.css'
 
 const ProductPage = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
   
-  const [product, setProduct] = useState(null)
+  const passedProduct = location.state?.product && (location.state.product._id === id || location.state.product.id === id)
+    ? location.state.product
+    : null
+
+  const [product, setProduct] = useState(() => passedProduct)
   const [relatedProducts, setRelatedProducts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => !passedProduct)
+  const [error, setError] = useState(null)
   const [selectedImage, setSelectedImage] = useState(0)
-  const [selectedSize, setSelectedSize] = useState('S')
+  const [selectedSize, setSelectedSize] = useState(() => {
+    if (passedProduct) {
+      const sizesList = (passedProduct.sizes && passedProduct.sizes.length > 0)
+        ? passedProduct.sizes
+        : (passedProduct.sizeStock && passedProduct.sizeStock.length > 0)
+          ? passedProduct.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
+          : []
+      return (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
+    }
+    return 'S'
+  })
   const [activeAccordion, setActiveAccordion] = useState('fabric')
   const [showSizeGuide, setShowSizeGuide] = useState(false)
   const [sizeUnit, setSizeUnit] = useState('in') // 'in' or 'cm'
@@ -27,10 +44,11 @@ const ProductPage = () => {
   }, [id])
 
   const fetchProduct = async () => {
-    setLoading(true)
+    if (!product) {
+      setLoading(true)
+    }
     try {
-      const response = await fetch(`${API_ENDPOINTS.PRODUCTS}/${id}`)
-      const data = await response.json()
+      const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}/${id}`)
       if (data.success && data.data && data.data.isActive !== false) {
         setProduct(data.data)
         const sizesList = (data.data.sizes && data.data.sizes.length > 0)
@@ -39,13 +57,13 @@ const ProductPage = () => {
             ? data.data.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
             : []
         const initialSize = (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
-        setSelectedSize(initialSize)
+        setSelectedSize(prev => prev || initialSize)
         fetchRelatedProducts(data.data.category, data.data._id)
-      } else {
+      } else if (!product) {
         setError('This product is currently inactive or unavailable.')
       }
-    } catch (error) {
-      console.error('Error fetching product:', error)
+    } catch (err) {
+      console.error('Error fetching product:', err)
     } finally {
       setLoading(false)
     }
@@ -53,14 +71,13 @@ const ProductPage = () => {
 
   const fetchRelatedProducts = async (category, currentId) => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.PRODUCTS}?category=${category}&limit=5`)
-      const data = await response.json()
+      const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?category=${category}&limit=5`)
       if (data.success) {
         const filtered = (data.data || []).filter(p => p._id !== currentId)
         setRelatedProducts(filtered)
       }
-    } catch (error) {
-      console.error('Error fetching related products:', error)
+    } catch (err) {
+      console.error('Error fetching related products:', err)
     }
   }
 
@@ -94,11 +111,24 @@ const ProductPage = () => {
     setTimeout(() => setAddedToast(false), 2500)
   }
 
-  if (loading) {
+  if (loading && !product) {
     return (
-      <div className="product-loading-container">
-        <div className="luxury-loader"></div>
-        <p>Unveiling Masterpiece...</p>
+      <div className="editorial-product-page">
+        <div className="product-luxury-wrapper product-skeleton-wrapper">
+          <div className="product-gallery">
+            <div className="thumbnail-list">
+              <div className="skeleton-box skeleton-thumb"></div>
+              <div className="skeleton-box skeleton-thumb"></div>
+              <div className="skeleton-box skeleton-thumb"></div>
+            </div>
+            <div className="main-image-viewport skeleton-box skeleton-main"></div>
+          </div>
+          <div className="product-details-panel">
+            <div className="skeleton-box skeleton-line-title"></div>
+            <div className="skeleton-box skeleton-line-price"></div>
+            <div className="skeleton-box skeleton-block"></div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -208,7 +238,15 @@ const ProductPage = () => {
             {/* Pricing Row */}
             <div className="product-price-row">
               <div className="price-main-block">
-                <span className="price-value">₹{product.price?.toLocaleString('en-IN')}</span>
+                <span className="price-value">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
+                  <>
+                    <span className="price-mrp-crossed">MRP ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}</span>
+                    <span className="discount-badge-chip">
+                      {Math.round(((Number(product.mrp || product.discountPrice) - Number(product.price)) / Number(product.mrp || product.discountPrice)) * 100)}% OFF
+                    </span>
+                  </>
+                )}
               </div>
               <span className="tax-guarantee-chip">✦ Inclusive of all taxes & free shipping</span>
             </div>

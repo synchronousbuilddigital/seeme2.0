@@ -102,7 +102,7 @@ const CategoryPage = () => {
                   transition={{ duration: 0.8, delay: index * 0.1 }}
                   onClick={() => {
                     const productId = product._id || product.id;
-                    if (productId) navigate(`/product/${productId}`);
+                    if (productId) navigate(`/product/${productId}`, { state: { product } });
                   }}
                   style={{ cursor: 'pointer' }}
                 >
@@ -135,7 +135,14 @@ const CategoryPage = () => {
                   <div className="card-info">
                     <div className="card-header">
                       <h3 className="product-name-luxury">{product.name}</h3>
-                      <span className="product-price-luxury">₹{product.price?.toLocaleString('en-IN')}</span>
+                      <div className="price-group-luxury" style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                        <span className="product-price-luxury">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                        {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
+                          <span style={{ fontSize: '0.85rem', color: '#888', textDecoration: 'line-through' }}>
+                            ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="product-excerpt">{product.description}</p>
                     <div className="card-footer-luxury">

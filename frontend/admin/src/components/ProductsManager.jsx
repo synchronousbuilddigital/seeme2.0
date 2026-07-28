@@ -34,6 +34,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     subcategory: '',
     sku: '',
     price: '',
+    mrp: '',
     discountPrice: '',
     stock: '',
     sizeStock: [
@@ -61,7 +62,11 @@ const ProductsManager = ({ onPromoteToHero }) => {
     isNewArrival: false,
     isActive: true
   })
-  const [availableCategories, setAvailableCategories] = useState(['2-piece-sets', '3-piece-sets', 'co-ord-sets'])
+  const [availableCategories, setAvailableCategories] = useState([
+    { slug: '2-piece-sets', title: '2-Piece Sets' },
+    { slug: '3-piece-sets', title: '3-Piece Sets' },
+    { slug: 'co-ord-sets', title: 'Co-ord Sets' }
+  ])
 
   useEffect(() => {
     fetchProducts()
@@ -158,10 +163,40 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   const fetchCategories = async () => {
     try {
-      const data = await apiRequest(API_ENDPOINTS.GET_CATEGORIES)
-      if (data.success && data.data.length > 0) {
-        setAvailableCategories(data.data)
+      let catList = []
+
+      // 1. Fetch categories configured in Category Section (SITE_SETTINGS)
+      const settingsData = await apiRequest(API_ENDPOINTS.SITE_SETTINGS)
+      if (settingsData.success && settingsData.data && settingsData.data.categorySlides && settingsData.data.categorySlides.length > 0) {
+        catList = settingsData.data.categorySlides.map(c => ({
+          slug: c.slug || c.title.toLowerCase().replace(/\s+/g, '-'),
+          title: c.title || c.slug
+        }))
       }
+
+      // 2. Fetch categories existing across products
+      const prodCatData = await apiRequest(API_ENDPOINTS.GET_CATEGORIES)
+      if (prodCatData.success && Array.isArray(prodCatData.data)) {
+        prodCatData.data.forEach(c => {
+          const slug = typeof c === 'string' ? c : (c.slug || c.title || '')
+          if (slug && !catList.some(existing => existing.slug === slug || existing.title === slug)) {
+            catList.push({
+              slug: slug,
+              title: typeof c === 'string' ? (c.charAt(0).toUpperCase() + c.slice(1).replace(/-/g, ' ')) : (c.title || slug)
+            })
+          }
+        })
+      }
+
+      if (catList.length === 0) {
+        catList = [
+          { slug: '2-piece-sets', title: '2-Piece Sets' },
+          { slug: '3-piece-sets', title: '3-Piece Sets' },
+          { slug: 'co-ord-sets', title: 'Co-ord Sets' }
+        ]
+      }
+
+      setAvailableCategories(catList)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -360,7 +395,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
         subcategory: formData.subcategory,
         sku: formData.sku ? formData.sku.trim() : undefined,
         price: parsedPrice,
-        discountPrice: formData.discountPrice && !isNaN(parseFloat(formData.discountPrice)) ? parseFloat(formData.discountPrice) : undefined,
+        mrp: (formData.mrp && !isNaN(parseFloat(formData.mrp))) ? parseFloat(formData.mrp) : (formData.discountPrice && !isNaN(parseFloat(formData.discountPrice)) ? parseFloat(formData.discountPrice) : undefined),
+        discountPrice: (formData.mrp && !isNaN(parseFloat(formData.mrp))) ? parseFloat(formData.mrp) : (formData.discountPrice && !isNaN(parseFloat(formData.discountPrice)) ? parseFloat(formData.discountPrice) : undefined),
         stock: totalStock,
         images: formData.images.map(normalizeMediaUrl).filter(Boolean),
         preview3dImages: (formData.preview3dImages || []).map(normalizeMediaUrl).filter(Boolean),
@@ -459,7 +495,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
       category: product.category,
       subcategory: product.subcategory || '',
       sku: product.sku || '',
-      price: product.price.toString(),
+      price: product.price ? product.price.toString() : '',
+      mrp: (product.mrp || product.discountPrice) ? (product.mrp || product.discountPrice).toString() : '',
       discountPrice: product.discountPrice ? product.discountPrice.toString() : '',
       stock: product.stock.toString(),
       sizeStock: product.sizeStock && product.sizeStock.length > 0
@@ -583,9 +620,11 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
         <select className="toolbar-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
           <option value="all">All categories</option>
-          {availableCategories.map(cat => (
-            <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-          ))}
+          {availableCategories.map(cat => {
+            const slug = typeof cat === 'string' ? cat : (cat.slug || cat.title)
+            const title = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')) : (cat.title || cat.slug)
+            return <option key={slug} value={slug}>{title}</option>
+          })}
         </select>
 
         <select className="toolbar-select" value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}>
@@ -645,9 +684,11 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div className="form-group">
                         <label>Category *</label>
                         <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
-                          {availableCategories.map(cat => (
-                            <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-                          ))}
+                          {availableCategories.map(cat => {
+                            const slug = typeof cat === 'string' ? cat : (cat.slug || cat.title)
+                            const title = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')) : (cat.title || cat.slug)
+                            return <option key={slug} value={slug}>{title}</option>
+                          })}
                           <option value="new">+ Add New Category</option>
                         </select>
                         {formData.category === 'new' && (
@@ -657,8 +698,10 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             className="mt-2"
                             onBlur={(e) => {
                               if (e.target.value) {
-                                setAvailableCategories(prev => [...new Set([...prev, e.target.value.toLowerCase()])])
-                                setFormData({ ...formData, category: e.target.value.toLowerCase() })
+                                const newSlug = e.target.value.toLowerCase().replace(/\s+/g, '-')
+                                const newTitle = e.target.value
+                                setAvailableCategories(prev => [...prev, { slug: newSlug, title: newTitle }])
+                                setFormData({ ...formData, category: newSlug })
                               }
                             }}
                           />
@@ -679,14 +722,32 @@ const ProductsManager = ({ onPromoteToHero }) => {
                     </div>
                     <div className="form-row">
                       <div className="form-group">
-                        <label>Price (₹) *</label>
-                        <input type="number" value={formData.price} onChange={(e) => setFormData({ ...formData, price: e.target.value })} required min="0" />
+                        <label>Selling Price (₹) *</label>
+                        <input
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                          required
+                          min="0"
+                          placeholder="e.g. 2999"
+                        />
                       </div>
                       <div className="form-group">
-                        <label>Discount Price (₹)</label>
-                        <input type="number" value={formData.discountPrice} onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })} min="0" />
+                        <label>MRP / Original Price (₹)</label>
+                        <input
+                          type="number"
+                          value={formData.mrp || formData.discountPrice}
+                          onChange={(e) => setFormData({ ...formData, mrp: e.target.value, discountPrice: e.target.value })}
+                          min="0"
+                          placeholder="e.g. 4999"
+                        />
                       </div>
                     </div>
+                    {formData.price && (formData.mrp || formData.discountPrice) && Number(formData.mrp || formData.discountPrice) > Number(formData.price) && (
+                      <div className="price-calc-hint" style={{ fontSize: '13px', color: '#2E7D32', fontWeight: '600', marginBottom: '14px', background: '#E8F5E9', padding: '8px 14px', borderRadius: '6px' }}>
+                        ✓ Customer saves ₹{(Number(formData.mrp || formData.discountPrice) - Number(formData.price)).toLocaleString()} ({Math.round(((Number(formData.mrp || formData.discountPrice) - Number(formData.price)) / Number(formData.mrp || formData.discountPrice)) * 100)}% OFF)
+                      </div>
+                    )}
 
                     {/* Dedicated Separate Row for Product Active / Inactive Status */}
                     <div className="form-group status-row-separate">

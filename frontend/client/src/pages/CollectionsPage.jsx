@@ -183,7 +183,7 @@ const CollectionsPage = () => {
               transition={{ duration: 0.5, delay: index * 0.05 }}
               whileHover={{ y: -10 }}
             >
-              <div className="product-image-wrapper" onClick={() => navigate(`/product/${product._id}`)}>
+              <div className="product-image-wrapper" onClick={() => navigate(`/product/${product._id}`, { state: { product } })}>
                 <img 
                   src={getOptimizedImageUrl(product.images?.[0], 'product')} 
                   alt={product.name}
@@ -221,13 +221,20 @@ const CollectionsPage = () => {
                 <h3 
                   className="product-name" 
                   style={{ cursor: 'pointer' }}
-                  onClick={() => navigate(`/product/${product._id}`)}
+                  onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                 >
                   {product.name}
                 </h3>
                 <p className="product-description">{product.description}</p>
                 <div className="product-footer">
-                  <span className="product-price">₹{product.price.toLocaleString()}</span>
+                  <div className="collection-price-group" style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                    {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
+                      <span className="product-mrp-crossed" style={{ fontSize: '0.85rem', color: '#888', textDecoration: 'line-through' }}>
+                        ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </div>
                   <motion.button
                     className="add-to-cart-btn"
                     onClick={() => handleAddToCart(product)}

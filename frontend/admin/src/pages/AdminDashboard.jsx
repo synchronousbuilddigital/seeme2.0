@@ -246,10 +246,6 @@ const AdminDashboard = () => {
                 {activeTab === 'categories' && 'Category Slides'}
                 {activeTab === 'hero' && 'Hero Carousel'}
               </h1>
-              <div className="sync-indicator">
-                <div className={`status-dot ${backendStatus}`}></div>
-                <span>Last Synced: {lastSync.toLocaleTimeString()}</span>
-              </div>
             </div>
 
             <div className="topbar-actions">

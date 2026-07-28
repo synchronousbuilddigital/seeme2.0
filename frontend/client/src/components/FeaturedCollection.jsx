@@ -70,7 +70,7 @@ const FeaturedCollection = () => {
               {/* Image Container */}
               <div
                 className="cf-image-wrapper"
-                onClick={() => navigate(`/product/${currentProduct._id}`)}
+                onClick={() => navigate(`/product/${currentProduct._id}`, { state: { product: currentProduct } })}
               >
                 <img
                   src={getOptimizedImageUrl(currentProduct.images?.[0], 'hero')}
@@ -99,13 +99,20 @@ const FeaturedCollection = () => {
                   {currentProduct.description || "A masterpiece of heritage craftsmanship, designed for timeless grace. Elevate your ensemble with this meticulously crafted piece."}
                 </p>
 
-                <div className="cf-price">₹{currentProduct.price?.toLocaleString()}</div>
+                <div className="cf-price" style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                  <span>₹{Number(currentProduct.price || 0).toLocaleString('en-IN')}</span>
+                  {(currentProduct.mrp || currentProduct.discountPrice) && Number(currentProduct.mrp || currentProduct.discountPrice) > Number(currentProduct.price) && (
+                    <span style={{ fontSize: '1rem', color: '#888', textDecoration: 'line-through' }}>
+                      ₹{Number(currentProduct.mrp || currentProduct.discountPrice).toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </div>
 
                 <div className="cf-actions">
                   <button className="cf-btn-add" onClick={() => addToCart(currentProduct)}>
                     Add to Bag
                   </button>
-                  <button className="cf-btn-view" onClick={() => navigate(`/product/${currentProduct._id}`)}>
+                  <button className="cf-btn-view" onClick={() => navigate(`/product/${currentProduct._id}`, { state: { product: currentProduct } })}>
                     View Details
                   </button>
                 </div>

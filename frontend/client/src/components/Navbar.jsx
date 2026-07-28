@@ -19,22 +19,23 @@ const normalizeCategorySlug = (slug) => {
 
 const getCategoryLabel = (catItem) => {
   if (!catItem) return ''
-  const str = typeof catItem === 'object' ? (catItem.title || catItem.label || catItem.name || catItem.slug || '') : String(catItem)
-  const normKey = normalizeCategorySlug(str)
-  if (normKey === '2piece') return '2-Piece Sets'
-  if (normKey === '3piece') return '3-Piece Sets'
-  if (normKey === 'coord') return 'Co-ord Sets'
+  if (typeof catItem === 'object') {
+    if (catItem.title) return catItem.title
+    if (catItem.label) return catItem.label
+    if (catItem.name) return catItem.name
+  }
+  const str = String(catItem)
   return str.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 const getCategorySlug = (catItem) => {
   if (!catItem) return ''
-  const str = typeof catItem === 'object' ? (catItem.slug || catItem.name || catItem.title || '') : String(catItem)
-  const normKey = normalizeCategorySlug(str)
-  if (normKey === '2piece') return '2-piece-sets'
-  if (normKey === '3piece') return '3-piece-sets'
-  if (normKey === 'coord') return 'co-ord-sets'
-  return str.toLowerCase().replace(/\s+/g, '-')
+  if (typeof catItem === 'object') {
+    if (catItem.slug) return catItem.slug
+    if (catItem.title) return catItem.title.toLowerCase().trim().replace(/\s+/g, '-')
+  }
+  const str = String(catItem)
+  return str.toLowerCase().trim().replace(/\s+/g, '-')
 }
 
 const Navbar = ({ onCartOpen, onWishlistOpen }) => {
@@ -59,7 +60,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   useEffect(() => {
     const fetchNavbarCategories = async () => {
       try {
-        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
+        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
         let adminCategorySlides = []
         if (settingsData?.success && settingsData.data?.categorySlides?.length > 0) {
           adminCategorySlides = settingsData.data.categorySlides
@@ -74,11 +75,11 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
         const seenKeys = new Set()
         const mergedCategories = []
 
-        // Prioritize Admin Panel category slides
+        // 1. Prioritize exact Admin Panel category slides
         adminCategorySlides.forEach(cat => {
-          const normKey = normalizeCategorySlug(cat.slug || cat.title)
-          if (normKey && !seenKeys.has(normKey)) {
-            seenKeys.add(normKey)
+          const key = (cat.slug || cat.title || '').toLowerCase().trim()
+          if (key && !seenKeys.has(key)) {
+            seenKeys.add(key)
             mergedCategories.push({
               slug: getCategorySlug(cat),
               label: getCategoryLabel(cat)
@@ -86,11 +87,11 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           }
         })
 
-        // Include other product categories from backend database
+        // 2. Include other product categories from backend database
         apiCategories.forEach(cat => {
-          const normKey = normalizeCategorySlug(cat)
-          if (normKey && !seenKeys.has(normKey)) {
-            seenKeys.add(normKey)
+          const key = (typeof cat === 'string' ? cat : (cat.slug || cat.title || '')).toLowerCase().trim()
+          if (key && !seenKeys.has(key)) {
+            seenKeys.add(key)
             mergedCategories.push({
               slug: getCategorySlug(cat),
               label: getCategoryLabel(cat)

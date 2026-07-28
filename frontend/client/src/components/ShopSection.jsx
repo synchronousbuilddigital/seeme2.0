@@ -118,7 +118,7 @@ const ShopSection = () => {
                 {/* Clean Product Media (ZERO text overlays on photo) */}
                 <div 
                   className="product-media-wrapper"
-                  onClick={() => navigate(`/product/${product._id}`)}
+                  onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                 >
                   <div className="image-flip-container">
                     <img 
@@ -165,12 +165,17 @@ const ShopSection = () => {
                   <div className="title-price-row">
                     <h3 
                       className="product-card-title"
-                      onClick={() => navigate(`/product/${product._id}`)}
+                      onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                     >
                       {product.name}
                     </h3>
 
-                    <span className="price-val">₹{product.price?.toLocaleString()}</span>
+                    <div className="card-price-group">
+                      <span className="price-val">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                      {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
+                        <span className="mrp-val">₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Dedicated Mobile Add to Bag Option */}
