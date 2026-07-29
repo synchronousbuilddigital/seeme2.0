@@ -105,10 +105,12 @@ const AdminDashboard = () => {
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [visitedTabs, setVisitedTabs] = useState(new Set(['overview']))
 
   const handleTabClick = (tab) => {
     setActiveTab(tab)
     setIsMobileMenuOpen(false)
+    setVisitedTabs(prev => new Set(prev).add(tab))
   }
 
   return (
@@ -275,7 +277,7 @@ const AdminDashboard = () => {
 
         {/* Search results are now handled by the GlobalSearch dropdown itself */}
 
-        {activeTab === 'overview' && (
+        <div style={{ display: activeTab === 'overview' ? 'block' : 'none' }}>
           <div className="overview-section">
             <div className="stats-grid">
               <motion.div className="stat-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -476,28 +478,63 @@ const AdminDashboard = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {visitedTabs.has('products') && (
+          <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
+            <ProductsManager 
+              onPromoteToHero={(product) => {
+                setSelectedProductForHero(product)
+                handleTabClick('hero')
+              }} 
+            />
+          </div>
         )}
 
-        {activeTab === 'products' && (
-          <ProductsManager 
-            onPromoteToHero={(product) => {
-              setSelectedProductForHero(product)
-              setActiveTab('hero')
-            }} 
-          />
+        {visitedTabs.has('orders') && (
+          <div style={{ display: activeTab === 'orders' ? 'block' : 'none' }}>
+            <OrdersManager />
+          </div>
         )}
-        {activeTab === 'orders' && <OrdersManager />}
-        {activeTab === 'inventory' && <InventoryManager />}
-        {activeTab === 'customers' && <CustomersManager />}
-        {activeTab === 'activity' && <ActivityManager />}
-        {activeTab === 'categories' && <CategoryManager />}
-        {activeTab === 'hero' && (
-          <HeroCarouselManager 
-            preSelectedProduct={selectedProductForHero} 
-            onClearPreSelected={() => setSelectedProductForHero(null)}
-          />
+
+        {visitedTabs.has('inventory') && (
+          <div style={{ display: activeTab === 'inventory' ? 'block' : 'none' }}>
+            <InventoryManager />
+          </div>
         )}
-        {activeTab === 'magazine' && <MagazineManager />}
+
+        {visitedTabs.has('customers') && (
+          <div style={{ display: activeTab === 'customers' ? 'block' : 'none' }}>
+            <CustomersManager />
+          </div>
+        )}
+
+        {visitedTabs.has('activity') && (
+          <div style={{ display: activeTab === 'activity' ? 'block' : 'none' }}>
+            <ActivityManager />
+          </div>
+        )}
+
+        {visitedTabs.has('categories') && (
+          <div style={{ display: activeTab === 'categories' ? 'block' : 'none' }}>
+            <CategoryManager />
+          </div>
+        )}
+
+        {visitedTabs.has('hero') && (
+          <div style={{ display: activeTab === 'hero' ? 'block' : 'none' }}>
+            <HeroCarouselManager 
+              preSelectedProduct={selectedProductForHero} 
+              onClearPreSelected={() => setSelectedProductForHero(null)}
+            />
+          </div>
+        )}
+
+        {visitedTabs.has('magazine') && (
+          <div style={{ display: activeTab === 'magazine' ? 'block' : 'none' }}>
+            <MagazineManager />
+          </div>
+        )}
       </main>
 
       {/* Sticky Mobile Bottom Navigation Bar */}

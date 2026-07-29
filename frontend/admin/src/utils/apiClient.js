@@ -70,14 +70,46 @@ export const withAuthHeader = (headers = {}) => {
     : headers
 }
 
+// In-Memory SWR Cache for fast admin API calls
+const apiCache = new Map()
+const CACHE_TTL = 30000 // 30 seconds fresh TTL
+
+export const clearApiCache = (keyPattern) => {
+  if (!keyPattern) {
+    apiCache.clear()
+    return
+  }
+  for (const key of apiCache.keys()) {
+    if (key.includes(keyPattern)) {
+      apiCache.delete(key)
+    }
+  }
+}
+
 export const apiRequest = async (url, options = {}) => {
   const {
     method = 'GET',
     body,
     headers = {},
     auth = false,
-    isFormData = false
+    isFormData = false,
+    bypassCache = false
   } = options
+
+  const isGet = method.toUpperCase() === 'GET'
+
+  // Clear cache on mutating actions (POST, PUT, DELETE)
+  if (!isGet) {
+    clearApiCache()
+  }
+
+  // Return fresh cached data instantly for GET requests
+  if (isGet && !bypassCache && apiCache.has(url)) {
+    const cached = apiCache.get(url)
+    if (Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data
+    }
+  }
 
   const requestHeaders = auth ? withAuthHeader(headers) : { ...headers }
 
@@ -105,6 +137,14 @@ export const apiRequest = async (url, options = {}) => {
     }
 
     throw new Error(message)
+  }
+
+  // Cache successful GET responses
+  if (isGet) {
+    apiCache.set(url, {
+      data: payload,
+      timestamp: Date.now()
+    })
   }
 
   return payload

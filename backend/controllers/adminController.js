@@ -90,6 +90,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .limit(10)
     .select('customer totalAmount status createdAt orderNumber')
+    .lean()
 
   // 5. Monthly Revenue (dynamic timeframe with continuous months)
   const startDate = new Date()
@@ -165,7 +166,7 @@ export const getInventoryStats = asyncHandler(async (req, res) => {
   const lowStockThreshold = 10
   
   const [allProducts, totalProducts] = await Promise.all([
-    Product.find().select('name stock category images sku price sizeStock updatedAt').sort({ stock: 1 }),
+    Product.find().select('name stock category images sku price sizeStock updatedAt').sort({ stock: 1 }).lean(),
     Product.countDocuments()
   ])
 
