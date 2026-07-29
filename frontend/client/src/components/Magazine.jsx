@@ -56,12 +56,7 @@ const Magazine = () => {
       ]
 
       if (data.success && data.data.length > 0) {
-        let loaded = [...data.data]
-        if (loaded.length < 5) {
-          const remaining = fallbacks.slice(loaded.length, 5)
-          loaded = [...loaded, ...remaining]
-        }
-        setMagazineStories(loaded.slice(0, 5))
+        setMagazineStories(data.data)
       } else {
         setMagazineStories(fallbacks)
       }

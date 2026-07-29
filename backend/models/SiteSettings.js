@@ -21,7 +21,7 @@ const magazineStorySchema = new mongoose.Schema({
   title: { type: String, required: true },
   subtitle: { type: String, default: '' },
   description: { type: String, required: true },
-  image: { type: String, required: true },
+  image: { type: String, default: '' },
   category: { type: String, default: 'Craftsmanship' },
   author: { type: String, default: 'SEEMEE Atelier' },
   quote: { type: String, default: '' },
