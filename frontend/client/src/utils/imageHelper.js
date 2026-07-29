@@ -26,10 +26,6 @@ export const getImageUrl = (imageData, options = {}) => {
     
     // Check if it's already an absolute URL
     if (imageData.includes('://') || imageData.startsWith('data:')) {
-      // Check if it's a Cloudinary URL to optimize
-      if (imageData.includes('cloudinary.com')) {
-        return optimizeCloudinaryUrl(imageData, options)
-      }
       return imageData
     }
 
@@ -78,7 +74,6 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
     if (quality) transformations.push(`q_${quality}`)
     if (format) transformations.push(`f_${format}`)
     if (crop) transformations.push(`c_${crop}`)
-    transformations.push('dpr_auto')
     
     // Add blur if specified
     if (blur) {

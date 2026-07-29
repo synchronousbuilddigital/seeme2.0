@@ -299,7 +299,7 @@
 }
 
 .tech-num {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-heading);
   font-weight: 600;
   font-size: 5.5rem;
   color: var(--primary-gold);
@@ -318,7 +318,7 @@
 }
 
 .tech-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-heading);
   font-weight: 600;
   font-size: 1.55rem;
   letter-spacing: -0.01em;

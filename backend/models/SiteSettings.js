@@ -17,11 +17,29 @@ const categorySlideSchema = new mongoose.Schema({
   order: { type: Number, required: true }
 })
 
+const magazineStorySchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  subtitle: { type: String, default: '' },
+  description: { type: String, required: true },
+  image: { type: String, required: true },
+  category: { type: String, default: 'Craftsmanship' },
+  author: { type: String, default: 'SEEMEE Atelier' },
+  quote: { type: String, default: '' },
+  readTime: { type: String, default: '5 MIN READ' },
+  date: { type: String, default: '' },
+  chapter: { type: String, default: 'CHAPTER 01' },
+  sections: [String],
+  highlights: [String],
+  marginalia: { type: String, default: '' },
+  order: { type: Number, default: 0 }
+})
+
 const siteSettingsSchema = new mongoose.Schema({
   logo: { type: String, required: true },
   aboutImage: { type: String, required: true },
   fabrics: [fabricSchema],
-  categorySlides: [categorySlideSchema]
+  categorySlides: [categorySlideSchema],
+  magazineStories: [magazineStorySchema]
 }, { timestamps: true })
 
 export default mongoose.model('SiteSettings', siteSettingsSchema)

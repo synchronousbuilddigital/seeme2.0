@@ -38,8 +38,10 @@ app.use(compression())
 
 // Cache Control Headers for public GET requests
 app.use('/api', (req, res, next) => {
-  if (req.method === 'GET' && !req.headers.authorization) {
+  if (req.method === 'GET' && !req.headers.authorization && !req.originalUrl.includes('site-settings')) {
     res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60')
+  } else if (req.originalUrl.includes('site-settings')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
   }
   next()
 })
@@ -139,6 +141,7 @@ app.get('/api/health', (req, res) => {
 })
 
 // ─── API ROUTES ────────────────────────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')))
 app.use('/api/auth', authRoutes)
 app.use('/api/products', productRoutes)
 app.use('/api/orders', orderRoutes)

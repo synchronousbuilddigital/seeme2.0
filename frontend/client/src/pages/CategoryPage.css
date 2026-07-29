@@ -227,7 +227,7 @@
 }
 
 .product-price-luxury {
-  font-family: var(--font-serif, serif);
+  font-family: var(--font-body, sans-serif);
   font-size: 18px;
   color: #D4AF37;
   font-weight: 500;

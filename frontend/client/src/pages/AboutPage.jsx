@@ -193,19 +193,19 @@ const AboutPage = () => {
               </motion.span>
             </span>
           </h1>
-
-          <motion.div 
-            className="hero-scroll-indicator"
-            initial={{ opacity: 0 }}
-            animate={heroInView ? { opacity: 0.8 } : {}}
-            transition={{ delay: 1.5, duration: 1 }}
-          >
-            <span className="scroll-text">DISCOVER THE LEGACY</span>
-            <div className="scroll-mouse">
-              <div className="mouse-wheel"></div>
-            </div>
-          </motion.div>
         </div>
+
+        <motion.div 
+          className="hero-scroll-indicator"
+          initial={{ opacity: 0 }}
+          animate={heroInView ? { opacity: 0.8 } : {}}
+          transition={{ delay: 1.5, duration: 1 }}
+        >
+          <span className="scroll-text">DISCOVER THE LEGACY</span>
+          <div className="scroll-mouse">
+            <div className="mouse-wheel"></div>
+          </div>
+        </motion.div>
       </section>
 
       {/* Elegant Narrative Section */}

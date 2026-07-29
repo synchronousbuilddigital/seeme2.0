@@ -26,6 +26,8 @@ export const API_ENDPOINTS = {
     IMAGE_FROM_URL: `${API_BASE_URL}/api/upload/image-from-url`
   },
   SITE_SETTINGS: `${API_BASE_URL}/api/site-settings`,
+  MAGAZINE: `${API_BASE_URL}/api/magazine`,
+  MAGAZINE_ALL: `${API_BASE_URL}/api/magazine/all`,
   HERO_CAROUSEL: `${API_BASE_URL}/api/carousel`,
   HERO_CAROUSEL_ALL: `${API_BASE_URL}/api/carousel/all`
 }

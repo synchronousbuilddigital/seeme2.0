@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './MagazinePage.css'
 
 const fallbackStories = [
@@ -11,7 +12,7 @@ const fallbackStories = [
     title: 'Silk and the River City',
     subtitle: 'The Banaras Loom as a Living Chronicle',
     description: 'The Banarasi loom turns repetition into ritual. Every shuttle movement carries a tempo that has outlived trends, and every finished textile becomes a reminder that cloth can contain geography, labor, and inheritance at once. This chapter follows the loom room from daylight to dusk, moving past dye vats, thread books, and folded lengths of silk waiting for their last inspection.',
-    image: '/images/magazine/silk_river_city_premium.png',
+    image: '',
     category: 'Craftsmanship',
     author: 'Julian Thorne',
     quote: 'A woven fabric can be read the way a city is read: slowly, by layers.',
@@ -31,7 +32,7 @@ const fallbackStories = [
     title: 'The Banarasi Weaving Legacy',
     subtitle: 'A Symphony of Gold and Pure Silk Threads',
     description: 'From the looms of Varanasi to the modern wardrobe. Discover how we preserve the intricate patterns of traditional Banarasi silk while adapting them for the contemporary woman. A celebration of texture, heritage, and the dedicated hands that guide every metallic thread through the loom to form legendary motifs.',
-    image: '/images/magazine/banarasi_weaving.png',
+    image: '',
     category: 'Heritage',
     author: 'Elena Rossi',
     quote: 'We do not just weave silk; we weave the stories of generations.',
@@ -51,7 +52,7 @@ const fallbackStories = [
     title: 'Atelier of Grandeur',
     subtitle: 'Step Inside the World of Precision Tailoring',
     description: 'Step inside the SEEMEE design studio where royal grandeur meets modern ease. Every cut is measured with spatial precision, every embroidery pattern is placed to silhouette the form, and every seam is hand-finished. We balance ancestral skills with contemporary tailoring, ensuring every single dress carries the human soul inside.',
-    image: '/images/magazine/artisan_craftsmanship.png',
+    image: '',
     category: 'Atelier',
     author: 'Aria Varma',
     quote: 'The best craftsmanship never shouts. It is felt in the weight and drape of the fabric.',
@@ -71,7 +72,7 @@ const fallbackStories = [
     title: 'The Architecture of the Loom',
     subtitle: 'Where Handloom Mechanics Meet Artistic Vision',
     description: 'A study of the mechanical elegance of hand-operated looms. The warp holds the tension of history while the weft introduces the variable paths of human touch. Here, we analyze how jacquard cards translate complex botanical drawings into textile relief, showing that the loom is both a machine and an extension of the weaver\'s imagination.',
-    image: '/images/magazine/banarasi_silk_loom.png',
+    image: '',
     category: 'Mechanics',
     author: 'Kavya Singh',
     quote: 'Every thread is a choice, and every pick is a second in the weaver\'s day.',
@@ -91,7 +92,7 @@ const fallbackStories = [
     title: 'The Weight of Velvet',
     subtitle: 'Nocturnal Elegance and the Draped Silhouette',
     description: 'As the sun sets, the richness of royal velvet takes center stage. Our nocturnal collection features deep emeralds and midnight tones, hand-embroidered with tilla work that captures the moon\'s reflection. Here, we explore the physical weight and drape of velvet, showing how it falls in heavy, majestic drapes while remaining incredibly soft and fluid.',
-    image: '/images/magazine/weight_of_velvet.png',
+    image: '',
     category: 'Nocturnal',
     author: 'Mira Kapoor',
     quote: 'Velvet absorbs light and holds shadow, creating a deep dimension that silk cannot match.',
@@ -118,7 +119,7 @@ const normalizeStory = (story = {}, index = 0) => {
     title: (typeof story.title === 'string' && story.title.trim()) ? story.title : fallback.title,
     subtitle: (typeof story.subtitle === 'string' && story.subtitle.trim()) ? story.subtitle : fallback.subtitle,
     description: (typeof story.description === 'string' && story.description.trim()) ? story.description : fallback.description,
-    image: story.image || fallback.image,
+    image: (story.image !== undefined && story.image !== null) ? story.image : (fallback.image || ''),
     category: (typeof story.category === 'string' && story.category.trim()) ? story.category : fallback.category,
     author: (typeof story.author === 'string' && story.author.trim()) ? story.author : fallback.author,
     quote: (typeof story.quote === 'string' && story.quote.trim()) ? story.quote : fallback.quote,
@@ -160,11 +161,48 @@ const MagazinePage = () => {
   const lastFlipTimeRef = useRef(0)
   const FLIP_THROTTLE_MS = 950
 
+  const fetchStories = async () => {
+    try {
+      setLoading(true)
+      let fetched = null
+
+      const magRes = await cachedFetch(`${API_ENDPOINTS.MAGAZINE}?_t=${Date.now()}`, { forceRefresh: true })
+      if (magRes?.success && Array.isArray(magRes.data) && magRes.data.length > 0) {
+        fetched = magRes.data.map((story, idx) => normalizeStory(story, idx))
+      } else {
+        const settingsRes = await cachedFetch(`${API_ENDPOINTS.SITE_SETTINGS}?_t=${Date.now()}`, { forceRefresh: true })
+        if (settingsRes?.success && Array.isArray(settingsRes.data?.magazineStories) && settingsRes.data.magazineStories.length > 0) {
+          fetched = settingsRes.data.magazineStories.map((story, idx) => normalizeStory(story, idx))
+        }
+      }
+
+      if (fetched && fetched.length > 0) {
+        setStories(fetched)
+      } else {
+        setStories(fallbackStories.map((story, idx) => normalizeStory(story, idx)))
+      }
+    } catch (err) {
+      console.error('Error fetching magazine stories:', err)
+      setStories(fallbackStories.map((story, idx) => normalizeStory(story, idx)))
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 1024)
     window.addEventListener('resize', handleResize)
+
+    const handleFocus = () => {
+      fetchStories()
+    }
+    window.addEventListener('focus', handleFocus)
+
     fetchStories()
-    return () => window.removeEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      window.removeEventListener('focus', handleFocus)
+    }
   }, [])
 
   // Synthesize realistic paper rustling sound using Web Audio API
@@ -353,8 +391,8 @@ const MagazinePage = () => {
       // 2. If the user is scrolling DOWN
       if (e.deltaY > 10) {
         const isAtLastPage = isMobile 
-          ? (activeIdx === 5 && bookState === 'open' && mobilePageSide === 'right')
-          : (activeIdx === 5 && bookState === 'open')
+          ? (activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right')
+          : (activeIdx === stories.length && bookState === 'open')
 
         if (!isAtLastPage) {
           e.preventDefault()
@@ -402,7 +440,7 @@ const MagazinePage = () => {
       const diffY = touchY - touchStartY
 
       if (diffY < -10) { // Swiping up to scroll down
-        const isAtLastPage = activeIdx === 5 && bookState === 'open' && mobilePageSide === 'right'
+        const isAtLastPage = activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right'
         if (!isAtLastPage) {
           if (e.cancelable) e.preventDefault()
         }
@@ -432,7 +470,7 @@ const MagazinePage = () => {
         }
       } else {
         if (Math.abs(diffY) > 40) {
-          const isAtLastPage = activeIdx === 5 && bookState === 'open' && mobilePageSide === 'right'
+          const isAtLastPage = activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right'
           
           if (diffY < 0) {
             if (!isAtLastPage) {
@@ -460,34 +498,6 @@ const MagazinePage = () => {
     }
   }, [loading, stories, bookState, activeIdx, mobilePageSide, isFlipping, isMobile])
 
-  const fetchStories = async () => {
-    try {
-      const response = await fetch(API_ENDPOINTS.MAGAZINE)
-      const data = await response.json()
-
-      let loadedStories = []
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        const dbStories = data.data.map((story, index) => normalizeStory(story, index))
-        loadedStories = [...dbStories]
-        
-        if (loadedStories.length < 5) {
-          const paddings = fallbackStories.slice(loadedStories.length, 5).map((story, index) => 
-            normalizeStory(story, loadedStories.length + index)
-          )
-          loadedStories = [...loadedStories, ...paddings]
-        }
-      } else {
-        loadedStories = fallbackStories.map((story, index) => normalizeStory(story, index))
-      }
-
-      setStories(loadedStories.slice(0, 5))
-    } catch (error) {
-      console.error('Error fetching magazine stories:', error)
-      setStories(fallbackStories.slice(0, 5).map((story, index) => normalizeStory(story, index)))
-    } finally {
-      setLoading(false)
-    }
-  }
   if (loading) {
     return (
       <div className="magazine-page-loading">
@@ -501,7 +511,7 @@ const MagazinePage = () => {
   }
 
   const renderLeftPageContent = (story, idx) => {
-    if (idx === 5) {
+    if (idx === stories.length) {
       return (
         <div className="book-page left-page newsletter-left-page">
           <div className="paper-grain-overlay"></div>
@@ -511,17 +521,19 @@ const MagazinePage = () => {
             <span className="page-category">THE RITUAL</span>
           </div>
           
-          <div className="tipped-photo-frame">
-            <div className="photo-matting">
-              <img
-                src="/images/magazine/silk_river_city_premium.png"
-                alt="Seemee Couture Correspondence"
-                className="photo-asset"
-              />
-              <div className="photo-plate-tint"></div>
+          {stories[0]?.image ? (
+            <div className="tipped-photo-frame">
+              <div className="photo-matting">
+                <img
+                  src={getOptimizedImageUrl(stories[0].image, 'large')}
+                  alt="Seemee Couture Correspondence"
+                  className="photo-asset"
+                />
+                <div className="photo-plate-tint"></div>
+              </div>
+              <div className="photo-caption-tag">PLATE NO. 06 // THE CREED</div>
             </div>
-            <div className="photo-caption-tag">PLATE NO. 06 // THE CREED</div>
-          </div>
+          ) : null}
           
           <div className="curated-quote-block">
             <span className="quote-serif-mark">“</span>
@@ -545,17 +557,24 @@ const MagazinePage = () => {
           <span className="page-category">{story.category}</span>
         </div>
         
-        <div className="tipped-photo-frame">
-          <div className="photo-matting">
-            <img
-              src={getOptimizedImageUrl(story.image, 'large')}
-              alt={story.title}
-              className="photo-asset"
-            />
-            <div className="photo-plate-tint"></div>
+        {story.image ? (
+          <div className="tipped-photo-frame">
+            <div className="photo-matting">
+              <img
+                src={getOptimizedImageUrl(story.image, 'large')}
+                alt={story.title}
+                className="photo-asset"
+              />
+              <div className="photo-plate-tint"></div>
+            </div>
+            <div className="photo-caption-tag">PLATE NO. 0{idx + 1} // STUDIO REF</div>
           </div>
-          <div className="photo-caption-tag">PLATE NO. 0{idx + 1} // STUDIO REF</div>
-        </div>
+        ) : (
+          <div className="no-photo-plate">
+            <span className="monogram-symbol">✦ SM ✦</span>
+            <p className="monogram-label">{story.chapter} // ATELIER ARCHIVE</p>
+          </div>
+        )}
         
         {story.quote && !isMobile && (
           <div className="curated-quote-block">
@@ -573,7 +592,7 @@ const MagazinePage = () => {
   }
 
   const renderRightPageContent = (story, idx) => {
-    if (idx === 5) {
+    if (idx === stories.length) {
       return (
         <div className="book-page right-page newsletter-right-page">
           <div className="paper-grain-overlay"></div>
@@ -703,11 +722,11 @@ const MagazinePage = () => {
   // Helper for mobile progress indicator
   const getMobileIndicatorText = () => {
     if (bookState === 'closed') return 'COVER'
-    if (activeIdx === 5) return `EPILOGUE // ${mobilePageSide === 'left' ? 'P.1' : 'P.2'}`
+    if (activeIdx === stories.length) return `EPILOGUE // ${mobilePageSide === 'left' ? 'P.1' : 'P.2'}`
     return `CH. 0${activeIdx + 1} // ${mobilePageSide === 'left' ? 'P.1' : 'P.2'}`
   }
 
-  const isScrollUnlocked = activeIdx === 5 && bookState === 'open' && (!isMobile || mobilePageSide === 'right')
+  const isScrollUnlocked = activeIdx === stories.length && bookState === 'open' && (!isMobile || mobilePageSide === 'right')
 
   return (
     <div 
@@ -782,7 +801,7 @@ const MagazinePage = () => {
               
               {/* STATIC CLOSED COVER */}
               {bookState === 'closed' && (
-                <div className="closed-cover-stage">
+                <div className="closed-cover-stage" onClick={handleNext}>
                   <div className="hardcover-leather"></div>
                   <div className="hardcover-gold-border"></div>
                   <div className="hardcover-content">
@@ -792,9 +811,9 @@ const MagazinePage = () => {
                     <h1 className="cover-journal-title">SEEMEE</h1>
                     <h2 className="cover-journal-subtitle">J O U R N A L</h2>
                     <div className="gold-foil-line"></div>
-                    <div className="cover-volume-tag">VOLUME IV // SPRING 2026</div>
-                    <p className="cover-read-prompt" style={{ border: '1px solid rgba(197, 168, 128, 0.4)', background: 'rgba(28,24,21,0.6)' }}>
-                      SCROLL DOWN OR SWIPE TO UNFOLD
+                    <div className="cover-volume-tag">{stories[0]?.chapter || 'VOLUME IV'} // {stories[0]?.title || 'SPRING 2026'}</div>
+                    <p className="cover-read-prompt" style={{ border: '1px solid rgba(197, 168, 128, 0.4)', background: 'rgba(28,24,21,0.7)', cursor: 'pointer' }}>
+                      CLICK OR SCROLL TO UNFOLD
                     </p>
                     <div className="cover-ribbon-tag"></div>
                   </div>
@@ -909,12 +928,12 @@ const MagazinePage = () => {
               </button>
 
               <div className="dock-progress-pills" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {Array.from({ length: 6 }).map((_, idx) => (
+                {Array.from({ length: stories.length + 1 }).map((_, idx) => (
                   <div
                     key={idx}
                     onClick={() => handleTOCJump(idx)}
                     className={`progress-pill-segment ${idx === activeIdx && bookState === 'open' ? 'active' : ''}`}
-                    title={idx === 5 ? "Epilogue" : `Chapter 0${idx + 1}`}
+                    title={idx === stories.length ? "Epilogue" : (stories[idx]?.chapter || `Chapter 0${idx + 1}`)}
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="pill-fill-bar"></div>
@@ -924,7 +943,7 @@ const MagazinePage = () => {
 
               <button
                 onClick={handleNext}
-                disabled={activeIdx === 5 && bookState === 'open'}
+                disabled={activeIdx === stories.length && bookState === 'open'}
                 className="dock-arrow-btn"
                 style={{
                   background: 'rgba(24, 21, 19, 0.65)',
@@ -939,7 +958,7 @@ const MagazinePage = () => {
                   justifyContent: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.3s',
-                  opacity: (activeIdx === 5 && bookState === 'open') ? 0.3 : 1
+                  opacity: (activeIdx === stories.length && bookState === 'open') ? 0.3 : 1
                 }}
               >
                 →
@@ -998,7 +1017,7 @@ const MagazinePage = () => {
           <button 
             className="mobile-dock-arrow" 
             onClick={handleNext} 
-            disabled={activeIdx === 5 && bookState === 'open' && mobilePageSide === 'right'}
+            disabled={activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right'}
           >
             →
           </button>
@@ -1031,7 +1050,7 @@ const MagazinePage = () => {
               <div className="toc-chapters-grid">
                 {stories.map((story, idx) => (
                   <div
-                    key={story._id}
+                    key={story._id || `story-${idx}`}
                     className={`toc-chapter-card ${idx === activeIdx && bookState === 'open' ? 'viewing' : ''}`}
                     onClick={() => handleTOCJump(idx)}
                   >
@@ -1050,8 +1069,8 @@ const MagazinePage = () => {
                 
                 {/* Epilogue Chapter Card inside TOC */}
                 <div
-                  className={`toc-chapter-card ${activeIdx === 5 && bookState === 'open' ? 'viewing' : ''}`}
-                  onClick={() => handleTOCJump(5)}
+                  className={`toc-chapter-card ${activeIdx === stories.length && bookState === 'open' ? 'viewing' : ''}`}
+                  onClick={() => handleTOCJump(stories.length)}
                 >
                   <div className="toc-card-thumbnail">
                     <img src={getOptimizedImageUrl(stories[0]?.image, 'thumbnail')} alt="Correspondence" style={{ filter: 'grayscale(1) sepia(0.2)' }} />

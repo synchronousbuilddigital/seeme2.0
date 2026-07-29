@@ -33,7 +33,7 @@
 }
 
 .fabric-heading {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-heading);
   font-size: clamp(2.4rem, 4.5vw, 3.6rem);
   font-weight: 600;
   line-height: 1.15;
@@ -205,7 +205,7 @@
 }
 
 .fabric-row-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-heading);
   font-size: clamp(1.8rem, 2.6vw, 2.3rem);
   font-weight: 500;
   color: var(--charcoal);

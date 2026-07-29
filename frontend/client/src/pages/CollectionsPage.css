@@ -339,7 +339,7 @@
 }
 
 .product-price {
-  font-family: var(--font-heading);
+  font-family: var(--font-body, sans-serif);
   font-size: 1.8rem;
   color: var(--charcoal);
   font-weight: 600;

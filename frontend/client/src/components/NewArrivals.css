@@ -325,7 +325,7 @@
 }
 
 .card-price {
-  font-family: var(--font-heading);
+  font-family: var(--font-body, sans-serif);
   font-size: 1.0rem;
   color: var(--charcoal, #2b2b2b);
   font-weight: 700;

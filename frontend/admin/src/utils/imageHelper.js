@@ -2,27 +2,18 @@
 export const getImageUrl = (imageData, options = {}) => {
   if (!imageData) return '/images/placeholder.jpg'
   
-  let url = ''
-
-  // If it's a string URL
   if (typeof imageData === 'string') {
-    url = imageData
-  } else if (imageData.secure_url) {
-    url = imageData.secure_url
-  } else if (imageData.url) {
-    url = imageData.url
-  } else if (imageData.data && imageData.contentType) {
-    url = `data:${imageData.contentType};base64,${imageData.data}`
-  } else {
-    return '/images/placeholder.jpg'
+    if (imageData.startsWith('http://') || imageData.startsWith('https://') || imageData.startsWith('data:')) {
+      return imageData
+    }
+    const apiBase = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://seeme2-0.vercel.app' : 'http://localhost:5000')).replace(/\/$/, '')
+    const cleanPath = imageData.startsWith('/') ? imageData : `/${imageData}`
+    return `${apiBase}${cleanPath}`
   }
 
-  // Optimize Cloudinary URLs if applicable
-  if (url.includes('cloudinary.com')) {
-    return optimizeCloudinaryUrl(url, options)
-  }
-
-  return url
+  if (imageData.url) return getImageUrl(imageData.url, options)
+  if (imageData.secure_url) return getImageUrl(imageData.secure_url, options)
+  return '/images/placeholder.jpg'
 }
 
 // Optimize Cloudinary URLs with transformations
@@ -44,8 +35,7 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
       `w_${width}`,
       `q_${quality}`,
       `f_${format}`,
-      `c_${crop}`,
-      'dpr_auto'
+      `c_${crop}`
     ]
     
     if (blur) {

@@ -29,10 +29,10 @@ const videoUpload = multer({
 // ─── Routes ────────────────────────────────────────────
 
 // Upload single image (admin)
-router.post('/image', protect, admin, imageUpload.single('image'), uploadController.uploadImage)
+router.post('/image', protect, admin, imageUpload.any(), uploadController.uploadImage)
 
 // Upload multiple images (admin)
-router.post('/images', protect, admin, imageUpload.array('images', 10), uploadController.uploadImages)
+router.post('/images', protect, admin, imageUpload.any(), uploadController.uploadImages)
 
 // Upload video (admin)
 router.post('/video', protect, admin, videoUpload.single('video'), uploadController.uploadVideo)

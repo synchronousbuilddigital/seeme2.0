@@ -14,8 +14,10 @@
   --deep-brown: #3D2817;
 
   /* Typography - Fluid Scaling */
-  --font-heading: 'Playfair Display', serif;
-  --font-body: 'Poppins', sans-serif;
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, sans-serif;
 
   /* Fluid Typography - Enhanced for Maximum Comfort & Readability */
   --fs-xs: clamp(0.75rem, 0.7rem + 0.2vw, 0.88rem);
@@ -186,4 +188,23 @@ body::before {
     -webkit-backdrop-filter: blur(12px) !important;
     backdrop-filter: blur(12px) !important;
   }
+}
+
+/* --- Global Clean Sans-Serif Font for All Prices & Currency Figures --- */
+.price-value,
+.price-val,
+.product-price,
+.product-price-luxury,
+.card-price,
+.cf-price,
+.item-price,
+.item-price-luxury,
+.mini-item-price,
+.cart-item-price,
+.related-price,
+.modal-price,
+.mrp-val,
+.price-mrp-crossed {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif) !important;
+  font-variant-numeric: tabular-nums lining-nums !important;
 }
