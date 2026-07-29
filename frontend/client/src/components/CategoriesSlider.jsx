@@ -55,39 +55,28 @@ const CategoriesSlider = () => {
 
         let categoryList = []
 
-        if (settingsData.success && settingsData.data && settingsData.data.categorySlides && settingsData.data.categorySlides.length > 0) {
-          categoryList = settingsData.data.categorySlides
+        if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
+          // Use strictly the categories created/managed in Admin Category Manager
+          categoryList = [...settingsData.data.categorySlides].sort((a, b) => (a.order || 0) - (b.order || 0))
         } else {
-          categoryList = [
-            {
-              slug: '2-piece-sets',
-              title: '2-Piece Sets',
-              subtitle: 'Fit with the latest trends',
-              description: 'Fit with the latest trends',
-              features: ['Tailored Tunic', 'Fluid Trousers', 'Premium Comfort'],
-              image: '/images/categories_straight.jpg',
-              order: 0
-            },
-            {
-              slug: '3-piece-sets',
-              title: '3-Piece Sets',
-              subtitle: 'Warm and cozy for the colder months',
-              description: 'Warm and cozy for the colder months',
-              features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta'],
-              image: '/images/ruby_bridal_sharara.png',
-              order: 1
-            },
-            {
-              slug: 'co-ord-sets',
-              title: 'Co-ord Sets',
-              subtitle: 'Colorful for the festive season',
-              description: 'Colorful for the festive season',
-              features: ['Avant-garde Structure', 'Symmetric Drapes', 'Modern Aesthetic'],
-              image: '/images/categories_straight.jpg',
-              order: 2
+          // Fallback only if no category slides exist in Admin
+          const existingSlugs = new Set()
+          activeProducts.forEach(p => {
+            if (!p.category) return
+            const pCatSlug = p.category.toLowerCase().trim()
+            if (!existingSlugs.has(pCatSlug)) {
+              const titleFormatted = p.category.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+              categoryList.push({
+                slug: pCatSlug,
+                title: titleFormatted,
+                subtitle: 'Admin Collection',
+                description: `Curated haute couture designs in ${titleFormatted}.`,
+                features: ['Haute Couture', 'Pure Fabric', 'Editorial Cut'],
+                image: (p.images?.[0] || p.image) || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+              })
+              existingSlugs.add(pCatSlug)
             }
-            
-          ]
+          })
         }
 
         const mappedCategories = categoryList.map((cat, index) => {
@@ -105,12 +94,14 @@ const CategoriesSlider = () => {
 
           return {
             ...cat,
-            indexCode: `0${index + 1}`,
-            productCount: matchingProds.length || (cat.slug === '2-piece-sets' ? 14 : cat.slug === '3-piece-sets' ? 18 : 12),
+            indexCode: String(index + 1).padStart(2, '0'),
+            productCount: matchingProds.length,
+            title: cat.title || fallback?.title || 'Collection',
             features: cat.features && cat.features.length ? cat.features : (fallback?.features || ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut']),
             subtitle: cat.subtitle || fallback?.subtitle || 'Atelier Collection',
             description: cat.description || fallback?.description || 'Exquisite artisanal creations.',
-            image: cat.image || prodImg || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+            // Strictly prioritize Admin Category Slide Image first!
+            image: cat.image ? cat.image : (prodImg || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png')
           }
         })
 
@@ -126,6 +117,10 @@ const CategoriesSlider = () => {
   }, [])
 
   if (loading || categories.length === 0) return null
+
+  const dynamicSubtitle = categories.length > 0
+    ? `Explore ${categories.slice(0, 3).map(c => c.title).join(', ')}${categories.length > 3 ? ' & more curated luxury ensembles.' : '.'}`
+    : 'Explore curated luxury ensembles.'
 
   return (
     <section className="categories-runway-section" id="categories">
@@ -144,7 +139,7 @@ const CategoriesSlider = () => {
               Signature <span>Categories</span>
             </h2>
             <p className="categories-subtitle">
-              Explore 2-piece tunics, 3-piece regal ensembles & sleek co-ord sets.
+              {dynamicSubtitle}
             </p>
           </div>
         </motion.div>
@@ -218,6 +213,25 @@ const CategoriesSlider = () => {
             })}
           </AnimatePresence>
         </motion.div>
+
+        {/* Explore More Categories Button CTA */}
+        <div className="explore-collections-cta">
+          <motion.button
+            className="explore-collections-btn"
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate('/categories')}
+          >
+            <span className="btn-sparkle">✦</span>
+            <span className="btn-text">EXPLORE MORE CATEGORIES</span>
+            <div className="btn-arrow-circle">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </div>
+          </motion.button>
+        </div>
       </div>
     </section>
   )

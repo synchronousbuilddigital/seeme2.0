@@ -28,6 +28,7 @@ const CartPage = lazy(() => import('./pages/CartPage'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const MagazinePage = lazy(() => import('./pages/MagazinePage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
+const CategoriesPage = lazy(() => import('./pages/CategoriesPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
@@ -150,7 +151,8 @@ function App() {
                   </>
                 } />
 
-                {/* Collections Page */}
+                {/* Categories & Collections Page */}
+                <Route path="/categories" element={<PageWithNav><CategoriesPage /></PageWithNav>} />
                 <Route path="/collections" element={<PageWithNav><CollectionsPage /></PageWithNav>} />
 
                 {/* Redirect New Arrivals to Collections */}

@@ -30,7 +30,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     description: '',
     shortDescription: '',
     slug: '',
-    category: '3-piece-sets',
+    category: '',
     subcategory: '',
     sku: '',
     price: '',
@@ -62,11 +62,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     isNewArrival: false,
     isActive: true
   })
-  const [availableCategories, setAvailableCategories] = useState([
-    { slug: '2-piece-sets', title: '2-Piece Sets' },
-    { slug: '3-piece-sets', title: '3-Piece Sets' },
-    { slug: 'co-ord-sets', title: 'Co-ord Sets' }
-  ])
+  const [availableCategories, setAvailableCategories] = useState([])
 
   useEffect(() => {
     fetchProducts()
@@ -197,6 +193,12 @@ const ProductsManager = ({ onPromoteToHero }) => {
       }
 
       setAvailableCategories(catList)
+      if (catList.length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          category: prev.category && catList.some(c => (c.slug || c.title) === prev.category) ? prev.category : (catList[0].slug || catList[0].title)
+        }))
+      }
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -454,12 +456,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
   }
 
   const resetForm = () => {
+    const defaultCat = availableCategories[0]?.slug || availableCategories[0]?.title || ''
     setFormData({
       name: '',
       description: '',
       shortDescription: '',
       slug: '',
-      category: '3-piece-sets',
+      category: defaultCat,
       subcategory: '',
       sku: '',
       price: '',

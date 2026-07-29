@@ -98,6 +98,7 @@
   width: max-content;
   will-change: transform;
   animation: continuousMarquee 28s linear infinite;
+  align-items: stretch;
 }
 
 /* Pause scroll animation immediately on hover */
@@ -111,6 +112,8 @@
   flex-shrink: 0;
   box-sizing: border-box;
   padding: 0 12px; /* Smooth spacing between scrolling slides */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Marquee Animation logic - shifts exactly one full copy (25% of 4x copy track width) */
@@ -139,6 +142,8 @@
   flex-direction: column;
   box-sizing: border-box;
   width: 100%;
+  height: 420px;
+  cursor: pointer;
 }
 
 .arrival-card-modern.compact-card:hover {
@@ -149,7 +154,8 @@
 
 .card-media {
   position: relative;
-  aspect-ratio: 3 / 4;
+  height: 260px;
+  width: 100%;
   overflow: hidden;
   cursor: pointer;
   background-color: var(--cream, #faf7f2);
@@ -157,6 +163,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .image-zoom-container {
@@ -287,6 +294,7 @@
   text-align: left;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   flex-grow: 1;
 }
 
@@ -297,19 +305,24 @@
   text-transform: uppercase;
   letter-spacing: 0.15em;
   color: var(--primary-gold, #d4af37);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   font-weight: 600;
 }
 
 .card-name-modern {
   font-family: var(--font-heading);
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   font-weight: 600;
   color: var(--charcoal, #2b2b2b);
-  margin-bottom: 10px;
-  line-height: 1.25;
+  margin-bottom: 8px;
+  line-height: 1.3;
   transition: color 0.3s ease;
-  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.6em;
 }
 
 .arrival-card-modern:hover .card-name-modern {

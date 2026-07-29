@@ -75,29 +75,31 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
         const seenKeys = new Set()
         const mergedCategories = []
 
-        // 1. Prioritize exact Admin Panel category slides
-        adminCategorySlides.forEach(cat => {
-          const key = (cat.slug || cat.title || '').toLowerCase().trim()
-          if (key && !seenKeys.has(key)) {
-            seenKeys.add(key)
-            mergedCategories.push({
-              slug: getCategorySlug(cat),
-              label: getCategoryLabel(cat)
-            })
-          }
-        })
-
-        // 2. Include other product categories from backend database
-        apiCategories.forEach(cat => {
-          const key = (typeof cat === 'string' ? cat : (cat.slug || cat.title || '')).toLowerCase().trim()
-          if (key && !seenKeys.has(key)) {
-            seenKeys.add(key)
-            mergedCategories.push({
-              slug: getCategorySlug(cat),
-              label: getCategoryLabel(cat)
-            })
-          }
-        })
+        if (adminCategorySlides.length > 0) {
+          // Strictly use Admin Category Manager slides if created by Admin
+          adminCategorySlides.forEach(cat => {
+            const key = (cat.slug || cat.title || '').toLowerCase().trim()
+            if (key && !seenKeys.has(key)) {
+              seenKeys.add(key)
+              mergedCategories.push({
+                slug: getCategorySlug(cat),
+                label: getCategoryLabel(cat)
+              })
+            }
+          })
+        } else {
+          // Fallback to product categories only if no Admin category slides exist
+          apiCategories.forEach(cat => {
+            const key = (typeof cat === 'string' ? cat : (cat.slug || cat.title || '')).toLowerCase().trim()
+            if (key && !seenKeys.has(key)) {
+              seenKeys.add(key)
+              mergedCategories.push({
+                slug: getCategorySlug(cat),
+                label: getCategoryLabel(cat)
+              })
+            }
+          })
+        }
 
         if (mergedCategories.length > 0) {
           setAvailableCategories(mergedCategories)
@@ -195,7 +197,10 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
             onMouseEnter={() => setCategoriesOpen(true)}
             onMouseLeave={() => setCategoriesOpen(false)}
           >
-            <button className="dropdown-trigger nav-item">
+            <button
+              className="dropdown-trigger nav-item"
+              onClick={() => handleNavigation('/categories')}
+            >
               Categories
               <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" className="dropdown-arrow">
                 <path d="M6 9L1 4h10z" />

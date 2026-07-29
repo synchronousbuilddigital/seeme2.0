@@ -78,8 +78,19 @@ const NewArrivals = () => {
           <div className="arrivals-marquee-track">
             {extendedArrivals.map((item, index) => (
               <div key={index} className="carousel-card-wrapper">
-                <div className="arrival-card-modern compact-card">
-                  <div className="card-media" onClick={() => (item._id || item.id) ? navigate(`/product/${item._id || item.id}`, { state: { product: item } }) : navigate(`/collections`)}>
+                <div 
+                  className="arrival-card-modern compact-card" 
+                  onClick={() => {
+                    const prodId = item._id || item.id
+                    if (prodId) {
+                      navigate(`/product/${prodId}`, { state: { product: item } })
+                    } else {
+                      navigate('/collections')
+                    }
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="card-media">
                     <div className="image-zoom-container">
                       <img 
                         src={getOptimizedImageUrl(item.image || item.images?.[0], 'product')} 

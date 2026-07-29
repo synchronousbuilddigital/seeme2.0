@@ -322,7 +322,7 @@ const Hero = () => {
           carouselPromise = null // Consume module eager promise
           data = await promise
         } else {
-          data = await cachedFetch(API_ENDPOINTS.CAROUSEL)
+          data = await cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true })
         }
 
         const backendSlides = data.success
@@ -411,24 +411,11 @@ const Hero = () => {
             })
           : []
 
-        // Safeguard: Check if backend slides contain duplicate images or are too repetitive
-        const uniqueImages = new Set(backendSlides.map((s) => s.image));
-        const hasDuplicates = uniqueImages.size < backendSlides.length;
-
-        let nextSlides;
-        if (backendSlides.length > 0 && !hasDuplicates) {
-          nextSlides = [...backendSlides];
-          if (nextSlides.length < 5) {
-            const remainingCount = 5 - nextSlides.length;
-            const fillerSlides = FALLBACK_SLIDES.filter(
-              (fSlide) => !nextSlides.some((bSlide) => bSlide.image === fSlide.image)
-            ).slice(0, remainingCount);
-            nextSlides = [...nextSlides, ...fillerSlides];
-          }
-          nextSlides = nextSlides.slice(0, 5);
+        let nextSlides = []
+        if (backendSlides && backendSlides.length > 0) {
+          nextSlides = [...backendSlides]
         } else {
-          // If database is empty or has duplicates (e.g. dummy seeds), load our premium handcrafted lookbook directly
-          nextSlides = FALLBACK_SLIDES.slice(0, 5);
+          nextSlides = FALLBACK_SLIDES.slice(0, 1)
         }
 
         if (isMounted) {

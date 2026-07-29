@@ -121,12 +121,10 @@
 .ref-card-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg, 
-    rgba(0, 0, 0, 0) 10%, 
-    rgba(0, 0, 0, 0.4) 45%, 
-    rgba(0, 0, 0, 0.92) 100%
-  );
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0) 10%,
+      rgba(0, 0, 0, 0.4) 45%,
+      rgba(0, 0, 0, 0.92) 100%);
   pointer-events: none;
   z-index: 1;
   opacity: 0;
@@ -324,4 +322,110 @@
   .ref-card-media-box {
     min-height: 380px;
   }
+}
+
+/* --------------------------------------------------------------------------
+   Premium Atelier "Explore More Categories" CTA Button
+   -------------------------------------------------------------------------- */
+.explore-collections-cta {
+  margin-top: 4.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.explore-collections-cta::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(212, 175, 55, 0.22) 50%, transparent 100%);
+  z-index: 0;
+}
+
+.explore-collections-btn {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 36px 16px 32px;
+  background: linear-gradient(135deg, #1f1f1f 0%, #111111 100%);
+  color: #ffffff;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 50px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+/* Metallic gold sheen light sweep animation on hover */
+.explore-collections-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transform: rotate(25deg);
+  transition: all 0.75s ease;
+}
+
+.explore-collections-btn:hover::after {
+  left: 130%;
+}
+
+.explore-collections-btn:hover {
+  background: linear-gradient(135deg, #D4AF37 0%, #B38F24 100%);
+  color: #ffffff;
+  border-color: #F4E4C1;
+  box-shadow: 0 18px 45px rgba(212, 175, 55, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  transform: translateY(-4px);
+}
+
+.btn-sparkle {
+  color: var(--primary-gold, #D4AF37);
+  font-size: 0.95rem;
+  transition: transform 0.4s ease, color 0.4s ease;
+}
+
+.explore-collections-btn:hover .btn-sparkle {
+  color: #ffffff;
+  transform: rotate(90deg) scale(1.2);
+}
+
+.btn-text {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-arrow-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.explore-collections-btn:hover .btn-arrow-circle {
+  background: #ffffff;
+  color: #111111;
+  transform: translateX(4px) scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
