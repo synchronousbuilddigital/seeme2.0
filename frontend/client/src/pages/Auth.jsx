@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import './Auth.css'
 
@@ -282,13 +282,13 @@ const Auth = () => {
  
                {isLogin && (
                  <div className="forgot-password-link-container">
-                   <button 
-                     type="button" 
-                     className="forgot-password-btn" 
-                     onClick={() => setShowForgot(true)}
+                   <Link 
+                     to="/forgot-password"
+                     className="forgot-password-btn"
+                     onClick={(e) => e.stopPropagation()}
                    >
                      Forgot your password?
-                   </button>
+                   </Link>
                  </div>
                )}
 

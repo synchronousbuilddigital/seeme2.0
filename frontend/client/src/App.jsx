@@ -33,6 +33,7 @@ const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const Search = lazy(() => import('./pages/Search'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const FabricsPage = lazy(() => import('./pages/FabricsPage'))
@@ -120,6 +121,7 @@ function App() {
 
                 {/* Auth Page */}
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
 
                 {/* Orders Page */}

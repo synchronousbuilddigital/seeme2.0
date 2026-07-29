@@ -3,7 +3,7 @@ import Product from '../models/Product.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
-import { sendOrderConfirmation, sendStatusUpdate } from '../utils/mailer.js'
+import { sendOrderEmail } from '../services/emailService.js'
 
 // Initialize Razorpay conditionally
 let razorpay;
@@ -56,7 +56,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       quantity: item.quantity,
       size: item.size,
       color: item.color,
-      image: product.images[0]
+      image: product.images?.[0]
     })
 
     // Update specific size stock if it exists
@@ -73,7 +73,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       // Fallback to general stock
       product.stock -= item.quantity
     }
-    
+
     await product.save()
   }
 
@@ -84,8 +84,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     paymentMethod
   })
 
-  // Send confirmation email
-  sendOrderConfirmation(order)
+  // Send Order Placed Email via Nodemailer Gmail Service
+  sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
 
   res.status(201).json({ success: true, data: order })
 })
@@ -133,8 +133,8 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error('Order not found')
   }
 
-  // Send status update email
-  sendStatusUpdate(order)
+  // Send Order Status Email (Confirmed, Shipped, Delivered, Cancelled, etc.)
+  sendOrderEmail(order, status).catch(err => console.error('Order status email error:', err.message))
 
   res.json({ success: true, data: order })
 })
@@ -158,13 +158,13 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
   if (!hasKeys) {
     if (isDev) {
       console.warn('⚠️ WARNING: Razorpay keys are not configured. Returning a mock order for development.');
-      return res.json({ 
-        success: true, 
-        data: { 
-          id: `order_mock_${Date.now()}`, 
-          amount: options.amount, 
-          currency: options.currency 
-        } 
+      return res.json({
+        success: true,
+        data: {
+          id: `order_mock_${Date.now()}`,
+          amount: options.amount,
+          currency: options.currency
+        }
       })
     } else {
       res.status(500);
@@ -186,9 +186,9 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
 // @route   POST /api/orders/verify-payment
 // @access  Public
 export const verifyPayment = asyncHandler(async (req, res) => {
-  const { 
-    razorpay_order_id, 
-    razorpay_payment_id, 
+  const {
+    razorpay_order_id,
+    razorpay_payment_id,
     razorpay_signature,
     customer,
     items,
@@ -212,7 +212,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   // Development Fallback: If it's a mock order ID, skip signature verification
   if (razorpay_order_id.startsWith('order_mock_')) {
     console.warn('⚠️ WARNING: Verifying a mock order. Skipping signature check.')
-    
+
     // Check and update stock even for mock orders
     for (const item of items) {
       const product = await Product.findById(item.product)
@@ -242,7 +242,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     })
 
     // Send confirmation email
-    sendOrderConfirmation(order)
+    sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
 
     return res.json({ success: true, data: order })
   }
@@ -284,6 +284,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       paymentId: razorpay_payment_id
     }
   })
+
+  // Send confirmation email
+  sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
 
   res.json({ success: true, data: order })
 })

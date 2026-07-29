@@ -22,8 +22,9 @@ router.post('/logout', authController.logout)
 // Get current user
 router.get('/me', protect, authController.getMe)
 
-// Password Reset
+// Password Reset (OTP Flow)
 router.post('/forgot-password', authController.forgotPassword)
+router.post('/verify-otp', authController.verifyOtp)
 router.post('/reset-password', authController.resetPassword)
 
 export default router

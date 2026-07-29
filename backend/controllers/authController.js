@@ -2,6 +2,7 @@ import crypto from 'crypto'
 import * as authService from '../services/authService.js'
 import User from '../models/User.js'
 import asyncHandler from '../utils/asyncHandler.js'
+import { sendOtpEmail } from '../services/emailService.js'
 
 // Helper to set refresh token cookie
 const setRefreshTokenCookie = (res, token) => {
@@ -90,57 +91,133 @@ export const getMe = asyncHandler(async (req, res) => {
   })
 })
 
+/**
+ * @desc    Forgot Password - Generate & Send 6-digit OTP to User's Gmail
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
 export const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body
-  const user = await User.findOne({ email })
+
+  if (!email || !email.trim()) {
+    res.status(400)
+    throw new Error('Please enter a valid email address.')
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase().trim() })
 
   if (!user) {
     res.status(404)
-    throw new Error('User not found')
+    throw new Error('No registered account found with this email address.')
   }
 
-  // Generate reset token
-  const resetToken = crypto.randomBytes(20).toString('hex')
-  user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex')
-  user.resetPasswordExpires = Date.now() + 30 * 60 * 1000 // 30 mins
+  // Generate secure 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+  // Store OTP and set expiration to 2 minutes from now
+  user.otpCode = otp
+  user.otpExpires = new Date(Date.now() + 2 * 60 * 1000) // Expiration reduced to 2 mins
 
   await user.save()
 
-  // In a real app, send email here. For now, we'll return the token in the response for development/demo
-  // if (process.env.NODE_ENV === 'development') {
-    res.json({
-      success: true,
-      message: 'Password reset token generated (Development Mode)',
-      resetToken // In production, this would only be in the email
-    })
-  // } else {
-  //   // Send email logic...
-  //   res.json({ success: true, message: 'Password reset link sent to email' })
-  // }
+  console.log(`🔑 [OTP GENERATED] To: ${user.email} | OTP Code: ${otp} | Expires in: 2 mins`)
+
+  // Send OTP Email via Nodemailer Gmail Service
+  await sendOtpEmail(user.email, user.name, otp)
+
+  res.json({
+    success: true,
+    message: 'A 6-digit verification OTP has been sent to your email address (Valid for 2 minutes).'
+  })
 })
 
-export const resetPassword = asyncHandler(async (req, res) => {
-  const { token, password } = req.body
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+/**
+ * @desc    Verify 6-digit OTP Code
+ * @route   POST /api/auth/verify-otp
+ * @access  Public
+ */
+export const verifyOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body
 
-  const user = await User.findOne({
-    resetPasswordToken: hashedToken,
-    resetPasswordExpires: { $gt: Date.now() }
-  })
-
-  if (!user) {
+  if (!email || !otp) {
     res.status(400)
-    throw new Error('Invalid or expired reset token')
+    throw new Error('Email and 6-digit OTP code are required.')
   }
 
+  const user = await User.findOne({ email: email.toLowerCase().trim() })
+
+  if (!user || !user.otpCode || !user.otpExpires) {
+    res.status(400)
+    throw new Error('No active OTP request found. Please request a new code.')
+  }
+
+  // Check if OTP is expired (10 minutes)
+  if (new Date(user.otpExpires).getTime() < Date.now()) {
+    user.otpCode = undefined
+    user.otpExpires = undefined
+    await user.save()
+    res.status(400)
+    throw new Error('OTP has expired. Please request a new OTP code.')
+  }
+
+  // Verify OTP match
+  if (String(user.otpCode).trim() !== String(otp).trim()) {
+    res.status(400)
+    throw new Error('Invalid OTP code. Please check your email and try again.')
+  }
+
+  res.json({
+    success: true,
+    message: 'OTP verified successfully. You can now set your new password.'
+  })
+})
+
+/**
+ * @desc    Reset Password after OTP Verification
+ * @route   POST /api/auth/reset-password
+ * @access  Public
+ */
+export const resetPassword = asyncHandler(async (req, res) => {
+  const { email, otp, password } = req.body
+
+  if (!email || !otp || !password) {
+    res.status(400)
+    throw new Error('Email, OTP, and new password are required.')
+  }
+
+  if (password.length < 6) {
+    res.status(400)
+    throw new Error('Password must be at least 6 characters long.')
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase().trim() })
+
+  if (!user || !user.otpCode || !user.otpExpires) {
+    res.status(400)
+    throw new Error('Invalid or expired password reset session.')
+  }
+
+  if (new Date(user.otpExpires).getTime() < Date.now()) {
+    res.status(400)
+    throw new Error('OTP has expired. Please request a new code.')
+  }
+
+  if (String(user.otpCode).trim() !== String(otp).trim()) {
+    res.status(400)
+    throw new Error('Invalid OTP code.')
+  }
+
+  // Update password (pre-save hook in User model will hash it with bcrypt)
   user.password = password
-  user.resetPasswordToken = undefined
-  user.resetPasswordExpires = undefined
+
+  // Clear OTP fields
+  user.otpCode = undefined
+  user.otpExpires = undefined
 
   await user.save()
 
   res.json({
     success: true,
-    message: 'Password reset successfully'
+    message: 'Password reset successfully. Please sign in with your new password.'
   })
 })

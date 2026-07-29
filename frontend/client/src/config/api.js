@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
   SIGNUP:   `${API_BASE_URL}/api/auth/signup`,
   ME:       `${API_BASE_URL}/api/auth/me`,
   AUTH_FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
+  AUTH_VERIFY_OTP:     `${API_BASE_URL}/api/auth/verify-otp`,
   AUTH_RESET_PASSWORD:  `${API_BASE_URL}/api/auth/reset-password`,
 
   // ─── Products ──────────────────────────────────
