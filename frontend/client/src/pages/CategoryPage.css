@@ -955,16 +955,57 @@
   }
   .unique-product-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
+    gap: 12px;
   }
   .card-media-box {
     height: 240px;
   }
-  .card-editorial-title {
-    font-size: 1.1rem;
+  .card-info-content {
+    padding: 12px 10px;
   }
-  .card-add-cart-btn {
-    padding: 8px 10px;
-    font-size: 0.75rem;
+  .card-editorial-title {
+    font-size: 0.98rem;
+  }
+  .card-price-main {
+    font-size: 1.05rem;
+  }
+  .card-add-cart-btn,
+  .card-add-cart-btn-full {
+    width: 100%;
+    padding: 8px 6px;
+    font-size: 0.74rem;
+    letter-spacing: 0.5px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
+    overflow: visible;
+  }
+}
+
+@media (max-width: 480px) {
+  .unique-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .card-media-box {
+    height: 210px;
+  }
+  .card-info-content {
+    padding: 10px 8px;
+  }
+  .card-editorial-title {
+    font-size: 0.9rem;
+  }
+  .card-price-main {
+    font-size: 0.95rem;
+  }
+  .card-add-cart-btn,
+  .card-add-cart-btn-full {
+    padding: 7px 4px;
+    font-size: 0.7rem;
+    letter-spacing: 0.3px;
   }
 }

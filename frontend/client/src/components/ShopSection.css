@@ -449,6 +449,15 @@
   }
   .mobile-add-cart-btn {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 6px;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: visible;
   }
   .shop-title {
     font-size: 1.8rem;
