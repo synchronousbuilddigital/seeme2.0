@@ -29,7 +29,7 @@ const startEagerFetches = () => {
   }
 
   if (!productsPromise) {
-    productsPromise = cachedFetch(API_ENDPOINTS.PRODUCTS).catch(err => {
+    productsPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`).catch(err => {
       console.error('Eager fetch products error:', err)
       return null
     })
@@ -241,7 +241,7 @@ const Hero = () => {
         if (prodPromise) {
           productsPromise = null // Consume module eager promise
         } else {
-          prodPromise = cachedFetch(API_ENDPOINTS.PRODUCTS)
+          prodPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`)
         }
 
         const prodData = await prodPromise

@@ -10,7 +10,7 @@ import './ShopSection.css'
 const ShopSection = () => {
   const navigate = useNavigate()
   const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
-  
+
   const [products, setProducts] = useState(() => {
     try {
       const cached = localStorage.getItem('seemee_shop_products')
@@ -74,7 +74,7 @@ const ShopSection = () => {
 
       <div className="shop-container">
         {/* Editorial Section Header */}
-        <motion.header 
+        <motion.header
           className="shop-header"
           initial={{ opacity: 0, y: 25 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -91,7 +91,7 @@ const ShopSection = () => {
             SHOP THE <span>ATELIER</span>
           </h2>
           <div className="shop-gold-divider"></div>
-          
+
           <p className="shop-subtitle">
             Curated luxury drapes, tunics, and coordinates crafted with ancestral precision for timeless grace.
           </p>
@@ -105,7 +105,7 @@ const ShopSection = () => {
             const isHovered = hoveredProductId === product._id
 
             return (
-              <motion.div 
+              <motion.div
                 key={product._id}
                 className="shop-product-card"
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -116,20 +116,20 @@ const ShopSection = () => {
                 onMouseLeave={() => setHoveredProductId(null)}
               >
                 {/* Clean Product Media (ZERO text overlays on photo) */}
-                <div 
+                <div
                   className="product-media-wrapper"
                   onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                 >
                   <div className="image-flip-container">
-                    <img 
-                      src={getOptimizedImageUrl(isHovered ? secondaryImg : primaryImg, 'catalog')} 
+                    <img
+                      src={getOptimizedImageUrl(isHovered ? secondaryImg : primaryImg, 'catalog')}
                       alt={product.name}
                       className="product-main-img"
                     />
                   </div>
 
                   {/* Wishlist Button */}
-                  <button 
+                  <button
                     className={`product-wishlist-btn ${isInWishlist(product._id) ? 'active' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation()
@@ -144,8 +144,8 @@ const ShopSection = () => {
 
                   {/* Quick Add Overlay */}
                   <div className="quick-add-overlay">
-                    <button 
-                      className="quick-add-btn" 
+                    <button
+                      className="quick-add-btn"
                       onClick={(e) => {
                         e.stopPropagation()
                         addToCart(product)
@@ -163,7 +163,7 @@ const ShopSection = () => {
                   </span>
 
                   <div className="title-price-row">
-                    <h3 
+                    <h3
                       className="product-card-title"
                       onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                     >
@@ -179,8 +179,8 @@ const ShopSection = () => {
                   </div>
 
                   {/* Dedicated Mobile Add to Bag Option */}
-                  <button 
-                    className="mobile-add-cart-btn" 
+                  <button
+                    className="mobile-add-cart-btn"
                     onClick={(e) => {
                       e.stopPropagation()
                       addToCart(product)
@@ -200,8 +200,8 @@ const ShopSection = () => {
 
         {/* View All CTA Footer */}
         <div className="shop-explore-footer">
-          <motion.button 
-            className="shop-view-all-btn" 
+          <motion.button
+            className="shop-view-all-btn"
             onClick={() => navigate('/collections')}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}

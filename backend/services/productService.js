@@ -1,7 +1,7 @@
 import Product from '../models/Product.js'
 
 export const getAllProducts = async (filters = {}) => {
-  const { category, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 20, includeInactive, status } = filters
+  const { category, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 1000, includeInactive, status } = filters
   const filter = {}
 
   const shouldIncludeInactive = includeInactive === 'true' || includeInactive === true || includeInactive === '1' || includeInactive === 1
