@@ -44,21 +44,53 @@ const InventoryManager = () => {
     }
   }
 
+  const updateProductStockOptimistically = (productId, newStockVal) => {
+    const updatedStock = Math.max(0, parseInt(newStockVal) || 0)
+
+    setInventory(prev => {
+      const updateList = (list) => (list || []).map(p => p._id === productId ? { ...p, stock: updatedStock } : p)
+
+      const all = updateList(prev.allProducts)
+      const low = all.filter(p => p.stock > 0 && p.stock <= 10)
+      const out = all.filter(p => p.stock <= 0)
+      const healthy = all.filter(p => p.stock > 10)
+
+      return {
+        ...prev,
+        allProducts: all,
+        lowStockProducts: low,
+        outOfStockProducts: out,
+        healthyProducts: healthy,
+        totalProducts: all.length,
+        totalLowStock: low.length,
+        totalOutOfStock: out.length,
+        totalHealthy: healthy.length
+      }
+    })
+  }
+
   const handleUpdateStock = async (productId, newStock) => {
+    const targetStock = Math.max(0, parseInt(newStock) || 0)
+    const currentProd = inventory.allProducts?.find(p => p._id === productId)
+    const prevStock = currentProd ? currentProd.stock : 0
+
+    // ⚡ Instant Optimistic Local Update (0ms delay)
+    updateProductStockOptimistically(productId, targetStock)
+
+    // ⚡ Background Async API Sync (Non-blocking)
     try {
-      setIsUpdating(true)
       const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}/${productId}`, {
         method: 'PUT',
         auth: true,
-        body: { stock: Math.max(0, parseInt(newStock) || 0) }
+        body: { stock: targetStock }
       })
-      if (data.success) {
-        await fetchInventory()
+      if (!data.success) {
+        // Rollback if request fails
+        updateProductStockOptimistically(productId, prevStock)
       }
     } catch (error) {
-      alert('Failed to update stock')
-    } finally {
-      setIsUpdating(false)
+      console.error('Failed to update stock:', error)
+      updateProductStockOptimistically(productId, prevStock)
     }
   }
 
@@ -324,14 +356,13 @@ const InventoryManager = () => {
                         <div className="inline-stepper">
                           <button 
                             className="step-btn"
-                            disabled={isUpdating || product.stock <= 0}
+                            disabled={product.stock <= 0}
                             onClick={() => handleUpdateStock(product._id, Math.max(0, product.stock - 1))}
                             title="Decrease quantity by 1"
                           >-</button>
                           <span className="stepper-val">{product.stock}</span>
                           <button 
                             className="step-btn"
-                            disabled={isUpdating}
                             onClick={() => handleUpdateStock(product._id, product.stock + 1)}
                             title="Increase quantity by 1"
                           >+</button>
@@ -388,13 +419,12 @@ const InventoryManager = () => {
                       <div className="inline-stepper">
                         <button 
                           className="step-btn"
-                          disabled={isUpdating || product.stock <= 0}
+                          disabled={product.stock <= 0}
                           onClick={() => handleUpdateStock(product._id, Math.max(0, product.stock - 1))}
                         >-</button>
                         <span className="stepper-val">{product.stock}</span>
                         <button 
                           className="step-btn"
-                          disabled={isUpdating}
                           onClick={() => handleUpdateStock(product._id, product.stock + 1)}
                         >+</button>
                       </div>
