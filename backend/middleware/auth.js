@@ -13,7 +13,8 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'Not authorized' })
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const secret = process.env.JWT_SECRET || 'seemee_jwt_secret_key_2026'
+    const decoded = jwt.verify(token, secret)
     req.user = await User.findById(decoded.id).select('-password')
     
     if (!req.user) {
@@ -22,7 +23,8 @@ export const protect = async (req, res, next) => {
 
     next()
   } catch (error) {
-    res.status(401).json({ success: false, message: 'Not authorized' })
+    console.warn('⚠️ [AUTH PROTECT 401]:', error.message)
+    res.status(401).json({ success: false, message: 'Not authorized: ' + error.message })
   }
 }
 

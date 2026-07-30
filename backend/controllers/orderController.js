@@ -102,7 +102,13 @@ export const getOrders = asyncHandler(async (req, res) => {
 // @route   GET /api/orders/myorders
 // @access  Private
 export const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ 'customer.email': req.user.email }).sort({ createdAt: -1 })
+  const emailStr = (req.user?.email || '').trim()
+  const orders = await Order.find({
+    $or: [
+      { 'customer.email': { $regex: new RegExp(`^${emailStr.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') } },
+      { user: req.user?._id }
+    ]
+  }).sort({ createdAt: -1 })
   res.json({ success: true, data: orders })
 })
 

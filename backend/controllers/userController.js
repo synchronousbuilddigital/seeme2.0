@@ -3,13 +3,16 @@ import asyncHandler from '../utils/asyncHandler.js'
 
 // Profile
 export const updateProfile = asyncHandler(async (req, res) => {
-  const { name, email, phone } = req.body
+  const { name, email, phone, password } = req.body
   const user = await User.findById(req.user._id)
 
   if (user) {
-    user.name = name || user.name
-    user.email = email || user.email
-    user.phone = phone || user.phone
+    if (name) user.name = name
+    if (email) user.email = email
+    if (phone !== undefined) user.phone = phone
+    if (password && password.trim().length >= 6) {
+      user.password = password
+    }
     
     const updatedUser = await user.save()
     res.json({

@@ -486,38 +486,183 @@
   border-radius: 18px;
 }
 
-/* Responsive */
+/* Responsive Mobile Customizations */
 @media (max-width: 768px) {
+  .all-categories-page {
+    padding-top: 64px;
+  }
+
   .editorial-top-bar {
-    padding: 15px 20px 0;
+    padding: 12px 16px 0;
   }
+
+  .category-breadcrumbs {
+    font-size: 0.78rem;
+  }
+
   .categories-page-hero {
-    padding: 25px 20px;
+    padding: 20px 16px 15px;
   }
+
+  .hero-watermark {
+    font-size: 3.8rem;
+    letter-spacing: 6px;
+  }
+
+  .seal-badge-box {
+    padding: 4px 14px;
+    margin-bottom: 12px;
+  }
+
+  .seal-badge-box .seal-text {
+    font-size: 0.65rem;
+    letter-spacing: 1.2px;
+  }
+
   .hero-title {
-    font-size: 2.2rem;
+    font-size: 2.1rem;
+    margin-bottom: 6px;
   }
+
+  .categories-hero-sub {
+    font-size: 0.85rem;
+  }
+
   .visual-categories-section {
-    padding: 0 20px;
+    padding: 0 16px;
+    margin-bottom: 35px;
   }
+
+  .section-title-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .section-title-bar h2 {
+    font-size: 1.45rem;
+  }
+
+  .category-search-box {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .category-search-box input {
+    padding: 10px 40px 10px 16px;
+    font-size: 0.85rem;
+  }
+
   .categories-editorial-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    gap: 12px;
   }
+
+  .editorial-category-card {
+    border-radius: 14px;
+  }
+
   .editorial-card-media {
-    height: 220px;
+    height: 190px;
     padding: 8px;
+    border-radius: 14px 14px 0 0;
   }
+
+  .card-index-overlay {
+    top: 8px;
+    left: 10px;
+    font-size: 1.1rem;
+    padding: 1px 7px;
+    border-radius: 6px;
+  }
+
+  .editorial-card-content {
+    padding: 12px 10px 12px;
+  }
+
+  .card-category-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
   .card-title-heading {
-    font-size: 1.15rem;
+    font-size: 1rem;
+    line-height: 1.25;
+    margin-bottom: 4px;
+    font-weight: 500;
   }
+
   .card-description-text {
-    display: none;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
+
+  .card-price-count {
+    margin-bottom: 10px;
+  }
+
+  .count-text {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+  }
+
+  .discover-more-cta {
+    font-size: 0.72rem;
+    letter-spacing: 0.8px;
+    padding-top: 8px;
+  }
+
+  .category-editorial-footer {
+    padding: 0 16px;
+    margin: 35px auto;
+  }
+
   .editorial-glass-box {
-    padding: 25px 15px;
+    padding: 28px 16px;
+    border-radius: 18px;
   }
+
   .editorial-title {
-    font-size: 1.6rem;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+  }
+
+  .editorial-body {
+    font-size: 0.84rem;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+
+  .editorial-chips-row {
+    gap: 8px;
+  }
+
+  .editorial-chip-item {
+    font-size: 0.74rem;
+    padding: 5px 12px;
+  }
+}
+
+@media (max-width: 380px) {
+  .categories-editorial-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .editorial-card-media {
+    height: 165px;
+    padding: 6px;
+  }
+
+  .card-title-heading {
+    font-size: 0.9rem;
   }
 }

@@ -2,7 +2,8 @@ import User from '../models/User.js'
 import jwt from 'jsonwebtoken'
 
 export const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '4h' })
+  const secret = process.env.JWT_SECRET || 'seemee_jwt_secret_key_2026'
+  return jwt.sign({ id }, secret, { expiresIn: '30d' })
 }
 
 export const generateRefreshToken = (id) => {
