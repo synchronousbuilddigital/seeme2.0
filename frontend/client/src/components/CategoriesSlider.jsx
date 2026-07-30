@@ -46,9 +46,9 @@ const CategoriesSlider = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const prodData = await cachedFetch(API_ENDPOINTS.PRODUCTS)
+        const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=12&status=active`)
         const activeProducts = prodData.success && prodData.data
-          ? prodData.data.filter(p => p.isActive)
+          ? prodData.data
           : []
 
         const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })

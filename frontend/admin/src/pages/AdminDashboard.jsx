@@ -45,10 +45,10 @@ const AdminDashboard = () => {
     // Initial fetch
     fetchStats(timeframe)
 
-    // Real-time sync (polling every 30 seconds)
+    // Real-time sync (polling every 60 seconds)
     const syncInterval = setInterval(() => {
       fetchStats(timeframe)
-    }, 30000)
+    }, 60000)
 
     return () => clearInterval(syncInterval)
   }, [navigate, timeframe])

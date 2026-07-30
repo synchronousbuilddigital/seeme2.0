@@ -89,7 +89,9 @@ orderSchema.pre('save', async function(next) {
     const count = await mongoose.model('Order').countDocuments()
     this.orderNumber = `SM${Date.now()}${count + 1}`
   }
-  next()
-})
+// Add indexes for fast queries
+orderSchema.index({ 'customer.email': 1 })
+orderSchema.index({ status: 1 })
+orderSchema.index({ createdAt: -1 })
 
 export default mongoose.model('Order', orderSchema)

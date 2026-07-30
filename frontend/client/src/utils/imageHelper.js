@@ -26,7 +26,7 @@ export const getImageUrl = (imageData, options = {}) => {
     
     // Check if it's already an absolute URL
     if (imageData.includes('://') || imageData.startsWith('data:')) {
-      return imageData
+      return (options && Object.keys(options).length > 0) ? optimizeCloudinaryUrl(imageData, options) : imageData
     }
 
     // It's a relative path. If it starts with '/', we still need to prepend the API base 

@@ -32,9 +32,9 @@ const ShopSection = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS)
+        const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=8&status=active`)
         if (data.success && data.data) {
-          const activeProducts = data.data.filter(p => p.isActive).slice(0, 8)
+          const activeProducts = data.data.slice(0, 8)
           setProducts(activeProducts)
           localStorage.setItem('seemee_shop_products', JSON.stringify(activeProducts))
         }

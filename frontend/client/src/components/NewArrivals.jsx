@@ -31,10 +31,9 @@ const NewArrivals = () => {
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS)
+        const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=6&status=active`)
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const active = data.data.filter(p => p.isActive)
-          const sliced = active.slice(0, 4)
+          const sliced = data.data.slice(0, 4)
           setArrivals(sliced)
           localStorage.setItem('seemee_new_arrivals', JSON.stringify(sliced))
         }
