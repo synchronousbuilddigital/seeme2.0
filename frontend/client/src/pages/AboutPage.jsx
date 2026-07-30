@@ -53,7 +53,7 @@ const AboutPage = () => {
       title: "Couture Tailoring & Ethical Quality Curation",
       shortDesc: "Meticulous finishing and pattern drape tailored for the modern global woman.",
       detailedDesc: "Every SeeMee design is hand-finished with meticulous couture seams and premium drape. Our master tailors ensure that while each garment boasts the grandeur of royal Indian silhouettes, it feels weightless, comfortable, and flawlessly structured for the dynamic lifestyle of the modern woman.",
-      image: "/images/hero/anarkali_luxury.png",
+      image: "/images/magazine/anarkali_editorial.png",
       stat: "Heirloom Quality Standard"
     }
   ]
@@ -319,6 +319,7 @@ const AboutPage = () => {
                       key={activeStage}
                       src={journeyStages[activeStage].image}
                       alt={journeyStages[activeStage].title}
+                      onError={(e) => { e.target.src = '/images/about/about_heritage.png' }}
                       initial={{ scale: 1.08, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.95, opacity: 0 }}
