@@ -248,7 +248,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
     <div className="hero-carousel-manager">
       <div className="manager-header-lux">
         <div className="header-info">
-          <h2>🎨 Homepage Hero Editor</h2>
+          <h2> Homepage Hero Editor</h2>
           <p className="subtitle">Design the first moment of the customer journey</p>
         </div>
         

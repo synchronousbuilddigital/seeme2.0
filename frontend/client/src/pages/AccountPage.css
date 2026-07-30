@@ -24,11 +24,11 @@
   align-items: start;
 }
 
-/* Sidebar */
+/* Luxury Sidebar */
 .account-nav-sidebar {
-  padding: 50px 40px;
-  border-right: var(--editorial-border);
-  background: white;
+  padding: 36px 28px;
+  border-right: 1px solid #eae5dc;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   position: sticky;
@@ -37,41 +37,51 @@
   max-height: calc(100vh - 100px);
   overflow-y: auto;
   z-index: 10;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.02);
 }
 
 .nav-profile-card {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 40px;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 22px 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #111111 0%, #1d1914 50%, #282015 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
 }
 
 .nav-avatar {
-  width: 60px;
-  height: 60px;
-  background: #1a1a1a;
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2e2618 100%);
   color: #D4AF37;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display, serif);
-  font-size: 1.5rem;
-  border: 1px solid #D4AF37;
+  font-size: 1.35rem;
+  font-weight: 700;
+  border: 2px solid #D4AF37;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .nav-user-info h3 {
   font-family: var(--font-display, serif);
-  font-size: 1.25rem;
-  font-weight: 400;
-  color: #1a1a1a;
+  font-size: 1.12rem;
+  font-weight: 500;
+  color: #ffffff;
   margin: 0;
+  line-height: 1.2;
 }
 
 .nav-user-info p {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   color: #D4AF37;
   font-weight: 700;
   margin: 4px 0 0;
@@ -86,49 +96,141 @@
 
 .side-nav-item {
   position: relative;
-  background: none;
-  border: none;
-  padding: 15px 0;
+  background: rgba(248, 246, 242, 0.6);
+  border: 1px solid rgba(230, 224, 214, 0.7);
+  padding: 13px 16px;
+  border-radius: 14px;
   text-align: left;
   cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.side-nav-icon-box {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(26, 26, 26, 0.05);
+  color: #666666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 
 .side-nav-label {
   font-family: var(--font-body, sans-serif);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  color: #666;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  letter-spacing: 1.8px;
+  color: #444444;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  flex-grow: 1;
 }
 
-.side-nav-indicator {
-  width: 0;
-  height: 1px;
+.side-nav-badge {
   background: #D4AF37;
-  transition: width 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  color: #111111;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  line-height: 1;
+  margin-left: 4px;
 }
 
-.side-nav-item:hover .side-nav-label,
+.side-nav-arrow {
+  color: rgba(212, 175, 55, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.25s ease;
+}
+
+/* Hover State */
+.side-nav-item:hover:not(.active) {
+  background: #ffffff;
+  border-color: #D4AF37;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.12);
+  transform: translateX(4px);
+}
+
+.side-nav-item:hover:not(.active) .side-nav-icon-box {
+  background: rgba(212, 175, 55, 0.15);
+  color: #111111;
+}
+
+.side-nav-item:hover:not(.active) .side-nav-label {
+  color: #111111;
+}
+
+.side-nav-item:hover:not(.active) .side-nav-arrow {
+  opacity: 0.7;
+  transform: translateX(0);
+}
+
+/* Active State */
+.side-nav-item.active {
+  background: #111111 !important;
+  border-color: #D4AF37 !important;
+  box-shadow: 0 8px 24px rgba(17, 17, 17, 0.18);
+}
+
+.side-nav-item.active .side-nav-icon-box {
+  background: #D4AF37;
+  color: #111111;
+}
+
 .side-nav-item.active .side-nav-label {
-  color: #1a1a1a;
-  letter-spacing: 3px;
+  color: #f1d592;
+  font-weight: 700;
+  letter-spacing: 2.2px;
 }
 
-.side-nav-item.active .side-nav-indicator {
-  width: 40px;
+.side-nav-item.active .side-nav-badge {
+  background: #f1d592;
+  color: #111111;
+}
+
+.side-nav-item.active .side-nav-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: #f1d592;
 }
 
 .nav-spacer {
   flex-grow: 1;
+  min-height: 20px;
+}
+
+/* Sign Out Action Button */
+.side-nav-item.logout {
+  margin-top: 24px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.side-nav-item.logout .logout-icon {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
 }
 
 .side-nav-item.logout .side-nav-label {
-  color: #c0392b;
+  color: #ef4444;
+}
+
+.side-nav-item.logout:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #ef4444;
+  transform: translateX(4px);
 }
 
 /* Main Content */
@@ -3465,4 +3567,925 @@
   color: #dc2626;
   margin-left: auto;
 }
+
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVE DESIGN SYSTEM (Strict Design Preservation)
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .account-page-v2 {
+    padding-top: 85px;
+  }
+
+  .account-wrapper {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  /* Preserve original vertical sidebar design on mobile */
+  .account-nav-sidebar {
+    position: relative;
+    top: 0;
+    height: auto;
+    max-height: none;
+    padding: 24px 20px;
+    border-right: none;
+    border-bottom: var(--editorial-border);
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  .nav-profile-card {
+    display: flex;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+
+  .side-navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .side-nav-item {
+    padding: 12px 0;
+    background: none;
+    border: none;
+    border-radius: 0;
+    justify-content: space-between;
+  }
+
+  .side-nav-label {
+    font-size: 0.85rem;
+    letter-spacing: 2px;
+    color: #666;
+  }
+
+  .side-nav-indicator {
+    display: block;
+  }
+
+  .account-main-content {
+    padding: 24px 20px 60px;
+  }
+
+  .profile-hero-panel {
+    grid-template-columns: 1fr;
+    padding: 28px 22px;
+    gap: 20px;
+    border-radius: 24px;
+  }
+
+  .greeting-title {
+    font-size: 1.8rem;
+  }
+
+  .profile-hero-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .profile-hero-actions .btn-editorial {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    padding: 12px 18px;
+  }
+
+  .profile-hero-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .profile-insights-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .profile-status-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .account-page-v2 {
+    padding-top: 75px;
+  }
+
+  .account-nav-sidebar {
+    padding: 20px 16px;
+  }
+
+  .nav-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+
+  .nav-user-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .account-main-content {
+    padding: 16px 14px 50px;
+  }
+
+  .profile-hero-panel {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  .greeting-title {
+    font-size: 1.5rem;
+  }
+
+  .greeting-subtitle {
+    font-size: 0.84rem;
+  }
+
+  .profile-insights-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .profile-insight-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .profile-insight-value {
+    font-size: 1.6rem;
+  }
+
+  .section-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .view-all-link {
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Mobile Orders List */
+  .orders-filter-pills {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .orders-filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-pill {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    font-size: 0.76rem;
+  }
+
+  .order-card-container {
+    border-radius: 16px;
+  }
+
+  .order-summary-row {
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .order-summary-right {
+    width: 100%;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px dashed #f0eee9;
+  }
+
+  .order-id-badge strong {
+    font-size: 1.1rem;
+  }
+
+  .order-progress-wrapper {
+    padding: 16px;
+  }
+
+  .progress-bar-steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .order-items-strip {
+    padding: 12px 16px;
+  }
+
+  .order-item-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .item-row-price {
+    align-self: flex-end;
+  }
+
+  /* Mobile Wishlist Grid */
+  .wishlist-full-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .wishlist-card {
+    border-radius: 14px;
+  }
+
+  .wishlist-card-info {
+    padding: 12px 10px;
+    gap: 6px;
+  }
+
+  .wishlist-card-title {
+    font-size: 0.92rem;
+    line-height: 1.25;
+  }
+
+  .wishlist-card-price {
+    font-size: 0.98rem;
+  }
+
+  .wishlist-card-actions .btn-editorial {
+    padding: 7px 6px;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: visible;
+  }
+
+  /* Mobile Profile Settings & Form */
+  .settings-side-panel {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px;
+  }
+
+  .form-group input {
+    font-size: 16px !important; /* Prevents iOS auto zoom on input focus */
+    padding: 12px 14px;
+  }
+
+  .inline-address-form {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .inline-form-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .inline-form-actions button {
+    width: 100%;
+  }
+
+  .settings-address-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .address-modal-panel {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 24px 24px 0 0;
+    padding: 20px 16px;
+  }
+
+  .address-modal-copy {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .address-modal-metrics {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* ==========================================================================
+   DESKTOP & MOBILE NAVIGATION COMPONENT STYLES
+   ========================================================================== */
+
+/* Inline SVG icon alignment for side nav */
+.side-nav-icon-inline {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 10px;
+  color: #888;
+  transition: color 0.3s ease;
+}
+
+.side-nav-item:hover .side-nav-icon-inline,
+.side-nav-item.active .side-nav-icon-inline {
+  color: #D4AF37;
+}
+
+/* Hide mobile header and segmented tabbar on Desktop (min-width: 1025px) */
+@media (min-width: 1025px) {
+  .mobile-account-header,
+  .mobile-segmented-tabbar {
+    display: none !important;
+  }
+}
+
+/* ==========================================================================
+   LUXURY MOBILE PHONE ACCOUNT SYSTEM (@media max-width: 1024px)
+   ========================================================================== */
+@media (max-width: 1024px) {
+  /* Hide desktop sidebar & desktop back nav on mobile phones/tablets */
+  .account-nav-sidebar,
+  .editorial-back-nav {
+    display: none !important;
+  }
+
+  .account-page-v2 {
+    padding-top: 0 !important;
+    background: #faf7f2;
+    min-height: 100vh;
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .account-wrapper {
+    grid-template-columns: 1fr;
+    margin: 0;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     1. LUXURY MOBILE TOP HEADER BANNER
+     ------------------------------------------------------------------------ */
+  .mobile-account-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15, 13, 12, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .mobile-back-btn,
+  .mobile-logout-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    color: #f3e5ab;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.92);
+      background: rgba(212, 175, 55, 0.2);
+    }
+  }
+
+  .mobile-header-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .mobile-header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2e2618 100%);
+    border: 1.5px solid #D4AF37;
+    color: #D4AF37;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display, serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .mobile-header-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-user-name {
+    font-family: var(--font-display, serif);
+    font-size: 1rem;
+    font-weight: 500;
+    color: #ffffff;
+    line-height: 1.2;
+    letter-spacing: 0.3px;
+  }
+
+  .mobile-user-badge {
+    font-size: 0.65rem;
+    color: #D4AF37;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+
+  /* ------------------------------------------------------------------------
+     2. MOBILE FIXED SEGMENTED TAB BAR (FIT EXACT MOBILE WIDTH - NO SIDE SCROLL)
+     ------------------------------------------------------------------------ */
+  .mobile-segmented-tabbar {
+    display: block !important;
+    position: sticky;
+    top: 64px;
+    z-index: 99;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid #ebe5d9;
+    padding: 6px 8px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  }
+
+  .mobile-tab-scroll-container {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+  }
+
+  .mobile-tab-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 4px !important;
+    padding: 9px 2px !important;
+    border-radius: 12px !important;
+    background: rgba(243, 237, 227, 0.7);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    color: #555555;
+    font-size: 0.72rem !important;
+    font-weight: 600;
+    letter-spacing: 0;
+    white-space: nowrap;
+    cursor: pointer;
+    width: 100% !important;
+    box-sizing: border-box;
+    transition: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+      transform: scale(0.96);
+    }
+  }
+
+  .mobile-tab-btn.active {
+    background: #1a1a1a;
+    color: #f1d592;
+    border-color: #D4AF37;
+    box-shadow: 0 3px 10px rgba(26, 26, 26, 0.2);
+  }
+
+  .mobile-tab-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    flex-shrink: 0;
+  }
+
+  .mobile-tab-label {
+    font-family: var(--font-body, sans-serif);
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mobile-tab-badge {
+    background: #D4AF37;
+    color: #111111;
+    font-size: 0.62rem;
+    font-weight: 800;
+    padding: 1px 5px;
+    border-radius: 10px;
+    line-height: 1.1;
+    flex-shrink: 0;
+  }
+
+  .mobile-tab-btn.active .mobile-tab-badge {
+    background: #f1d592;
+    color: #000;
+  }
+
+  /* ------------------------------------------------------------------------
+     3. MAIN CONTENT CONTAINER OPTIMIZATION ON MOBILE
+     ------------------------------------------------------------------------ */
+  .account-main-content {
+    padding: 16px 14px 60px !important;
+    width: 100%;
+    box-sizing: border-border;
+  }
+
+  .view-container {
+    max-width: 100%;
+  }
+
+  /* Profile Overview Hero Panel Mobile Styling */
+  .profile-hero-panel {
+    grid-template-columns: 1fr !important;
+    padding: 24px 18px !important;
+    border-radius: 20px !important;
+    gap: 18px !important;
+    background: linear-gradient(135deg, #0d0c0b 0%, #1c1814 50%, #282015 100%) !important;
+  }
+
+  .greeting-title {
+    font-size: 1.65rem !important;
+    margin-bottom: 10px !important;
+  }
+
+  .greeting-subtitle {
+    font-size: 0.85rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .profile-hero-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    margin-top: 18px !important;
+  }
+
+  .profile-hero-actions .btn-editorial {
+    width: 100% !important;
+    justify-content: center;
+    padding: 12px 16px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .profile-hero-card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  }
+
+  /* Insights Metric Grid Mobile Styling */
+  .profile-insights-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-top: 14px;
+  }
+
+  .profile-insight-card {
+    padding: 14px 12px !important;
+    border-radius: 16px !important;
+    border: 1px solid #ebe5d9 !important;
+    background: #ffffff !important;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    &:active {
+      transform: scale(0.98);
+      border-color: #D4AF37 !important;
+    }
+  }
+
+  .profile-insight-label {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .profile-insight-value {
+    font-size: 1.5rem !important;
+    margin: 6px 0 2px !important;
+  }
+
+  .profile-insight-card p {
+    font-size: 0.72rem !important;
+    color: #777;
+    margin-top: 4px;
+    line-height: 1.3;
+  }
+
+  .profile-status-card {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     4. MOBILE ORDERS & TIMELINE TRACKING STYLES
+     ------------------------------------------------------------------------ */
+  .orders-hero {
+    margin-bottom: 16px;
+  }
+
+  .orders-filter-pills {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 4px;
+    margin-top: 12px;
+    scrollbar-width: none;
+  }
+
+  .filter-pill {
+    padding: 8px 16px !important;
+    font-size: 0.78rem !important;
+    border-radius: 20px !important;
+    flex-shrink: 0;
+  }
+
+  .recent-orders-grid,
+  .orders-full-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px !important;
+  }
+
+  .recent-order-card,
+  .order-card-container {
+    border-radius: 16px !important;
+    border: 1px solid #e8e2d5 !important;
+    background: #ffffff !important;
+    overflow: hidden;
+  }
+
+  .order-summary-row {
+    padding: 14px 16px !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .order-summary-right {
+    width: 100% !important;
+    display: flex;
+    align-items: center;
+    justify-content: space-between !important;
+    padding-top: 10px !important;
+    border-top: 1px dashed #efe9dc !important;
+  }
+
+  .order-progress-wrapper {
+    padding: 14px 16px !important;
+    background: #faf7f2;
+    border-bottom: 1px solid #ebe5d9;
+  }
+
+  .progress-bar-steps {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 6px !important;
+    margin-top: 12px !important;
+  }
+
+  .progress-step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .step-dot {
+    width: 26px !important;
+    height: 26px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .step-name {
+    font-size: 0.65rem !important;
+    margin-top: 4px;
+  }
+
+  .order-detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .order-detail-actions {
+    display: flex;
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-top: 16px;
+  }
+
+  .order-detail-actions .btn-editorial {
+    width: 100% !important;
+    justify-content: center;
+    padding: 12px 14px !important;
+  }
+
+  /* ------------------------------------------------------------------------
+     5. MOBILE WISHLIST GRID STYLES
+     ------------------------------------------------------------------------ */
+  .wishlist-full-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-top: 14px !important;
+  }
+
+  .wishlist-card {
+    border-radius: 14px !important;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1px solid #ebe5d9;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .wishlist-card-media {
+    aspect-ratio: 3/4;
+    position: relative;
+    overflow: hidden;
+    background: #f4efea;
+  }
+
+  .wishlist-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .wishlist-remove-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    color: #ffffff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .wishlist-card-info {
+    padding: 10px 8px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+  }
+
+  .wishlist-card-title {
+    font-size: 0.85rem !important;
+    font-weight: 500;
+    line-height: 1.25;
+    margin: 2px 0;
+  }
+
+  .wishlist-card-price {
+    font-size: 0.92rem !important;
+    font-weight: 700;
+    color: #D4AF37;
+  }
+
+  .wishlist-card-actions {
+    margin-top: 6px;
+  }
+
+  .wishlist-card-actions .btn-editorial {
+    width: 100% !important;
+    padding: 9px 4px !important;
+    font-size: 0.68rem !important;
+    letter-spacing: 0.5px !important;
+    justify-content: center;
+  }
+
+  /* ------------------------------------------------------------------------
+     6. MOBILE PROFILE SETTINGS & ADDRESS BOOK STYLES
+     ------------------------------------------------------------------------ */
+  .profile-management-layout {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  .profile-settings-form,
+  .contact-address-panel {
+    padding: 18px 16px !important;
+    border-radius: 20px !important;
+    background: #ffffff !important;
+    border: 1px solid #ebe5d9 !important;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .form-group label {
+    font-size: 0.76rem !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    margin-bottom: 6px;
+  }
+
+  .form-group input {
+    font-size: 16px !important; /* Prevents auto zoom on iOS */
+    padding: 12px 14px !important;
+    border-radius: 12px !important;
+    border: 1px solid #e0d9cc !important;
+    background: #faf8f5 !important;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: #D4AF37 !important;
+      background: #ffffff !important;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15) !important;
+    }
+  }
+
+  .address-quick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px !important;
+    margin-top: 14px;
+  }
+
+  .address-quick-card {
+    padding: 16px !important;
+    border-radius: 16px !important;
+    border: 1px solid #ebe5d9 !important;
+    background: #faf8f5 !important;
+  }
+
+  .address-quick-card.is-default-card {
+    border-color: #D4AF37 !important;
+    background: #fffdf9 !important;
+  }
+
+  .addr-quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px !important;
+    margin-top: 12px !important;
+    padding-top: 10px !important;
+    border-top: 1px solid #efe9dc !important;
+  }
+
+  .addr-action-btn {
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    border-radius: 14px !important;
+  }
+}
+
+/* Extra small mobile devices (<400px) */
+@media (max-width: 400px) {
+  .wishlist-full-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 

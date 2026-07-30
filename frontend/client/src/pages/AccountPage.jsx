@@ -318,10 +318,52 @@ const AccountPage = () => {
   const primaryAddress = addresses.find((addr) => addr.isDefault) || addresses[0] || null
 
   const menuItems = [
-    { id: 'dashboard', label: 'My Overview', badge: null },
-    { id: 'orders', label: 'My Orders', badge: orders.length > 0 ? orders.length : null },
-    { id: 'wishlist', label: 'Saved Wishlist', badge: wishlist.length > 0 ? wishlist.length : null },
-    { id: 'profile', label: 'Account Settings', badge: null }
+    { 
+      id: 'dashboard', 
+      label: 'Overview', 
+      badge: null,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="1"/>
+          <rect x="14" y="3" width="7" height="5" rx="1"/>
+          <rect x="14" y="12" width="7" height="9" rx="1"/>
+          <rect x="3" y="16" width="7" height="5" rx="1"/>
+        </svg>
+      )
+    },
+    { 
+      id: 'orders', 
+      label: 'Orders', 
+      badge: orders.length > 0 ? orders.length : null,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      )
+    },
+    { 
+      id: 'wishlist', 
+      label: 'Wishlist', 
+      badge: wishlist.length > 0 ? wishlist.length : null,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      )
+    },
+    { 
+      id: 'profile', 
+      label: 'Settings', 
+      badge: null,
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      )
+    }
   ]
 
   const filteredOrders = orders.filter(order => {
@@ -1000,6 +1042,7 @@ const AccountPage = () => {
 
   return (
     <div className="account-page-v2">
+      {/* Back button for desktop/tablet */}
       <div className="editorial-back-nav">
         <button onClick={() => navigate(-1)} className="editorial-back-btn">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1010,54 +1053,93 @@ const AccountPage = () => {
         </button>
       </div>
 
+      {/* Mobile Luxury Account Header */}
+      <div className="mobile-account-header">
+        <button onClick={() => navigate(-1)} className="mobile-back-btn" aria-label="Go Back">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <div className="mobile-header-user">
+          <div className="mobile-header-avatar">
+            {user?.name?.charAt(0).toUpperCase() || 'U'}
+          </div>
+          <div className="mobile-header-info">
+            <span className="mobile-user-name">{user?.name || 'Valued Client'}</span>
+            <span className="mobile-user-badge">✦ SEEMEE Atelier Member</span>
+          </div>
+        </div>
+        <button className="mobile-logout-btn" onClick={() => { logout(); navigate('/'); }} title="Sign Out" aria-label="Sign Out">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Horizontal Segmented Tab Bar */}
+      <div className="mobile-segmented-tabbar">
+        <div className="mobile-tab-scroll-container">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={`mobile-tab-btn ${activeTab === item.id ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab(item.id)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+            >
+              <span className="mobile-tab-icon">{item.icon}</span>
+              <span className="mobile-tab-label">{item.label}</span>
+              {item.badge !== null && <span className="mobile-tab-badge">{item.badge}</span>}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="account-wrapper">
-        {/* Navigation Sidebar */}
+        {/* Navigation Sidebar (Desktop/Tablet) */}
         <aside className="account-nav-sidebar">
           <div className="nav-profile-card">
             <div className="nav-avatar">{user?.name?.charAt(0).toUpperCase() || 'U'}</div>
             <div className="nav-user-info">
               <h3>{user?.name || 'Valued Client'}</h3>
-              <p>Atelier Member</p>
+              <p>✦ ATELIER MEMBER</p>
             </div>
           </div>
-          
-          {/* Mobile Tab Toggle */}
-          <div className="mobile-nav-toggle-wrapper">
-            <button 
-              type="button" 
-              className="mobile-nav-toggle-btn" 
-              onClick={() => setMenuExpanded(!menuExpanded)}
-            >
-              <span className="active-tab-indicator">
-                <span className="dot-gold"></span>
-                {menuItems.find(item => item.id === activeTab)?.label || 'Menu'}
-              </span>
-              <div className="three-dots-icon">
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-            </button>
-          </div>
 
-          <nav className={`side-navigation ${menuExpanded ? 'expanded' : 'collapsed'}`}>
+          <nav className="side-navigation">
             {menuItems.map((item) => (
               <button 
                 key={item.id} 
                 className={`side-nav-item ${activeTab === item.id ? 'active' : ''}`} 
                 onClick={() => { 
                   setActiveTab(item.id);
-                  setMenuExpanded(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' })
                 }}
               >
+                <div className="side-nav-icon-box">{item.icon}</div>
                 <span className="side-nav-label">{item.label}</span>
                 {item.badge !== null && <span className="side-nav-badge">{item.badge}</span>}
-                <div className="side-nav-indicator"></div>
+                <div className="side-nav-arrow">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </div>
               </button>
             ))}
             <div className="nav-spacer"></div>
             <button className="side-nav-item logout" onClick={() => { logout(); navigate('/'); }}>
+              <div className="side-nav-icon-box logout-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </div>
               <span className="side-nav-label">Sign Out</span>
             </button>
           </nav>
