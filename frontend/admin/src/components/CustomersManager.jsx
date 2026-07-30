@@ -49,15 +49,46 @@ const CustomersManager = () => {
     }
   }
 
-  const filteredCustomers = customers.filter(c => 
-    c.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredCustomers = customers.filter(c => {
+    const q = searchTerm.toLowerCase().trim()
+    return (
+      c.name?.toLowerCase().includes(q) ||
+      c.email?.toLowerCase().includes(q) ||
+      c.phone?.toLowerCase().includes(q)
+    )
+  })
 
   // Compute stats for history drawer
   const validHistoryOrders = customerOrders.filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
   const historyTotalSpent = validHistoryOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0)
   const historyOrderCount = customerOrders.length
+
+  // Find customer phone number from user model or order history
+  const getCustomerPhone = (customer) => {
+    if (customer.phone) return customer.phone
+    const orderWithPhone = customerOrders.find(o => o.customer?.phone)
+    return orderWithPhone?.customer?.phone || null
+  }
+
+  // Find customer address list (saved addresses or order delivery address)
+  const getCustomerAddresses = (customer) => {
+    if (Array.isArray(customer.addresses) && customer.addresses.length > 0) {
+      return customer.addresses
+    }
+    const orderWithAddr = customerOrders.find(o => o.customer?.address)
+    if (orderWithAddr?.customer?.address) {
+      const addr = orderWithAddr.customer.address
+      return [{
+        street: addr.street || addr.addressLine1 || '',
+        city: addr.city || '',
+        state: addr.state || '',
+        pincode: addr.pincode || addr.zipCode || '',
+        country: addr.country || 'India',
+        isDefault: true
+      }]
+    }
+    return []
+  }
 
   if (loading) return <div className="loading">Loading Customers...</div>
 
@@ -66,7 +97,7 @@ const CustomersManager = () => {
       <div className="toolbar">
         <input 
           type="search" 
-          placeholder="Search by name or email..." 
+          placeholder="Search by name, email, or phone number..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -77,43 +108,57 @@ const CustomersManager = () => {
           <thead>
             <tr>
               <th>Customer</th>
+              <th>Phone</th>
               <th>Status</th>
-              <th>Total Orders</th>
+              <th>Orders</th>
               <th>Total Spending</th>
               <th>Joined</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredCustomers.map(customer => (
-              <tr key={customer._id}>
-                <td>
-                  <div className="customer-cell">
-                    <div className="avatar">{customer.name ? customer.name[0] : 'U'}</div>
-                    <div className="details">
-                      <span className="name">{customer.name}</span>
-                      <span className="email">{customer.email}</span>
-                    </div>
-                  </div>
-                </td>
-                <td>
-                   <span className={`status-pill ${customer.isBlocked ? 'blocked' : 'active'}`}>
-                     {customer.isBlocked ? 'Blocked' : 'Active'}
-                   </span>
-                </td>
-                <td>{customer.orderCount || 0}</td>
-                <td>₹{(customer.totalSpending || 0).toLocaleString('en-IN')}</td>
-                <td>{new Date(customer.createdAt).toLocaleDateString()}</td>
-                <td>
-                  <button className="action-link" onClick={() => handleViewHistory(customer)}>View History</button>
+            {filteredCustomers.length === 0 ? (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
+                  No customer records match your search criteria.
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredCustomers.map(customer => (
+                <tr key={customer._id}>
+                  <td>
+                    <div className="customer-cell">
+                      <div className="avatar">{customer.name ? customer.name[0].toUpperCase() : 'U'}</div>
+                      <div className="details">
+                        <span className="name">{customer.name || 'Anonymous User'}</span>
+                        <span className="email">{customer.email}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="phone-text">
+                      {customer.phone ? customer.phone : <span style={{ color: '#a8a29e' }}>Not Added</span>}
+                    </span>
+                  </td>
+                  <td>
+                     <span className={`status-pill ${customer.isBlocked ? 'blocked' : 'active'}`}>
+                       {customer.isBlocked ? 'Blocked' : 'Active'}
+                     </span>
+                  </td>
+                  <td>{customer.orderCount || 0}</td>
+                  <td>₹{(customer.totalSpending || 0).toLocaleString('en-IN')}</td>
+                  <td>{new Date(customer.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                  <td>
+                    <button className="action-link" onClick={() => handleViewHistory(customer)}>View Profile & History</button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Customer History Drawer */}
+      {/* Customer History & Details Drawer */}
       <AnimatePresence>
         {isHistoryModalOpen && selectedCustomer && (
           <div className="modal-overlay" onClick={() => {
@@ -130,9 +175,9 @@ const CustomersManager = () => {
             >
               <div className="drawer-header">
                 <div className="header-profile">
-                  <div className="avatar-large">{selectedCustomer.name ? selectedCustomer.name[0] : 'U'}</div>
+                  <div className="avatar-large">{selectedCustomer.name ? selectedCustomer.name[0].toUpperCase() : 'U'}</div>
                   <div className="profile-text">
-                    <h2>{selectedCustomer.name}</h2>
+                    <h2>{selectedCustomer.name || 'Customer Profile'}</h2>
                     <span className="email">{selectedCustomer.email}</span>
                   </div>
                 </div>
@@ -143,6 +188,7 @@ const CustomersManager = () => {
                 }}>&times;</button>
               </div>
 
+              {/* Key Metrics */}
               <div className="drawer-stats">
                 <div className="stat-box">
                   <span className="label">Total Spent</span>
@@ -163,7 +209,38 @@ const CustomersManager = () => {
               </div>
 
               <div className="drawer-body">
-                <h3>Order Log</h3>
+                {/* Customer Contact & Address Info Section */}
+                <div className="customer-info-card">
+                  <h4 className="info-card-title">✦ Customer Contact & Address</h4>
+                  
+                  <div className="info-row">
+                    <span className="info-label">📞 Phone:</span>
+                    <span className="info-val">{getCustomerPhone(selectedCustomer) || 'Not Provided'}</span>
+                  </div>
+
+                  <div className="info-row">
+                    <span className="info-label">✉️ Email:</span>
+                    <span className="info-val">{selectedCustomer.email}</span>
+                  </div>
+
+                  <div className="address-section">
+                    <span className="info-label">📍 Saved Address(es):</span>
+                    {getCustomerAddresses(selectedCustomer).length === 0 ? (
+                      <p className="no-addr-text">No delivery addresses recorded yet.</p>
+                    ) : (
+                      getCustomerAddresses(selectedCustomer).map((addr, idx) => (
+                        <div key={idx} className="customer-addr-box">
+                          {addr.isDefault && <span className="default-tag">Default</span>}
+                          <p>{addr.street || addr.addressLine1}</p>
+                          <p>{[addr.city, addr.state, addr.pincode || addr.zipCode].filter(Boolean).join(', ')}</p>
+                          <p>{addr.country || 'India'}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <h3>Order History & Activity</h3>
                 
                 {historyLoading ? (
                   <div className="history-loading">
@@ -190,7 +267,7 @@ const CustomersManager = () => {
                               day: 'numeric', month: 'short', year: 'numeric'
                             })}
                           </span>
-                          <span className="amount">₹{order.totalAmount.toLocaleString()}</span>
+                          <span className="amount">₹{order.totalAmount.toLocaleString('en-IN')}</span>
                         </div>
                         <div className="card-items">
                           {order.items?.map((item, idx) => (
@@ -200,6 +277,12 @@ const CustomersManager = () => {
                             </div>
                           ))}
                         </div>
+                        {order.customer?.address && (
+                          <div className="order-shipping-addr">
+                            <span>Ship To: </span>
+                            {[order.customer.address.street, order.customer.address.city, order.customer.address.state, order.customer.address.pincode].filter(Boolean).join(', ')}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>

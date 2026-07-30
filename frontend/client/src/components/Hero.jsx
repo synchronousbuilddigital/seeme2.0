@@ -156,7 +156,7 @@ const Hero = () => {
     } catch (e) {
       console.error('Error parsing cached categories:', e)
     }
-    return ['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri']
+     return ['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri']
   })
 
   // Initialize category images from cache
@@ -325,90 +325,23 @@ const Hero = () => {
           data = await cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true })
         }
 
-        const backendSlides = data.success
+        const alternateDescriptions = [
+          'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
+          'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
+          'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.'
+        ]
+
+        const backendSlides = data.success && Array.isArray(data.data)
           ? data.data
             .filter((slide) => (slide.isActive !== false && slide.active !== false) && slide.image)
-            .map((slide, index) => {
-              // Generate a unique descriptive text matching the category or index to guarantee diverse premium content
-              let desc = 'Discover our latest curated collection of premium royal Indian wear.';
-              const category = (slide.productCategory || '').toLowerCase();
-              const titleText = (slide.title || slide.productName || '').toLowerCase();
-
-              if (category.includes('anarkali') || titleText.includes('anarkali')) {
-                desc = 'Flared silhouettes designed with flowy premium fabrics, perfect for grand entrances and formal festivities.';
-              } else if (category.includes('palazzo') || titleText.includes('palazzo')) {
-                desc = 'Comfort meets luxury in our wide-leg palazzo sets, featuring detailed block prints and soft pastel hues.';
-              } else if (category.includes('straight') || titleText.includes('straight')) {
-                desc = 'Sleek, tailored cuts made from fine chanderi silk and high-quality thread work, perfect for everyday contemporary elegance.';
-              } else if (category.includes('sharara') || titleText.includes('sharara')) {
-                desc = 'Intricate hand-crafted sharara sets, layered with rich embroidery and regal borders for classic festive grandeur.';
-              } else {
-                // Fallback alternating majestic copy
-                const alternateDescriptions = [
-                  'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
-                  'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
-                  'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.'
-                ];
-                desc = alternateDescriptions[index % alternateDescriptions.length];
-              }
-
-              // Generate a unique title if not configured in the database
-              let slideTitle = slide.title || slide.productName;
-              if (!slideTitle || slideTitle === 'Dressing is nothing but a Choice') {
-                if (category.includes('anarkali')) {
-                  slideTitle = 'Royal Anarkali Couture Elegance';
-                } else if (category.includes('palazzo')) {
-                  slideTitle = 'Modern Palazzo Luxe Grace';
-                } else if (category.includes('straight')) {
-                  slideTitle = 'Tailored Straight Cut Splendor';
-                } else if (category.includes('sharara')) {
-                  slideTitle = 'Festive Sharara Heritage Splendor';
-                } else {
-                  const alternateTitles = [
-                    'Dressing is nothing but a Choice',
-                    'Everyday Occasion Edit Elegance',
-                    'Wedding Season Highlights Grandeur',
-                    'Woven Tales of Ancient Loom',
-                    'Regal Weight of Velvet Majesty',
-                    'True Heritage Artisan Mastery'
-                  ];
-                  slideTitle = alternateTitles[index % alternateTitles.length];
-                }
-              }
-
-              // Generate a unique subtitle if not configured in the database
-              let slideSubtitle = slide.subtitle;
-              if (!slideSubtitle || slideSubtitle === 'Fashion is on form of self-expression and autonomy.' || slideSubtitle === 'Fashion is a form of self-expression and autonomy.') {
-                if (category.includes('anarkali')) {
-                  slideSubtitle = 'Exquisite flared flowy silk sets designed for royal prestige.';
-                } else if (category.includes('palazzo')) {
-                  slideSubtitle = 'Chic contemporary style detailed with intricate handblock prints.';
-                } else if (category.includes('straight')) {
-                  slideSubtitle = 'Sleek premium threadwork and elegant gold tilla on chanderi.';
-                } else if (category.includes('sharara')) {
-                  slideSubtitle = 'Traditional hand-embroidered borders celebrating Indian heritage.';
-                } else {
-                  const alternateSubtitles = [
-                    'Fashion is a form of self-expression and autonomy.',
-                    'Clean lines, rich fabrics, and highly polished finish.',
-                    'Premium hand-crafted luxury dressing with refined royal feel.',
-                    'Authentic handloom Banarasi silk by master weavers.',
-                    'Luxurious thick velvets adorned with micro-pearls.',
-                    'Preserving the craft of hand-guided gold zari embroidery.'
-                  ];
-                  slideSubtitle = alternateSubtitles[index % alternateSubtitles.length];
-                }
-              }
-
-              return {
-                image: slide.image,
-                title: slideTitle,
-                subtitle: slideSubtitle,
-                description: desc,
-                category: (slide.productCategory || 'Featured').toString(),
-                productId: slide.productId || null
-              };
-            })
+            .map((slide, index) => ({
+              image: slide.image,
+              title: slide.title || slide.productName || 'SeeMee Atelier Collection',
+              subtitle: slide.subtitle || '',
+              description: slide.description || alternateDescriptions[index % alternateDescriptions.length],
+              category: (slide.productCategory || 'Featured').toString(),
+              productId: slide.productId || null
+            }))
           : []
 
         let nextSlides = []
