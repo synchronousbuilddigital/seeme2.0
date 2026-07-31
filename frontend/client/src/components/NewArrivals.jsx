@@ -116,7 +116,12 @@ const NewArrivals = () => {
                     <span className="card-category">{item.category}</span>
                     <h3 className="card-name-modern">{item.title || item.name}</h3>
                     <div className="card-footer-modern">
-                      <span className="card-price">₹{item.price?.toLocaleString() || '7,500'}</span>
+                      <div className="card-price-group">
+                        <span className="card-price">₹{item.price ? Number(item.price).toLocaleString('en-IN') : '7,500'}</span>
+                        {(item.mrp || item.discountPrice || item.originalPrice) && Number(item.mrp || item.discountPrice || item.originalPrice) > Number(item.price || 0) && (
+                          <span className="card-mrp">₹{Number(item.mrp || item.discountPrice || item.originalPrice).toLocaleString('en-IN')}</span>
+                        )}
+                      </div>
                       <button className="bag-btn-mini" onClick={(e) => { e.stopPropagation(); addToCart(item); }}>
                         + Add
                       </button>

@@ -23,6 +23,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [productToDelete, setProductToDelete] = useState(null)
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
   const [imageUrlInput, setImageUrlInput] = useState('')
+  const [tagInput, setTagInput] = useState('')
   const pageSize = 8
   const [formTab, setFormTab] = useState('general')
   const [formData, setFormData] = useState({
@@ -58,11 +59,38 @@ const ProductsManager = ({ onPromoteToHero }) => {
     video: '',
     dimensions: { length: '', width: '', height: '' },
     materials: [],
+    tags: [],
     seo: { title: '', description: '' },
     isNewArrival: false,
     isActive: true
   })
   const [availableCategories, setAvailableCategories] = useState([])
+
+  const handleAddTag = (tagToAdd) => {
+    const cleanTag = (tagToAdd || tagInput).trim()
+    if (!cleanTag) return
+
+    const newTags = cleanTag.split(',').map(t => t.trim()).filter(Boolean)
+
+    setFormData(prev => {
+      const existing = prev.tags || []
+      const updated = [...existing]
+      newTags.forEach(t => {
+        if (!updated.some(item => item.toLowerCase() === t.toLowerCase())) {
+          updated.push(t)
+        }
+      })
+      return { ...prev, tags: updated }
+    })
+    setTagInput('')
+  }
+
+  const handleRemoveTag = (tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: (prev.tags || []).filter(t => t.toLowerCase() !== tagToRemove.toLowerCase())
+    }))
+  }
 
   useEffect(() => {
     fetchProducts()
@@ -388,6 +416,16 @@ const ProductsManager = ({ onPromoteToHero }) => {
         ? `${API_ENDPOINTS.PRODUCTS}/${editingProduct._id}`
         : API_ENDPOINTS.PRODUCTS
 
+      let finalTags = [...(formData.tags || [])]
+      if (tagInput && tagInput.trim()) {
+        const pendingTags = tagInput.trim().split(',').map(t => t.trim()).filter(Boolean)
+        pendingTags.forEach(t => {
+          if (!finalTags.some(item => item.toLowerCase() === t.toLowerCase())) {
+            finalTags.push(t)
+          }
+        })
+      }
+
       const payload = {
         name: formData.name.trim(),
         slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
@@ -407,6 +445,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         dimensions: formData.dimensions,
         weight: formData.weight,
         materials: formData.materials,
+        tags: finalTags,
         seo: formData.seo,
         featured: formData.featured,
         inCollection: formData.inCollection,
@@ -483,8 +522,11 @@ const ProductsManager = ({ onPromoteToHero }) => {
       isNewArrival: false,
       isActive: true,
       images: [],
-      video: ''
+      video: '',
+      tags: [],
+      seo: { title: '', description: '' }
     })
+    setTagInput('')
     setEditingProduct(null)
     setShowForm(false)
   }
@@ -525,6 +567,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       dimensions: product.dimensions || { length: '', width: '', height: '' },
       weight: product.weight || { value: '' },
       materials: product.materials || [],
+      tags: product.tags || [],
       seo: product.seo || { title: '', description: '' }
     })
     setEditingProduct(product)
@@ -673,7 +716,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <button className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
                 <button className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
                 <button className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
-                <button className={formTab === 'seo' ? 'active' : ''} onClick={() => setFormTab('seo')}>SEO</button>
+                <button className={formTab === 'tags' ? 'active' : ''} onClick={() => setFormTab('tags')}>Tags & SEO</button>
               </div>
 
               <form onSubmit={handleSubmit} className="tabbed-form">
@@ -960,22 +1003,139 @@ const ProductsManager = ({ onPromoteToHero }) => {
                   </div>
                 )}
 
-                {formTab === 'seo' && (
+                {(formTab === 'tags' || formTab === 'seo') && (
                   <div className="form-tab-content">
                     <div className="form-group">
-                      <label>SEO Title</label>
-                      <input type="text" value={formData.seo?.title} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, title: e.target.value } })} placeholder="Google search title" />
+                      <label>Product Tags (e.g. White, Festival, Partywear)</label>
+                      <div className="url-upload-row">
+                        <input
+                          type="text"
+                          className="url-upload-input"
+                          placeholder="Type tag (e.g. white, festival, partywear) and press Enter"
+                          value={tagInput}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setTagInput(val)
+                            if (val.includes(',')) {
+                              handleAddTag(val)
+                            }
+                          }}
+                          onBlur={() => {
+                            if (tagInput.trim()) {
+                              handleAddTag()
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleAddTag()
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="url-upload-btn"
+                          onClick={() => handleAddTag()}
+                        >
+                          + Add Tag
+                        </button>
+                      </div>
+                      <p style={{ fontSize: '0.8rem', color: '#777', marginTop: '6px' }}>
+                        Separate multiple tags with commas (e.g. <code>white, festival, silk</code>).
+                      </p>
                     </div>
-                    <div className="form-group">
-                      <label>SEO Description</label>
-                      <textarea value={formData.seo?.description} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, description: e.target.value } })} rows="3" placeholder="Meta description for search engines" />
+
+                    {/* Quick Popular Tag Suggestions */}
+                    <div className="form-group" style={{ marginTop: '16px' }}>
+                      <label style={{ fontSize: '0.85rem', color: '#555', marginBottom: '8px', display: 'block', fontWeight: '600' }}>
+                        ✦ Quick Add Popular Tags
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {['White', 'Festival', 'Wedding', 'Partywear', 'Casual', 'Summer', 'Diwali', 'Bridal', 'Handloom', 'Silk', 'Cotton', 'Embroidered', 'Pastel'].map(popularTag => {
+                          const isAdded = (formData.tags || []).some(t => t.toLowerCase() === popularTag.toLowerCase())
+                          return (
+                            <button
+                              key={popularTag}
+                              type="button"
+                              onClick={() => isAdded ? handleRemoveTag(popularTag) : handleAddTag(popularTag)}
+                              style={{
+                                padding: '6px 14px',
+                                borderRadius: '20px',
+                                fontSize: '0.8rem',
+                                border: isAdded ? '1px solid #d4af37' : '1px dashed #ccc',
+                                background: isAdded ? '#fefdfb' : '#fafafa',
+                                color: isAdded ? '#d4af37' : '#555',
+                                fontWeight: isAdded ? '600' : '400',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              {isAdded ? `✓ ${popularTag}` : `+ ${popularTag}`}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
-                    <div className="seo-preview">
-                      <span className="preview-label">Search Engine Preview</span>
-                      <div className="preview-content">
-                        <p className="p-title">{formData.seo?.title || formData.name}</p>
-                        <p className="p-url">seemee.com/products/{formData.slug || 'product-slug'}</p>
-                        <p className="p-desc">{formData.seo?.description || formData.shortDescription || 'Search results preview...'}</p>
+
+                    {/* Currently Selected Tags */}
+                    <div className="form-group" style={{ marginTop: '20px' }}>
+                      <label style={{ fontWeight: '600', marginBottom: '8px', display: 'block' }}>
+                        Assigned Product Tags ({(formData.tags || []).length})
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '48px', padding: '12px', background: '#f9f9f9', borderRadius: '8px', border: '1px solid #eee' }}>
+                        {(formData.tags || []).length > 0 ? (
+                          formData.tags.map((tag, idx) => (
+                            <span
+                              key={idx}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '6px 14px',
+                                background: '#1a1a1a',
+                                color: '#fff',
+                                borderRadius: '16px',
+                                fontSize: '0.82rem',
+                                fontWeight: '500'
+                              }}
+                            >
+                              #{tag}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveTag(tag)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#bbb',
+                                  cursor: 'pointer',
+                                  fontSize: '1rem',
+                                  lineHeight: 1,
+                                  padding: 0,
+                                  marginLeft: '4px'
+                                }}
+                              >
+                                &times;
+                              </button>
+                            </span>
+                          ))
+                        ) : (
+                          <p style={{ color: '#999', fontSize: '0.85rem', margin: 0, alignSelf: 'center' }}>
+                            No tags assigned yet. Type above or click popular tags to assign.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Secondary SEO Fields */}
+                    <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                      <h4 style={{ fontSize: '0.95rem', color: '#333', marginBottom: '14px', fontWeight: '600' }}>Search Engine Meta Settings (SEO)</h4>
+                      <div className="form-group">
+                        <label>SEO Search Title</label>
+                        <input type="text" value={formData.seo?.title || ''} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, title: e.target.value } })} placeholder="Google search title" />
+                      </div>
+                      <div className="form-group">
+                        <label>SEO Meta Description</label>
+                        <textarea value={formData.seo?.description || ''} onChange={(e) => setFormData({ ...formData, seo: { ...formData.seo, description: e.target.value } })} rows="2" placeholder="Meta description for search engines" />
                       </div>
                     </div>
                   </div>

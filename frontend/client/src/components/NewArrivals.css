@@ -97,7 +97,7 @@
   display: flex;
   width: max-content;
   will-change: transform;
-  animation: continuousMarquee 28s linear infinite;
+  animation: continuousMarquee 50s linear infinite;
   align-items: stretch;
 }
 
@@ -142,7 +142,7 @@
   flex-direction: column;
   box-sizing: border-box;
   width: 100%;
-  height: 420px;
+  min-height: 420px;
   cursor: pointer;
 }
 
@@ -337,11 +337,26 @@
   border-top: 1px solid rgba(212, 175, 55, 0.08);
 }
 
+.card-price-group {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .card-price {
   font-family: var(--font-body, sans-serif);
-  font-size: 1.0rem;
+  font-size: 0.98rem;
   color: var(--charcoal, #2b2b2b);
   font-weight: 700;
+}
+
+.card-mrp {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.8rem;
+  color: #999999;
+  text-decoration: line-through;
+  font-weight: 400;
 }
 
 .bag-btn-mini {

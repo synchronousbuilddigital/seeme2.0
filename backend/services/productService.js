@@ -51,8 +51,17 @@ export const searchProducts = async (queryParams) => {
     filter.isActive = true
   }
 
-  if (q) {
-    filter.$text = { $search: q }
+  if (q && q.trim()) {
+    const cleanQ = q.trim()
+    const searchRegex = new RegExp(cleanQ.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i')
+    filter.$or = [
+      { name: searchRegex },
+      { description: searchRegex },
+      { shortDescription: searchRegex },
+      { category: searchRegex },
+      { subcategory: searchRegex },
+      { tags: searchRegex }
+    ]
   }
 
   if (category) filter.category = category
@@ -64,13 +73,13 @@ export const searchProducts = async (queryParams) => {
   }
 
   const skip = (page - 1) * limit
-  let sortOptions = { score: { $meta: 'textScore' } }
+  let sortOptions = { createdAt: -1 }
 
   if (sortBy === 'price_asc') sortOptions = { price: 1 }
   if (sortBy === 'price_desc') sortOptions = { price: -1 }
   if (sortBy === 'newest') sortOptions = { createdAt: -1 }
 
-  const products = await Product.find(filter, { score: { $meta: 'textScore' } })
+  const products = await Product.find(filter)
     .sort(sortOptions)
     .skip(skip)
     .limit(Number(limit))

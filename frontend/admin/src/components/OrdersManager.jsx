@@ -182,31 +182,91 @@ const OrdersManager = () => {
     return haystack.includes(searchTerm.toLowerCase())
   })
 
+  // Executive KPI summary calculations
+  const totalOrdersCount = orders.length
+  const pendingCount = orders.filter(o => o.status === 'pending' || o.status === 'processing').length
+  const shippedCount = orders.filter(o => o.status === 'shipped').length
+  const totalRevenue = orders
+    .filter(o => o.status !== 'cancelled')
+    .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
+
   return (
     <div className="orders-manager">
+      {/* Header & KPI Summary Cards */}
       <div className="manager-header">
         <div>
-          <h1>Orders Management</h1>
-          <p>Track and manage customer orders in real-time</p>
+          <span className="executive-badge">✦ ATELIER ORDER REGISTRY</span>
+          <h1>Orders & Logistics</h1>
+          <p>Real-time order tracking, fulfillment lifecycle & ledger analytics</p>
         </div>
         <div className="header-actions">
           <button className="export-btn" onClick={openExportModal}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Export CSV
+            Export Ledger
           </button>
+        </div>
+      </div>
+
+      {/* KPI Metrics Cards Grid */}
+      <div className="orders-kpi-grid">
+        <div className="kpi-card">
+          <div className="kpi-icon-wrap gold">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-label">TOTAL ORDERS</span>
+            <h3 className="kpi-value">{totalOrdersCount}</h3>
+            <span className="kpi-subtext">Lifetime register</span>
+          </div>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-icon-wrap amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-label">PENDING / TAILORING</span>
+            <h3 className="kpi-value">{pendingCount}</h3>
+            <span className="kpi-subtext">Requires fulfillment</span>
+          </div>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-icon-wrap blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-label">IN TRANSIT</span>
+            <h3 className="kpi-value">{shippedCount}</h3>
+            <span className="kpi-subtext">Dispatched shipments</span>
+          </div>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-icon-wrap green">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div className="kpi-info">
+            <span className="kpi-label">GROSS REVENUE</span>
+            <h3 className="kpi-value">₹{totalRevenue.toLocaleString('en-IN')}</h3>
+            <span className="kpi-subtext">Active orders volume</span>
+          </div>
         </div>
       </div>
 
       <div className="orders-toolbar">
         <div className="search-box">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           <input
             className="orders-search"
             type="search"
-            placeholder="Search by ID, Customer name, email..."
+            placeholder="Search by Order #, Customer name, email, or phone..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          {searchTerm && (
+            <button className="clear-search-btn" onClick={() => setSearchTerm('')}>✕</button>
+          )}
         </div>
         
         <div className="filters-row">
@@ -216,7 +276,8 @@ const OrdersManager = () => {
               className={`filter-tab ${filter === status ? 'active' : ''}`}
               onClick={() => setFilter(status)}
             >
-              {status}
+              <span className={`status-dot ${status}`} />
+              <span className="tab-name">{status}</span>
               <span className="count">
                 {status === 'all' ? orders.length : orders.filter(o => o.status === status).length}
               </span>
@@ -229,18 +290,19 @@ const OrdersManager = () => {
         {visibleOrders.length === 0 ? (
           <div className="no-orders-state">
             <div className="empty-icon">📦</div>
-            <h3>No orders found</h3>
-            <p>Try adjusting your search or filters</p>
+            <h3>No matching orders found</h3>
+            <p>Try adjusting your search criteria or status filter</p>
           </div>
         ) : (
           <table className="orders-table">
             <thead>
               <tr>
-                <th>Order Details</th>
+                <th>Order Ref</th>
+                <th>Items Preview</th>
                 <th>Customer</th>
                 <th>Placement Date</th>
                 <th>Payment</th>
-                <th>Status</th>
+                <th>Fulfillment Status</th>
                 <th>Amount</th>
                 <th>Actions</th>
               </tr>
@@ -251,39 +313,59 @@ const OrdersManager = () => {
                   <td>
                     <div className="order-id-cell">
                       <span className="order-num">#{order.orderNumber}</span>
-                      <span className="item-count">{order.items?.length || 0} items</span>
+                      <span className="item-count">{order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="order-items-thumb-stack">
+                      {order.items?.slice(0, 3).map((item, i) => (
+                        <div key={i} className="mini-thumb-wrap" title={`${item.name} (${item.size})`}>
+                          <img src={getImageUrl(item.image)} alt={item.name} />
+                        </div>
+                      ))}
+                      {(order.items?.length || 0) > 3 && (
+                        <span className="thumb-more-count">+{order.items.length - 3}</span>
+                      )}
                     </div>
                   </td>
                   <td>
                     <div className="customer-cell">
-                      <h4>{order.customer?.name}</h4>
-                      <p>{order.customer?.email}</p>
+                      <div className="customer-avatar-circle">
+                        {order.customer?.name ? order.customer.name.charAt(0).toUpperCase() : 'C'}
+                      </div>
+                      <div className="customer-text-meta">
+                        <h4>{order.customer?.name || 'Guest Customer'}</h4>
+                        <p>{order.customer?.email || order.customer?.phone}</p>
+                      </div>
                     </div>
                   </td>
                   <td>
                     <div className="date-cell">
-                      {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                      <strong>{new Date(order.createdAt).toLocaleDateString('en-IN', {
                         day: 'numeric', month: 'short', year: 'numeric'
-                      })}
+                      })}</strong>
                       <span>{new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                   </td>
                   <td>
-                    <span className={`payment-badge ${order.paymentStatus || 'unpaid'}`}>
-                      {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE'}
+                    <span className={`payment-badge ${order.paymentMethod === 'cod' ? 'cod' : 'paid'}`}>
+                      <span className="pay-dot" />
+                      {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE PAID'}
                     </span>
                   </td>
                   <td>
                     <span className={`status-pill ${order.status}`}>
+                      <span className="status-indicator-dot" />
                       {order.status}
                     </span>
                   </td>
                   <td>
-                    <span className="amount-cell">₹{order.totalAmount?.toLocaleString('en-IN')}</span>
+                    <span className="amount-cell">₹{Number(order.totalAmount || 0).toLocaleString('en-IN')}</span>
                   </td>
                   <td>
                     <button className="manage-btn" onClick={() => setSelectedOrder(order)}>
-                      Manage
+                      <span>Manage</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </button>
                   </td>
                 </tr>

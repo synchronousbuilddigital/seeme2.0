@@ -94,7 +94,8 @@ const CollectionsPage = () => {
       result = result.filter(p =>
         p.name?.toLowerCase().includes(q) ||
         p.category?.toLowerCase().includes(q) ||
-        p.description?.toLowerCase().includes(q)
+        p.description?.toLowerCase().includes(q) ||
+        (Array.isArray(p.tags) && p.tags.some(t => t?.toLowerCase().includes(q)))
       )
     }
 

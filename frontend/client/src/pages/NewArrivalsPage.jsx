@@ -38,8 +38,10 @@ const NewArrivalsPage = () => {
           id: item._id,
           category: item.category,
           image: item.image,
-          title: categoryLabels[item.category] || item.category,
-          description: categoryDescriptions[item.category] || 'Discover our latest collection'
+          title: item.name || categoryLabels[item.category] || item.category,
+          description: item.description || categoryDescriptions[item.category] || 'Discover our latest collection',
+          price: item.price,
+          mrp: item.mrp || item.discountPrice || item.originalPrice
         }))
         setArrivals(transformedArrivals)
       }
@@ -208,6 +210,20 @@ const NewArrivalsPage = () => {
                 </div>
                 <h3 className="card-title">{arrival.title}</h3>
                 <p className="card-description">{arrival.description}</p>
+                {(arrival.price || arrival.mrp) && (
+                  <div className="card-price-group" style={{ display: 'flex', alignItems: 'baseline', gap: '8px', margin: '8px 0' }}>
+                    {arrival.price && (
+                      <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--charcoal, #2b2b2b)' }}>
+                        ₹{Number(arrival.price).toLocaleString('en-IN')}
+                      </span>
+                    )}
+                    {arrival.mrp && Number(arrival.mrp) > Number(arrival.price || 0) && (
+                      <span style={{ fontSize: '0.88rem', color: '#999', textDecoration: 'line-through' }}>
+                        ₹{Number(arrival.mrp).toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </div>
+                )}
                 <span className="card-tag">New season edit</span>
 
                 <div className="card-actions">
@@ -285,6 +301,20 @@ const NewArrivalsPage = () => {
                   <span className="modal-badge">Limited Edition</span>
                   <h2 className="modal-title">{selectedArrival.title}</h2>
                   <p className="modal-description">{selectedArrival.description}</p>
+                  {(selectedArrival.price || selectedArrival.mrp) && (
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px', margin: '12px 0' }}>
+                      {selectedArrival.price && (
+                        <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--charcoal, #2b2b2b)' }}>
+                          ₹{Number(selectedArrival.price).toLocaleString('en-IN')}
+                        </span>
+                      )}
+                      {selectedArrival.mrp && Number(selectedArrival.mrp) > Number(selectedArrival.price || 0) && (
+                        <span style={{ fontSize: '1.0rem', color: '#999', textDecoration: 'line-through' }}>
+                          ₹{Number(selectedArrival.mrp).toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   
                   <div className="modal-features">
                     <h4>Artisan Details</h4>

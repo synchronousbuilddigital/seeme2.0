@@ -256,6 +256,19 @@ const ProductPage = () => {
               <p>
                 {product.description || "Hand-crafted with exquisite precision, designed to bring effortless elegance and regal silhouette to your wardrobe."}
               </p>
+
+              {Array.isArray(product.tags) && product.tags.length > 0 && (
+                <div className="product-tags-wrapper">
+                  <span className="tags-header-label">Style Tags:</span>
+                  <div className="product-tags-list">
+                    {product.tags.map((tag, idx) => (
+                      <span key={idx} className="product-tag-chip">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Size & Action Zone (ALWAYS RENDERED FOR ALL PRODUCTS) */}

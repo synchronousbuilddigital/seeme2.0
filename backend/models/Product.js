@@ -125,6 +125,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  tags: [{
+    type: String,
+    trim: true
+  }],
   // Additional Info
   forTarget: {
     type: String,
@@ -160,7 +164,7 @@ const productSchema = new mongoose.Schema({
 })
 
 // Auto-calculate total stock from sizeStock
-productSchema.pre('save', function(next) {
+productSchema.pre('save', function (next) {
   if (this.sizeStock && this.sizeStock.length > 0) {
     this.stock = this.sizeStock.reduce((total, item) => total + item.quantity, 0)
   }
@@ -168,12 +172,12 @@ productSchema.pre('save', function(next) {
 })
 
 // Also handle updates
-productSchema.pre('findOneAndUpdate', function(next) {
+productSchema.pre('findOneAndUpdate', function (next) {
   const update = this.getUpdate()
-  
+
   // Handle both direct updates and $set updates
   const sizeStock = update.sizeStock || (update.$set && update.$set.sizeStock)
-  
+
   if (sizeStock && Array.isArray(sizeStock)) {
     const totalStock = sizeStock.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
     const sizes = sizeStock.map(item => item.size)
@@ -190,7 +194,7 @@ productSchema.pre('findOneAndUpdate', function(next) {
 })
 
 // Add indexes for fast queries
-productSchema.index({ name: 'text', description: 'text' })
+productSchema.index({ name: 'text', description: 'text', shortDescription: 'text', tags: 'text', category: 'text' })
 productSchema.index({ isActive: 1, category: 1 })
 productSchema.index({ isActive: 1, featured: 1 })
 productSchema.index({ isActive: 1, inCollection: 1 })
