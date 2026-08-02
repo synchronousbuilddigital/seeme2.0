@@ -142,21 +142,20 @@ const Hero = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-
-  // Initialize categories from cache
+  // Initialize categories state from local storage cache to avoid blank states/flashing
   const [categories, setCategories] = useState(() => {
     try {
-      const cached = localStorage.getItem('seemee_categories')
+      const cached = localStorage.getItem('seemee_category_slides')
       if (cached) {
         const parsed = JSON.parse(cached)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map(getCategorySlugStr).filter(Boolean)
+          return parsed
         }
       }
     } catch (e) {
-      console.error('Error parsing cached categories:', e)
+      console.error('Error parsing cached category slides:', e)
     }
-     return ['anarkali', 'palazzo', 'straight-cut', 'sharara', 'bandhani', 'georgette', 'jaipuri']
+    return []
   })
 
   // Initialize category images from cache
@@ -177,23 +176,30 @@ const Hero = () => {
 
   const [typedTitle, setTypedTitle] = useState('')
 
-  const getCategoryDisplayImage = (slugInput) => {
-    const slug = getCategorySlugStr(slugInput)
-    if (!slug) return 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632879/seemee/images/vb6uwnjxl3i9djqhppwp.png'
+  const getCategoryDisplayImage = (catInput) => {
+    if (!catInput) return 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+
+    // 1. If catInput is a Category Slide object with an image, prioritize it!
+    if (typeof catInput === 'object' && catInput.image) {
+      return getOptimizedImageUrl(catInput.image, 'circle')
+    }
+
+    const slug = getCategorySlugStr(catInput)
+    if (!slug) return 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
     const s = slug.toLowerCase().trim()
     const norm = normalizeCategoryKey(slug)
 
-    // 1. Check exact key match from mapped product images
+    // 2. Check exact key match from mapped product images
     if (categoryImages[s]) return getOptimizedImageUrl(categoryImages[s], 'circle')
     if (categoryImages[norm]) return getOptimizedImageUrl(categoryImages[norm], 'circle')
 
-    // 2. Check partial key match from mapped product images
+    // 3. Check partial key match from mapped product images
     const partialKey = Object.keys(categoryImages).find(k => k !== '_allImages' && (k.includes(norm) || norm.includes(k)))
     if (partialKey && categoryImages[partialKey]) {
       return getOptimizedImageUrl(categoryImages[partialKey], 'circle')
     }
 
-    // 3. Fallback to product images list or Cloudinary category images
+    // 4. Fallback to product images list or Cloudinary category images
     const pool = (Array.isArray(categoryImages._allImages) && categoryImages._allImages.length > 0)
       ? categoryImages._allImages
       : [
@@ -210,26 +216,70 @@ const Hero = () => {
     return getOptimizedImageUrl(fallbackRaw, 'circle')
   }
 
+  const getCategoryTitle = (catItem) => {
+    if (!catItem) return ''
+    if (typeof catItem === 'object' && catItem.title) return catItem.title
+    return formatCategoryName(getCategorySlugStr(catItem))
+  }
+
+  const getCategoryTag = (catItem) => {
+    if (!catItem) return 'SETS'
+    if (typeof catItem === 'object' && catItem.subtitle) return catItem.subtitle
+    return getCategoryType(getCategorySlugStr(catItem))
+  }
+
+  const getCategorySlug = (catItem) => {
+    if (!catItem) return ''
+    if (typeof catItem === 'object' && catItem.slug) return catItem.slug
+    return getCategorySlugStr(catItem)
+  }
+
   useEffect(() => {
     let isMounted = true
 
     const fetchCategoriesAndProducts = async () => {
+      // 1. Fetch category slides from Admin Site Settings
       try {
-        let catPromise = categoriesPromise
-        if (catPromise) {
-          categoriesPromise = null // Consume module eager promise
-        } else {
-          catPromise = cachedFetch(API_ENDPOINTS.GET_CATEGORIES)
-        }
+        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
+        if (isMounted && settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
+          const adminSlides = [...settingsData.data.categorySlides]
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+            .map(slide => ({
+              title: slide.title,
+              subtitle: slide.subtitle || 'SETS',
+              slug: slide.slug || slide.title.toLowerCase().replace(/\s+/g, '-'),
+              image: slide.image || '',
+              id: slide._id || slide.slug
+            }))
 
-        const catData = await catPromise
-        if (isMounted && catData && catData.success && Array.isArray(catData.data) && catData.data.length > 0) {
-          const parsedCatList = catData.data.map(getCategorySlugStr).filter(Boolean)
-          setCategories(parsedCatList)
+          setCategories(adminSlides)
           try {
-            localStorage.setItem('seemee_categories', JSON.stringify(parsedCatList))
+            localStorage.setItem('seemee_category_slides', JSON.stringify(adminSlides))
           } catch (e) {
-            console.error('Error caching categories:', e)
+            console.error('Error caching category slides:', e)
+          }
+        } else {
+          // Fallback to distinct product categories if no Admin slides are defined
+          let catPromise = categoriesPromise || cachedFetch(API_ENDPOINTS.GET_CATEGORIES)
+          categoriesPromise = null
+          const catData = await catPromise
+          if (isMounted && catData?.success && Array.isArray(catData.data) && catData.data.length > 0) {
+            const fallbackSlides = catData.data.map(cat => {
+              const strSlug = getCategorySlugStr(cat)
+              return {
+                title: formatCategoryName(strSlug),
+                subtitle: getCategoryType(strSlug),
+                slug: strSlug,
+                image: '',
+                id: strSlug
+              }
+            })
+            setCategories(fallbackSlides)
+            try {
+              localStorage.setItem('seemee_category_slides', JSON.stringify(fallbackSlides))
+            } catch (e) {
+              console.error('Error caching category slides:', e)
+            }
           }
         }
       } catch (err) {
@@ -690,8 +740,9 @@ const Hero = () => {
       {categories.length > 0 && (
         <div className="category-marquee-container">
           <div className="category-marquee-track">
-            {Array(10).fill(categories).flat().map((catItem, idx) => {
-              const catSlug = getCategorySlugStr(catItem)
+            {Array(Math.max(12, Math.ceil(40 / (categories.length || 1)))).fill(categories).flat().map((catItem, idx) => {
+              const catTitle = getCategoryTitle(catItem)
+              const catSlug = getCategorySlug(catItem)
               return (
                 <div
                   key={`${catSlug || idx}-${idx}`}
@@ -701,16 +752,18 @@ const Hero = () => {
                   <div className="category-circle-visual">
                     <div className="category-circle-img-wrap">
                       <img
-                        src={getCategoryDisplayImage(catSlug)}
-                        alt={catSlug}
+                        src={getCategoryDisplayImage(catItem)}
+                        alt={catTitle}
                         className="category-circle-img"
                         loading="lazy"
+                        onError={(e) => {
+                          e.target.src = 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+                        }}
                       />
                       <div className="category-circle-overlay" />
                     </div>
                   </div>
-                  <span className="category-circle-name">{formatCategoryName(catSlug)}</span>
-                  <span className="category-circle-tag">{getCategoryType(catSlug)}</span>
+                  <span className="category-circle-name">{catTitle}</span>
                 </div>
               )
             })}

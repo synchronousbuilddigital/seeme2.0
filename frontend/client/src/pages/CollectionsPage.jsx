@@ -5,7 +5,7 @@ import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
-import { isProductInCategory } from '../utils/categoryHelper'
+import { isProductInCategory, getCategoryProducts } from '../utils/categoryHelper'
 import './CollectionsPage.css'
 
 const CollectionsPage = () => {
@@ -21,7 +21,21 @@ const CollectionsPage = () => {
   const [sortBy, setSortBy] = useState('featured')
   const [searchQuery, setSearchQuery] = useState('')
   const [priceFilter, setPriceFilter] = useState('all')
+  const [selectedSizes, setSelectedSizes] = useState([])
+  const [showSidebar, setShowSidebar] = useState(true)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [openSections, setOpenSections] = useState({
+    search: true,
+    categories: true,
+    price: true,
+    sizes: true,
+    sort: true
+  })
   const [addedToast, setAddedToast] = useState(false)
+
+  const toggleSection = (sec) => {
+    setOpenSections(prev => ({ ...prev, [sec]: !prev[sec] }))
+  }
 
   // Quick View Modal
   const [selectedProduct, setSelectedProduct] = useState(null)
@@ -45,14 +59,11 @@ const CollectionsPage = () => {
         : []
       setProducts(activeProducts)
 
-      // Dynamic Categories collection for tabs
+      // Dynamic Categories collection strictly from Admin Panel Site Settings
       const catsMap = new Map()
       catsMap.set('all', { value: 'all', label: 'All Collections' })
-      catsMap.set('2-piece-sets', { value: '2-piece-sets', label: '2-Piece Sets' })
-      catsMap.set('3-piece-sets', { value: '3-piece-sets', label: '3-Piece Sets' })
-      catsMap.set('co-ord-sets', { value: 'co-ord-sets', label: 'Co-ord Sets' })
 
-      if (settingsData?.success && settingsData.data?.categorySlides) {
+      if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
         settingsData.data.categorySlides.forEach(slide => {
           const val = (slide.slug || slide.title || '').toLowerCase().trim()
           const label = slide.title || val.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -60,16 +71,17 @@ const CollectionsPage = () => {
             catsMap.set(val, { value: val, label })
           }
         })
+      } else {
+        // Fallback to active products' categories if Admin site-settings isn't set up yet
+        activeProducts.forEach(p => {
+          if (!p.category) return
+          const val = p.category.toLowerCase().trim()
+          if (!catsMap.has(val)) {
+            const label = p.category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+            catsMap.set(val, { value: val, label })
+          }
+        })
       }
-
-      activeProducts.forEach(p => {
-        if (!p.category) return
-        const val = p.category.toLowerCase().trim()
-        if (!catsMap.has(val)) {
-          const label = p.category.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-          catsMap.set(val, { value: val, label })
-        }
-      })
 
       setCategoriesList(Array.from(catsMap.values()))
     } catch (error) {
@@ -77,6 +89,12 @@ const CollectionsPage = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const toggleSizeFilter = (sz) => {
+    setSelectedSizes(prev =>
+      prev.includes(sz) ? prev.filter(s => s !== sz) : [...prev, sz]
+    )
   }
 
   // Filtered & Sorted Products
@@ -118,6 +136,13 @@ const CollectionsPage = () => {
       })
     }
 
+    // Size Filter
+    if (selectedSizes.length > 0) {
+      result = result.filter(p =>
+        Array.isArray(p.sizes) && p.sizes.some(s => selectedSizes.includes(s))
+      )
+    }
+
     // Sort
     switch (sortBy) {
       case 'price-low':
@@ -138,7 +163,7 @@ const CollectionsPage = () => {
     }
 
     return result
-  }, [products, selectedCategory, searchQuery, priceFilter, sortBy])
+  }, [products, selectedCategory, searchQuery, priceFilter, selectedSizes, sortBy])
 
   const handleAddToCart = (product, size) => {
     const itemSize = size || selectedSize || product.sizes?.[0] || 'M'
@@ -159,9 +184,12 @@ const CollectionsPage = () => {
   const resetFilters = () => {
     setSelectedCategory('all')
     setPriceFilter('all')
+    setSelectedSizes([])
     setSortBy('featured')
     setSearchQuery('')
   }
+
+  const hasActiveFilters = selectedCategory !== 'all' || priceFilter !== 'all' || selectedSizes.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
 
   if (loading) {
     return (
@@ -214,175 +242,284 @@ const CollectionsPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
       >
-        <div className="seal-badge-box">
-          <span className="rotating-star">✦</span>
-          <span className="seal-text">SEEMEE HAUTE COUTURE • COMPLETE CATALOG</span>
-        </div>
         <h1 className="collections-title">Shop Our <span>Collections</span></h1>
         <p className="collections-subtitle">Explore our full repertoire of handcrafted luxury ensembles and silhouettes.</p>
       </motion.div>
 
-
-
-      {/* Controls & Filtering Bar */}
-      <motion.div
-        className="collections-controls"
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-      >
-        {/* Search */}
-        <div className="collections-search">
-          <input
-            type="text"
-            placeholder="Search silhouettes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-          </svg>
-        </div>
-
-        {/* Filters Group */}
-        <div className="controls-right-group">
-          {/* Price Filter */}
-          <div className="control-select-box">
-            <label>Price:</label>
-            <select value={priceFilter} onChange={(e) => setPriceFilter(e.target.value)}>
-              <option value="all">All Prices</option>
-              <option value="under-5000">Under ₹5,000</option>
-              <option value="5000-15000">₹5,000 - ₹15,000</option>
-              <option value="15000-30000">₹15,000 - ₹30,000</option>
-              <option value="above-30000">Above ₹30,000</option>
-            </select>
+      {/* Main Layout: Sticky Sidebar Filter on Left + Product Grid on Right */}
+      <div className="collections-main-layout">
+        {/* Left Sidebar Filter Panel (Unified for Desktop and Mobile) */}
+        <aside className={`collections-sidebar-panel ${showMobileFilters ? 'mobile-active' : ''}`}>
+          <div className="sidebar-mobile-header">
+            <div className="mobile-header-title-box">
+              <span className="mobile-header-badge">✦ SEEMEE HAUTE COUTURE</span>
+              <h3>Refine Selection</h3>
+            </div>
+            <div className="mobile-header-right">
+              {hasActiveFilters && (
+                <button className="sidebar-reset-link" onClick={resetFilters}>Reset</button>
+              )}
+              <button className="sidebar-close-btn" onClick={() => setShowMobileFilters(false)} aria-label="Close Filter">&times;</button>
+            </div>
           </div>
 
-          {/* Sort Dropdown */}
-          <div className="control-select-box">
-            <label>Sort By:</label>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="featured">Featured</option>
-              <option value="newest">Newest Arrivals</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="name">Name: A to Z</option>
-            </select>
+          <div className="sidebar-widgets-scroll-container">
+            {/* Search Widget */}
+            <div className="sidebar-widget">
+              <h4 className="widget-title">SEARCH</h4>
+              <div className="sidebar-search-box">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search style or name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button className="sidebar-clear-x" onClick={() => setSearchQuery('')}>&times;</button>
+                )}
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="sidebar-widget">
+              <h4 className="widget-title">CATEGORIES</h4>
+              <div className="sidebar-category-list">
+                {categoriesList.map(cat => {
+                  const count = cat.value === 'all'
+                    ? products.length
+                    : getCategoryProducts(products, cat.value).length
+                  const isSelected = selectedCategory === cat.value
+
+                  return (
+                    <button
+                      key={cat.value}
+                      className={`sidebar-cat-row ${isSelected ? 'active' : ''}`}
+                      onClick={() => setSelectedCategory(cat.value)}
+                    >
+                      <span className="cat-bullet">{isSelected ? '✦' : '•'}</span>
+                      <span className="cat-name">{cat.label}</span>
+                      <span className="cat-count">{count}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Price Filter */}
+            <div className="sidebar-widget">
+              <h4 className="widget-title">PRICE RANGE</h4>
+              <div className="sidebar-radio-group">
+                {[
+                  { id: 'all', label: 'All Prices' },
+                  { id: 'under-5000', label: 'Under ₹5,000' },
+                  { id: '5000-15000', label: '₹5,000 - ₹15,000' },
+                  { id: '15000-30000', label: '₹15,000 - ₹30,000' },
+                  { id: 'above-30000', label: 'Above ₹30,000' }
+                ].map(p => (
+                  <label key={p.id} className={`sidebar-radio-row ${priceFilter === p.id ? 'active' : ''}`}>
+                    <input
+                      type="radio"
+                      name="collectionsSidebarPrice"
+                      checked={priceFilter === p.id}
+                      onChange={() => setPriceFilter(p.id)}
+                    />
+                    <span className="radio-label">{p.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Size Filter */}
+            <div className="sidebar-widget">
+              <h4 className="widget-title">SIZES</h4>
+              <div className="sidebar-size-pills">
+                {['S', 'M', 'L', 'XL', 'XXL'].map(sz => {
+                  const isSelected = selectedSizes.includes(sz)
+                  return (
+                    <button
+                      key={sz}
+                      className={`sidebar-size-chip ${isSelected ? 'active' : ''}`}
+                      onClick={() => toggleSizeFilter(sz)}
+                    >
+                      {sz}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Sort By Widget */}
+            <div className="sidebar-widget">
+              <h4 className="widget-title">SORT BY</h4>
+              <div className="sidebar-select-wrap">
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                  <option value="featured">Featured Order</option>
+                  <option value="newest">Newest Arrivals</option>
+                  <option value="price-low">Price: Low to High</option>
+                  <option value="price-high">Price: High to Low</option>
+                  <option value="name">Name: A to Z</option>
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div className="collections-count">
-            <span>✦ {filteredProducts.length} Silhouettes</span>
-          </div>
-
-          {(selectedCategory !== 'all' || priceFilter !== 'all' || searchQuery || sortBy !== 'featured') && (
-            <button className="clear-filters-btn" onClick={resetFilters}>
-              Reset Filters
+          {/* Desktop Reset Button */}
+          {hasActiveFilters && (
+            <button className="sidebar-clear-all-cta desktop-only" onClick={resetFilters}>
+              ✦ CLEAR ALL FILTERS
             </button>
           )}
-        </div>
-      </motion.div>
 
-      {/* Products Grid */}
-      <div className="collections-grid">
-        {filteredProducts.length === 0 ? (
-          <div className="no-products">
-            <span className="no-products-icon">✧</span>
-            <h3>No Silhouettes Match Your Criteria</h3>
-            <p>Try adjusting your search terms, category filters, or price range.</p>
-            <button className="reset-btn-cta" onClick={resetFilters}>
-              View All Collections
+          {/* Mobile Footer Action Bar */}
+          <div className="mobile-sidebar-footer-bar">
+            {hasActiveFilters && (
+              <button className="mobile-sidebar-reset-btn" onClick={resetFilters}>
+                Reset
+              </button>
+            )}
+            <button className="mobile-sidebar-apply-btn" onClick={() => setShowMobileFilters(false)}>
+              Show ({filteredProducts.length}) Results
             </button>
           </div>
-        ) : (
-          filteredProducts.map((product, index) => {
-            const hasDiscount = (product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price)
-            const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
+        </aside>
 
-            return (
-              <motion.div
-                key={product._id || index}
-                className="collection-product-card"
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
-              >
-                <div
-                  className="product-image-wrapper"
-                  onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
-                >
-                  <img
-                    src={mainImg}
-                    alt={product.name}
-                    className="product-image"
-                    loading="lazy"
-                    onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
-                  />
+        {/* Mobile Backdrop Overlay */}
+        {showMobileFilters && (
+          <div className="mobile-sidebar-backdrop" onClick={() => setShowMobileFilters(false)} />
+        )}
 
-                  <div className="product-overlay">
-                    <button
-                      className="quick-view-btn"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        openProductModal(product)
-                      }}
+        {/* Right Product Grid Wrapper */}
+        <div className="collections-grid-wrapper">
+          <div className="grid-header-bar">
+            <span className="grid-count-chip">✦ {filteredProducts.length} SILHOUETTES</span>
+            <button
+              className="mobile-filter-trigger-btn"
+              onClick={() => setShowMobileFilters(true)}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              <span>Filters</span>
+            </button>
+          </div>
+
+          <div className="collections-grid">
+            {filteredProducts.length === 0 ? (
+              <div className="no-products">
+                <span className="no-products-icon">✧</span>
+                <h3>No Silhouettes Match Your Criteria</h3>
+                <p>Try adjusting your search terms, category filters, or price range.</p>
+                <button className="reset-btn-cta" onClick={resetFilters}>
+                  View All Collections
+                </button>
+              </div>
+            ) : (
+              filteredProducts.map((product, index) => {
+                const hasDiscount = (product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price)
+                const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
+
+                return (
+                  <motion.div
+                    key={product._id || index}
+                    className="collection-product-card"
+                    initial={{ opacity: 0, y: 25 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
+                  >
+                    <div
+                      className="product-image-wrapper"
+                      onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
                     >
-                      Quick View
-                    </button>
-                  </div>
+                      <img
+                        src={mainImg}
+                        alt={product.name}
+                        className="product-image"
+                        loading="lazy"
+                        onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
+                      />
 
-                  <button
-                    className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleWishlist(product)
-                    }}
-                    title="Add to Wishlist"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                  </button>
+                      <div className="product-overlay">
+                        <button
+                          className="quick-view-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openProductModal(product)
+                          }}
+                        >
+                          Quick View
+                        </button>
+                      </div>
 
-                  {product.stock === 0 && (
-                    <div className="out-of-stock-badge">Sold Out</div>
-                  )}
-                </div>
+                      <button
+                        className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleWishlist(product)
+                        }}
+                        title="Add to Wishlist"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                      </button>
 
-                <div className="product-info">
-                  <h3
-                    className="product-name"
-                    onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
-                  >
-                    {product.name}
-                  </h3>
-
-                  <div className="product-footer">
-                    <div className="collection-price-group">
-                      <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                      {hasDiscount && (
-                        <span className="product-mrp-crossed">
-                          ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
-                        </span>
+                      {product.stock === 0 && (
+                        <div className="out-of-stock-badge">Sold Out</div>
                       )}
                     </div>
 
-                    <motion.button
-                      className="add-to-cart-btn"
-                      onClick={() => handleAddToCart(product)}
-                      disabled={product.stock === 0}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      {product.stock === 0 ? 'Sold Out' : '+ Add to Bag'}
-                    </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-            )
-          })
-        )}
+                    <div className="product-info">
+                      <h3
+                        className="product-name"
+                        onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
+                      >
+                        {product.name}
+                      </h3>
+
+                      <div className="product-footer">
+                        <div className="collection-price-group">
+                          <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                          {hasDiscount && (
+                            <span className="product-mrp-crossed">
+                              ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
+
+                        <motion.button
+                          className="add-to-cart-btn"
+                          onClick={() => handleAddToCart(product)}
+                          disabled={product.stock === 0}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                        >
+                          {product.stock === 0 ? 'Sold Out' : '+ Add to Bag'}
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Floating Mobile Filter Button */}
+      <button
+        className="mobile-floating-filter-btn"
+        onClick={() => setShowMobileFilters(true)}
+        aria-label="Open Filter Sidebar"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        <span>Filters {hasActiveFilters && '✦'}</span>
+      </button>
 
       {/* Quick View Product Modal */}
       <AnimatePresence>

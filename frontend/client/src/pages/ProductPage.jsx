@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getImageUrl } from '../utils/imageHelper'
@@ -12,7 +12,7 @@ const ProductPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
-  
+
   const passedProduct = location.state?.product && (location.state.product._id === id || location.state.product.id === id)
     ? location.state.product
     : null
@@ -22,6 +22,11 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(() => !passedProduct)
   const [error, setError] = useState(null)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [quantity, setQuantity] = useState(1)
+  const [selectedColor, setSelectedColor] = useState('Royal Gold')
+  const [offersOpen, setOffersOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('description')
+
   const [selectedSize, setSelectedSize] = useState(() => {
     if (passedProduct) {
       const sizesList = (passedProduct.sizes && passedProduct.sizes.length > 0)
@@ -33,10 +38,11 @@ const ProductPage = () => {
     }
     return 'S'
   })
-  const [activeAccordion, setActiveAccordion] = useState('fabric')
+
   const [showSizeGuide, setShowSizeGuide] = useState(false)
-  const [sizeUnit, setSizeUnit] = useState('in') // 'in' or 'cm'
+  const [sizeUnit, setSizeUnit] = useState('in')
   const [addedToast, setAddedToast] = useState(false)
+  const [isZoomOpen, setIsZoomOpen] = useState(false)
 
   useEffect(() => {
     fetchProduct()
@@ -89,11 +95,6 @@ const ProductPage = () => {
     return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ')
   }
 
-  const toggleAccordion = (section) => {
-    setActiveAccordion(prev => prev === section ? null : section)
-  }
-
-  // Available sizes fallback so EVERY product has complete size selection
   const defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Custom']
   const availableSizes = (product?.sizes && product.sizes.length > 0)
     ? product.sizes
@@ -106,24 +107,45 @@ const ProductPage = () => {
       alert('Please select a size to proceed')
       return
     }
-    addToCart({ ...product, selectedSize })
+    for (let i = 0; i < quantity; i++) {
+      addToCart({ ...product, selectedSize })
+    }
     setAddedToast(true)
     setTimeout(() => setAddedToast(false), 2500)
   }
 
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      alert('Please select a size to proceed')
+      return
+    }
+    for (let i = 0; i < quantity; i++) {
+      addToCart({ ...product, selectedSize })
+    }
+    navigate('/checkout')
+  }
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: product?.name,
+        text: `Check out ${product?.name} on SEEMEE Haute Couture`,
+        url: window.location.href,
+      }).catch(() => {})
+    } else {
+      navigator.clipboard.writeText(window.location.href)
+      alert('Product link copied to clipboard!')
+    }
+  }
+
   if (loading && !product) {
     return (
-      <div className="editorial-product-page">
-        <div className="product-luxury-wrapper product-skeleton-wrapper">
-          <div className="product-gallery">
-            <div className="thumbnail-list">
-              <div className="skeleton-box skeleton-thumb"></div>
-              <div className="skeleton-box skeleton-thumb"></div>
-              <div className="skeleton-box skeleton-thumb"></div>
-            </div>
-            <div className="main-image-viewport skeleton-box skeleton-main"></div>
+      <div className="modern-product-page">
+        <div className="product-layout-container product-skeleton-wrapper">
+          <div className="product-media-column">
+            <div className="skeleton-box skeleton-main-img"></div>
           </div>
-          <div className="product-details-panel">
+          <div className="product-info-column">
             <div className="skeleton-box skeleton-line-title"></div>
             <div className="skeleton-box skeleton-line-price"></div>
             <div className="skeleton-box skeleton-block"></div>
@@ -133,356 +155,428 @@ const ProductPage = () => {
     )
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
-      <div className="product-not-found" style={{ textAlign: 'center', padding: '100px 20px' }}>
-        <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: '32px', marginBottom: '16px' }}>Masterpiece not found</h2>
-        <p style={{ color: '#666', marginBottom: '32px' }}>We couldn't find the piece with ID: {id}</p>
-        <button 
-          onClick={() => navigate('/')}
-          style={{ background: '#1a1a1a', color: '#fff', border: 'none', padding: '16px 40px', textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer' }}
-        >
-          Return to Collection
-        </button>
+      <div className="modern-product-page">
+        <div className="product-error-container">
+          <h2>Silhouette Not Available</h2>
+          <p>{error || "The product you're looking for does not exist or has been removed."}</p>
+          <button className="back-to-shop-btn" onClick={() => navigate('/collections')}>
+            Explore Full Collection
+          </button>
+        </div>
       </div>
     )
   }
 
+  const currentPrice = Number(product.price || 0)
+  const originalPrice = (product.mrp || product.discountPrice) ? Number(product.mrp || product.discountPrice) : null
+  const hasDiscount = originalPrice && originalPrice > currentPrice
+  const discountPercent = hasDiscount ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0
+  const savingsAmount = hasDiscount ? (originalPrice - currentPrice) : 0
+
+  const mainImageUrl = getImageUrl(product.images?.[selectedImage] || product.image)
+
   return (
-    <div className="editorial-product-page">
+    <div className="modern-product-page">
       {/* Toast Notification */}
       <AnimatePresence>
         {addedToast && (
-          <motion.div 
+          <motion.div
             className="cart-toast-banner"
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
+            initial={{ opacity: 0, y: -50, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -50, x: '-50%' }}
           >
-            <span>✦ Added to your Shopping Bag (Size: {selectedSize})</span>
+            <span>✦ Added {quantity} &times; {product.name} ({selectedSize}) to Bag</span>
             <button onClick={() => navigate('/cart')}>View Bag</button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Elegant Back Navigation */}
-      <div className="editorial-back-nav">
-        <button onClick={() => navigate(-1)} className="editorial-back-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          <span>Back to Collection</span>
-        </button>
-      </div>
+      <div className="product-layout-container">
+        {/* Top Breadcrumb Nav */}
+        <nav className="product-top-breadcrumbs">
+          <Link to="/">Home</Link>
+          <span className="crumb-sep">/</span>
+          <Link to="/collections">Collections</Link>
+          <span className="crumb-sep">/</span>
+          <Link to={`/category/${product.category}`}>{formatCategoryName(product.category)}</Link>
+          <span className="crumb-sep">/</span>
+          <span className="crumb-current">{product.name}</span>
+        </nav>
 
-      <div className="product-luxury-wrapper">
-        {/* Left Column: Gallery */}
-        <div className="product-gallery">
-          <div className="main-image-container">
-            <AnimatePresence mode='wait'>
-              <motion.img 
-                key={selectedImage}
-                src={getImageUrl(product.images?.[selectedImage])} 
+        {/* 2-Column Product Section */}
+        <div className="product-main-grid">
+          {/* Left Column: Gallery */}
+          <div className="product-media-column">
+            <div className="main-image-card">
+              {hasDiscount && (
+                <span className="image-discount-badge">{discountPercent}% OFF</span>
+              )}
+
+              <img
+                src={mainImageUrl}
                 alt={product.name}
-                className="main-display-img"
-                initial={{ opacity: 0, scale: 1.04 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="main-product-img"
+                onClick={() => setIsZoomOpen(true)}
               />
-            </AnimatePresence>
-            {product.stock < 10 && <div className="limited-edition-badge">Limited Edition</div>}
-          </div>
-          
-          <div className="thumbnail-list">
-            {product.images?.map((img, idx) => (
-              <div 
-                key={idx} 
-                className={`thumbnail-item ${selectedImage === idx ? 'active' : ''}`}
-                onClick={() => setSelectedImage(idx)}
-              >
-                <img src={getImageUrl(img)} alt={`View ${idx + 1}`} />
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* Right Column: Redesigned Haute Couture Details */}
-        <div className="product-details-content">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            {/* Formatted Breadcrumb */}
-            <nav className="breadcrumb-luxury">
-              <span onClick={() => navigate('/')}>Home</span>
-              <span className="sep">/</span>
-              <span onClick={() => navigate(`/category/${product.category}`)}>
-                {formatCategoryName(product.category)}
-              </span>
-              <span className="sep">/</span>
-              <span className="current">{product.name}</span>
-            </nav>
-
-            {/* Category Filigree Badge */}
-            <div className="product-category-pill">
-              <span className="sparkle">✦</span>
-              <span>{formatCategoryName(product.category)}</span>
+              <button className="tap-to-zoom-btn" onClick={() => setIsZoomOpen(true)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="11" y1="8" x2="11" y2="14"></line>
+                  <line x1="8" y1="11" x2="14" y2="11"></line>
+                </svg>
+                <span>Tap to Zoom</span>
+              </button>
             </div>
 
-            {/* Product Heading */}
-            <h1 className="product-name-heading">{product.name}</h1>
+            {/* Thumbnail Strip */}
+            {product.images && product.images.length > 1 && (
+              <div className="product-thumbnails-row">
+                {product.images.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className={`thumb-chip ${selectedImage === idx ? 'active' : ''}`}
+                    onClick={() => setSelectedImage(idx)}
+                  >
+                    <img src={getImageUrl(img)} alt={`View ${idx + 1}`} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
-            {/* Pricing Row */}
-            <div className="product-price-row">
-              <div className="price-main-block">
-                <span className="price-value">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
+          {/* Right Column: Product Information & Controls */}
+          <div className="product-info-column">
+            {/* Title Header with Share & Wishlist */}
+            <div className="product-header-row">
+              <h1 className="product-title-text">{product.name}</h1>
+              <div className="product-header-actions">
+                <button className="icon-action-btn" onClick={handleShare} title="Share Product">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                </button>
+                <button
+                  className={`icon-action-btn ${isInWishlist(product._id) ? 'active-wish' : ''}`}
+                  onClick={() => toggleWishlist(product)}
+                  title="Add to Wishlist"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Rating Stars Bar */}
+            <div className="product-rating-bar">
+              <span className="stars-icons">☆☆☆☆☆</span>
+              <span className="rating-score">5.0</span>
+              <span className="reviews-count">(Artisan Verified Review)</span>
+            </div>
+
+            <div className="product-divider"></div>
+
+            {/* Price Box */}
+            <div className="product-price-box">
+              <div className="price-top-row">
+                <span className="current-price">₹{currentPrice.toLocaleString('en-IN')}.00</span>
+                {hasDiscount && (
                   <>
-                    <span className="price-mrp-crossed">MRP ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}</span>
-                    <span className="discount-badge-chip">
-                      {Math.round(((Number(product.mrp || product.discountPrice) - Number(product.price)) / Number(product.mrp || product.discountPrice)) * 100)}% OFF
-                    </span>
+                    <span className="original-mrp-crossed">₹{originalPrice.toLocaleString('en-IN')}.00</span>
+                    <span className="save-percent-tag">Save {discountPercent}%</span>
                   </>
                 )}
               </div>
-              <span className="tax-guarantee-chip">✦ Inclusive of all taxes & free shipping</span>
-            </div>
-
-            {/* Editorial Description */}
-            <div className="product-description-editorial">
-              <p>
-                {product.description || "Hand-crafted with exquisite precision, designed to bring effortless elegance and regal silhouette to your wardrobe."}
-              </p>
-
-              {Array.isArray(product.tags) && product.tags.length > 0 && (
-                <div className="product-tags-wrapper">
-                  <span className="tags-header-label">Style Tags:</span>
-                  <div className="product-tags-list">
-                    {product.tags.map((tag, idx) => (
-                      <span key={idx} className="product-tag-chip">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+              {hasDiscount && (
+                <div className="savings-highlight">
+                  You save ₹{savingsAmount.toLocaleString('en-IN')}.00 &ndash; {discountPercent}% off
                 </div>
               )}
             </div>
 
-            {/* Size & Action Zone (ALWAYS RENDERED FOR ALL PRODUCTS) */}
-            <div className="product-selection-zone">
-              <div className="selection-group">
-                <div className="selection-header">
-                  <span className="selection-label">Select Size: <strong className="selected-size-text">{selectedSize}</strong></span>
-                  <button 
-                    className="size-guide-trigger"
-                    onClick={() => setShowSizeGuide(true)}
+
+
+
+
+            {/* Size Selector */}
+            <div className="product-option-section">
+              <div className="size-option-header">
+                <span className="option-title-label">SIZE: <strong>{selectedSize}</strong></span>
+                <button className="size-guide-link-btn" onClick={() => setShowSizeGuide(true)}>
+                  Size Chart
+                </button>
+              </div>
+              <div className="size-pills-row">
+                {availableSizes.map(sz => (
+                  <button
+                    key={sz}
+                    className={`size-chip-btn ${selectedSize === sz ? 'active' : ''}`}
+                    onClick={() => setSelectedSize(sz)}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="2" y="7" width="20" height="10" rx="2" />
-                      <line x1="6" y1="7" x2="6" y2="11" />
-                      <line x1="10" y1="7" x2="10" y2="11" />
-                      <line x1="14" y1="7" x2="14" y2="11" />
-                      <line x1="18" y1="7" x2="18" y2="11" />
-                    </svg>
-                    Size Guide
+                    {sz}
                   </button>
-                </div>
+                ))}
+              </div>
+            </div>
 
-                <div className="size-options">
-                  {availableSizes.map(size => (
-                    <button 
-                      key={size} 
-                      className={`size-btn ${selectedSize === size ? 'selected' : ''}`}
-                      onClick={() => setSelectedSize(size)}
+            {/* Quantity & Action Box */}
+            <div className="quantity-action-card">
+              <div className="quantity-header-row">
+                <div className="quantity-stepper-box">
+                  <span className="qty-label">QUANTITY</span>
+                  <div className="stepper-controls">
+                    <button
+                      onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
+                      disabled={quantity <= 1}
                     >
-                      {size}
+                      &minus;
                     </button>
-                  ))}
+                    <span className="qty-number">{quantity}</span>
+                    <button onClick={() => setQuantity(prev => prev + 1)}>+</button>
+                  </div>
+                </div>
+                <div className="stock-status-pill">
+                  <span className="stock-dot"></span>
+                  <span>In Stock</span>
                 </div>
               </div>
 
-              {/* Action Buttons Stack */}
-              <div className="action-stack">
-                <div className="main-actions-row">
-                  <motion.button 
-                    className="add-to-bag-luxury"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleAddBag}
-                  >
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
-                    </svg>
-                    <span>Add to Bag</span>
-                  </motion.button>
-                  
-                  <motion.button 
-                    className="buy-now-luxury"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      if (!selectedSize) {
-                        alert('Please select a size to proceed')
-                        return
-                      }
-                      addToCart({ ...product, selectedSize })
-                      navigate('/checkout')
-                    }}
-                  >
-                    Buy Now
-                  </motion.button>
-                </div>
-                
-                <button 
-                  className={`wishlist-toggle-luxury ${isInWishlist(product._id) ? 'active' : ''}`}
-                  onClick={() => toggleWishlist(product)}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
-                  <span>{isInWishlist(product._id) ? 'Saved in Wishlist' : 'Add to Wishlist'}</span>
+              <div className="action-buttons-row">
+                <button className="add-to-cart-pill-btn" onClick={handleAddBag}>
+                  ADD TO CART
+                </button>
+                <button className="buy-now-pill-btn" onClick={handleBuyNow}>
+                  BUY NOW
                 </button>
               </div>
             </div>
 
-            {/* Custom Interactive Accordion Sections */}
-            <div className="heritage-details-custom">
-              {/* Accordion 1: Fabric & Craftsmanship */}
-              <div className={`accordion-item ${activeAccordion === 'fabric' ? 'open' : ''}`}>
-                <button 
-                  className="accordion-header-btn"
-                  onClick={() => toggleAccordion('fabric')}
-                >
-                  <div className="header-label-wrap">
-                    <span className="icon-gold">✦</span>
-                    <span className="title-text">Fabric & Craftsmanship</span>
-                  </div>
-                  <span className={`chevron-icon ${activeAccordion === 'fabric' ? 'open' : ''}`}>↓</span>
-                </button>
-
-                <AnimatePresence>
-                  {activeAccordion === 'fabric' && (
-                    <motion.div 
-                      className="accordion-body-content"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.35 }}
-                    >
-                      <p>
-                        Hand-selected premium textiles, meticulously embroidered by master artisans. Every piece undergoes rigorous quality checks to ensure legacy standards.
-                      </p>
-                      <ul className="care-bullets">
-                        <li><span>✦</span> Dry clean only to preserve metallic threadwork</li>
-                        <li><span>✦</span> Store in a cool, dry place away from direct sunlight</li>
-                        <li><span>✦</span> Handle delicate drapes with extra care</li>
-                      </ul>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+            {/* Trust Badges Strip (3 Cards) */}
+            <div className="trust-badges-row">
+              <div className="trust-badge-card">
+                <span className="badge-icon">🚚</span>
+                <div>
+                  <strong>Free Shipping</strong>
+                  <p>On orders above ₹499</p>
+                </div>
               </div>
-
-              {/* Accordion 2: Shipping & Returns */}
-              <div className={`accordion-item ${activeAccordion === 'shipping' ? 'open' : ''}`}>
-                <button 
-                  className="accordion-header-btn"
-                  onClick={() => toggleAccordion('shipping')}
-                >
-                  <div className="header-label-wrap">
-                    <span className="icon-gold">✦</span>
-                    <span className="title-text">Shipping & Returns</span>
-                  </div>
-                  <span className={`chevron-icon ${activeAccordion === 'shipping' ? 'open' : ''}`}>↓</span>
-                </button>
-
-                <AnimatePresence>
-                  {activeAccordion === 'shipping' && (
-                    <motion.div 
-                      className="accordion-body-content"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.35 }}
-                    >
-                      <p>
-                        Complimentary premium shipping across India. Orders are dispatched within 2-4 business days in our signature gift box.
-                      </p>
-                      <p className="return-note">
-                        Hassle-free returns & exchanges accepted within 7 days of delivery in original packaging.
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="trust-badge-card">
+                <span className="badge-icon">🛡️</span>
+                <div>
+                  <strong>Artisan Guarantee</strong>
+                  <p>100% Handcrafted</p>
+                </div>
               </div>
-
-              {/* Accordion 3: Artisanal Authenticity Guarantee */}
-              <div className={`accordion-item ${activeAccordion === 'authenticity' ? 'open' : ''}`}>
-                <button 
-                  className="accordion-header-btn"
-                  onClick={() => toggleAccordion('authenticity')}
-                >
-                  <div className="header-label-wrap">
-                    <span className="icon-gold">✦</span>
-                    <span className="title-text">100% Authentic Handloom Seal</span>
-                  </div>
-                  <span className={`chevron-icon ${activeAccordion === 'authenticity' ? 'open' : ''}`}>↓</span>
-                </button>
-
-                <AnimatePresence>
-                  {activeAccordion === 'authenticity' && (
-                    <motion.div 
-                      className="accordion-body-content"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.35 }}
-                    >
-                      <p>
-                        Every See Mee design comes certified with an authentic artisan seal, ensuring pure weave integrity and fair-wage support for master weavers.
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div className="trust-badge-card">
+                <span className="badge-icon">🔒</span>
+                <div>
+                  <strong>Secure Checkout</strong>
+                  <p>100% safe payment</p>
+                </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
+
+        {/* Bottom Tabbed Content Area */}
+        <div className="product-tabbed-section">
+          <div className="tabbed-header-bar">
+            <button
+              className={`tab-bar-btn ${activeTab === 'description' ? 'active' : ''}`}
+              onClick={() => setActiveTab('description')}
+            >
+              Description
+            </button>
+            <button
+              className={`tab-bar-btn ${activeTab === 'features' ? 'active' : ''}`}
+              onClick={() => setActiveTab('features')}
+            >
+              Features & Craft
+            </button>
+            <button
+              className={`tab-bar-btn ${activeTab === 'specs' ? 'active' : ''}`}
+              onClick={() => setActiveTab('specs')}
+            >
+              Specs & Care
+            </button>
+          </div>
+
+          <div className="tabbed-content-panel">
+            {activeTab === 'description' && (
+              <div className="tab-pane-box">
+                <h3>Product Description</h3>
+                {product.description ? (
+                  <p className="tab-desc-text">{product.description}</p>
+                ) : (
+                  <p className="tab-empty-text">No description specified for this item.</p>
+                )}
+                {product.tags && product.tags.length > 0 && (
+                  <div className="tab-tags-group">
+                    <strong>Style Tags:</strong>
+                    {product.tags.map((t, i) => (
+                      <span key={i} className="tab-tag-chip">#{t}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'features' && (
+              <div className="tab-pane-box">
+                <h3>Craftsmanship & Features</h3>
+                <ul className="tab-bullet-list">
+                  {(product.fabric || product.material) && (
+                    <li><strong>Fabric / Material:</strong> {product.fabric || product.material}</li>
+                  )}
+                  {product.fit && (
+                    <li><strong>Fit Type:</strong> {product.fit}</li>
+                  )}
+                  {product.occasion && (
+                    <li><strong>Occasion:</strong> {product.occasion}</li>
+                  )}
+                  {product.design && (
+                    <li><strong>Design / Pattern:</strong> {product.design}</li>
+                  )}
+                  {product.sleeves && (
+                    <li><strong>Sleeves:</strong> {product.sleeves}</li>
+                  )}
+                  {product.length && (
+                    <li><strong>Garment Length:</strong> {product.length}</li>
+                  )}
+                  {!((product.fabric || product.material) || product.fit || product.occasion || product.design || product.sleeves || product.length) && (
+                    <li>✦ Crafted with premium haute couture standards by SeeMee.</li>
+                  )}
+                </ul>
+              </div>
+            )}
+
+            {activeTab === 'specs' && (
+              <div className="tab-pane-box">
+                <h3>Specifications & Care</h3>
+                <table className="specs-table">
+                  <tbody>
+                    {product.category && (
+                      <tr>
+                        <td>Category</td>
+                        <td>{formatCategoryName(product.category)}</td>
+                      </tr>
+                    )}
+                    {product.brand && (
+                      <tr>
+                        <td>Brand</td>
+                        <td>{product.brand}</td>
+                      </tr>
+                    )}
+                    {(product.styleCode || product.sku) && (
+                      <tr>
+                        <td>Style Code / SKU</td>
+                        <td>{product.styleCode || product.sku}</td>
+                      </tr>
+                    )}
+                    {(product.fabric || product.material) && (
+                      <tr>
+                        <td>Fabric Material</td>
+                        <td>{product.fabric || product.material}</td>
+                      </tr>
+                    )}
+                    {product.careInstructions && (
+                      <tr>
+                        <td>Care Instructions</td>
+                        <td>{product.careInstructions}</td>
+                      </tr>
+                    )}
+                    {product.weight?.valueGrams && (
+                      <tr>
+                        <td>Weight</td>
+                        <td>{product.weight.valueGrams} grams</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Related Products Carousel / Grid */}
+        {relatedProducts.length > 0 && (
+          <div className="related-products-section">
+            <h2 className="related-section-title">You May Also Like</h2>
+            <div className="related-products-grid">
+              {relatedProducts.map(rel => (
+                <div
+                  key={rel._id}
+                  className="related-product-card"
+                  onClick={() => navigate(`/product/${rel._id}`, { state: { product: rel } })}
+                >
+                  <img src={getImageUrl(rel.images?.[0] || rel.image)} alt={rel.name} />
+                  <div className="related-card-info">
+                    <h4>{rel.name}</h4>
+                    <span className="related-card-price">₹{Number(rel.price || 0).toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Image Zoom Modal */}
+      <AnimatePresence>
+        {isZoomOpen && (
+          <div className="zoom-modal-overlay" onClick={() => setIsZoomOpen(false)}>
+            <motion.div
+              className="zoom-modal-card"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <button className="zoom-close-btn" onClick={() => setIsZoomOpen(false)}>&times;</button>
+              <img src={mainImageUrl} alt={product.name} />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Size Guide Modal */}
       <AnimatePresence>
         {showSizeGuide && (
           <div className="size-modal-backdrop" onClick={() => setShowSizeGuide(false)}>
-            <motion.div 
+            <motion.div
               className="size-modal-card"
               onClick={(e) => e.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
             >
               <div className="size-modal-header">
                 <div>
-                  <span className="size-modal-badge">✦ ATELIER GARMENT MEASUREMENTS</span>
+                  <span className="size-modal-badge">✦ GARMENT MEASUREMENTS</span>
                   <h3>OFFICIAL SIZE CHART</h3>
                 </div>
                 <button className="close-modal-btn" onClick={() => setShowSizeGuide(false)}>✕</button>
               </div>
 
-              {/* Unit Converter Switcher */}
               <div className="size-unit-switcher">
                 <span className="unit-label">Display Unit:</span>
                 <div className="unit-toggle-pills">
-                  <button 
+                  <button
                     className={`unit-pill ${sizeUnit === 'in' ? 'active' : ''}`}
                     onClick={() => setSizeUnit('in')}
                   >
                     Inches (in)
                   </button>
-                  <button 
+                  <button
                     className={`unit-pill ${sizeUnit === 'cm' ? 'active' : ''}`}
                     onClick={() => setSizeUnit('cm')}
                   >
@@ -490,7 +584,7 @@ const ProductPage = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="size-table-wrapper">
                 <table className="size-guide-table">
                   <thead>
@@ -499,83 +593,22 @@ const ProductPage = () => {
                       <th>Bust ({sizeUnit})</th>
                       <th>Waist ({sizeUnit})</th>
                       <th>Hip ({sizeUnit})</th>
-                      <th>Shoulder ({sizeUnit})</th>
-                      <th>Length ({sizeUnit})</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {sizeUnit === 'in' ? (
-                      <>
-                        <tr><td><strong>XS</strong></td><td>32 - 34</td><td>26 - 28</td><td>36 - 38</td><td>14.0</td><td>44</td></tr>
-                        <tr><td><strong>S</strong></td><td>34 - 36</td><td>28 - 30</td><td>38 - 40</td><td>14.5</td><td>45</td></tr>
-                        <tr><td><strong>M</strong></td><td>36 - 38</td><td>30 - 32</td><td>40 - 42</td><td>15.0</td><td>45</td></tr>
-                        <tr><td><strong>L</strong></td><td>38 - 40</td><td>32 - 34</td><td>42 - 44</td><td>15.5</td><td>46</td></tr>
-                        <tr><td><strong>XL</strong></td><td>40 - 42</td><td>34 - 36</td><td>44 - 46</td><td>16.0</td><td>46</td></tr>
-                        <tr><td><strong>XXL</strong></td><td>42 - 44</td><td>36 - 38</td><td>46 - 48</td><td>16.5</td><td>47</td></tr>
-                        <tr><td><strong>3XL</strong></td><td>44 - 46</td><td>38 - 40</td><td>48 - 50</td><td>17.0</td><td>47</td></tr>
-                      </>
-                    ) : (
-                      <>
-                        <tr><td><strong>XS</strong></td><td>81 - 86</td><td>66 - 71</td><td>91 - 96</td><td>35.5</td><td>111.5</td></tr>
-                        <tr><td><strong>S</strong></td><td>86 - 91</td><td>71 - 76</td><td>96 - 101.5</td><td>37.0</td><td>114.0</td></tr>
-                        <tr><td><strong>M</strong></td><td>91 - 96.5</td><td>76 - 81</td><td>101.5 - 106.5</td><td>38.0</td><td>114.0</td></tr>
-                        <tr><td><strong>L</strong></td><td>96.5 - 101.5</td><td>81 - 86</td><td>106.5 - 111.5</td><td>39.5</td><td>117.0</td></tr>
-                        <tr><td><strong>XL</strong></td><td>101.5 - 106.5</td><td>86 - 91.5</td><td>111.5 - 117</td><td>40.5</td><td>117.0</td></tr>
-                        <tr><td><strong>XXL</strong></td><td>106.5 - 111.5</td><td>91.5 - 96.5</td><td>117 - 122</td><td>42.0</td><td>119.5</td></tr>
-                        <tr><td><strong>3XL</strong></td><td>111.5 - 117</td><td>96.5 - 101.5</td><td>122 - 127</td><td>43.0</td><td>119.5</td></tr>
-                      </>
-                    )}
+                    <tr><td>XS</td><td>{sizeUnit === 'in' ? '32"' : '81 cm'}</td><td>{sizeUnit === 'in' ? '26"' : '66 cm'}</td><td>{sizeUnit === 'in' ? '36"' : '91 cm'}</td></tr>
+                    <tr><td>S</td><td>{sizeUnit === 'in' ? '34"' : '86 cm'}</td><td>{sizeUnit === 'in' ? '28"' : '71 cm'}</td><td>{sizeUnit === 'in' ? '38"' : '96 cm'}</td></tr>
+                    <tr><td>M</td><td>{sizeUnit === 'in' ? '36"' : '91 cm'}</td><td>{sizeUnit === 'in' ? '30"' : '76 cm'}</td><td>{sizeUnit === 'in' ? '40"' : '101 cm'}</td></tr>
+                    <tr><td>L</td><td>{sizeUnit === 'in' ? '38"' : '96 cm'}</td><td>{sizeUnit === 'in' ? '32"' : '81 cm'}</td><td>{sizeUnit === 'in' ? '42"' : '106 cm'}</td></tr>
+                    <tr><td>XL</td><td>{sizeUnit === 'in' ? '40"' : '101 cm'}</td><td>{sizeUnit === 'in' ? '34"' : '86 cm'}</td><td>{sizeUnit === 'in' ? '44"' : '111 cm'}</td></tr>
+                    <tr><td>XXL</td><td>{sizeUnit === 'in' ? '42"' : '106 cm'}</td><td>{sizeUnit === 'in' ? '36"' : '91 cm'}</td><td>{sizeUnit === 'in' ? '46"' : '116 cm'}</td></tr>
                   </tbody>
                 </table>
-              </div>
-
-              {/* How to Measure & Tailoring Banner */}
-              <div className="size-guide-footer">
-                <div className="how-to-measure-block">
-                  <h4>✦ HOW TO MEASURE YOURSELF</h4>
-                  <ul>
-                    <li><strong>Bust:</strong> Measure around the fullest part of your bust while keeping the tape horizontal.</li>
-                    <li><strong>Waist:</strong> Measure around the narrowest part of your waistline (typically where your body bends side to side).</li>
-                    <li><strong>Hips:</strong> Stand with feet together and measure around the fullest part of your hips.</li>
-                  </ul>
-                </div>
-                <div className="custom-tailor-note">
-                  <span>✦ <strong>Need Custom Tailoring?</strong> Select <strong>"Custom"</strong> size at checkout or contact our concierge after ordering for bespoke sizing.</span>
-                </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      {/* Suggested Masterpieces */}
-      {relatedProducts.length > 0 && (
-        <section className="suggested-section">
-          <div className="suggested-header">
-            <span className="editorial-label">✦ YOU MAY ALSO ADMIRE ✦</span>
-            <h2 className="editorial-title-small">CURATED FOR YOU</h2>
-          </div>
-          <div className="related-products-grid">
-            {relatedProducts.map((p) => (
-              <motion.div 
-                key={p._id} 
-                className="related-product-card"
-                whileHover={{ y: -8 }}
-                onClick={() => navigate(`/product/${p._id}`)}
-              >
-                <div className="related-img-wrapper">
-                  <img src={getImageUrl(p.images?.[0])} alt={p.name} />
-                </div>
-                <div className="related-info">
-                  <span className="related-category">{formatCategoryName(p.category)}</span>
-                  <h3>{p.name}</h3>
-                  <p className="related-price">₹{p.price?.toLocaleString('en-IN')}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
     </div>
   )
 }

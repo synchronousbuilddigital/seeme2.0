@@ -143,16 +143,17 @@
 
 .hero-title {
   font-family: var(--font-heading, serif);
-  font-size: 3.2rem;
+  font-size: clamp(3.2rem, 6.5vw, 4.8rem);
   color: var(--charcoal, #1c1917);
-  letter-spacing: 1px;
+  letter-spacing: -0.01em;
   font-weight: 300;
   margin-bottom: 10px;
+  line-height: 1.1;
 }
 
 .hero-title span {
   font-style: italic;
-  color: #a17820;
+  color: var(--charcoal, #1c1917);
 }
 
 .categories-hero-sub {

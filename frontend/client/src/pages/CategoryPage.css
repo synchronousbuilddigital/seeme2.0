@@ -138,11 +138,12 @@
 
 .category-main-heading {
   font-family: var(--cat-heading-font);
-  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-size: clamp(3.2rem, 6.5vw, 4.8rem);
   font-weight: 400;
   color: var(--cat-charcoal);
-  margin: 0 0 6px 0;
-  line-height: 1.15;
+  margin: 0 0 8px 0;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 
 .category-description-sub {

@@ -939,6 +939,7 @@
   animation: marquee 60s linear infinite;
   gap: 1.8rem;
   padding: 0.5rem 0;
+  will-change: transform;
 }
 
 .category-marquee-track:hover {

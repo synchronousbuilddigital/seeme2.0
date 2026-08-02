@@ -59,6 +59,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
     video: '',
     dimensions: { length: '', width: '', height: '' },
     materials: [],
+    fabric: '',
+    fit: '',
+    occasion: '',
+    design: '',
+    sleeves: '',
+    length: '',
+    careInstructions: '',
     tags: [],
     seo: { title: '', description: '' },
     isNewArrival: false,
@@ -445,6 +452,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
         dimensions: formData.dimensions,
         weight: formData.weight,
         materials: formData.materials,
+        fabric: formData.fabric,
+        fit: formData.fit,
+        occasion: formData.occasion,
+        design: formData.design,
+        sleeves: formData.sleeves,
+        length: formData.length,
+        careInstructions: formData.careInstructions,
         tags: finalTags,
         seo: formData.seo,
         featured: formData.featured,
@@ -567,6 +581,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
       dimensions: product.dimensions || { length: '', width: '', height: '' },
       weight: product.weight || { value: '' },
       materials: product.materials || [],
+      fabric: product.fabric || '',
+      fit: product.fit || '',
+      occasion: product.occasion || '',
+      design: product.design || '',
+      sleeves: product.sleeves || '',
+      length: product.length || '',
+      careInstructions: product.careInstructions || '',
       tags: product.tags || [],
       seo: product.seo || { title: '', description: '' }
     })
@@ -715,6 +736,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <button className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
                 <button className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
                 <button className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
+                <button className={formTab === 'features' ? 'active' : ''} onClick={() => setFormTab('features')}>Features & Specs</button>
                 <button className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
                 <button className={formTab === 'tags' ? 'active' : ''} onClick={() => setFormTab('tags')}>Tags & SEO</button>
               </div>
@@ -959,6 +981,89 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {formTab === 'features' && (
+                  <div className="form-tab-content">
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: '700', color: '#1c1917', marginBottom: '14px' }}>
+                      ✦ Features & Craft Details (Displays in Features & Craft Tab)
+                    </h3>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Fabric / Material</label>
+                        <input
+                          type="text"
+                          value={formData.fabric || ''}
+                          onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                          placeholder="e.g. Silk Blend with Organza Accents"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Fit Type</label>
+                        <input
+                          type="text"
+                          value={formData.fit || ''}
+                          onChange={(e) => setFormData({ ...formData, fit: e.target.value })}
+                          placeholder="e.g. Regular Fit / A-Line Silhouette"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Occasion</label>
+                        <input
+                          type="text"
+                          value={formData.occasion || ''}
+                          onChange={(e) => setFormData({ ...formData, occasion: e.target.value })}
+                          placeholder="e.g. Festival, Wedding, Festive Get-togethers"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Design / Pattern</label>
+                        <input
+                          type="text"
+                          value={formData.design || ''}
+                          onChange={(e) => setFormData({ ...formData, design: e.target.value })}
+                          placeholder="e.g. Abstract Print, Hand Embroidery"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label>Sleeves</label>
+                        <input
+                          type="text"
+                          value={formData.sleeves || ''}
+                          onChange={(e) => setFormData({ ...formData, sleeves: e.target.value })}
+                          placeholder="e.g. 3/4 Sleeves, Full Sleeves"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Garment Length</label>
+                        <input
+                          type="text"
+                          value={formData.length || ''}
+                          onChange={(e) => setFormData({ ...formData, length: e.target.value })}
+                          placeholder="e.g. Ankle Length, Calf Length"
+                        />
+                      </div>
+                    </div>
+
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: '700', color: '#1c1917', margin: '22px 0 14px 0' }}>
+                      ✦ Specs & Care Instructions (Displays in Specs & Care Tab)
+                    </h3>
+                    <div className="form-group">
+                      <label>Care Instructions</label>
+                      <textarea
+                        rows={3}
+                        value={formData.careInstructions || ''}
+                        onChange={(e) => setFormData({ ...formData, careInstructions: e.target.value })}
+                        placeholder="e.g. Dry Clean Only. Store in cool place away from direct sunlight."
+                      />
                     </div>
                   </div>
                 )}
