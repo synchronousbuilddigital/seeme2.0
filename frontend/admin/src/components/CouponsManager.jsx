@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { withAuthHeader } from '../utils/apiClient'
+import { apiRequest } from '../utils/apiClient'
+import { API_ENDPOINTS } from '../config/api'
 import './CouponsManager.css'
 
 const CouponsManager = () => {
@@ -42,16 +43,6 @@ const CouponsManager = () => {
     setTimeout(() => setToast(null), 3500)
   }
 
-  const safeJsonFetch = async (url, options = {}) => {
-    const res = await fetch(url, options)
-    const contentType = res.headers.get('content-type') || ''
-    if (!contentType.includes('application/json')) {
-      const text = await res.text()
-      throw new Error(`Invalid response format from server (${res.status})`)
-    }
-    return res.json()
-  }
-
   const fetchCoupons = async () => {
     try {
       setLoading(true)
@@ -60,8 +51,8 @@ const CouponsManager = () => {
         status: statusFilter
       }).toString()
 
-      const data = await safeJsonFetch(`/api/admin/coupons?${query}`, {
-        headers: withAuthHeader()
+      const data = await apiRequest(`${API_ENDPOINTS.ADMIN.COUPONS}?${query}`, {
+        auth: true
       })
       if (data.success && Array.isArray(data.data)) {
         setCoupons(data.data)
@@ -106,10 +97,10 @@ const CouponsManager = () => {
 
   const handleToggleStatus = async (coupon) => {
     try {
-      const data = await safeJsonFetch(`/api/admin/coupons/${coupon._id}/status`, {
+      const data = await apiRequest(`${API_ENDPOINTS.ADMIN.COUPONS}/${coupon._id}/status`, {
         method: 'PATCH',
-        headers: withAuthHeader({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ isActive: !coupon.isActive })
+        auth: true,
+        body: { isActive: !coupon.isActive }
       })
       if (data.success) {
         showToast(data.message || 'Status updated')
@@ -124,9 +115,9 @@ const CouponsManager = () => {
 
   const handleDuplicate = async (couponId) => {
     try {
-      const data = await safeJsonFetch(`/api/admin/coupons/${couponId}/duplicate`, {
+      const data = await apiRequest(`${API_ENDPOINTS.ADMIN.COUPONS}/${couponId}/duplicate`, {
         method: 'POST',
-        headers: withAuthHeader()
+        auth: true
       })
       if (data.success) {
         showToast(data.message || 'Coupon duplicated')
@@ -142,9 +133,9 @@ const CouponsManager = () => {
   const handleDelete = async (couponId, code) => {
     if (!window.confirm(`Are you sure you want to delete coupon "${code}"?`)) return
     try {
-      const data = await safeJsonFetch(`/api/admin/coupons/${couponId}`, {
+      const data = await apiRequest(`${API_ENDPOINTS.ADMIN.COUPONS}/${couponId}`, {
         method: 'DELETE',
-        headers: withAuthHeader()
+        auth: true
       })
       if (data.success) {
         showToast(data.message || 'Coupon deleted')
@@ -179,13 +170,13 @@ const CouponsManager = () => {
     }
 
     try {
-      const url = editingCoupon ? `/api/admin/coupons/${editingCoupon._id}` : '/api/admin/coupons'
+      const url = editingCoupon ? `${API_ENDPOINTS.ADMIN.COUPONS}/${editingCoupon._id}` : API_ENDPOINTS.ADMIN.COUPONS
       const method = editingCoupon ? 'PUT' : 'POST'
 
-      const data = await safeJsonFetch(url, {
+      const data = await apiRequest(url, {
         method,
-        headers: withAuthHeader({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(payload)
+        auth: true,
+        body: payload
       })
 
       if (data.success) {

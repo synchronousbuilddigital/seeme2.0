@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { API_ENDPOINTS } from '../config/api'
 import './Search.css'
 
 const Search = () => {
@@ -34,7 +35,7 @@ const Search = () => {
         category: filters.category
       })
       
-      const response = await fetch(`/api/products/search?${params.toString()}`)
+      const response = await fetch(`${API_ENDPOINTS.SEARCH_PRODUCTS}?${params.toString()}`)
       const data = await response.json()
       
       if (data.success) {

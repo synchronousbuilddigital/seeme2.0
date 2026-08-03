@@ -86,7 +86,7 @@ export const CartProvider = ({ children }) => {
 
     const revalidate = async () => {
       try {
-        const response = await fetch('/api/coupon/apply', {
+        const response = await fetch(API_ENDPOINTS.COUPON_APPLY, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -130,7 +130,7 @@ export const CartProvider = ({ children }) => {
     setCouponLoading(true)
 
     try {
-      const response = await fetch('/api/coupon/apply', {
+      const response = await fetch(API_ENDPOINTS.COUPON_APPLY, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

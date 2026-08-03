@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { API_ENDPOINTS } from '../config/api'
 import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
 import './CartPage.css'
 
@@ -39,7 +40,7 @@ const CartPage = () => {
 
   const fetchAvailableCoupons = async () => {
     try {
-      const res = await fetch('/api/coupon/available')
+      const res = await fetch(API_ENDPOINTS.COUPON_AVAILABLE)
       const contentType = res.headers.get('content-type') || ''
       if (!res.ok || !contentType.includes('application/json')) return
       const data = await res.json()

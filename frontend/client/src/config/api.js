@@ -38,6 +38,12 @@ export const API_ENDPOINTS = {
   FEATURED_PRODUCTS: `${API_BASE_URL}/api/products?featured=true`,
   GET_CATEGORIES: `${API_BASE_URL}/api/products/categories/all`,
   COLLECTION_COUNT: `${API_BASE_URL}/api/products/collection/count`,
+  SEARCH_PRODUCTS: `${API_BASE_URL}/api/products/search`,
+
+  // ─── Coupons ──────────────────────────────────
+  COUPON_AVAILABLE: `${API_BASE_URL}/api/coupon/available`,
+  COUPON_APPLY:     `${API_BASE_URL}/api/coupon/apply`,
+  COUPON_REMOVE:    `${API_BASE_URL}/api/coupon/remove`,
 
   // ─── Orders ────────────────────────────────────
   ORDERS:              `${API_BASE_URL}/api/orders`,

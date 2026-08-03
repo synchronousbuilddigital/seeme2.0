@@ -17,7 +17,8 @@ export const API_ENDPOINTS = {
     ANALYTICS: `${API_BASE_URL}/api/admin/analytics`,
     INVENTORY: `${API_BASE_URL}/api/admin/inventory`,
     CUSTOMERS: `${API_BASE_URL}/api/admin/customers`,
-    DASHBOARD_SUMMARY: `${API_BASE_URL}/api/admin/dashboard-summary`
+    DASHBOARD_SUMMARY: `${API_BASE_URL}/api/admin/dashboard-summary`,
+    COUPONS: `${API_BASE_URL}/api/admin/coupons`
   },
   UPLOAD: {
     IMAGE: `${API_BASE_URL}/api/upload/image`,
