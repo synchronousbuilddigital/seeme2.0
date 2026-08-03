@@ -58,9 +58,8 @@ const CategoryPage = () => {
         cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
       ])
 
-      const activeProducts = (prodData?.success && Array.isArray(prodData.data))
-        ? prodData.data.filter(p => p.isActive)
-        : []
+      const rawList = Array.isArray(prodData?.data) ? prodData.data : (Array.isArray(prodData?.products) ? prodData.products : [])
+      const activeProducts = rawList.filter(p => p.isActive !== false)
 
       let slidesList = []
       if (settingsData?.success && settingsData.data?.categorySlides?.length > 0) {

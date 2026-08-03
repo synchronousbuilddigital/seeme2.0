@@ -137,11 +137,11 @@ async function createApp() {
     app.use('/api/magazine', magazineRoutes)
     app.use('/api/carousel', carouselRoutes)
     app.use('/api/site-settings', siteSettingsRoutes)
+    app.use('/api/coupon', couponRoutes)
+    app.use('/api/admin/coupons', adminCouponRoutes)
     app.use('/api/admin', adminRoutes)
     app.use('/api/users', userRoutes)
     app.use('/api/reels', reelRoutes)
-    app.use('/api/coupon', couponRoutes)
-    app.use('/api/admin/coupons', adminCouponRoutes)
 
     const { default: uploadRoutes } = await import('../routes/upload.js')
     app.use('/api/upload', uploadRoutes)
