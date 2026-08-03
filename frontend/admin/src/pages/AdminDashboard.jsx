@@ -55,33 +55,40 @@ const AdminDashboard = () => {
 
   const fetchStats = async (tf = timeframe) => {
     try {
-      const [healthData, summaryData, analyticsData] = await Promise.all([
-        apiRequest(API_ENDPOINTS.HEALTH),
-        apiRequest(API_ENDPOINTS.ADMIN.DASHBOARD_SUMMARY, { auth: true }),
-        apiRequest(`${API_ENDPOINTS.ADMIN.ANALYTICS}?timeframe=${tf}`, { auth: true })
-      ])
+      setBackendStatus('online')
 
-      if (healthData.success) {
-        setBackendStatus('online')
-      }
+      // Fetch fast dashboard summary immediately
+      const summaryData = await apiRequest(API_ENDPOINTS.ADMIN.DASHBOARD_SUMMARY, { auth: true })
 
       if (summaryData.success) {
         const s = summaryData.data
-        const a = analyticsData.data || {}
-
-        setStats({
+        setStats(prev => ({
+          ...prev,
           totalOrders: s.totalOrders || 0,
           totalProducts: s.totalProducts || 0,
-          pendingOrders: (a.ordersByStatus || []).find(status => status._id === 'pending')?.count || 0,
           revenue: s.totalRevenue || 0,
-          topProducts: a.topProducts || [],
-          recentOrders: a.recentOrders || [],
-          monthlyRevenue: a.monthlyRevenue || [],
           totalUsers: s.totalUsers || 0
-        })
+        }))
       }
 
       setLastSync(new Date())
+
+      // Fetch heavy analytics asynchronously in background without blocking initial UI
+      apiRequest(`${API_ENDPOINTS.ADMIN.ANALYTICS}?timeframe=${tf}`, { auth: true })
+        .then(analyticsData => {
+          if (analyticsData.success) {
+            const a = analyticsData.data || {}
+            setStats(prev => ({
+              ...prev,
+              pendingOrders: (a.ordersByStatus || []).find(status => status._id === 'pending')?.count || 0,
+              topProducts: a.topProducts || [],
+              recentOrders: a.recentOrders || [],
+              monthlyRevenue: a.monthlyRevenue || []
+            }))
+          }
+        })
+        .catch(err => console.error('Analytics bg fetch error:', err))
+
     } catch (error) {
       console.error('Error fetching stats:', error)
       setBackendStatus('offline')

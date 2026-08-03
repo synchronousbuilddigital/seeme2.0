@@ -250,18 +250,7 @@ const CollectionsPage = () => {
       <div className="collections-main-layout">
         {/* Left Sidebar Filter Panel (Unified for Desktop and Mobile) */}
         <aside className={`collections-sidebar-panel ${showMobileFilters ? 'mobile-active' : ''}`}>
-          <div className="sidebar-mobile-header">
-            <div className="mobile-header-title-box">
-              <span className="mobile-header-badge">✦ SEEMEE HAUTE COUTURE</span>
-              <h3>Refine Selection</h3>
-            </div>
-            <div className="mobile-header-right">
-              {hasActiveFilters && (
-                <button className="sidebar-reset-link" onClick={resetFilters}>Reset</button>
-              )}
-              <button className="sidebar-close-btn" onClick={() => setShowMobileFilters(false)} aria-label="Close Filter">&times;</button>
-            </div>
-          </div>
+
 
           <div className="sidebar-widgets-scroll-container">
             {/* Search Widget */}
@@ -509,17 +498,7 @@ const CollectionsPage = () => {
         </div>
       </div>
 
-      {/* Floating Mobile Filter Button */}
-      <button
-        className="mobile-floating-filter-btn"
-        onClick={() => setShowMobileFilters(true)}
-        aria-label="Open Filter Sidebar"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-        </svg>
-        <span>Filters {hasActiveFilters && '✦'}</span>
-      </button>
+
 
       {/* Quick View Product Modal */}
       <AnimatePresence>

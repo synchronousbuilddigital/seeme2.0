@@ -29,7 +29,7 @@ const startEagerFetches = () => {
   }
 
   if (!productsPromise) {
-    productsPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`).catch(err => {
+    productsPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=12`).catch(err => {
       console.error('Eager fetch products error:', err)
       return null
     })

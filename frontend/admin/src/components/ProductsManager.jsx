@@ -102,11 +102,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
   useEffect(() => {
     fetchProducts()
     fetchCategories()
-    const interval = setInterval(() => {
-      fetchProducts()
-      fetchCategories()
-    }, 60000) // Refresh every minute
-    return () => clearInterval(interval)
   }, [])
 
 

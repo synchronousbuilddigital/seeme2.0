@@ -276,12 +276,7 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Rating Stars Bar */}
-            <div className="product-rating-bar">
-              <span className="stars-icons">☆☆☆☆☆</span>
-              <span className="rating-score">5.0</span>
-              <span className="reviews-count">(Artisan Verified Review)</span>
-            </div>
+
 
             <div className="product-divider"></div>
 

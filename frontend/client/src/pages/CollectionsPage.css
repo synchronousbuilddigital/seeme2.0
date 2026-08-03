@@ -910,14 +910,14 @@
 }
 
 .add-to-cart-btn {
-  padding: 8px 14px;
+  padding: 5px 10px;
   background: #1c1917;
   color: #d4af37;
   border: none;
-  border-radius: 20px;
+  border-radius: 16px;
   font-family: var(--font-body, sans-serif);
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-size: 0.72rem;
+  font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
   cursor: pointer;
@@ -1397,50 +1397,11 @@
 }
 
 /* Mobile Filter Trigger Button & Responsive Layout */
-.mobile-filter-trigger-btn,
-.mobile-floating-filter-btn {
-  display: none;
-}
-
-.sidebar-mobile-header {
-  display: none;
-}
-
-.mobile-sidebar-apply-btn {
-  display: none;
-}
-
-.mobile-sidebar-backdrop {
+.mobile-filter-trigger-btn {
   display: none;
 }
 
 @media (max-width: 1024px) {
-  .mobile-floating-filter-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    position: fixed;
-    bottom: 24px;
-    right: 20px;
-    z-index: 99990;
-    background: #1c1917;
-    color: #d4af37;
-    border: 1px solid rgba(212, 175, 55, 0.5);
-    padding: 12px 22px;
-    border-radius: 30px;
-    font-family: var(--font-body, sans-serif);
-    font-size: 0.85rem;
-    font-weight: 600;
-    letter-spacing: 1px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease;
-  }
-
-  .mobile-floating-filter-btn:active {
-    transform: scale(0.95);
-  }
-
   .mobile-sidebar-backdrop {
     display: block;
     position: fixed;
@@ -1634,8 +1595,15 @@
 }
 
 @media (max-width: 600px) {
+  .collections-page {
+    padding-top: 98px;
+  }
+
   .editorial-back-nav {
-    padding: 10px 16px 0;
+    padding: 10px 14px 4px;
+    margin-top: 4px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .editorial-back-container {
@@ -1643,16 +1611,23 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px;
     padding: 0;
+    width: 100%;
+  }
+
+  .editorial-back-btn {
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    flex-shrink: 0;
   }
 
   .collections-breadcrumbs {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
   }
 
   .collections-header {
-    padding: 12px 14px 8px;
+    padding: 8px 14px 6px;
   }
 
   .collections-title {
