@@ -2,11 +2,12 @@
    MODERN E-COMMERCE PRODUCT PAGE UI (SEEMEE HAUTE COUTURE)
    ========================================================================== */
 
-.modern-product-page {
+.modern-product-page,
+.product-page-wrapper {
   position: relative;
   background-color: #ffffff;
   min-height: 100vh;
-  padding-top: 100px;
+  padding-top: 140px;
   padding-bottom: 5rem;
   font-family: var(--font-body, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
   color: #1c1917;
@@ -1047,8 +1048,9 @@
 }
 
 @media (max-width: 600px) {
-  .modern-product-page {
-    padding-top: 80px;
+  .modern-product-page,
+  .product-page-wrapper {
+    padding-top: 110px;
   }
 
   .product-title-text {
@@ -1071,4 +1073,379 @@
     padding: 10px 12px;
     font-size: 0.78rem;
   }
+}
+
+/* ── PDP Coupon Widget ─────────────────────────────────────────────── */
+.pdp-coupon-widget {
+  background: #faf8f5;
+  border: 1px solid #e7e5e4;
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 18px 0;
+}
+
+.pdp-coupon-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pdp-coupon-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #854d0e;
+}
+
+.pdp-coupon-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pdp-coupon-form input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d6d3d1;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  outline: none;
+  background: #ffffff;
+}
+
+.btn-apply-pdp-coupon {
+  background: #1c1917;
+  color: #d4af37;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-apply-pdp-coupon:hover:not(:disabled) {
+  background: #000000;
+  transform: translateY(-1px);
+}
+
+.pdp-coupon-error {
+  font-size: 0.75rem;
+  color: #dc2626;
+  margin-bottom: 10px;
+}
+
+.pdp-coupon-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pdp-suggestion-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px dashed #d6d3d1;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.pdp-pill-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.pill-code {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1c1917;
+}
+
+.pill-desc {
+  font-size: 0.7rem;
+  color: #78716c;
+}
+
+.btn-pill-apply {
+  background: #f5f5f4;
+  border: 1px solid #d6d3d1;
+  color: #1c1917;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pill-apply:hover:not(:disabled) {
+  background: #1c1917;
+  color: #d4af37;
+  border-color: #1c1917;
+}
+
+.pdp-applied-coupon-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.pdp-applied-code {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #15803d;
+  display: block;
+}
+
+.pdp-applied-sub {
+  font-size: 0.72rem;
+  color: #166534;
+}
+
+.btn-pdp-remove-coupon {
+  background: transparent;
+  border: none;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-pdp-remove-coupon:hover {
+  color: #dc2626;
+}
+
+/* ── PDP Coupon Modal Trigger Button ────────────────────────────── */
+.btn-open-coupon-modal-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px dashed #d4af37;
+  border-radius: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.btn-open-coupon-modal-trigger:hover {
+  border-color: #854d0e;
+  background: #fefce8;
+  transform: translateY(-1px);
+}
+
+.trigger-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trigger-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.trigger-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #1c1917;
+}
+
+.trigger-sub {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.72rem;
+  color: #78716c;
+}
+
+.trigger-arrow {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #854d0e;
+  white-space: nowrap;
+}
+
+/* ── Full Coupon Modal Popup ──────────────────────────────────────── */
+.pdp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 25, 23, 0.65);
+  backdrop-filter: blur(5px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.pdp-modal-card {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e7e5e4;
+  padding: 24px 28px;
+}
+
+.pdp-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  border-bottom: 1px solid #f5f5f4;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+}
+
+.pdp-modal-sparkle {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #854d0e;
+  display: block;
+}
+
+.pdp-modal-header h3 {
+  font-family: var(--font-heading, serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #1c1917;
+  margin: 4px 0 0;
+}
+
+.btn-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  color: #a8a29e;
+  cursor: pointer;
+  padding: 2px;
+  transition: color 0.2s ease;
+}
+
+.btn-modal-close:hover {
+  color: #dc2626;
+}
+
+.pdp-modal-coupon-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.pdp-modal-coupon-form input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #d6d3d1;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.btn-modal-apply-submit {
+  background: #1c1917;
+  color: #d4af37;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pdp-modal-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  margin-bottom: 16px;
+}
+
+.list-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #78716c;
+  margin-bottom: 12px;
+}
+
+.pdp-coupons-all-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pdp-full-coupon-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #faf8f5;
+  border: 1px dashed #d6d3d1;
+  border-radius: 12px;
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+.pdp-full-coupon-item:hover {
+  border-color: #d4af37;
+  background: #fefce8;
+}
+
+.pdp-full-coupon-item.applied {
+  border-style: solid;
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.coupon-code-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1c1917;
+}
+
+.coupon-desc-text {
+  font-size: 0.76rem;
+  color: #57534e;
+  margin: 2px 0 4px;
+}
+
+.coupon-min-tag {
+  font-size: 0.7rem;
+  color: #854d0e;
+  font-weight: 600;
+}
+
+.btn-coupon-list-apply {
+  background: #1c1917;
+  color: #d4af37;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-coupon-list-apply.btn-applied {
+  background: #16a34a;
+  color: #ffffff;
 }

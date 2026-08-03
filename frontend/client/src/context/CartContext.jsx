@@ -1,6 +1,15 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useAuth } from './AuthContext'
 import { API_ENDPOINTS } from '../config/api'
+import {
+  trackAddToCart,
+  trackRemoveFromCart,
+  trackAddToWishlist,
+  trackCouponApply,
+  trackCouponRemoved,
+  trackCouponInvalid,
+  trackCouponExpired
+} from '../utils/gtmEcommerce'
 
 export const CartContext = createContext()
 
@@ -35,6 +44,19 @@ export const CartProvider = ({ children }) => {
     }
   })
 
+  // Coupon state
+  const [appliedCoupon, setAppliedCoupon] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seemee-applied-coupon')
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
+  })
+  const [couponDiscount, setCouponDiscount] = useState(0)
+  const [isFreeShippingFromCoupon, setIsFreeShippingFromCoupon] = useState(false)
+  const [couponLoading, setCouponLoading] = useState(false)
+
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     try {
@@ -52,6 +74,117 @@ export const CartProvider = ({ children }) => {
       console.error('Error saving wishlist to localStorage:', error)
     }
   }, [wishlist])
+
+  // Auto-validate applied coupon when cart updates
+  useEffect(() => {
+    if (!appliedCoupon || !cart.length) {
+      if (appliedCoupon && !cart.length) {
+        removeCoupon(true)
+      }
+      return
+    }
+
+    const revalidate = async () => {
+      try {
+        const response = await fetch('/api/coupon/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: appliedCoupon.code,
+            cartItems: cart,
+            userId: user?._id || user?.email,
+            userEmail: user?.email
+          })
+        })
+        const data = await response.json()
+        if (data.success && data.data?.isValid) {
+          setCouponDiscount(data.data.discountAmount || 0)
+          setIsFreeShippingFromCoupon(data.data.isFreeShipping || false)
+        } else {
+          // Coupon no longer valid (e.g. minimum order not met after removing item)
+          try {
+            trackCouponInvalid({ coupon_code: appliedCoupon.code, reason: data.message })
+          } catch (e) {}
+          setAppliedCoupon(null)
+          setCouponDiscount(0)
+          setIsFreeShippingFromCoupon(false)
+          localStorage.removeItem('seemee-applied-coupon')
+        }
+      } catch (err) {
+        console.error('Error revalidating coupon:', err)
+      }
+    }
+
+    const timer = setTimeout(revalidate, 300)
+    return () => clearTimeout(timer)
+  }, [cart, user])
+
+  // Apply Coupon Method (Backend Validated)
+  const applyCoupon = async (code) => {
+    if (!code || !code.trim()) {
+      throw new Error('Please enter a coupon code.')
+    }
+    const cleanCode = code.trim().toUpperCase()
+    setCouponLoading(true)
+
+    try {
+      const response = await fetch('/api/coupon/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: cleanCode,
+          cartItems: cart,
+          userId: user?._id || user?.email,
+          userEmail: user?.email
+        })
+      })
+
+      const data = await response.json()
+
+      if (!data.success || !data.data?.isValid) {
+        const errMsg = data.message || 'Invalid coupon code.'
+        if (data.reason === 'EXPIRED') {
+          try { trackCouponExpired({ coupon_code: cleanCode }) } catch (e) {}
+        } else {
+          try { trackCouponInvalid({ coupon_code: cleanCode, reason: errMsg }) } catch (e) {}
+        }
+        throw new Error(errMsg)
+      }
+
+      const validCouponData = data.data.coupon
+      const discount = data.data.discountAmount || 0
+      const isFreeShip = data.data.isFreeShipping || false
+
+      setAppliedCoupon(validCouponData)
+      setCouponDiscount(discount)
+      setIsFreeShippingFromCoupon(isFreeShip)
+      localStorage.setItem('seemee-applied-coupon', JSON.stringify(validCouponData))
+
+      const cartVal = cart.reduce((sum, item) => sum + (Number(item.price) || 0) * (item.quantity || 1), 0)
+      try {
+        trackCouponApply({ coupon_code: cleanCode, discount, cart_value: cartVal })
+      } catch (e) {}
+
+      return data.data
+    } catch (err) {
+      throw err
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  // Remove Coupon Method
+  const removeCoupon = (silent = false) => {
+    if (appliedCoupon && !silent) {
+      try {
+        trackCouponRemoved({ coupon_code: appliedCoupon.code })
+      } catch (e) {}
+    }
+    setAppliedCoupon(null)
+    setCouponDiscount(0)
+    setIsFreeShippingFromCoupon(false)
+    localStorage.removeItem('seemee-applied-coupon')
+  }
 
   // Sync with backend on login / mount
   useEffect(() => {
@@ -126,6 +259,14 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     console.log('Adding product to cart:', product)
+    try {
+      const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
+      const productSize = product.selectedSize || product.size || defaultSize
+      trackAddToCart(product, product.quantity || 1, productSize)
+    } catch (e) {
+      console.error('GTM error in addToCart:', e)
+    }
+
     setCart(prevCart => {
       const productId = product.id || product._id
       const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
@@ -157,6 +298,19 @@ export const CartProvider = ({ children }) => {
   }
 
   const removeFromCart = (productId, size) => {
+    const targetItem = cart.find(item => {
+      const itemId = item.id || item._id
+      const itemSize = item.selectedSize || item.size || 'S'
+      return size ? (itemId === productId && itemSize === size) : (itemId === productId)
+    })
+    if (targetItem) {
+      try {
+        trackRemoveFromCart(targetItem, targetItem.quantity || 1)
+      } catch (e) {
+        console.error('GTM error in removeFromCart:', e)
+      }
+    }
+
     setCart(prevCart => prevCart.filter(item => {
       const itemId = item.id || item._id
       const itemSize = item.selectedSize || item.size || 'S'
@@ -185,6 +339,7 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([])
+    removeCoupon(true)
   }
 
   const getCartTotal = () => {
@@ -230,6 +385,9 @@ export const CartProvider = ({ children }) => {
       } else {
         newWishlist = [...prevWishlist, normalizedProduct]
         console.log('Added to wishlist:', product.name)
+        try {
+          trackAddToWishlist(product)
+        } catch (e) {}
       }
 
       console.log('New wishlist:', newWishlist)
@@ -261,7 +419,13 @@ export const CartProvider = ({ children }) => {
         wishlist,
         toggleWishlist,
         isInWishlist,
-        getWishlistCount
+        getWishlistCount,
+        appliedCoupon,
+        couponDiscount,
+        isFreeShippingFromCoupon,
+        couponLoading,
+        applyCoupon,
+        removeCoupon
       }}
     >
       {children}

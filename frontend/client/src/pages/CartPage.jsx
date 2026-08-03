@@ -7,17 +7,47 @@ import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
 import './CartPage.css'
 
 const CartPage = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart, toggleWishlist, isInWishlist } = useContext(CartContext)
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    toggleWishlist,
+    isInWishlist,
+    appliedCoupon,
+    couponDiscount,
+    isFreeShippingFromCoupon,
+    couponLoading,
+    applyCoupon,
+    removeCoupon
+  } = useContext(CartContext)
+
   const navigate = useNavigate()
 
   const [includeGiftWrap, setIncludeGiftWrap] = useState(false)
   const [promoCode, setPromoCode] = useState('')
-  const [discountPercent, setDiscountPercent] = useState(0)
-  const [appliedPromo, setAppliedPromo] = useState(null)
+  const [availableCoupons, setAvailableCoupons] = useState([])
   const [toastMessage, setToastMessage] = useState(null)
+  const [couponError, setCouponError] = useState(null)
 
   const FREE_SHIPPING_THRESHOLD = 5000
   const GIFT_WRAP_FEE = 250
+
+  useEffect(() => {
+    fetchAvailableCoupons()
+  }, [])
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      const res = await fetch('/api/coupon/available')
+      const data = await res.json()
+      if (data.success && Array.isArray(data.data)) {
+        setAvailableCoupons(data.data)
+      }
+    } catch (err) {
+      console.error('Error fetching available coupons:', err)
+    }
+  }
 
   const calculateSubtotal = () => {
     return cart.reduce((total, item) => {
@@ -34,11 +64,10 @@ const CartPage = () => {
   }
 
   const subtotal = calculateSubtotal()
-  const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD
-  const shippingFee = isFreeShipping ? 0 : 500
+  const isFreeShipping = true
+  const shippingFee = 0
   const giftWrapFee = includeGiftWrap ? GIFT_WRAP_FEE : 0
-  const discountAmount = Math.round((subtotal * discountPercent) / 100)
-  const grandTotal = Math.max(0, subtotal + shippingFee + giftWrapFee - discountAmount)
+  const grandTotal = Math.max(0, subtotal + shippingFee + giftWrapFee - couponDiscount)
 
   const shippingProgress = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)
   const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
@@ -48,29 +77,25 @@ const CartPage = () => {
     setTimeout(() => setToastMessage(null), 3500)
   }
 
-  const handleApplyPromo = (e) => {
-    e.preventDefault()
-    const code = promoCode.trim().toUpperCase()
-    if (!code) return
+  const handleApplyCouponCode = async (e, codeOverride) => {
+    if (e) e.preventDefault()
+    const targetCode = codeOverride || promoCode
+    setCouponError(null)
 
-    if (code === 'SEEMEE10' || code === 'WELCOME10') {
-      setDiscountPercent(10)
-      setAppliedPromo(code)
-      showToast(`✦ Promo code "${code}" applied! 10% discount added.`)
-    } else if (code === 'ROYAL15' || code === 'FESTIVE15') {
-      setDiscountPercent(15)
-      setAppliedPromo(code)
-      showToast(`✦ Royal promo code "${code}" applied! 15% discount added.`)
-    } else {
-      showToast('Invalid promo code. Try "SEEMEE10" or "ROYAL15"')
+    try {
+      const res = await applyCoupon(targetCode)
+      showToast(res.message || `✦ Coupon "${targetCode}" applied successfully! 🎉`)
+      setPromoCode('')
+    } catch (err) {
+      setCouponError(err.message || 'Failed to apply coupon')
+      showToast(`❌ ${err.message || 'Invalid Coupon'}`)
     }
   }
 
-  const handleRemovePromo = () => {
-    setDiscountPercent(0)
-    setAppliedPromo(null)
-    setPromoCode('')
-    showToast('Promo code removed')
+  const handleRemoveCoupon = () => {
+    removeCoupon()
+    setCouponError(null)
+    showToast('Coupon removed from shopping bag.')
   }
 
   useEffect(() => {
@@ -92,15 +117,15 @@ const CartPage = () => {
 
   const handleCheckout = () => {
     try {
-      trackBeginCheckout(cart, appliedPromo || '')
+      trackBeginCheckout(cart, appliedCoupon?.code || '')
     } catch (e) {
       console.error('GTM error in trackBeginCheckout:', e)
     }
     navigate('/checkout', {
       state: {
         giftWrap: includeGiftWrap,
-        promoCode: appliedPromo,
-        discountAmount
+        promoCode: appliedCoupon?.code || '',
+        discountAmount: couponDiscount || 0
       }
     })
   }
@@ -212,29 +237,7 @@ const CartPage = () => {
         </div>
       </header>
 
-      {/* Free Shipping Progress Indicator */}
-      <div className="free-shipping-bar-box">
-        <div className="shipping-progress-info">
-          {isFreeShipping ? (
-            <span className="unlocked-text">
-              ✨ <strong>Congratulations!</strong> You have unlocked <strong>Complimentary Express White-Glove Delivery</strong>.
-            </span>
-          ) : (
-            <span className="locked-text">
-              Add <strong>₹{remainingForFreeShipping.toLocaleString('en-IN')}</strong> more to unlock <strong>Complimentary White-Glove Shipping</strong>.
-            </span>
-          )}
-          <span className="threshold-val">Goal: ₹{FREE_SHIPPING_THRESHOLD.toLocaleString('en-IN')}</span>
-        </div>
-        <div className="shipping-progress-track">
-          <motion.div 
-            className="shipping-progress-fill" 
-            initial={{ width: 0 }}
-            animate={{ width: `${shippingProgress}%` }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-          />
-        </div>
-      </div>
+
 
       {/* Main 2-Column Grid */}
       <div className="cart-main-grid">
@@ -346,6 +349,36 @@ const CartPage = () => {
             </AnimatePresence>
           </div>
 
+          {/* Available Coupon Suggestions Widget */}
+          {availableCoupons.length > 0 && (
+            <div className="coupon-suggestions-widget">
+              <div className="suggestions-header">
+                <span className="sparkle-icon">🎁</span>
+                <h4>AVAILABLE ATELIER COUPONS</h4>
+              </div>
+              <div className="suggestions-list">
+                {availableCoupons.map(c => {
+                  const isApplied = appliedCoupon?.code === c.code
+                  return (
+                    <div key={c._id || c.code} className={`coupon-suggestion-card ${isApplied ? 'applied' : ''}`}>
+                      <div className="coupon-card-left">
+                        <span className="coupon-code-badge">✦ {c.code}</span>
+                        <p className="coupon-card-desc">{c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`}</p>
+                      </div>
+                      <button 
+                        className={`btn-apply-suggestion ${isApplied ? 'btn-applied' : ''}`}
+                        onClick={() => handleApplyCouponCode(null, c.code)}
+                        disabled={couponLoading || isApplied}
+                      >
+                        {isApplied ? 'Applied ✓' : 'Apply'}
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Bottom Actions Row */}
           <div className="cart-bottom-actions-row">
             <button className="btn-continue-exploring" onClick={handleContinueShopping}>
@@ -392,29 +425,48 @@ const CartPage = () => {
                 </label>
               </div>
 
-              {/* Promo Code Input Box */}
+              {/* Coupon Code Input & Applied State Box */}
               <div className="promo-code-box">
-                <form onSubmit={handleApplyPromo} className="promo-input-row">
-                  <input
-                    type="text"
-                    placeholder="Enter Promo Code (e.g. SEEMEE10)"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                  />
-                  <button type="submit" className="btn-apply-promo">Apply</button>
-                </form>
-                {appliedPromo && (
-                  <div className="applied-promo-chip">
-                    <span>Discount ({appliedPromo}): -₹{discountAmount.toLocaleString('en-IN')}</span>
-                    <button onClick={handleRemovePromo}>✕</button>
+                {appliedCoupon ? (
+                  <div className="applied-coupon-card">
+                    <div className="applied-coupon-info">
+                      <span className="applied-coupon-title">✦ {appliedCoupon.code} APPLIED</span>
+                      <span className="applied-coupon-savings">Savings: ₹{couponDiscount.toLocaleString('en-IN')}</span>
+                    </div>
+                    <button className="btn-remove-coupon-x" onClick={handleRemoveCoupon} title="Remove Coupon">
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleApplyCouponCode} className="promo-input-row">
+                    <input
+                      type="text"
+                      placeholder="Enter Coupon Code (e.g. WELCOME10)"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      disabled={couponLoading}
+                    />
+                    <button 
+                      type="submit" 
+                      className="btn-apply-promo"
+                      disabled={couponLoading || !promoCode.trim()}
+                    >
+                      {couponLoading ? 'Validating...' : 'Apply'}
+                    </button>
+                  </form>
+                )}
+
+                {couponError && (
+                  <div className="coupon-error-banner">
+                    <span>⚠️ {couponError}</span>
                   </div>
                 )}
               </div>
 
-              {discountAmount > 0 && (
+              {couponDiscount > 0 && (
                 <div className="financial-row discount-row">
-                  <span>Promo Discount ({appliedPromo})</span>
-                  <span className="row-val discount-val">-₹{discountAmount.toLocaleString('en-IN')}</span>
+                  <span>Coupon Savings ({appliedCoupon?.code})</span>
+                  <span className="row-val discount-val">-₹{couponDiscount.toLocaleString('en-IN')}</span>
                 </div>
               )}
             </div>

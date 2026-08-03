@@ -16,6 +16,7 @@ import ActivityManager from '../components/ActivityManager'
 import HeroCarouselManager from '../components/HeroCarouselManager'
 import MagazineManager from '../components/MagazineManager'
 import ReelsManager from '../components/ReelsManager'
+import CouponsManager from '../components/CouponsManager'
 import { isAdminSessionValid } from '../utils/apiClient'
 
 const AdminDashboard = () => {
@@ -243,6 +244,10 @@ const AdminDashboard = () => {
           <button className={activeTab === 'reels' ? 'active' : ''} onClick={() => handleTabClick('reels')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
             <span>Catalog Reels</span>
+          </button>
+          <button className={activeTab === 'coupons' ? 'active' : ''} onClick={() => handleTabClick('coupons')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+            <span>Coupons & Offers</span>
           </button>
 
           <button className="logout-btn" onClick={handleLogout}>
@@ -552,6 +557,12 @@ const AdminDashboard = () => {
         {visitedTabs.has('reels') && (
           <div style={{ display: activeTab === 'reels' ? 'block' : 'none' }}>
             <ReelsManager />
+          </div>
+        )}
+
+        {visitedTabs.has('coupons') && (
+          <div style={{ display: activeTab === 'coupons' ? 'block' : 'none' }}>
+            <CouponsManager />
           </div>
         )}
       </main>

@@ -914,3 +914,148 @@
   border-color: var(--cart-gold);
   color: var(--cart-dark-gold);
 }
+
+/* ── Coupon Suggestions Widget ────────────────────────────────────── */
+.coupon-suggestions-widget {
+  background: #ffffff;
+  border: 1px solid var(--cart-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-top: 24px;
+  box-shadow: var(--cart-shadow);
+}
+
+.suggestions-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.suggestions-header h4 {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.78rem;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: var(--cart-dark-gold);
+  margin: 0;
+}
+
+.suggestions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.coupon-suggestion-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--cart-light-bg);
+  border: 1px dashed var(--cart-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  transition: all 0.2s ease;
+}
+
+.coupon-suggestion-card:hover {
+  border-color: var(--cart-gold);
+  background: #fefce8;
+}
+
+.coupon-suggestion-card.applied {
+  border-style: solid;
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.coupon-code-badge {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--cart-charcoal);
+  display: block;
+}
+
+.coupon-card-desc {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.72rem;
+  color: #78716c;
+  margin: 2px 0 0;
+  line-height: 1.3;
+}
+
+.btn-apply-suggestion {
+  background: var(--cart-charcoal);
+  color: var(--cart-gold);
+  border: none;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.btn-apply-suggestion:hover:not(:disabled) {
+  background: #000000;
+  transform: scale(1.04);
+}
+
+.btn-apply-suggestion.btn-applied {
+  background: #16a34a;
+  color: #ffffff;
+  cursor: default;
+}
+
+/* ── Applied Coupon Card in Summary Sidebar ────────────────────────── */
+.applied-coupon-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.applied-coupon-title {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #15803d;
+  display: block;
+}
+
+.applied-coupon-savings {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.75rem;
+  color: #166534;
+}
+
+.btn-remove-coupon-x {
+  background: transparent;
+  border: none;
+  color: #15803d;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color 0.2s ease;
+}
+
+.btn-remove-coupon-x:hover {
+  color: #dc2626;
+}
+
+.coupon-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.76rem;
+  color: #991b1b;
+}

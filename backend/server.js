@@ -21,6 +21,8 @@ import siteSettingsRoutes from './routes/siteSettings.js'
 import adminRoutes from './routes/admin.js'
 import userRoutes from './routes/users.js'
 import reelRoutes from './routes/reels.js'
+import couponRoutes from './routes/coupons.js'
+import adminCouponRoutes from './routes/adminCoupons.js'
 
 // Security Middlewares
 import helmet from 'helmet'
@@ -154,6 +156,8 @@ app.use('/api/site-settings', siteSettingsRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/reels', reelRoutes)
+app.use('/api/coupon', couponRoutes)
+app.use('/api/admin/coupons', adminCouponRoutes)
 
 // ─── 404 HANDLER ───────────────────────────────────────
 app.use('/api/*', (req, res) => {

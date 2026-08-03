@@ -9,10 +9,20 @@ import { trackViewItem } from '../utils/gtmEcommerce'
 import './ProductPage.css'
 
 const ProductPage = () => {
+  const {
+    addToCart,
+    toggleWishlist,
+    isInWishlist,
+    appliedCoupon,
+    couponDiscount,
+    applyCoupon,
+    removeCoupon,
+    couponLoading
+  } = useContext(CartContext)
+
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
 
   const passedProduct = location.state?.product && (location.state.product._id === id || location.state.product.id === id)
     ? location.state.product
@@ -27,6 +37,26 @@ const ProductPage = () => {
   const [selectedColor, setSelectedColor] = useState('Royal Gold')
   const [offersOpen, setOffersOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
+  const [availableCoupons, setAvailableCoupons] = useState([])
+  const [pdpCouponCode, setPdpCouponCode] = useState('')
+  const [pdpCouponError, setPdpCouponError] = useState(null)
+  const [showCouponModal, setShowCouponModal] = useState(false)
+
+  useEffect(() => {
+    fetchAvailableCoupons()
+  }, [])
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      const res = await fetch('/api/coupon/available')
+      const data = await res.json()
+      if (data.success && Array.isArray(data.data)) {
+        setAvailableCoupons(data.data)
+      }
+    } catch (err) {
+      console.error('Error fetching available coupons:', err)
+    }
+  }
 
   const [selectedSize, setSelectedSize] = useState(() => {
     if (passedProduct) {
@@ -188,19 +218,43 @@ const ProductPage = () => {
 
   const mainImageUrl = getImageUrl(product.images?.[selectedImage] || product.image)
 
+  const handleApplyPdpCoupon = async (e, codeOverride) => {
+    if (e) e.preventDefault()
+    const targetCode = codeOverride || pdpCouponCode
+    if (!targetCode) return
+    setPdpCouponError(null)
+
+    // Ensure item is added to cart
+    addToCart({
+      ...product,
+      selectedSize,
+      quantity
+    })
+
+    try {
+      const res = await applyCoupon(targetCode)
+      setAddedToast(true)
+      setTimeout(() => setAddedToast(false), 3500)
+      setPdpCouponCode('')
+      setShowCouponModal(false)
+    } catch (err) {
+      setPdpCouponError(err.message || 'Invalid coupon code')
+    }
+  }
+
   return (
-    <div className="modern-product-page">
+    <div className="product-page-wrapper">
       {/* Toast Notification */}
       <AnimatePresence>
         {addedToast && (
-          <motion.div
-            className="cart-toast-banner"
-            initial={{ opacity: 0, y: -50, x: '-50%' }}
+          <motion.div 
+            className="cart-added-toast"
+            initial={{ opacity: 0, y: -40, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
-            exit={{ opacity: 0, y: -50, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
           >
-            <span>✦ Added {quantity} &times; {product.name} ({selectedSize}) to Bag</span>
-            <button onClick={() => navigate('/cart')}>View Bag</button>
+            <span>✦ Added to your Shopping Bag!</span>
+            <Link to="/cart" className="toast-cart-link">View Bag & Checkout →</Link>
           </motion.div>
         )}
       </AnimatePresence>
@@ -306,6 +360,35 @@ const ProductPage = () => {
                 <div className="savings-highlight">
                   You save ₹{savingsAmount.toLocaleString('en-IN')}.00 &ndash; {discountPercent}% off
                 </div>
+              )}
+            </div>
+
+            {/* Available Atelier Offers & Coupon Trigger Box */}
+            <div className="pdp-coupon-widget">
+              {appliedCoupon ? (
+                <div className="pdp-applied-coupon-card">
+                  <div className="pdp-applied-info">
+                    <span className="pdp-applied-code">✦ {appliedCoupon.code} APPLIED</span>
+                    <span className="pdp-applied-sub">Savings: ₹{couponDiscount.toLocaleString('en-IN')} off your order</span>
+                  </div>
+                  <button className="btn-pdp-remove-coupon" onClick={() => removeCoupon()}>
+                    Remove ✕
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  className="btn-open-coupon-modal-trigger"
+                  onClick={() => setShowCouponModal(true)}
+                >
+                  <div className="trigger-left">
+                    <span className="sparkle-icon">🎁</span>
+                    <div className="trigger-text">
+                      <span className="trigger-title">APPLY COUPON & OFFERS</span>
+                      <span className="trigger-sub">View all {availableCoupons.length || 'available'} Atelier promotional discounts</span>
+                    </div>
+                  </div>
+                  <span className="trigger-arrow">View All Offers ❯</span>
+                </button>
               )}
             </div>
 
@@ -596,6 +679,89 @@ const ProductPage = () => {
                     <tr><td>XXL</td><td>{sizeUnit === 'in' ? '42"' : '106 cm'}</td><td>{sizeUnit === 'in' ? '36"' : '91 cm'}</td><td>{sizeUnit === 'in' ? '46"' : '116 cm'}</td></tr>
                   </tbody>
                 </table>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ALL AVAILABLE COUPONS MODAL POPUP */}
+      <AnimatePresence>
+        {showCouponModal && (
+          <div className="pdp-modal-overlay" onClick={() => setShowCouponModal(false)}>
+            <motion.div
+              className="pdp-modal-card"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+            >
+              <div className="pdp-modal-header">
+                <div>
+                  <span className="pdp-modal-sparkle">🎁 ATELIER PROMOTIONS</span>
+                  <h3>All Available Coupons & Offers</h3>
+                </div>
+                <button className="btn-modal-close" onClick={() => setShowCouponModal(false)}>✕</button>
+              </div>
+
+              <div className="pdp-modal-body">
+                {/* Enter Custom Promo Code Box */}
+                <form onSubmit={handleApplyPdpCoupon} className="pdp-modal-coupon-form">
+                  <input
+                    type="text"
+                    placeholder="Enter Coupon Code (e.g. WELCOME10)"
+                    value={pdpCouponCode}
+                    onChange={(e) => setPdpCouponCode(e.target.value.toUpperCase())}
+                    disabled={couponLoading}
+                  />
+                  <button
+                    type="submit"
+                    className="btn-modal-apply-submit"
+                    disabled={couponLoading || !pdpCouponCode.trim()}
+                  >
+                    {couponLoading ? 'Validating...' : 'Apply Code'}
+                  </button>
+                </form>
+
+                {pdpCouponError && (
+                  <div className="pdp-modal-error">
+                    ⚠️ {pdpCouponError}
+                  </div>
+                )}
+
+                {/* List of ALL Available Coupons */}
+                <div className="pdp-coupons-all-list">
+                  <h4 className="list-section-title">SELECT A COUPON TO APPLY ({availableCoupons.length})</h4>
+
+                  {availableCoupons.length === 0 ? (
+                    <div className="pdp-no-coupons">
+                      <p>No special promotions available at this moment.</p>
+                    </div>
+                  ) : (
+                    availableCoupons.map(c => {
+                      const isApplied = appliedCoupon?.code === c.code
+                      return (
+                        <div key={c._id || c.code} className={`pdp-full-coupon-item ${isApplied ? 'applied' : ''}`}>
+                          <div className="item-left-info">
+                            <span className="coupon-code-badge">✦ {c.code}</span>
+                            <p className="coupon-desc-text">{c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`}</p>
+                            {c.minimumOrder > 0 && (
+                              <span className="coupon-min-tag">Min. Order: ₹{c.minimumOrder.toLocaleString('en-IN')}</span>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            className={`btn-coupon-list-apply ${isApplied ? 'btn-applied' : ''}`}
+                            onClick={(e) => handleApplyPdpCoupon(e, c.code)}
+                            disabled={couponLoading || isApplied}
+                          >
+                            {isApplied ? 'Applied ✓' : 'Apply'}
+                          </button>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
               </div>
             </motion.div>
           </div>

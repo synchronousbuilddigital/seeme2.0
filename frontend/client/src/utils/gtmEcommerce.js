@@ -235,3 +235,37 @@ export const trackRefund = (order) => {
     },
   });
 };
+
+// ============================================================
+// 13. Coupon Events — coupon_apply, coupon_removed, coupon_invalid, coupon_expired
+// ============================================================
+export const trackCouponApply = ({ coupon_code, discount = 0, cart_value = 0 }) => {
+  pushToDataLayer({
+    event: "coupon_apply",
+    coupon_code: String(coupon_code),
+    discount: Number(discount),
+    cart_value: Number(cart_value)
+  });
+};
+
+export const trackCouponRemoved = ({ coupon_code }) => {
+  pushToDataLayer({
+    event: "coupon_removed",
+    coupon_code: String(coupon_code)
+  });
+};
+
+export const trackCouponInvalid = ({ coupon_code, reason = "" }) => {
+  pushToDataLayer({
+    event: "coupon_invalid",
+    coupon_code: String(coupon_code),
+    reason: String(reason)
+  });
+};
+
+export const trackCouponExpired = ({ coupon_code }) => {
+  pushToDataLayer({
+    event: "coupon_expired",
+    coupon_code: String(coupon_code)
+  });
+};

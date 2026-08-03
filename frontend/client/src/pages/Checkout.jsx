@@ -9,7 +9,15 @@ import { trackAddShippingInfo, trackAddPaymentInfo, trackPurchase } from '../uti
 import './Checkout.css'
 
 const Checkout = () => {
-  const { cart, getCartTotal, clearCart } = useContext(CartContext)
+  const {
+    cart,
+    getCartTotal,
+    clearCart,
+    appliedCoupon,
+    couponDiscount,
+    isFreeShippingFromCoupon,
+    removeCoupon
+  } = useContext(CartContext)
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const { user, token } = useAuth()
@@ -60,23 +68,28 @@ const Checkout = () => {
     }
   }
 
-  const handleAddressSelect = (addr) => {
-    setSelectedAddressId(addr._id)
+  const handleAddressSelect = (address) => {
+    setSelectedAddressId(address._id)
     setFormData(prev => ({
       ...prev,
-      street: addr.street || '',
-      city: addr.city || '',
-      state: addr.state || '',
-      pincode: addr.pincode || ''
+      name: address.name || prev.name,
+      phone: address.phone || prev.phone,
+      street: address.street || '',
+      city: address.city || '',
+      state: address.state || '',
+      pincode: address.pincode || ''
     }))
   }
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }))
   }
+
+  const handleChange = handleInputChange
 
   const calculateSubtotal = () => {
     return cart.reduce((total, item) => {
@@ -93,12 +106,13 @@ const Checkout = () => {
   }
 
   const calculateShipping = () => {
-    return 500
+    return 0
   }
 
   const calculateTotal = () => {
     let total = calculateSubtotal() + calculateShipping()
     if (formData.giftWrap) total += 250
+    total = Math.max(0, total - couponDiscount)
     return total
   }
 
@@ -276,7 +290,9 @@ const Checkout = () => {
         }
       }),
       totalAmount: calculateTotal(),
-      paymentMethod: formData.paymentMethod
+      paymentMethod: formData.paymentMethod,
+      couponCode: appliedCoupon?.code || null,
+      couponDiscount: couponDiscount || 0
     }
 
     if (formData.paymentMethod === 'online') {
