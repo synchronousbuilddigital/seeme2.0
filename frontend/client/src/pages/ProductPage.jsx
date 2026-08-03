@@ -49,6 +49,8 @@ const ProductPage = () => {
   const fetchAvailableCoupons = async () => {
     try {
       const res = await fetch('/api/coupon/available')
+      const contentType = res.headers.get('content-type') || ''
+      if (!res.ok || !contentType.includes('application/json')) return
       const data = await res.json()
       if (data.success && Array.isArray(data.data)) {
         setAvailableCoupons(data.data)

@@ -42,6 +42,16 @@ const CouponsManager = () => {
     setTimeout(() => setToast(null), 3500)
   }
 
+  const safeJsonFetch = async (url, options = {}) => {
+    const res = await fetch(url, options)
+    const contentType = res.headers.get('content-type') || ''
+    if (!contentType.includes('application/json')) {
+      const text = await res.text()
+      throw new Error(`Invalid response format from server (${res.status})`)
+    }
+    return res.json()
+  }
+
   const fetchCoupons = async () => {
     try {
       setLoading(true)
@@ -50,16 +60,17 @@ const CouponsManager = () => {
         status: statusFilter
       }).toString()
 
-      const res = await fetch(`/api/admin/coupons?${query}`, {
+      const data = await safeJsonFetch(`/api/admin/coupons?${query}`, {
         headers: withAuthHeader()
       })
-      const data = await res.json()
       if (data.success && Array.isArray(data.data)) {
         setCoupons(data.data)
+      } else if (data.message) {
+        showToast(data.message, 'error')
       }
     } catch (err) {
       console.error('Error fetching coupons:', err)
-      showToast('Failed to load coupons', 'error')
+      showToast(err.message || 'Failed to load coupons', 'error')
     } finally {
       setLoading(false)
     }
@@ -95,51 +106,54 @@ const CouponsManager = () => {
 
   const handleToggleStatus = async (coupon) => {
     try {
-      const res = await fetch(`/api/admin/coupons/${coupon._id}/status`, {
+      const data = await safeJsonFetch(`/api/admin/coupons/${coupon._id}/status`, {
         method: 'PATCH',
         headers: withAuthHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ isActive: !coupon.isActive })
       })
-      const data = await res.json()
       if (data.success) {
         showToast(data.message || 'Status updated')
         fetchCoupons()
+      } else {
+        showToast(data.message || 'Error updating status', 'error')
       }
     } catch (err) {
-      showToast('Error toggling status', 'error')
+      showToast(err.message || 'Error toggling status', 'error')
     }
   }
 
   const handleDuplicate = async (couponId) => {
     try {
-      const res = await fetch(`/api/admin/coupons/${couponId}/duplicate`, {
+      const data = await safeJsonFetch(`/api/admin/coupons/${couponId}/duplicate`, {
         method: 'POST',
         headers: withAuthHeader()
       })
-      const data = await res.json()
       if (data.success) {
         showToast(data.message || 'Coupon duplicated')
         fetchCoupons()
+      } else {
+        showToast(data.message || 'Error duplicating coupon', 'error')
       }
     } catch (err) {
-      showToast('Error duplicating coupon', 'error')
+      showToast(err.message || 'Error duplicating coupon', 'error')
     }
   }
 
   const handleDelete = async (couponId, code) => {
     if (!window.confirm(`Are you sure you want to delete coupon "${code}"?`)) return
     try {
-      const res = await fetch(`/api/admin/coupons/${couponId}`, {
+      const data = await safeJsonFetch(`/api/admin/coupons/${couponId}`, {
         method: 'DELETE',
         headers: withAuthHeader()
       })
-      const data = await res.json()
       if (data.success) {
         showToast(data.message || 'Coupon deleted')
         fetchCoupons()
+      } else {
+        showToast(data.message || 'Error deleting coupon', 'error')
       }
     } catch (err) {
-      showToast('Error deleting coupon', 'error')
+      showToast(err.message || 'Error deleting coupon', 'error')
     }
   }
 
@@ -168,13 +182,12 @@ const CouponsManager = () => {
       const url = editingCoupon ? `/api/admin/coupons/${editingCoupon._id}` : '/api/admin/coupons'
       const method = editingCoupon ? 'PUT' : 'POST'
 
-      const res = await fetch(url, {
+      const data = await safeJsonFetch(url, {
         method,
         headers: withAuthHeader({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload)
       })
 
-      const data = await res.json()
       if (data.success) {
         showToast(data.message || 'Saved successfully!')
         setIsModalOpen(false)
@@ -183,7 +196,7 @@ const CouponsManager = () => {
         showToast(data.message || 'Save failed', 'error')
       }
     } catch (err) {
-      showToast('Error saving coupon', 'error')
+      showToast(err.message || 'Error saving coupon', 'error')
     }
   }
 

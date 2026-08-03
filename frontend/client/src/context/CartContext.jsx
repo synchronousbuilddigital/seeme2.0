@@ -96,6 +96,8 @@ export const CartProvider = ({ children }) => {
             userEmail: user?.email
           })
         })
+        const contentType = response.headers.get('content-type') || ''
+        if (!contentType.includes('application/json')) return
         const data = await response.json()
         if (data.success && data.data?.isValid) {
           setCouponDiscount(data.data.discountAmount || 0)
@@ -138,6 +140,11 @@ export const CartProvider = ({ children }) => {
           userEmail: user?.email
         })
       })
+
+      const contentType = response.headers.get('content-type') || ''
+      if (!contentType.includes('application/json')) {
+        throw new Error('Server error: invalid response format. Please try again.')
+      }
 
       const data = await response.json()
 

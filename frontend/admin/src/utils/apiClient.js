@@ -1,8 +1,13 @@
 const parseResponsePayload = async (response) => {
+  const contentType = response.headers.get('content-type') || ''
   const text = await response.text()
 
   if (!text) {
     return {}
+  }
+
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Server returned an invalid response format (${response.status})`)
   }
 
   try {
