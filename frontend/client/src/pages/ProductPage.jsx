@@ -5,6 +5,7 @@ import { CartContext } from '../context/CartContext'
 import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
+import { trackViewItem } from '../utils/gtmEcommerce'
 import './ProductPage.css'
 
 const ProductPage = () => {
@@ -48,6 +49,16 @@ const ProductPage = () => {
     fetchProduct()
     window.scrollTo(0, 0)
   }, [id])
+
+  useEffect(() => {
+    if (product) {
+      try {
+        trackViewItem(product)
+      } catch (e) {
+        console.error('GTM error in trackViewItem:', e)
+      }
+    }
+  }, [product?._id || product?.id])
 
   const fetchProduct = async () => {
     if (!product) {
@@ -131,7 +142,7 @@ const ProductPage = () => {
         title: product?.name,
         text: `Check out ${product?.name} on SEEMEE Haute Couture`,
         url: window.location.href,
-      }).catch(() => {})
+      }).catch(() => { })
     } else {
       navigator.clipboard.writeText(window.location.href)
       alert('Product link copied to clipboard!')
@@ -270,7 +281,7 @@ const ProductPage = () => {
                   title="Add to Wishlist"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                   </svg>
                 </button>
               </div>
@@ -414,14 +425,6 @@ const ProductPage = () => {
                 ) : (
                   <p className="tab-empty-text">No description specified for this item.</p>
                 )}
-                {product.tags && product.tags.length > 0 && (
-                  <div className="tab-tags-group">
-                    <strong>Style Tags:</strong>
-                    {product.tags.map((t, i) => (
-                      <span key={i} className="tab-tag-chip">#{t}</span>
-                    ))}
-                  </div>
-                )}
               </div>
             )}
 
@@ -469,12 +472,6 @@ const ProductPage = () => {
                       <tr>
                         <td>Brand</td>
                         <td>{product.brand}</td>
-                      </tr>
-                    )}
-                    {(product.styleCode || product.sku) && (
-                      <tr>
-                        <td>Style Code / SKU</td>
-                        <td>{product.styleCode || product.sku}</td>
                       </tr>
                     )}
                     {(product.fabric || product.material) && (

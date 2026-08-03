@@ -60,6 +60,8 @@ export const searchProducts = async (queryParams) => {
       { shortDescription: searchRegex },
       { category: searchRegex },
       { subcategory: searchRegex },
+      { styleCode: searchRegex },
+      { sku: searchRegex },
       { tags: searchRegex }
     ]
   }

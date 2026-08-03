@@ -6,6 +6,7 @@ import { getImageUrl, getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { isProductInCategory, getCategoryProducts } from '../utils/categoryHelper'
+import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import './CategoryPage.css'
 
 const CategoryPage = () => {
@@ -192,6 +193,16 @@ const CategoryPage = () => {
 
     return result
   }, [products, searchQuery, priceFilter, selectedSizes, sortBy])
+
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      try {
+        trackViewItemList(filteredProducts, categoryName || 'Category', categoryName || 'category')
+      } catch (e) {
+        console.error('GTM error in trackViewItemList:', e)
+      }
+    }
+  }, [filteredProducts.length, categoryName])
 
   const toggleSizeFilter = (size) => {
     setSelectedSizes(prev =>

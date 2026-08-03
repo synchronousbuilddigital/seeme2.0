@@ -15,6 +15,7 @@ import PaymentsManager from '../components/PaymentsManager'
 import ActivityManager from '../components/ActivityManager'
 import HeroCarouselManager from '../components/HeroCarouselManager'
 import MagazineManager from '../components/MagazineManager'
+import ReelsManager from '../components/ReelsManager'
 import { isAdminSessionValid } from '../utils/apiClient'
 
 const AdminDashboard = () => {
@@ -239,6 +240,10 @@ const AdminDashboard = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             <span>Magazine Booklet</span>
           </button>
+          <button className={activeTab === 'reels' ? 'active' : ''} onClick={() => handleTabClick('reels')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+            <span>Catalog Reels</span>
+          </button>
 
           <button className="logout-btn" onClick={handleLogout}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -261,6 +266,7 @@ const AdminDashboard = () => {
                 {activeTab === 'categories' && 'Category Slides'}
                 {activeTab === 'hero' && 'Hero Carousel'}
                 {activeTab === 'magazine' && 'Magazine Booklet'}
+                {activeTab === 'reels' && 'Catalog Reels Studio'}
               </h1>
             </div>
 
@@ -540,6 +546,12 @@ const AdminDashboard = () => {
         {visitedTabs.has('magazine') && (
           <div style={{ display: activeTab === 'magazine' ? 'block' : 'none' }}>
             <MagazineManager />
+          </div>
+        )}
+
+        {visitedTabs.has('reels') && (
+          <div style={{ display: activeTab === 'reels' ? 'block' : 'none' }}>
+            <ReelsManager />
           </div>
         )}
       </main>

@@ -59,6 +59,10 @@ export const API_ENDPOINTS = {
   MAGAZINE:     `${API_BASE_URL}/api/magazine`,
   MAGAZINE_ALL: `${API_BASE_URL}/api/magazine/all`,
 
+  // ─── Reels Catalog ─────────────────────────────
+  REELS:        `${API_BASE_URL}/api/reels`,
+  REELS_ALL:    `${API_BASE_URL}/api/reels/all`,
+
   // ─── New Arrivals ──────────────────────────────
   NEW_ARRIVALS: `${API_BASE_URL}/api/new-arrivals`,
 

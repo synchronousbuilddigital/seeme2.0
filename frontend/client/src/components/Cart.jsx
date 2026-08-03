@@ -1,15 +1,29 @@
-import { useContext } from 'react'
+import { useContext, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
 import './Cart.css'
 
 const Cart = ({ isOpen, onClose }) => {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useContext(CartContext)
   const navigate = useNavigate()
 
+  useEffect(() => {
+    if (isOpen && cart.length > 0) {
+      try {
+        trackViewCart(cart)
+      } catch (e) {
+        console.error('GTM error in trackViewCart:', e)
+      }
+    }
+  }, [isOpen, cart.length])
+
   const handleCheckout = () => {
+    try {
+      trackBeginCheckout(cart)
+    } catch (e) {}
     onClose()
     navigate('/checkout')
   }

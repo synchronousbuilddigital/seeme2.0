@@ -228,6 +228,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           </div>
 
           <button onClick={() => handleNavigation('/collections')} className="nav-item">Shop</button>
+          <button onClick={() => handleNavigation('/catalog')} className="nav-item highlight-catalog">✦ Catalog</button>
           <button onClick={() => handleNavigation('/fabrics')} className="nav-item">Fabrics</button>
           <button onClick={() => handleNavigation('/magazine')} className="nav-item">Magazine</button>
           <button onClick={() => handleNavigation('/about')} className="nav-item">About</button>
@@ -431,6 +432,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           </div>
 
           <button onClick={() => handleNavigation('/collections')}>Shop</button>
+          <button onClick={() => handleNavigation('/catalog')} className="mobile-catalog-btn">✦ Catalog Reels</button>
           <button onClick={() => handleNavigation('/fabrics')}>Fabrics</button>
           <button onClick={() => handleNavigation('/magazine')}>Magazine</button>
           <button onClick={() => handleNavigation('/about')}>About</button>

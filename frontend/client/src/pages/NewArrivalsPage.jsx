@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import './NewArrivalsPage.css'
 
 const NewArrivalsPage = () => {
@@ -44,6 +45,9 @@ const NewArrivalsPage = () => {
           mrp: item.mrp || item.discountPrice || item.originalPrice
         }))
         setArrivals(transformedArrivals)
+        try {
+          trackViewItemList(transformedArrivals, 'New Arrivals', 'new_arrivals')
+        } catch (e) {}
       }
     } catch (error) {
       console.error('Error fetching arrivals:', error)

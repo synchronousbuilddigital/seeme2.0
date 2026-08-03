@@ -39,44 +39,6 @@ const startEagerFetches = () => {
 // Start prefetching immediately upon JS loading
 startEagerFetches()
 
-const FALLBACK_SLIDES = [
-  {
-    image: '/images/home-hero.png',
-    title: 'Dressing is nothing but a Choice',
-    subtitle: 'Fashion is a form of self-expression and autonomy.',
-    description: 'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
-    category: 'Signature'
-  },
-  {
-    image: '/images/hero/sharara_festive.png',
-    title: 'Everyday Occasion Edit Elegance',
-    subtitle: 'Clean lines, rich fabrics, and a highly polished contemporary finish.',
-    description: 'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
-    category: 'Curated'
-  },
-  {
-    image: '/images/ruby_bridal_sharara.png',
-    title: 'Wedding Season Highlights Grandeur',
-    subtitle: 'Premium hand-crafted luxury dressing with a refined royal feel.',
-    description: 'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.',
-    category: 'Featured'
-  },
-  {
-    image: '/images/magazine/banarasi_silk_loom.png',
-    title: 'Woven Tales of Ancient Loom',
-    subtitle: 'Authentic handloom Banarasi silk crafted by seventh-generation master weavers.',
-    description: 'Every thread holds a centuries-old story of craftsmanship, intricately interlaced with pure gold zari and raw mulberry silk to create heirlooms for generations to come.',
-    category: 'Handloom'
-  },
-  {
-    image: '/images/magazine/weight_of_velvet.png',
-    title: 'Regal Weight of Velvet Majesty',
-    subtitle: 'Luxurious thick velvets adorned with delicate micro-pearl embellishments.',
-    description: 'Designed to drape like liquid gold, this collection features deep gemstone colors paired with traditional dabka hand-embroidery, ideal for royal winter soirées.',
-    category: 'Prestige'
-  }
-]
-
 const getCategorySlugStr = (cat) => {
   if (!cat) return ''
   if (typeof cat === 'string') return cat
@@ -123,24 +85,25 @@ const getCategoryType = (slug) => {
 const Hero = () => {
   const navigate = useNavigate()
 
-  // Initialize slides state from local storage cache to avoid blank states/flashing
+  // Initialize slides state from local storage cache (filtering out old hardcoded paths)
   const [slides, setSlides] = useState(() => {
     try {
       const cached = localStorage.getItem('seemee_carousel_slides')
       if (cached) {
         const parsed = JSON.parse(cached)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed
+          const filtered = parsed.filter(item => item.image && !item.image.startsWith('/images/'))
+          if (filtered.length > 0) return filtered
         }
       }
     } catch (e) {
       console.error('Error parsing cached slides:', e)
     }
-    return FALLBACK_SLIDES.slice(0, 5)
+    return []
   })
 
   const [activeIndex, setActiveIndex] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(slides.length === 0)
   const [isMobile, setIsMobile] = useState(false)
   // Initialize categories state from local storage cache to avoid blank states/flashing
   const [categories, setCategories] = useState(() => {
@@ -177,7 +140,7 @@ const Hero = () => {
   const [typedTitle, setTypedTitle] = useState('')
 
   const getCategoryDisplayImage = (catInput) => {
-    if (!catInput) return 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+    if (!catInput) return ''
 
     // 1. If catInput is a Category Slide object with an image, prioritize it!
     if (typeof catInput === 'object' && catInput.image) {
@@ -185,7 +148,7 @@ const Hero = () => {
     }
 
     const slug = getCategorySlugStr(catInput)
-    if (!slug) return 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+    if (!slug) return ''
     const s = slug.toLowerCase().trim()
     const norm = normalizeCategoryKey(slug)
 
@@ -199,15 +162,12 @@ const Hero = () => {
       return getOptimizedImageUrl(categoryImages[partialKey], 'circle')
     }
 
-    // 4. Fallback to product images list or Cloudinary category images
+    // 4. Fallback to product images pool from DB
     const pool = (Array.isArray(categoryImages._allImages) && categoryImages._allImages.length > 0)
       ? categoryImages._allImages
-      : [
-        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png',
-        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632901/seemee/images/tcyazxhcnmthagympc9u.png',
-        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779632879/seemee/images/vb6uwnjxl3i9djqhppwp.png',
-        'https://res.cloudinary.com/dnuucbhwa/image/upload/v1778901116/seemee/images/r1e8mmn3an4kdfr9lhbh.jpg'
-      ]
+      : []
+
+    if (pool.length === 0) return ''
 
     let hash = 0
     for (let i = 0; i < s.length; i++) hash = (hash << 5) - hash + s.charCodeAt(i)
@@ -375,20 +335,22 @@ const Hero = () => {
           data = await cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true })
         }
 
-        const alternateDescriptions = [
-          'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
+        const EDITORIAL_DESCRIPTIONS = [
           'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
-          'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.'
+          'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
+          'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.',
+          'Every thread holds a centuries-old story of craftsmanship, intricately interlaced with pure gold zari and raw mulberry silk to create heirlooms for generations to come.',
+          'Designed to drape like liquid gold, this collection features deep gemstone colors paired with traditional dabka hand-embroidery, ideal for royal winter soirées.'
         ]
 
-        const backendSlides = data.success && Array.isArray(data.data)
+        const backendSlides = data && data.success && Array.isArray(data.data)
           ? data.data
             .filter((slide) => (slide.isActive !== false && slide.active !== false) && slide.image)
             .map((slide, index) => ({
               image: slide.image,
               title: slide.title || slide.productName || 'SeeMee Atelier Collection',
-              subtitle: slide.subtitle || '',
-              description: slide.description || alternateDescriptions[index % alternateDescriptions.length],
+              subtitle: slide.subtitle || 'Premium Edit',
+              description: slide.description || EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
               category: (slide.productCategory || 'Featured').toString(),
               productId: slide.productId || null
             }))
@@ -398,12 +360,31 @@ const Hero = () => {
         if (backendSlides && backendSlides.length > 0) {
           nextSlides = [...backendSlides]
         } else {
-          nextSlides = FALLBACK_SLIDES.slice(0, 1)
+          // If no admin carousel slides exist, dynamically pull active products from Admin DB
+          try {
+            const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10`)
+            if (prodData && prodData.success && Array.isArray(prodData.data)) {
+              const activeProds = prodData.data.filter(p => p.isActive !== false && (p.image || p.images?.[0]))
+              nextSlides = activeProds.slice(0, 5).map((p, index) => ({
+                image: (p.images && p.images[0]) || p.image,
+                title: p.name || 'SeeMee Haute Couture',
+                subtitle: p.category ? `Premium Edit • ${p.category}` : 'Premium Edit',
+                description: p.description && p.description.length > 20 
+                  ? p.description.replace(/<[^>]*>/g, '').slice(0, 160) 
+                  : EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
+                category: p.category || 'Featured',
+                productId: p._id || p.id
+              }))
+            }
+          } catch (err) {
+            console.error('Error constructing dynamic slides from products:', err)
+          }
         }
 
         if (isMounted) {
           setSlides(nextSlides)
           setActiveIndex(0)
+          setLoading(false)
           try {
             localStorage.setItem('seemee_carousel_slides', JSON.stringify(nextSlides))
           } catch (e) {
@@ -413,10 +394,10 @@ const Hero = () => {
       } catch (error) {
         console.error('Error fetching carousel:', error)
         if (isMounted) {
-          setSlides(FALLBACK_SLIDES.slice(0, 5))
+          setSlides([])
           setActiveIndex(0)
+          setLoading(false)
         }
-      } finally {
       }
     }
 
@@ -437,9 +418,9 @@ const Hero = () => {
     return () => clearInterval(interval)
   }, [slides.length])
 
-  const currentSlide = slides[activeIndex] || FALLBACK_SLIDES[0]
-  const nextSlideIndex = (activeIndex + 1) % slides.length
-  const nextSlide = slides[nextSlideIndex] || FALLBACK_SLIDES[0]
+  const currentSlide = slides[activeIndex] || slides[0] || null
+  const nextSlideIndex = slides.length > 0 ? (activeIndex + 1) % slides.length : 0
+  const nextSlide = slides[nextSlideIndex] || slides[0] || null
 
   useEffect(() => {
     const fullTitle = currentSlide?.title || 'Dressing is nothing but a Choice'

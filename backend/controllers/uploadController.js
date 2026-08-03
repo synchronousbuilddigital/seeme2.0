@@ -110,24 +110,74 @@ export const uploadImages = asyncHandler(async (req, res) => {
   }
 })
 
+// Helper: upload video to Cloudinary with video resource type or save locally
+const saveVideoFile = async (file, folder = 'seemee/videos') => {
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: 'video',
+          chunk_size: 6000000, // 6MB chunk streaming
+          eager_async: true
+        },
+        (error, result) => {
+          if (result) resolve({ url: result.secure_url, public_id: result.public_id })
+          else reject(error)
+        }
+      )
+      streamifier.createReadStream(file.buffer).pipe(stream)
+    })
+  }
+
+  // Local Disk Storage Fallback
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true })
+  }
+
+  const ext = path.extname(file.originalname || '') || '.mp4'
+  const filename = `vid_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${ext}`
+  const filePath = path.join(uploadsDir, filename)
+
+  fs.writeFileSync(filePath, file.buffer)
+
+  return {
+    url: `/uploads/${filename}`,
+    public_id: filename
+  }
+}
+
 // @desc    Upload video
 // @route   POST /api/upload/video
 // @access  Admin
 export const uploadVideo = asyncHandler(async (req, res) => {
-  if (!req.file) {
+  const file = req.file || (req.files && req.files[0])
+  if (!file) {
     res.status(400)
-    throw new Error('No file uploaded')
+    throw new Error('No video file provided for upload')
   }
 
-  const result = await saveImageFile(req.file, 'seemee/videos')
+  console.log(`[Upload] Starting fast video upload to Cloudinary: ${file.originalname || 'video'} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`)
 
-  res.json({
-    success: true,
-    data: {
-      url: result.url,
-      public_id: result.public_id,
-    },
-  })
+  try {
+    const folder = req.body.folder || 'seemee/videos'
+    const result = await saveVideoFile(file, folder)
+
+    console.log(`[Upload] Video saved to Cloudinary successfully: ${result.url}`)
+
+    res.json({
+      success: true,
+      data: {
+        url: result.url,
+        public_id: result.public_id,
+      },
+    })
+  } catch (error) {
+    console.error('[Upload] Video upload error:', error)
+    res.status(500)
+    throw new Error(`Video upload failed: ${error.message}`)
+  }
 })
 
 // @desc    Upload image from external URL to Cloudinary (no CORS: server-side fetch)

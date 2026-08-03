@@ -5,6 +5,7 @@ import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
+import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import './ShopSection.css'
 
 const ShopSection = () => {
@@ -46,6 +47,14 @@ const ShopSection = () => {
     }
     fetchProducts()
   }, [])
+
+  useEffect(() => {
+    if (products.length > 0) {
+      try {
+        trackViewItemList(products, 'Homepage Atelier Shop', 'homepage_shop')
+      } catch (e) {}
+    }
+  }, [products.length])
 
   if (loading) {
     return (
@@ -118,7 +127,10 @@ const ShopSection = () => {
                 {/* Clean Product Media (ZERO text overlays on photo) */}
                 <div
                   className="product-media-wrapper"
-                  onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
+                  onClick={() => {
+                    try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) {}
+                    navigate(`/product/${product._id}`, { state: { product } })
+                  }}
                 >
                   <div className="image-flip-container">
                     <img
@@ -165,7 +177,10 @@ const ShopSection = () => {
                   <div className="title-price-row">
                     <h3
                       className="product-card-title"
-                      onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
+                      onClick={() => {
+                        try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) {}
+                        navigate(`/product/${product._id}`, { state: { product } })
+                      }}
                     >
                       {product.name}
                     </h3>

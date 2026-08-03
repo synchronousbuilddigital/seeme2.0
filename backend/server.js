@@ -20,6 +20,7 @@ import carouselRoutes from './routes/carousel.js'
 import siteSettingsRoutes from './routes/siteSettings.js'
 import adminRoutes from './routes/admin.js'
 import userRoutes from './routes/users.js'
+import reelRoutes from './routes/reels.js'
 
 // Security Middlewares
 import helmet from 'helmet'
@@ -152,6 +153,7 @@ app.use('/api/carousel', carouselRoutes)
 app.use('/api/site-settings', siteSettingsRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/reels', reelRoutes)
 
 // ─── 404 HANDLER ───────────────────────────────────────
 app.use('/api/*', (req, res) => {

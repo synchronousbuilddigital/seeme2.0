@@ -35,7 +35,7 @@ router.post('/image', protect, admin, imageUpload.any(), uploadController.upload
 router.post('/images', protect, admin, imageUpload.any(), uploadController.uploadImages)
 
 // Upload video (admin)
-router.post('/video', protect, admin, videoUpload.single('video'), uploadController.uploadVideo)
+router.post('/video', protect, admin, videoUpload.any(), uploadController.uploadVideo)
 // Upload image by providing external URL in JSON body: { url: 'https://...' }
 router.post('/image-from-url', protect, admin, uploadController.uploadImageFromUrl)
 

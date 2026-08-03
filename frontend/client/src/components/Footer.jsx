@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
 import { useNavigate } from 'react-router-dom'
+import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './Footer.css'
 
 const Footer = () => {
@@ -11,12 +13,58 @@ const Footer = () => {
   const [email, setEmail] = useState('')
   const [subscribed, setSubscribed] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [categories, setCategories] = useState([])
+
+  useEffect(() => {
+    let isMounted = true
+    const fetchAdminCategories = async () => {
+      try {
+        const [categoriesData, settingsData] = await Promise.all([
+          cachedFetch(API_ENDPOINTS.GET_CATEGORIES).catch(() => null),
+          cachedFetch(API_ENDPOINTS.SITE_SETTINGS).catch(() => null)
+        ])
+
+        let categoryList = []
+
+        if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
+          categoryList = settingsData.data.categorySlides.map(cat => ({
+            title: cat.title || cat.label || cat.name,
+            slug: (cat.slug || cat.title || cat.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          }))
+        }
+
+        if (categoryList.length === 0 && categoriesData?.success && Array.isArray(categoriesData.data)) {
+          categoryList = categoriesData.data.map(cat => {
+            const name = typeof cat === 'string' ? cat : (cat.name || cat.title || '')
+            const slug = typeof cat === 'object' && cat.slug ? cat.slug : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+            return { title: name, slug }
+          })
+        }
+
+        if (isMounted && categoryList.length > 0) {
+          const seen = new Set()
+          const uniqueList = []
+          for (const item of categoryList) {
+            if (item.title && item.slug && !seen.has(item.slug)) {
+              seen.add(item.slug)
+              uniqueList.push(item)
+            }
+          }
+          setCategories(uniqueList)
+        }
+      } catch (err) {
+        console.error('Error fetching categories in Footer:', err)
+      }
+    }
+
+    fetchAdminCategories()
+    return () => { isMounted = false }
+  }, [])
 
   const handleSubscribe = async (e) => {
     e.preventDefault()
     if (!email || !email.trim()) return
     setSubmitting(true)
-    // Simulate premium API subscribe call
     await new Promise(resolve => setTimeout(resolve, 1200))
     setSubmitting(false)
     setSubscribed(true)
@@ -105,11 +153,21 @@ const Footer = () => {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
           >
-            <h4 className="column-title">Collections</h4>
+            <h4 className="column-title">Categories</h4>
             <ul className="column-links">
-              <li><button onClick={() => navigate('/category/2-piece-sets')}>2-Piece Sets</button></li>
-              <li><button onClick={() => navigate('/category/3-piece-sets')}>3-Piece Sets</button></li>
-              <li><button onClick={() => navigate('/category/co-ord-sets')}>Co-ord Sets</button></li>
+              {categories.length > 0 ? (
+                categories.slice(0, 6).map((cat) => (
+                  <li key={cat.slug}>
+                    <button onClick={() => navigate(`/category/${cat.slug}`)}>{cat.title}</button>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li><button onClick={() => navigate('/category/2-piece-sets')}>2-Piece Sets</button></li>
+                  <li><button onClick={() => navigate('/category/3-piece-sets')}>3-Piece Sets</button></li>
+                  <li><button onClick={() => navigate('/category/co-ord-sets')}>Co-ord Sets</button></li>
+                </>
+              )}
               <li><button onClick={() => navigate('/collections')}>All Collections</button></li>
             </ul>
           </motion.div>

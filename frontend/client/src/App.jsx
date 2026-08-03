@@ -37,6 +37,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const Search = lazy(() => import('./pages/Search'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const FabricsPage = lazy(() => import('./pages/FabricsPage'))
+const CatalogPage = lazy(() => import('./pages/CatalogPage'))
 
 const AdminRedirect = () => {
   useEffect(() => {
@@ -135,6 +136,9 @@ function App() {
 
                 {/* Checkout Page */}
                 <Route path="/checkout" element={<PageWithNav><Checkout /></PageWithNav>} />
+
+                {/* Catalog Reels Page */}
+                <Route path="/catalog" element={<PageWithNav><CatalogPage /></PageWithNav>} />
 
                 {/* Magazine Page */}
                 <Route path="/magazine" element={

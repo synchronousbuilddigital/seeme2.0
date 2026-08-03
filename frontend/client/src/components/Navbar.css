@@ -178,6 +178,28 @@
   align-items: center;
   flex-shrink: 0;
   margin-left: auto;
+  align-self: center;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  align-self: center;
+}
+
+.search-form input {
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.85rem;
+  color: var(--charcoal, #1c1917);
+  outline: none;
+  box-sizing: border-box;
 }
 
 .icon-btn {
@@ -192,9 +214,10 @@
   flex-shrink: 0;
   min-width: 40px;
   min-height: 40px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
 }
 
 .icon-btn svg {
@@ -202,6 +225,7 @@
   height: 22px;
   display: block;
   flex-shrink: 0;
+  margin: 0 auto;
 }
 
 .navbar.scrolled .icon-btn {

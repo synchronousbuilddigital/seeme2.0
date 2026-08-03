@@ -6,6 +6,7 @@ import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { isProductInCategory, getCategoryProducts } from '../utils/categoryHelper'
+import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import './CollectionsPage.css'
 
 const CollectionsPage = () => {
@@ -21,6 +22,7 @@ const CollectionsPage = () => {
   const [sortBy, setSortBy] = useState('featured')
   const [searchQuery, setSearchQuery] = useState('')
   const [priceFilter, setPriceFilter] = useState('all')
+  const [maxPrice, setMaxPrice] = useState(10000)
   const [selectedSizes, setSelectedSizes] = useState([])
   const [showSidebar, setShowSidebar] = useState(true)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
@@ -118,18 +120,18 @@ const CollectionsPage = () => {
     }
 
     // Price Filter
-    if (priceFilter !== 'all') {
+    if (priceFilter === 'slider' || maxPrice < 10000) {
+      result = result.filter(p => (p.price || 0) <= maxPrice)
+    } else if (priceFilter !== 'all') {
       result = result.filter(p => {
         const price = p.price || 0
         switch (priceFilter) {
+          case 'under-2500':
+            return price < 2500
           case 'under-5000':
             return price < 5000
-          case '5000-15000':
-            return price >= 5000 && price <= 15000
-          case '15000-30000':
-            return price >= 15000 && price <= 30000
-          case 'above-30000':
-            return price > 30000
+          case 'under-7500':
+            return price < 7500
           default:
             return true
         }
@@ -163,7 +165,17 @@ const CollectionsPage = () => {
     }
 
     return result
-  }, [products, selectedCategory, searchQuery, priceFilter, selectedSizes, sortBy])
+  }, [products, selectedCategory, searchQuery, priceFilter, maxPrice, selectedSizes, sortBy])
+
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      try {
+        trackViewItemList(filteredProducts, 'Shop All Collections', 'collections_all')
+      } catch (e) {
+        console.error('GTM error in trackViewItemList:', e)
+      }
+    }
+  }, [filteredProducts.length, selectedCategory])
 
   const handleAddToCart = (product, size) => {
     const itemSize = size || selectedSize || product.sizes?.[0] || 'M'
@@ -184,12 +196,13 @@ const CollectionsPage = () => {
   const resetFilters = () => {
     setSelectedCategory('all')
     setPriceFilter('all')
+    setMaxPrice(10000)
     setSelectedSizes([])
     setSortBy('featured')
     setSearchQuery('')
   }
 
-  const hasActiveFilters = selectedCategory !== 'all' || priceFilter !== 'all' || selectedSizes.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
+  const hasActiveFilters = selectedCategory !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
 
   if (loading) {
     return (
@@ -297,23 +310,52 @@ const CollectionsPage = () => {
               </div>
             </div>
 
-            {/* Price Filter */}
+            {/* Price Filter Slider Widget */}
             <div className="sidebar-widget">
               <h4 className="widget-title">PRICE RANGE</h4>
-              <div className="sidebar-radio-group">
+              
+              <div className="sidebar-price-slider-box">
+                <div className="price-slider-header">
+                  <span className="price-slider-label">Max Price:</span>
+                  <span className="price-slider-val">₹{maxPrice.toLocaleString('en-IN')}</span>
+                </div>
+                
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  step="100"
+                  value={maxPrice}
+                  onChange={(e) => {
+                    setMaxPrice(Number(e.target.value))
+                    setPriceFilter('slider')
+                  }}
+                  className="luxury-price-range-slider"
+                  aria-label="Filter products by maximum price"
+                />
+
+                <div className="price-slider-ticks">
+                  <span>₹0</span>
+                  <span>₹10,000+</span>
+                </div>
+              </div>
+
+              <div className="sidebar-radio-group" style={{ marginTop: '14px' }}>
                 {[
-                  { id: 'all', label: 'All Prices' },
-                  { id: 'under-5000', label: 'Under ₹5,000' },
-                  { id: '5000-15000', label: '₹5,000 - ₹15,000' },
-                  { id: '15000-30000', label: '₹15,000 - ₹30,000' },
-                  { id: 'above-30000', label: 'Above ₹30,000' }
+                  { id: 'all', label: 'All Prices', max: 10000 },
+                  { id: 'under-2500', label: 'Under ₹2,500', max: 2500 },
+                  { id: 'under-5000', label: 'Under ₹5,000', max: 5000 },
+                  { id: 'under-7500', label: 'Under ₹7,500', max: 7500 }
                 ].map(p => (
-                  <label key={p.id} className={`sidebar-radio-row ${priceFilter === p.id ? 'active' : ''}`}>
+                  <label key={p.id} className={`sidebar-radio-row ${priceFilter === p.id && maxPrice === p.max ? 'active' : ''}`}>
                     <input
                       type="radio"
                       name="collectionsSidebarPrice"
-                      checked={priceFilter === p.id}
-                      onChange={() => setPriceFilter(p.id)}
+                      checked={priceFilter === p.id && maxPrice === p.max}
+                      onChange={() => {
+                        setPriceFilter(p.id)
+                        setMaxPrice(p.max)
+                      }}
                     />
                     <span className="radio-label">{p.label}</span>
                   </label>
@@ -421,7 +463,10 @@ const CollectionsPage = () => {
                   >
                     <div
                       className="product-image-wrapper"
-                      onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
+                      onClick={() => {
+                        try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) {}
+                        navigate(`/product/${product._id}`, { state: { product } })
+                      }}
                     >
                       <img
                         src={mainImg}
@@ -464,7 +509,10 @@ const CollectionsPage = () => {
                     <div className="product-info">
                       <h3
                         className="product-name"
-                        onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
+                        onClick={() => {
+                          try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) {}
+                          navigate(`/product/${product._id}`, { state: { product } })
+                        }}
                       >
                         {product.name}
                       </h3>

@@ -64,7 +64,7 @@ export const CartProvider = ({ children }) => {
           ])
           const cartData = await cartRes.json()
           const wishlistData = await wishlistRes.json()
-          
+
           if (cartData.success && Array.isArray(cartData.data)) {
             const normalizedCart = cartData.data
               .filter(item => item && item.product) // Filter out deleted/null products
@@ -102,16 +102,18 @@ export const CartProvider = ({ children }) => {
         try {
           await fetch(`${API_ENDPOINTS.USERS_CART}/sync`, {
             method: 'POST',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}` 
+              'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ cart: cart.map(item => ({
-              product: item.id || item._id,
-              quantity: item.quantity,
-              size: item.size || item.selectedSize || 'S',
-              color: item.color || ''
-            }))})
+            body: JSON.stringify({
+              cart: cart.map(item => ({
+                product: item.id || item._id,
+                quantity: item.quantity,
+                size: item.size || item.selectedSize || 'S',
+                color: item.color || ''
+              }))
+            })
           })
         } catch (err) {
           console.error('Cart sync error:', err)
@@ -134,7 +136,7 @@ export const CartProvider = ({ children }) => {
         size: productSize,
         selectedSize: productSize
       }
-      
+
       const existingIndex = prevCart.findIndex(item => {
         const itemId = item.id || item._id
         const itemSize = item.selectedSize || item.size || 'S'
@@ -212,12 +214,12 @@ export const CartProvider = ({ children }) => {
         ...product,
         id: productId
       }
-      
+
       const exists = prevWishlist.find(item => {
         const itemId = item.id || item._id
         return itemId === productId
       })
-      
+
       let newWishlist
       if (exists) {
         newWishlist = prevWishlist.filter(item => {
@@ -229,7 +231,7 @@ export const CartProvider = ({ children }) => {
         newWishlist = [...prevWishlist, normalizedProduct]
         console.log('Added to wishlist:', product.name)
       }
-      
+
       console.log('New wishlist:', newWishlist)
       return newWishlist
     })

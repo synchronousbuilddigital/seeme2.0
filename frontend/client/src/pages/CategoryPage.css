@@ -258,6 +258,8 @@
 .luxury-search-input {
   position: relative;
   width: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .luxury-search-input svg {
@@ -267,11 +269,18 @@
   transform: translateY(-50%);
   color: #78716c;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: 18px;
+  height: 18px;
 }
 
 .luxury-search-input input {
   width: 100%;
-  padding: 10px 36px 10px 40px;
+  height: 42px;
+  padding: 0 36px 0 42px;
   border: 1px solid var(--cat-border);
   border-radius: 25px;
   font-family: var(--cat-body-font);
@@ -279,6 +288,7 @@
   background: #faf8f5;
   color: var(--cat-charcoal);
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .luxury-search-input input:focus {
