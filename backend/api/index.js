@@ -121,6 +121,15 @@ async function createApp() {
     const { default: userRoutes } = await import('../routes/users.js')
     console.log('✅ User routes loaded')
 
+    const { default: reelRoutes } = await import('../routes/reels.js')
+    console.log('✅ Reel routes loaded')
+
+    const { default: couponRoutes } = await import('../routes/coupons.js')
+    console.log('✅ Coupon routes loaded')
+
+    const { default: adminCouponRoutes } = await import('../routes/adminCoupons.js')
+    console.log('✅ Admin Coupon routes loaded')
+
     app.use('/api/auth', authRoutes)
     app.use('/api/products', productRoutes)
     app.use('/api/orders', orderRoutes)
@@ -130,6 +139,9 @@ async function createApp() {
     app.use('/api/site-settings', siteSettingsRoutes)
     app.use('/api/admin', adminRoutes)
     app.use('/api/users', userRoutes)
+    app.use('/api/reels', reelRoutes)
+    app.use('/api/coupon', couponRoutes)
+    app.use('/api/admin/coupons', adminCouponRoutes)
 
     const { default: uploadRoutes } = await import('../routes/upload.js')
     app.use('/api/upload', uploadRoutes)
