@@ -14,7 +14,7 @@ const getApiBaseUrl = () => {
   if (import.meta.env.PROD) {
     return (import.meta.env.VITE_API_URL || 'https://seeme2-0.vercel.app').replace(/\/$/, '')
   }
-  
+
   // Local development fallback
   return (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '')
 }
@@ -23,18 +23,18 @@ const API_BASE_URL = getApiBaseUrl()
 
 export const API_ENDPOINTS = {
   // ─── Auth ──────────────────────────────────────
-  LOGIN:    `${API_BASE_URL}/api/auth/login`,
+  LOGIN: `${API_BASE_URL}/api/auth/login`,
   REGISTER: `${API_BASE_URL}/api/auth/register`,
-  SIGNUP:   `${API_BASE_URL}/api/auth/signup`,
-  ME:       `${API_BASE_URL}/api/auth/me`,
+  SIGNUP: `${API_BASE_URL}/api/auth/signup`,
+  ME: `${API_BASE_URL}/api/auth/me`,
   AUTH_FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
-  AUTH_VERIFY_OTP:     `${API_BASE_URL}/api/auth/verify-otp`,
-  AUTH_RESET_PASSWORD:  `${API_BASE_URL}/api/auth/reset-password`,
+  AUTH_VERIFY_OTP: `${API_BASE_URL}/api/auth/verify-otp`,
+  AUTH_RESET_PASSWORD: `${API_BASE_URL}/api/auth/reset-password`,
 
   // ─── Products ──────────────────────────────────
-  PRODUCTS:         `${API_BASE_URL}/api/products`,
+  PRODUCTS: `${API_BASE_URL}/api/products`,
   COLLECTION_PRODUCTS: `${API_BASE_URL}/api/products?inCollection=true`,
-  TOP_PRODUCTS:      `${API_BASE_URL}/api/products/top-three`,
+  TOP_PRODUCTS: `${API_BASE_URL}/api/products/top-three`,
   FEATURED_PRODUCTS: `${API_BASE_URL}/api/products?featured=true`,
   GET_CATEGORIES: `${API_BASE_URL}/api/products/categories/all`,
   COLLECTION_COUNT: `${API_BASE_URL}/api/products/collection/count`,
@@ -42,32 +42,32 @@ export const API_ENDPOINTS = {
 
   // ─── Coupons ──────────────────────────────────
   COUPON_AVAILABLE: `${API_BASE_URL}/api/coupon/available`,
-  COUPON_APPLY:     `${API_BASE_URL}/api/coupon/apply`,
-  COUPON_REMOVE:    `${API_BASE_URL}/api/coupon/remove`,
+  COUPON_APPLY: `${API_BASE_URL}/api/coupon/apply`,
+  COUPON_REMOVE: `${API_BASE_URL}/api/coupon/remove`,
 
   // ─── Orders ────────────────────────────────────
-  ORDERS:              `${API_BASE_URL}/api/orders`,
-  ORDERS_MY:           `${API_BASE_URL}/api/orders/myorders`,
+  ORDERS: `${API_BASE_URL}/api/orders`,
+  ORDERS_MY: `${API_BASE_URL}/api/orders/myorders`,
   CREATE_RAZORPAY_ORDER: `${API_BASE_URL}/api/orders/create-razorpay-order`,
-  VERIFY_PAYMENT:      `${API_BASE_URL}/api/orders/verify-payment`,
+  VERIFY_PAYMENT: `${API_BASE_URL}/api/orders/verify-payment`,
 
   // ─── Users ─────────────────────────────────────
-  USERS_PROFILE:   `${API_BASE_URL}/api/users/profile`,
+  USERS_PROFILE: `${API_BASE_URL}/api/users/profile`,
   USERS_ADDRESSES: `${API_BASE_URL}/api/users/addresses`,
-  USERS_WISHLIST:  `${API_BASE_URL}/api/users/wishlist`,
-  USERS_CART:      `${API_BASE_URL}/api/users/cart`,
+  USERS_WISHLIST: `${API_BASE_URL}/api/users/wishlist`,
+  USERS_CART: `${API_BASE_URL}/api/users/cart`,
 
   // ─── Carousel ──────────────────────────────────
-  CAROUSEL:     `${API_BASE_URL}/api/carousel`,
+  CAROUSEL: `${API_BASE_URL}/api/carousel`,
   CAROUSEL_ALL: `${API_BASE_URL}/api/carousel/all`,
 
   // ─── Magazine ──────────────────────────────────
-  MAGAZINE:     `${API_BASE_URL}/api/magazine`,
+  MAGAZINE: `${API_BASE_URL}/api/magazine`,
   MAGAZINE_ALL: `${API_BASE_URL}/api/magazine/all`,
 
   // ─── Reels Catalog ─────────────────────────────
-  REELS:        `${API_BASE_URL}/api/reels`,
-  REELS_ALL:    `${API_BASE_URL}/api/reels/all`,
+  REELS: `${API_BASE_URL}/api/reels`,
+  REELS_ALL: `${API_BASE_URL}/api/reels/all`,
 
   // ─── New Arrivals ──────────────────────────────
   NEW_ARRIVALS: `${API_BASE_URL}/api/new-arrivals`,
@@ -76,9 +76,9 @@ export const API_ENDPOINTS = {
   SITE_SETTINGS: `${API_BASE_URL}/api/site-settings`,
 
   // ─── Upload ────────────────────────────────────
-  UPLOAD_IMAGE:  `${API_BASE_URL}/api/upload/image`,
+  UPLOAD_IMAGE: `${API_BASE_URL}/api/upload/image`,
   UPLOAD_IMAGES: `${API_BASE_URL}/api/upload/images`,
-  UPLOAD_VIDEO:  `${API_BASE_URL}/api/upload/video`,
+  UPLOAD_VIDEO: `${API_BASE_URL}/api/upload/video`,
   UPLOAD_DELETE: `${API_BASE_URL}/api/upload/delete`,
 
   // ─── Health ────────────────────────────────────

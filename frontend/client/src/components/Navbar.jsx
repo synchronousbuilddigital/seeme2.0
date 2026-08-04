@@ -49,6 +49,31 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   const location = useLocation()
   const isAboutPage = location.pathname === '/about'
 
+  const isActiveRoute = (path) => {
+    if (path === '/') {
+      return location.pathname === '/'
+    }
+    if (path === '/categories') {
+      return location.pathname.startsWith('/categor')
+    }
+    if (path === '/collections') {
+      return location.pathname.startsWith('/collection') || location.pathname.startsWith('/shop')
+    }
+    if (path === '/catalog') {
+      return location.pathname.startsWith('/catalog')
+    }
+    if (path === '/fabrics') {
+      return location.pathname.startsWith('/fabric')
+    }
+    if (path === '/magazine') {
+      return location.pathname.startsWith('/magazine')
+    }
+    if (path === '/about') {
+      return location.pathname.startsWith('/about')
+    }
+    return location.pathname === path
+  }
+
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [availableCategories, setAvailableCategories] = useState([])
@@ -115,7 +140,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               })
               const prodImg = matchedProduct && (matchedProduct.images?.[0] || matchedProduct.image)
               const poolImg = activeProducts[idx % activeProducts.length]?.images?.[0] || activeProducts[idx % activeProducts.length]?.image
-              
+
               const rawImg = typeof cat === 'object' ? (cat.image || cat.img) : null
               const catImage = rawImg || prodImg || poolImg || '/images/categories_straight.jpg'
 
@@ -140,7 +165,6 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   }, [])
 
   useEffect(() => {
-    // Fetch logo from API
     cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
       .then(data => {
         if (data.success && data.data.logo) {
@@ -199,7 +223,6 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
       transition={{ duration: 0.6, ease: 'easeOut' }}
     >
       <div className="navbar-container">
-        {/* Logo */}
         <motion.div
           className="logo"
           whileHover={{ scale: 1.05 }}
@@ -214,18 +237,16 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           />
         </motion.div>
 
-        {/* Navigation Links - Always Visible for better UX */}
         <div className={`nav-links ${scrolled ? 'scrolled-links' : ''}`}>
-          <button onClick={() => handleNavigation('/')} className="nav-item">Home</button>
+          <button onClick={() => handleNavigation('/')} className={`nav-item ${isActiveRoute('/') ? 'active' : ''}`}>Home</button>
 
-          {/* Categories Dropdown */}
           <div
             className="nav-dropdown"
             onMouseEnter={() => setCategoriesOpen(true)}
             onMouseLeave={() => setCategoriesOpen(false)}
           >
             <button
-              className="dropdown-trigger nav-item"
+              className={`dropdown-trigger nav-item ${isActiveRoute('/categories') ? 'active' : ''}`}
               onClick={() => handleNavigation('/categories')}
             >
               Categories
@@ -237,37 +258,44 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               {categoriesOpen && (
                 <motion.div
                   className="dropdown-menu"
-                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  initial={{ opacity: 0, y: 15, x: '-50%', scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
+                  exit={{ opacity: 0, y: 10, x: '-50%', scale: 0.95 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
                 >
                   <div className="dropdown-grid">
-                    {availableCategories.map(cat => (
-                      <button key={cat.slug || cat} onClick={() => handleNavigation(`/category/${cat.slug || cat}`)}>
-                        <img
-                          src={cat.image || '/images/categories_straight.jpg'}
-                          alt={cat.label || getCategoryLabel(cat)}
-                          className="cat-dropdown-thumb"
-                          onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
-                        />
-                        <span>{cat.label || getCategoryLabel(cat)}</span>
-                      </button>
-                    ))}
+                    {availableCategories.map(cat => {
+                      const catSlug = cat.slug || cat
+                      const isCatActive = location.pathname === `/category/${catSlug}`
+                      return (
+                        <button
+                          key={catSlug}
+                          className={isCatActive ? 'active' : ''}
+                          onClick={() => handleNavigation(`/category/${catSlug}`)}
+                        >
+                          <img
+                            src={cat.image || '/images/categories_straight.jpg'}
+                            alt={cat.label || getCategoryLabel(cat)}
+                            className="cat-dropdown-thumb"
+                            onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
+                          />
+                          <span>{cat.label || getCategoryLabel(cat)}</span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          <button onClick={() => handleNavigation('/collections')} className="nav-item">Shop</button>
-          <button onClick={() => handleNavigation('/catalog')} className="nav-item highlight-catalog">✦ Catalog</button>
-          <button onClick={() => handleNavigation('/fabrics')} className="nav-item">Fabrics</button>
-          <button onClick={() => handleNavigation('/magazine')} className="nav-item">Magazine</button>
-          <button onClick={() => handleNavigation('/about')} className="nav-item">About</button>
+          <button onClick={() => handleNavigation('/collections')} className={`nav-item ${isActiveRoute('/collections') ? 'active' : ''}`}>Shop</button>
+          <button onClick={() => handleNavigation('/catalog')} className={`nav-item highlight-catalog ${isActiveRoute('/catalog') ? 'active' : ''}`}>✦ Catalog</button>
+          <button onClick={() => handleNavigation('/fabrics')} className={`nav-item ${isActiveRoute('/fabrics') ? 'active' : ''}`}>Fabrics</button>
+          <button onClick={() => handleNavigation('/magazine')} className={`nav-item ${isActiveRoute('/magazine') ? 'active' : ''}`}>Magazine</button>
+          <button onClick={() => handleNavigation('/about')} className={`nav-item ${isActiveRoute('/about') ? 'active' : ''}`}>About</button>
         </div>
 
-        {/* Actions - Always visible */}
         <div className="nav-actions">
           <AnimatePresence>
             {searchOpen && (
@@ -440,12 +468,12 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
         >
-          <button onClick={() => handleNavigation('/')}>Home</button>
+          <button onClick={() => handleNavigation('/')} className={isActiveRoute('/') ? 'active' : ''}>Home</button>
 
           {/* Mobile Categories Submenu */}
           <div className="mobile-submenu">
             <button
-              className="mobile-submenu-trigger"
+              className={`mobile-submenu-trigger ${isActiveRoute('/categories') ? 'active' : ''}`}
               onClick={() => setCategoriesOpen(!categoriesOpen)}
             >
               Categories
@@ -455,20 +483,34 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
             </button>
             {categoriesOpen && (
               <div className="mobile-submenu-items">
-                {availableCategories.map(cat => (
-                  <button key={cat.slug || cat} onClick={() => handleNavigation(`/category/${cat.slug || cat}`)}>
-                    {cat.label || getCategoryLabel(cat)}
-                  </button>
-                ))}
+                {availableCategories.map(cat => {
+                  const catSlug = cat.slug || cat
+                  const isCatActive = location.pathname === `/category/${catSlug}`
+                  return (
+                    <button
+                      key={catSlug}
+                      className={isCatActive ? 'active' : ''}
+                      onClick={() => handleNavigation(`/category/${catSlug}`)}
+                    >
+                      <img
+                        src={cat.image || '/images/categories_straight.jpg'}
+                        alt={cat.label || getCategoryLabel(cat)}
+                        className="cat-dropdown-thumb mobile"
+                        onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
+                      />
+                      <span>{cat.label || getCategoryLabel(cat)}</span>
+                    </button>
+                  )
+                })}
               </div>
             )}
           </div>
 
-          <button onClick={() => handleNavigation('/collections')}>Shop</button>
-          <button onClick={() => handleNavigation('/catalog')} className="mobile-catalog-btn">✦ Catalog Reels</button>
-          <button onClick={() => handleNavigation('/fabrics')}>Fabrics</button>
-          <button onClick={() => handleNavigation('/magazine')}>Magazine</button>
-          <button onClick={() => handleNavigation('/about')}>About</button>
+          <button onClick={() => handleNavigation('/collections')} className={isActiveRoute('/collections') ? 'active' : ''}>Shop</button>
+          <button onClick={() => handleNavigation('/catalog')} className={`mobile-catalog-btn ${isActiveRoute('/catalog') ? 'active' : ''}`}>✦ Catalog Reels</button>
+          <button onClick={() => handleNavigation('/fabrics')} className={isActiveRoute('/fabrics') ? 'active' : ''}>Fabrics</button>
+          <button onClick={() => handleNavigation('/magazine')} className={isActiveRoute('/magazine') ? 'active' : ''}>Magazine</button>
+          <button onClick={() => handleNavigation('/about')} className={isActiveRoute('/about') ? 'active' : ''}>About</button>
         </motion.div>
       )}
     </motion.nav>
