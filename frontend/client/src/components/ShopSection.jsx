@@ -69,10 +69,7 @@ const ShopSection = () => {
   // Format category slugs to human readable labels
   const formatCategoryName = (slug) => {
     if (!slug) return 'Collection'
-    if (slug.toLowerCase() === '2-piece-sets') return '2-Piece Sets'
-    if (slug.toLowerCase() === '3-piece-sets') return '3-Piece Sets'
-    if (slug.toLowerCase() === 'co-ord-sets') return 'Co-ord Sets'
-    return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ')
+    return String(slug).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
   }
 
   return (

@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
+import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './Navbar.css'
 
 const normalizeCategorySlug = (slug) => {
@@ -32,10 +33,9 @@ const getCategorySlug = (catItem) => {
   if (!catItem) return ''
   if (typeof catItem === 'object') {
     if (catItem.slug) return catItem.slug
-    if (catItem.title) return catItem.title.toLowerCase().trim().replace(/\s+/g, '-')
+    if (catItem.title) return catItem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
   }
-  const str = String(catItem)
-  return str.toLowerCase().trim().replace(/\s+/g, '-')
+  return String(catItem).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
 const Navbar = ({ onCartOpen, onWishlistOpen }) => {
@@ -51,22 +51,24 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [availableCategories, setAvailableCategories] = useState([
-    { slug: '2-piece-sets', label: '2-Piece Sets' },
-    { slug: '3-piece-sets', label: '3-Piece Sets' },
-    { slug: 'co-ord-sets', label: 'Co-ord Sets' }
-  ])
+  const [availableCategories, setAvailableCategories] = useState([])
 
   useEffect(() => {
     const fetchNavbarCategories = async () => {
       try {
-        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
+        const [settingsData, prodData] = await Promise.all([
+          cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true }).catch(() => null),
+          cachedFetch(API_ENDPOINTS.PRODUCTS).catch(() => null)
+        ])
+
+        const activeProducts = (prodData?.success && Array.isArray(prodData.data)) ? prodData.data : []
+
         let adminCategorySlides = []
         if (settingsData?.success && settingsData.data?.categorySlides?.length > 0) {
           adminCategorySlides = settingsData.data.categorySlides
         }
 
-        const categoriesData = await cachedFetch(API_ENDPOINTS.GET_CATEGORIES)
+        const categoriesData = await cachedFetch(API_ENDPOINTS.GET_CATEGORIES).catch(() => null)
         let apiCategories = []
         if (categoriesData?.success && Array.isArray(categoriesData.data)) {
           apiCategories = categoriesData.data
@@ -76,26 +78,51 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
         const mergedCategories = []
 
         if (adminCategorySlides.length > 0) {
-          // Strictly use Admin Category Manager slides if created by Admin
-          adminCategorySlides.forEach(cat => {
+          adminCategorySlides.forEach((cat, idx) => {
             const key = (cat.slug || cat.title || '').toLowerCase().trim()
             if (key && !seenKeys.has(key)) {
               seenKeys.add(key)
+
+              const normKey = key.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+              const matchedProduct = activeProducts.find(p => {
+                if (!p.category) return false
+                const normPCat = p.category.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+                return normPCat === normKey || p.category.toLowerCase() === key
+              })
+              const prodImg = matchedProduct && (matchedProduct.images?.[0] || matchedProduct.image)
+              const poolImg = activeProducts[idx % activeProducts.length]?.images?.[0] || activeProducts[idx % activeProducts.length]?.image
+
+              const catImage = cat.image || cat.img || prodImg || poolImg || '/images/categories_straight.jpg'
+
               mergedCategories.push({
                 slug: getCategorySlug(cat),
-                label: getCategoryLabel(cat)
+                label: getCategoryLabel(cat),
+                image: getOptimizedImageUrl(catImage)
               })
             }
           })
         } else {
-          // Fallback to product categories only if no Admin category slides exist
-          apiCategories.forEach(cat => {
+          apiCategories.forEach((cat, idx) => {
             const key = (typeof cat === 'string' ? cat : (cat.slug || cat.title || '')).toLowerCase().trim()
             if (key && !seenKeys.has(key)) {
               seenKeys.add(key)
+
+              const normKey = key.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+              const matchedProduct = activeProducts.find(p => {
+                if (!p.category) return false
+                const normPCat = p.category.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+                return normPCat === normKey || p.category.toLowerCase() === key
+              })
+              const prodImg = matchedProduct && (matchedProduct.images?.[0] || matchedProduct.image)
+              const poolImg = activeProducts[idx % activeProducts.length]?.images?.[0] || activeProducts[idx % activeProducts.length]?.image
+              
+              const rawImg = typeof cat === 'object' ? (cat.image || cat.img) : null
+              const catImage = rawImg || prodImg || poolImg || '/images/categories_straight.jpg'
+
               mergedCategories.push({
                 slug: getCategorySlug(cat),
-                label: getCategoryLabel(cat)
+                label: getCategoryLabel(cat),
+                image: getOptimizedImageUrl(catImage)
               })
             }
           })
@@ -217,8 +244,14 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                 >
                   <div className="dropdown-grid">
                     {availableCategories.map(cat => (
-                      <button key={cat.slug} onClick={() => handleNavigation(`/category/${cat.slug}`)}>
-                        {cat.label}
+                      <button key={cat.slug || cat} onClick={() => handleNavigation(`/category/${cat.slug || cat}`)}>
+                        <img
+                          src={cat.image || '/images/categories_straight.jpg'}
+                          alt={cat.label || getCategoryLabel(cat)}
+                          className="cat-dropdown-thumb"
+                          onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
+                        />
+                        <span>{cat.label || getCategoryLabel(cat)}</span>
                       </button>
                     ))}
                   </div>

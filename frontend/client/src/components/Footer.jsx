@@ -155,20 +155,12 @@ const Footer = () => {
           >
             <h4 className="column-title">Categories</h4>
             <ul className="column-links">
-              {categories.length > 0 ? (
-                categories.slice(0, 6).map((cat) => (
-                  <li key={cat.slug}>
-                    <button onClick={() => navigate(`/category/${cat.slug}`)}>{cat.title}</button>
-                  </li>
-                ))
-              ) : (
-                <>
-                  <li><button onClick={() => navigate('/category/2-piece-sets')}>2-Piece Sets</button></li>
-                  <li><button onClick={() => navigate('/category/3-piece-sets')}>3-Piece Sets</button></li>
-                  <li><button onClick={() => navigate('/category/co-ord-sets')}>Co-ord Sets</button></li>
-                </>
-              )}
-              <li><button onClick={() => navigate('/collections')}>All Collections</button></li>
+              {categories.map((cat) => (
+                <li key={cat.slug}>
+                  <button onClick={() => navigate(`/category/${cat.slug}`)}>{cat.title}</button>
+                </li>
+              ))}
+              <li><button onClick={() => navigate('/categories')}>All Categories</button></li>
             </ul>
           </motion.div>
 

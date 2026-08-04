@@ -150,7 +150,7 @@
 .dropdown-grid {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 0.75rem;
 }
 
 .dropdown-grid button {
@@ -158,18 +158,42 @@
   border: none;
   text-align: left;
   font-family: var(--font-body);
-  font-size: 0.8rem;
-  letter-spacing: 1.5px;
+  font-size: 0.78rem;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
   color: var(--charcoal);
   cursor: pointer;
   transition: all 0.3s ease;
-  padding-left: 0;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.cat-dropdown-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
+  background: #f8fafc;
 }
 
 .dropdown-grid button:hover {
   color: var(--primary-gold);
-  padding-left: 10px;
+  background: rgba(212, 175, 55, 0.08);
+  transform: translateX(4px);
+}
+
+.dropdown-grid button:hover .cat-dropdown-thumb {
+  transform: scale(1.1);
+  border-color: var(--primary-gold);
+  box-shadow: 0 4px 10px rgba(212, 175, 55, 0.25);
 }
 
 .nav-actions {
@@ -465,14 +489,21 @@
   background: none;
   border: none;
   color: var(--charcoal);
-  font-weight: 400;
+  font-weight: 500;
   font-size: 0.85rem;
   cursor: pointer;
-  padding: 0.8rem 0;
+  padding: 0.6rem 0;
   text-align: left;
   transition: all 0.3s ease;
   width: 100%;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cat-dropdown-thumb.mobile {
+  width: 28px;
+  height: 28px;
 }
 
 .mobile-submenu-items button:hover {

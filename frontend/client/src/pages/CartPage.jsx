@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
 import './CartPage.css'
 
@@ -28,6 +29,7 @@ const CartPage = () => {
   const [includeGiftWrap, setIncludeGiftWrap] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [availableCoupons, setAvailableCoupons] = useState([])
+  const [adminCategories, setAdminCategories] = useState([])
   const [toastMessage, setToastMessage] = useState(null)
   const [couponError, setCouponError] = useState(null)
 
@@ -36,7 +38,29 @@ const CartPage = () => {
 
   useEffect(() => {
     fetchAvailableCoupons()
+    fetchAdminCategories()
   }, [])
+
+  const fetchAdminCategories = async () => {
+    try {
+      const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS).catch(() => null)
+      if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
+        setAdminCategories(settingsData.data.categorySlides.map(c => ({
+          slug: c.slug || c.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+          title: c.title
+        })))
+      } else {
+        const catData = await cachedFetch(API_ENDPOINTS.GET_CATEGORIES).catch(() => null)
+        if (catData?.success && Array.isArray(catData.data)) {
+          setAdminCategories(catData.data.map(c => {
+            const name = typeof c === 'string' ? c : (c.name || c.title || '')
+            const slug = typeof c === 'object' && c.slug ? c.slug : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+            return { title: name.replace(/-/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()), slug }
+          }))
+        }
+      }
+    } catch (e) {}
+  }
 
   const fetchAvailableCoupons = async () => {
     try {
@@ -183,9 +207,13 @@ const CartPage = () => {
           <div className="empty-cart-quick-links">
             <span className="quick-label">Popular Categories:</span>
             <div className="quick-chips">
-              <Link to="/category/2-piece-sets">2-Piece Sets</Link>
-              <Link to="/category/3-piece-sets">3-Piece Sets</Link>
-              <Link to="/category/co-ord-sets">Co-ord Sets</Link>
+              {adminCategories.length > 0 ? (
+                adminCategories.slice(0, 4).map(cat => (
+                  <Link key={cat.slug} to={`/category/${cat.slug}`}>{cat.title}</Link>
+                ))
+              ) : (
+                <Link to="/categories">Explore All Categories</Link>
+              )}
             </div>
           </div>
         </motion.div>

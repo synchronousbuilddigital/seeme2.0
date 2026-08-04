@@ -43,6 +43,13 @@ const CouponsManager = () => {
     setTimeout(() => setToast(null), 3500)
   }
 
+  const handleCopyCode = (code) => {
+    if (navigator.clipboard && code) {
+      navigator.clipboard.writeText(code)
+      showToast(`Copied "${code}" to clipboard!`, 'success')
+    }
+  }
+
   const fetchCoupons = async () => {
     try {
       setLoading(true)
@@ -214,9 +221,9 @@ const CouponsManager = () => {
 
       {/* Header & Main Controls */}
       <header className="coupons-header-section">
-        <div>
+        <div className="header-title-block">
           <span className="coupons-badge">✦ PROMOTIONS & MARKETING</span>
-          <h1 className="coupons-title">Coupon & Discount Management</h1>
+          <h1 className="coupons-title">Coupon Management</h1>
           <p className="coupons-subtitle">Create, configure, and monitor customer discount codes & white-glove offer campaigns.</p>
         </div>
 
@@ -244,12 +251,16 @@ const CouponsManager = () => {
       {/* Search & Filter Toolbar */}
       <div className="coupons-toolbar-row">
         <div className="search-box-wrap">
+          <span className="search-icon">🔍</span>
           <input
             type="text"
             placeholder="Search by coupon code or description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button className="search-clear-btn" onClick={() => setSearch('')} aria-label="Clear search">✕</button>
+          )}
         </div>
 
         <div className="filter-tabs-row">
@@ -265,7 +276,7 @@ const CouponsManager = () => {
         </div>
       </div>
 
-      {/* Table List of Coupons */}
+      {/* Table & Mobile Card List */}
       <div className="coupons-table-card">
         {loading ? (
           <div className="coupons-loading-box">
@@ -277,85 +288,202 @@ const CouponsManager = () => {
             <span>🎁</span>
             <h3>No Coupons Found</h3>
             <p>Create your first discount coupon to launch a promotion campaign.</p>
+            <button className="btn-create-coupon inline-empty-btn" onClick={handleOpenCreateModal}>
+              + Create Coupon
+            </button>
           </div>
         ) : (
-          <div className="table-responsive">
-            <table className="coupons-table">
-              <thead>
-                <tr>
-                  <th>CODE</th>
-                  <th>TYPE & VALUE</th>
-                  <th>MIN ORDER</th>
-                  <th>USAGE COUNT</th>
-                  <th>EXPIRY DATE</th>
-                  <th>STATUS</th>
-                  <th>ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {coupons.map(coupon => {
-                  const isExpired = new Date(coupon.expiryDate) < new Date()
-                  const isUpcoming = new Date(coupon.startDate) > new Date()
+          <>
+            {/* Desktop Table View */}
+            <div className="table-responsive coupons-desktop-table">
+              <table className="coupons-table">
+                <thead>
+                  <tr>
+                    <th>CODE</th>
+                    <th>TYPE & VALUE</th>
+                    <th>MIN ORDER</th>
+                    <th>USAGE COUNT</th>
+                    <th>EXPIRY DATE</th>
+                    <th>STATUS</th>
+                    <th>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {coupons.map(coupon => {
+                    const isExpired = new Date(coupon.expiryDate) < new Date()
+                    const isUpcoming = new Date(coupon.startDate) > new Date()
 
-                  return (
-                    <tr key={coupon._id}>
-                      <td className="col-code">
-                        <span className="code-chip">✦ {coupon.code}</span>
-                        {coupon.description && <span className="desc-sub">{coupon.description}</span>}
-                      </td>
+                    return (
+                      <tr key={coupon._id}>
+                        <td className="col-code">
+                          <span
+                            className="code-chip"
+                            title="Click to copy code"
+                            onClick={() => handleCopyCode(coupon.code)}
+                          >
+                            ✦ {coupon.code}
+                          </span>
+                          {coupon.description && <span className="desc-sub">{coupon.description}</span>}
+                        </td>
 
-                      <td className="col-type">
-                        <span className="type-name">
+                        <td className="col-type">
+                          <span className="type-name">
+                            {coupon.discountType === 'percentage' && `${coupon.percentage}% OFF`}
+                            {coupon.discountType === 'fixedAmount' && `₹${coupon.fixedAmount} OFF`}
+                            {coupon.discountType === 'freeShipping' && 'FREE SHIPPING'}
+                            {coupon.discountType === 'buyXgetY' && 'BUY X GET Y'}
+                          </span>
+                          {coupon.maximumDiscount > 0 && (
+                            <span className="cap-sub">Max Cap: ₹{coupon.maximumDiscount}</span>
+                          )}
+                        </td>
+
+                        <td>₹{(coupon.minimumOrder || 0).toLocaleString('en-IN')}</td>
+
+                        <td>
+                          <span className="usage-count">
+                            {coupon.usedCount || 0} / {coupon.usageLimit !== null ? coupon.usageLimit : '∞'}
+                          </span>
+                        </td>
+
+                        <td>{new Date(coupon.expiryDate).toLocaleDateString('en-IN')}</td>
+
+                        <td>
+                          <button
+                            className={`status-toggle-badge ${
+                              !coupon.isActive ? 'disabled' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'active'
+                            }`}
+                            onClick={() => handleToggleStatus(coupon)}
+                          >
+                            {!coupon.isActive ? 'Disabled' : isExpired ? 'Expired' : isUpcoming ? 'Upcoming' : 'Active ✓'}
+                          </button>
+                        </td>
+
+                        <td className="col-actions">
+                          <button className="btn-action edit" onClick={() => handleOpenEditModal(coupon)} title="Edit">
+                            ✎
+                          </button>
+                          <button className="btn-action dup" onClick={() => handleDuplicate(coupon._id)} title="Duplicate">
+                            📋
+                          </button>
+                          <button className="btn-action del" onClick={() => handleDelete(coupon._id, coupon.code)} title="Delete">
+                            🗑
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards Feed */}
+            <div className="coupons-mobile-cards">
+              {coupons.map(coupon => {
+                const isExpired = new Date(coupon.expiryDate) < new Date()
+                const isUpcoming = new Date(coupon.startDate) > new Date()
+                const usagePercent = coupon.usageLimit ? Math.min(100, Math.round(((coupon.usedCount || 0) / coupon.usageLimit) * 100)) : 0
+
+                return (
+                  <div className="coupon-mobile-card" key={coupon._id}>
+                    <div className="mobile-card-top">
+                      <div className="code-badge-wrap">
+                        <span
+                          className="code-chip"
+                          title="Tap to copy code"
+                          onClick={() => handleCopyCode(coupon.code)}
+                        >
+                          ✦ {coupon.code}
+                        </span>
+                        <span className="mobile-discount-badge">
                           {coupon.discountType === 'percentage' && `${coupon.percentage}% OFF`}
                           {coupon.discountType === 'fixedAmount' && `₹${coupon.fixedAmount} OFF`}
                           {coupon.discountType === 'freeShipping' && 'FREE SHIPPING'}
                           {coupon.discountType === 'buyXgetY' && 'BUY X GET Y'}
                         </span>
-                        {coupon.maximumDiscount > 0 && (
-                          <span className="cap-sub">Max Cap: ₹{coupon.maximumDiscount}</span>
-                        )}
-                      </td>
+                      </div>
 
-                      <td>₹{(coupon.minimumOrder || 0).toLocaleString('en-IN')}</td>
+                      <button
+                        className={`status-toggle-badge ${
+                          !coupon.isActive ? 'disabled' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'active'
+                        }`}
+                        onClick={() => handleToggleStatus(coupon)}
+                      >
+                        {!coupon.isActive ? 'Disabled' : isExpired ? 'Expired' : isUpcoming ? 'Upcoming' : 'Active ✓'}
+                      </button>
+                    </div>
 
-                      <td>
-                        <span className="usage-count">
+                    {coupon.description && <p className="mobile-card-desc">{coupon.description}</p>}
+
+                    <div className="mobile-card-stats-grid">
+                      <div className="m-stat-box">
+                        <span className="m-stat-label">MIN ORDER</span>
+                        <span className="m-stat-val">₹{(coupon.minimumOrder || 0).toLocaleString('en-IN')}</span>
+                      </div>
+
+                      <div className="m-stat-box">
+                        <span className="m-stat-label">USAGE</span>
+                        <span className="m-stat-val">
                           {coupon.usedCount || 0} / {coupon.usageLimit !== null ? coupon.usageLimit : '∞'}
                         </span>
-                      </td>
+                      </div>
 
-                      <td>{new Date(coupon.expiryDate).toLocaleDateString('en-IN')}</td>
+                      <div className="m-stat-box">
+                        <span className="m-stat-label">EXPIRY</span>
+                        <span className="m-stat-val">{new Date(coupon.expiryDate).toLocaleDateString('en-IN')}</span>
+                      </div>
+                    </div>
 
-                      <td>
-                        <button
-                          className={`status-toggle-badge ${
-                            !coupon.isActive ? 'disabled' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'active'
-                          }`}
-                          onClick={() => handleToggleStatus(coupon)}
-                        >
-                          {!coupon.isActive ? 'Disabled' : isExpired ? 'Expired' : isUpcoming ? 'Upcoming' : 'Active ✓'}
-                        </button>
-                      </td>
+                    {coupon.usageLimit > 0 && (
+                      <div className="mobile-usage-progress">
+                        <div className="progress-info">
+                          <span>Redemption Capacity</span>
+                          <span>{usagePercent}%</span>
+                        </div>
+                        <div className="progress-bar-bg">
+                          <div className="progress-bar-fill" style={{ width: `${usagePercent}%` }}></div>
+                        </div>
+                      </div>
+                    )}
 
-                      <td className="col-actions">
-                        <button className="btn-action edit" onClick={() => handleOpenEditModal(coupon)} title="Edit">
-                          ✎
-                        </button>
-                        <button className="btn-action dup" onClick={() => handleDuplicate(coupon._id)} title="Duplicate">
-                          📋
-                        </button>
-                        <button className="btn-action del" onClick={() => handleDelete(coupon._id, coupon.code)} title="Delete">
-                          🗑
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                    {(coupon.freeShipping || coupon.firstOrderOnly || (coupon.applicableCategories && coupon.applicableCategories.length > 0)) && (
+                      <div className="mobile-card-tags">
+                        {coupon.freeShipping && <span className="m-tag gold">Free Shipping</span>}
+                        {coupon.firstOrderOnly && <span className="m-tag blue">First Order Only</span>}
+                        {coupon.applicableCategories?.map(cat => (
+                          <span className="m-tag gray" key={cat}>{cat}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mobile-card-actions">
+                      <button className="m-action-btn edit" onClick={() => handleOpenEditModal(coupon)}>
+                        <span>✎ Edit</span>
+                      </button>
+                      <button className="m-action-btn dup" onClick={() => handleDuplicate(coupon._id)}>
+                        <span>📋 Duplicate</span>
+                      </button>
+                      <button className="m-action-btn del" onClick={() => handleDelete(coupon._id, coupon.code)}>
+                        <span>🗑 Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
+
+      {/* Floating Action Button (FAB) for Mobile Quick Create */}
+      <button
+        className="mobile-fab-create-coupon"
+        onClick={handleOpenCreateModal}
+        aria-label="Create Coupon"
+        title="Create New Coupon"
+      >
+        <span>+</span>
+      </button>
 
       {/* Create / Edit Modal Form */}
       <AnimatePresence>
