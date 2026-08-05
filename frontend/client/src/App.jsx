@@ -20,6 +20,7 @@ const CategoriesSlider = lazy(() => import('./components/CategoriesSlider'))
 const About = lazy(() => import('./components/About'))
 const ShopSection = lazy(() => import('./components/ShopSection'))
 const FabricSection = lazy(() => import('./components/FabricSection'))
+const CatalogSection = lazy(() => import('./components/CatalogSection'))
 
 // Lazy load route pages
 const Auth = lazy(() => import('./pages/Auth'))
@@ -80,6 +81,7 @@ function App() {
           <ShopSection />
           <CategoriesSlider />
           <FabricSection />
+          <CatalogSection />
           <About />
         </Suspense>
       </main>

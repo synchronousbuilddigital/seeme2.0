@@ -124,6 +124,10 @@ const CategoriesSlider = () => {
 
   return (
     <section className="categories-runway-section" id="categories">
+      {/* Background Ambient Glows */}
+      <div className="categories-glow-gold" />
+      <div className="categories-glow-cream" />
+
       <div className="categories-container">
         {/* Header Section */}
         <motion.div
@@ -138,6 +142,7 @@ const CategoriesSlider = () => {
             <h2 className="categories-title">
               Signature <span>Categories</span>
             </h2>
+            <div className="categories-header-line" />
             <p className="categories-subtitle">
               {dynamicSubtitle}
             </p>

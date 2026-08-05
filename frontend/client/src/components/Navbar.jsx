@@ -290,7 +290,13 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           </div>
 
           <button onClick={() => handleNavigation('/collections')} className={`nav-item ${isActiveRoute('/collections') ? 'active' : ''}`}>Shop</button>
-          <button onClick={() => handleNavigation('/catalog')} className={`nav-item highlight-catalog ${isActiveRoute('/catalog') ? 'active' : ''}`}>✦ Catalog</button>
+          <button onClick={() => handleNavigation('/catalog')} className={`nav-item highlight-catalog ${isActiveRoute('/catalog') ? 'active' : ''}`}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: '-2px', marginRight: '5px' }}>
+              <polygon points="23 7 16 12 23 17 23 7" />
+              <rect x="1" y="5" width="15" height="14" rx="2.5" ry="2.5" />
+            </svg>
+            Catalog
+          </button>
           <button onClick={() => handleNavigation('/fabrics')} className={`nav-item ${isActiveRoute('/fabrics') ? 'active' : ''}`}>Fabrics</button>
           <button onClick={() => handleNavigation('/magazine')} className={`nav-item ${isActiveRoute('/magazine') ? 'active' : ''}`}>Magazine</button>
           <button onClick={() => handleNavigation('/about')} className={`nav-item ${isActiveRoute('/about') ? 'active' : ''}`}>About</button>
@@ -507,7 +513,13 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           </div>
 
           <button onClick={() => handleNavigation('/collections')} className={isActiveRoute('/collections') ? 'active' : ''}>Shop</button>
-          <button onClick={() => handleNavigation('/catalog')} className={`mobile-catalog-btn ${isActiveRoute('/catalog') ? 'active' : ''}`}>✦ Catalog Reels</button>
+          <button onClick={() => handleNavigation('/catalog')} className={`mobile-catalog-btn ${isActiveRoute('/catalog') ? 'active' : ''}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: '-2px', marginRight: '6px' }}>
+              <polygon points="23 7 16 12 23 17 23 7" />
+              <rect x="1" y="5" width="15" height="14" rx="2.5" ry="2.5" />
+            </svg>
+            Catalog Reels
+          </button>
           <button onClick={() => handleNavigation('/fabrics')} className={isActiveRoute('/fabrics') ? 'active' : ''}>Fabrics</button>
           <button onClick={() => handleNavigation('/magazine')} className={isActiveRoute('/magazine') ? 'active' : ''}>Magazine</button>
           <button onClick={() => handleNavigation('/about')} className={isActiveRoute('/about') ? 'active' : ''}>About</button>

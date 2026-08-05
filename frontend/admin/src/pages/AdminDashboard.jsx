@@ -491,6 +491,10 @@ const AdminDashboard = () => {
                       <div className="tile-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg></div>
                       <span>Categories</span>
                     </button>
+                    <button className="action-tile" onClick={() => setActiveTab('reels')}>
+                      <div className="tile-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg></div>
+                      <span>Catalog Reels</span>
+                    </button>
                   </div>
                 </div>
               </div>
