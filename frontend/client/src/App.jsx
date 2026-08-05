@@ -41,9 +41,24 @@ const CatalogPage = lazy(() => import('./pages/CatalogPage'))
 
 const AdminRedirect = () => {
   useEffect(() => {
-    const cleanPath = window.location.pathname.replace(/^\/admin/, '') || '/'
-    const targetPath = cleanPath + window.location.search
-    window.location.href = `${getAdminUrl()}${targetPath}`
+    const cleanPath = window.location.pathname.replace(/^\/admin/, '') || '/dashboard'
+    const token = localStorage.getItem('adminToken') || localStorage.getItem('seemee-token') || ''
+    const userStr = localStorage.getItem('adminUser') || localStorage.getItem('seemee-user') || ''
+    
+    let targetUrl = `${getAdminUrl()}${cleanPath === '/' ? '/dashboard' : cleanPath}`
+    const searchParams = new URLSearchParams(window.location.search)
+
+    if (token && userStr) {
+      searchParams.set('token', token)
+      searchParams.set('user', userStr)
+    }
+
+    const queryString = searchParams.toString()
+    if (queryString) {
+      targetUrl += (targetUrl.includes('?') ? '&' : '?') + queryString
+    }
+
+    window.location.href = targetUrl
   }, [])
   return null
 }

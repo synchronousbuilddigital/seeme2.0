@@ -5,17 +5,27 @@ import AdminDashboard from './pages/AdminDashboard'
 import { clearAdminSession, isAdminSessionValid } from './utils/apiClient'
 import './App.css'
 
-const ProtectedRoute = ({ children }) => {
-  const query = new URLSearchParams(window.location.search)
-  const token = query.get('token')
-  const user = query.get('user')
+const syncQuerySession = () => {
+  try {
+    const query = new URLSearchParams(window.location.search)
+    const token = query.get('token')
+    const user = query.get('user')
 
-  if (token && user) {
-    localStorage.setItem('adminToken', token)
-    localStorage.setItem('adminUser', user)
-    // Clean up address bar query params
-    window.history.replaceState({}, document.title, window.location.pathname)
+    if (token && user) {
+      localStorage.setItem('adminToken', token)
+      localStorage.setItem('adminUser', user)
+      localStorage.setItem('seemee-token', token)
+      localStorage.setItem('seemee-user', user)
+      // Clean up address bar query params
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  } catch (err) {
+    console.error('Error syncing query session:', err)
   }
+}
+
+const ProtectedRoute = ({ children }) => {
+  syncQuerySession()
 
   if (!isAdminSessionValid()) {
     clearAdminSession()
@@ -25,6 +35,8 @@ const ProtectedRoute = ({ children }) => {
 }
 
 const RootRoute = () => {
+  syncQuerySession()
+
   if (isAdminSessionValid()) {
     return <Navigate to="/dashboard" replace />
   }

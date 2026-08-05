@@ -511,6 +511,20 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           <button onClick={() => handleNavigation('/fabrics')} className={isActiveRoute('/fabrics') ? 'active' : ''}>Fabrics</button>
           <button onClick={() => handleNavigation('/magazine')} className={isActiveRoute('/magazine') ? 'active' : ''}>Magazine</button>
           <button onClick={() => handleNavigation('/about')} className={isActiveRoute('/about') ? 'active' : ''}>About</button>
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
+                const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || localStorage.getItem('adminUser') || '';
+                window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
+              }}
+              className="mobile-admin-btn"
+              style={{ color: '#D4AF37', fontWeight: '600', letterSpacing: '0.05em' }}
+            >
+              ✦ Admin Dashboard
+            </button>
+          )}
         </motion.div>
       )}
     </motion.nav>

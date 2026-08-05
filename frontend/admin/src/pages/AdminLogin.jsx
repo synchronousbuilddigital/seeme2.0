@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
-import { apiRequest } from '../utils/apiClient'
+import { apiRequest, isAdminSessionValid } from '../utils/apiClient'
 import './AdminLogin.css'
 
 const AdminLogin = () => {
@@ -11,6 +11,25 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Process any incoming token in URL query params
+    const query = new URLSearchParams(window.location.search)
+    const token = query.get('token')
+    const user = query.get('user')
+
+    if (token && user) {
+      localStorage.setItem('adminToken', token)
+      localStorage.setItem('adminUser', user)
+      localStorage.setItem('seemee-token', token)
+      localStorage.setItem('seemee-user', user)
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+
+    if (isAdminSessionValid()) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -24,8 +43,11 @@ const AdminLogin = () => {
       })
 
       if (data.success && data.user.role === 'admin') {
+        const userStr = JSON.stringify(data.user)
         localStorage.setItem('adminToken', data.token)
-        localStorage.setItem('adminUser', JSON.stringify(data.user))
+        localStorage.setItem('adminUser', userStr)
+        localStorage.setItem('seemee-token', data.token)
+        localStorage.setItem('seemee-user', userStr)
         navigate('/dashboard')
       } else {
         setError('This account does not have admin access')

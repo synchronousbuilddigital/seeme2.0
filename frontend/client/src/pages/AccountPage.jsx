@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { API_ENDPOINTS } from '../config/api'
+import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './AccountPage.css'
 
@@ -402,7 +402,20 @@ const AccountPage = () => {
                   Manage your recent orders, saved pieces in your wishlist, and shipping details seamlessly.
                 </p>
                 <div className="profile-hero-actions">
-                  <button type="button" className="btn-editorial gold" onClick={() => setActiveTab('orders')}>
+                  {user?.role === 'admin' && (
+                    <button
+                      type="button"
+                      className="btn-editorial gold"
+                      onClick={() => {
+                        const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
+                        const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || '';
+                        window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
+                      }}
+                    >
+                      ✦ Admin Dashboard
+                    </button>
+                  )}
+                  <button type="button" className="btn-editorial outline" onClick={() => setActiveTab('orders')}>
                     View Orders ({orders.length})
                   </button>
                   <button type="button" className="btn-editorial outline hero-ghost" onClick={() => setActiveTab('wishlist')}>

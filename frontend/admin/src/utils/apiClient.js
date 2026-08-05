@@ -22,7 +22,9 @@ export const getAdminToken = () => localStorage.getItem('adminToken')
 export const getStoredAdminUser = () => {
   try {
     const raw = localStorage.getItem('adminUser')
-    return raw ? JSON.parse(raw) : null
+    if (!raw) return null
+    if (typeof raw === 'object') return raw
+    return JSON.parse(raw)
   } catch {
     return null
   }
