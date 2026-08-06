@@ -44,13 +44,13 @@ export const cachedFetch = async (url, options = {}) => {
       }
       const data = await response.json()
 
-      // Ensure inactive products (isActive === false) are never returned to client storefront components
+      // Ensure inactive products (isActive === false) and null/undefined items are never returned
       if (data && data.success) {
         if (Array.isArray(data.data)) {
-          data.data = data.data.filter(item => !item || item.isActive !== false)
+          data.data = data.data.filter(item => item && item.isActive !== false)
         }
         if (Array.isArray(data.products)) {
-          data.products = data.products.filter(item => !item || item.isActive !== false)
+          data.products = data.products.filter(item => item && item.isActive !== false)
         }
       }
       

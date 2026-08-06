@@ -349,7 +349,7 @@ const Hero = () => {
 
         const backendSlides = data && data.success && Array.isArray(data.data)
           ? data.data
-            .filter((slide) => (slide.isActive !== false && slide.active !== false) && slide.image)
+            .filter((slide) => slide && (slide.isActive !== false && slide.active !== false) && slide.image)
             .map((slide, index) => ({
               image: slide.image,
               title: slide.title || slide.productName || 'SeeMee Atelier Collection',
@@ -368,7 +368,7 @@ const Hero = () => {
           try {
             const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10`)
             if (prodData && prodData.success && Array.isArray(prodData.data)) {
-              const activeProds = prodData.data.filter(p => p.isActive !== false && (p.image || p.images?.[0]))
+              const activeProds = prodData.data.filter(p => p && p.isActive !== false && (p.image || p.images?.[0]))
               nextSlides = activeProds.slice(0, 5).map((p, index) => ({
                 image: (p.images && p.images[0]) || p.image,
                 title: p.name || 'SeeMee Haute Couture',
@@ -422,9 +422,17 @@ const Hero = () => {
     return () => clearInterval(interval)
   }, [slides.length])
 
-  const currentSlide = slides[activeIndex] || slides[0] || null
+  const defaultFallbackSlide = {
+    title: 'Dressing is nothing but a Choice',
+    subtitle: 'Handcrafted Atelier',
+    description: 'Heritage creations blending traditional weaves with contemporary grace.',
+    image: 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png',
+    slug: 'all'
+  }
+
+  const currentSlide = slides[activeIndex] || slides[0] || defaultFallbackSlide
   const nextSlideIndex = slides.length > 0 ? (activeIndex + 1) % slides.length : 0
-  const nextSlide = slides[nextSlideIndex] || slides[0] || null
+  const nextSlide = slides[nextSlideIndex] || slides[0] || defaultFallbackSlide
 
   useEffect(() => {
     const fullTitle = currentSlide?.title || 'Dressing is nothing but a Choice'
@@ -453,7 +461,7 @@ const Hero = () => {
   }, [activeIndex, currentSlide?.title, slides.length])
 
   // Parse Title into segments dynamically
-  const stableTitle = currentSlide.title || 'Dressing is nothing but a Choice'
+  const stableTitle = currentSlide?.title || 'Dressing is nothing but a Choice'
   const stableWords = stableTitle.split(' ')
 
   let targetLine1 = ''
@@ -505,7 +513,7 @@ const Hero = () => {
   }
 
   const handlePrimaryAction = () => {
-    if (currentSlide.productId) {
+    if (currentSlide?.productId) {
       navigate(`/product/${currentSlide.productId}`)
       return
     }
@@ -585,8 +593,8 @@ const Hero = () => {
               </div>
 
               <p className="hero-description">
-                {currentSlide.subtitle}
-                {currentSlide.description && (
+                {currentSlide?.subtitle || 'Handcrafted Atelier'}
+                {currentSlide?.description && (
                   <span className="hero-description-heritage">
                     {' '}{currentSlide.description}
                   </span>
@@ -631,7 +639,7 @@ const Hero = () => {
             <div className="main-visual-capsule" style={{ position: 'relative' }}>
               <AnimatePresence>
                 <motion.div
-                  key={currentSlide.image}
+                  key={currentSlide?.image || 'hero-img'}
                   className="capsule-image-wrap"
                   initial={{ opacity: 0, scale: 1.05 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -640,11 +648,11 @@ const Hero = () => {
                   style={{ position: 'absolute', inset: 0 }}
                 >
                   <img
-                    src={getOptimizedImageUrl(currentSlide.image, isMobile ? 'mobile-hero' : 'hero')}
-                    alt={currentSlide.title || 'SeeMee Luxury'}
+                    src={getOptimizedImageUrl(currentSlide?.image, isMobile ? 'mobile-hero' : 'hero')}
+                    alt={currentSlide?.title || 'SeeMee Luxury'}
                     className="capsule-image"
                     loading="eager"
-                    fetchPriority="high"
+                    fetchpriority="high"
                   />
                 </motion.div>
               </AnimatePresence>
@@ -668,7 +676,7 @@ const Hero = () => {
             <div className="secondary-visual-capsule" style={{ position: 'relative' }}>
               <AnimatePresence>
                 <motion.div
-                  key={nextSlide.image}
+                  key={nextSlide?.image || 'next-hero-img'}
                   className="secondary-capsule-image-wrap"
                   initial={{ opacity: 0, scale: 1.08 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -677,7 +685,7 @@ const Hero = () => {
                   style={{ position: 'absolute', inset: 0 }}
                 >
                   <img
-                    src={getOptimizedImageUrl(nextSlide.image, 'card')}
+                    src={getOptimizedImageUrl(nextSlide?.image, 'card')}
                     alt="Next Sneak Peek"
                     className="secondary-capsule-image"
                     loading="lazy"
@@ -701,7 +709,7 @@ const Hero = () => {
             <div className="hero-thumbnail-list">
               {slides.map((slide, index) => (
                 <button
-                  key={`${slide.title}-${index}`}
+                  key={`${slide?.title || 'slide'}-${index}`}
                   type="button"
                   className={`hero-thumbnail-btn ${activeIndex === index ? 'active' : ''}`}
                   onClick={() => setActiveIndex(index)}
@@ -709,8 +717,8 @@ const Hero = () => {
                 >
                   <div className="thumbnail-img-wrap">
                     <img
-                      src={getOptimizedImageUrl(slide.image, 'thumbnail')}
-                      alt={slide.title || 'Slide Preview'}
+                      src={getOptimizedImageUrl(slide?.image, 'thumbnail')}
+                      alt={slide?.title || 'Slide Preview'}
                       loading="lazy"
                     />
                   </div>
