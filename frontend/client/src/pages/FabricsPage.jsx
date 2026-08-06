@@ -20,7 +20,7 @@ const FabricsPage = () => {
     try {
       const response = await fetch(API_ENDPOINTS.SITE_SETTINGS)
       const data = await response.json()
-      
+
       if (data.success && data.data.fabrics) {
         setFabrics(data.data.fabrics.sort((a, b) => a.order - b.order))
       }
@@ -71,22 +71,22 @@ const FabricsPage = () => {
       </div>
       {/* Cinematic Hero */}
       <section className="fabrics-hero-editorial">
-        <motion.div 
+        <motion.div
           className="hero-media-wrapper"
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.5 }}
         >
-          <img 
-            src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=2000" 
-            alt="Luxury Fabrics" 
+          <img
+            src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=2000"
+            alt="Luxury Fabrics"
             className="hero-media"
           />
           <div className="hero-scrim"></div>
         </motion.div>
-        
+
         <div className="hero-editorial-content">
-          <motion.span 
+          <motion.span
             className="editorial-kicker"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -94,15 +94,15 @@ const FabricsPage = () => {
           >
             THE TACTILE COLLECTION
           </motion.span>
-          <motion.h1 
+          <motion.h1
             className="editorial-title"
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            Art of the <br/> <span className="italic">Weave</span>
+            Art of the <br /> <span className="italic">Weave</span>
           </motion.h1>
-          <motion.div 
+          <motion.div
             className="hero-scroll-indicator"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -118,7 +118,7 @@ const FabricsPage = () => {
         <div className="editorial-container">
           <div className="narrative-grid">
             <div className="narrative-left">
-              <h2 className="narrative-heading">Foundation of <br/> Excellence</h2>
+              <h2 className="narrative-heading">Foundation of <br /> Excellence</h2>
             </div>
             <div className="narrative-right">
               <p className="narrative-body">
@@ -149,8 +149,8 @@ const FabricsPage = () => {
                 onClick={() => openModal(fabric)}
               >
                 <div className="card-image-wrapper">
-                  <img 
-                    src={getOptimizedImageUrl(fabric.image, 'hero')} 
+                  <img
+                    src={getOptimizedImageUrl(fabric.image, 'hero')}
                     alt={fabric.title}
                     className="card-image"
                   />
@@ -196,14 +196,14 @@ const FabricsPage = () => {
       {/* Fabric Detail Modal */}
       <AnimatePresence>
         {selectedFabric && (
-          <motion.div 
+          <motion.div
             className="fabric-modal-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeModal}
           >
-            <motion.div 
+            <motion.div
               className="fabric-modal"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -219,8 +219,8 @@ const FabricsPage = () => {
 
               <div className="fabric-modal-layout">
                 <div className="fabric-modal-image">
-                  <img 
-                    src={getOptimizedImageUrl(selectedFabric.image, 'hero')} 
+                  <img
+                    src={getOptimizedImageUrl(selectedFabric.image, 'hero')}
                     alt={selectedFabric.title}
                   />
                 </div>
@@ -229,7 +229,7 @@ const FabricsPage = () => {
                   <span className="fabric-modal-badge">Premium Fabric</span>
                   <h2 className="fabric-modal-title">{selectedFabric.title}</h2>
                   <p className="fabric-modal-description">{selectedFabric.description}</p>
-                  
+
                   <div className="fabric-modal-features">
                     <h4>Characteristics:</h4>
                     <ul>

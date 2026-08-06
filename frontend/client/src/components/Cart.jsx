@@ -23,7 +23,7 @@ const Cart = ({ isOpen, onClose }) => {
   const handleCheckout = () => {
     try {
       trackBeginCheckout(cart)
-    } catch (e) {}
+    } catch (e) { }
     onClose()
     navigate('/checkout')
   }
@@ -37,15 +37,15 @@ const Cart = ({ isOpen, onClose }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div 
+          <motion.div
             className="cart-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
-          
-          <motion.div 
+
+          <motion.div
             className="cart-sidebar"
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -56,8 +56,8 @@ const Cart = ({ isOpen, onClose }) => {
               <h2>Your Cart</h2>
               <button className="cart-close" onClick={onClose}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <line x1="18" y1="6" x2="6" y2="18"/>
-                  <line x1="6" y1="6" x2="18" y2="18"/>
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
@@ -66,9 +66,9 @@ const Cart = ({ isOpen, onClose }) => {
               {cart.length === 0 ? (
                 <div className="cart-empty">
                   <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="9" cy="21" r="1"/>
-                    <circle cx="20" cy="21" r="1"/>
-                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                    <circle cx="9" cy="21" r="1" />
+                    <circle cx="20" cy="21" r="1" />
+                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                   </svg>
                   <p>Your cart is empty</p>
                   <button className="continue-shopping" onClick={onClose}>
@@ -81,12 +81,12 @@ const Cart = ({ isOpen, onClose }) => {
                     const itemId = item.id || item._id
                     const itemSize = item.selectedSize || item.size || 'S'
                     const itemKey = `${itemId}-${itemSize}`
-                    const itemPrice = typeof item.price === 'number' 
-                      ? item.price 
+                    const itemPrice = typeof item.price === 'number'
+                      ? item.price
                       : parseInt(String(item.price || 0).replace(/[₹,]/g, '')) || 0
-                    
+
                     return (
-                      <motion.div 
+                      <motion.div
                         key={itemKey}
                         className="cart-item"
                         layout
@@ -95,21 +95,21 @@ const Cart = ({ isOpen, onClose }) => {
                         exit={{ opacity: 0, x: 100 }}
                       >
                         <div className="cart-item-image">
-                          <img 
-                            src={getOptimizedImageUrl(item.images?.[0] || item.image, 'thumbnail')} 
-                            alt={item.name} 
+                          <img
+                            src={getOptimizedImageUrl(item.images?.[0] || item.image, 'thumbnail')}
+                            alt={item.name}
                           />
                         </div>
-                        
+
                         <div className="cart-item-details">
                           <h3>{item.name}</h3>
                           <div className="cart-item-meta">
                             <span className="cart-item-price">₹{itemPrice.toLocaleString('en-IN')}</span>
                             <span className="cart-item-size-tag">Size: <strong>{itemSize}</strong></span>
                           </div>
-                          
+
                           <div className="cart-item-quantity">
-                            <button 
+                            <button
                               onClick={() => updateQuantity(itemId, item.quantity - 1, itemSize)}
                               className="qty-btn"
                               title="Decrease quantity"
@@ -117,7 +117,7 @@ const Cart = ({ isOpen, onClose }) => {
                               -
                             </button>
                             <span>{item.quantity}</span>
-                            <button 
+                            <button
                               onClick={() => updateQuantity(itemId, item.quantity + 1, itemSize)}
                               className="qty-btn"
                               title="Increase quantity"
@@ -127,14 +127,14 @@ const Cart = ({ isOpen, onClose }) => {
                           </div>
                         </div>
 
-                        <button 
+                        <button
                           className="cart-item-remove"
                           onClick={() => removeFromCart(itemId, itemSize)}
                           title="Remove item"
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                           </svg>
                         </button>
                       </motion.div>
@@ -150,7 +150,7 @@ const Cart = ({ isOpen, onClose }) => {
                   <span>Total</span>
                   <span className="total-amount">₹{getCartTotal()}</span>
                 </div>
-                <motion.button 
+                <motion.button
                   className="view-cart-btn"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -158,7 +158,7 @@ const Cart = ({ isOpen, onClose }) => {
                 >
                   View Cart
                 </motion.button>
-                <motion.button 
+                <motion.button
                   className="checkout-btn"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

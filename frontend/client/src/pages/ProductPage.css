@@ -1289,6 +1289,8 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
+  touch-action: none;
+  overscroll-behavior: contain;
 }
 
 .pdp-modal-card {
@@ -1298,6 +1300,8 @@
   max-width: 520px;
   max-height: 85vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
   border: 1px solid #e7e5e4;
   padding: 24px 28px;

@@ -26,7 +26,6 @@ const CartPage = () => {
 
   const navigate = useNavigate()
 
-  const [includeGiftWrap, setIncludeGiftWrap] = useState(false)
   const [promoCode, setPromoCode] = useState('')
   const [availableCoupons, setAvailableCoupons] = useState([])
   const [adminCategories, setAdminCategories] = useState([])
@@ -34,7 +33,6 @@ const CartPage = () => {
   const [couponError, setCouponError] = useState(null)
 
   const FREE_SHIPPING_THRESHOLD = 5000
-  const GIFT_WRAP_FEE = 250
 
   useEffect(() => {
     fetchAvailableCoupons()
@@ -94,8 +92,7 @@ const CartPage = () => {
   const subtotal = calculateSubtotal()
   const isFreeShipping = true
   const shippingFee = 0
-  const giftWrapFee = includeGiftWrap ? GIFT_WRAP_FEE : 0
-  const grandTotal = Math.max(0, subtotal + shippingFee + giftWrapFee - couponDiscount)
+  const grandTotal = Math.max(0, subtotal + shippingFee - couponDiscount)
 
   const shippingProgress = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)
   const remainingForFreeShipping = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
@@ -151,7 +148,6 @@ const CartPage = () => {
     }
     navigate('/checkout', {
       state: {
-        giftWrap: includeGiftWrap,
         promoCode: appliedCoupon?.code || '',
         discountAmount: couponDiscount || 0
       }
@@ -442,20 +438,7 @@ const CartPage = () => {
                 </span>
               </div>
 
-              {/* Royal Gift Wrapping Option Toggle */}
-              <div className="gift-wrap-toggle-box">
-                <label className="gift-wrap-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={includeGiftWrap}
-                    onChange={(e) => setIncludeGiftWrap(e.target.checked)}
-                  />
-                  <div className="gift-wrap-text">
-                    <span className="gift-title">👑 Royal Presentation Gift Box</span>
-                    <span className="gift-sub">Embossed gold box, satin ribbon & handwritten note (+ ₹250)</span>
-                  </div>
-                </label>
-              </div>
+
 
               {/* Coupon Code Input & Applied State Box */}
               <div className="promo-code-box">

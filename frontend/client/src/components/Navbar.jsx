@@ -184,6 +184,17 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
+
   const [categoriesOpen, setCategoriesOpen] = useState(false)
 
   const handleNavigation = (path) => {
@@ -466,79 +477,200 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
         </button>
       </div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <motion.div
-          className="mobile-menu"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-        >
-          <button onClick={() => handleNavigation('/')} className={isActiveRoute('/') ? 'active' : ''}>Home</button>
+      {/* Premium Glassmorphic Mobile Drawer Overlay */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="mobile-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMenuOpen(false)}
+            />
 
-          {/* Mobile Categories Submenu */}
-          <div className="mobile-submenu">
-            <button
-              className={`mobile-submenu-trigger ${isActiveRoute('/categories') ? 'active' : ''}`}
-              onClick={() => setCategoriesOpen(!categoriesOpen)}
+            {/* Mobile Drawer Sheet */}
+            <motion.div
+              className="mobile-drawer-sheet"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             >
-              Categories
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" style={{ marginLeft: '4px', transform: categoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>
-                <path d="M6 9L1 4h10z" />
-              </svg>
-            </button>
-            {categoriesOpen && (
-              <div className="mobile-submenu-items">
-                {availableCategories.map(cat => {
-                  const catSlug = cat.slug || cat
-                  const isCatActive = location.pathname === `/category/${catSlug}`
-                  return (
-                    <button
-                      key={catSlug}
-                      className={isCatActive ? 'active' : ''}
-                      onClick={() => handleNavigation(`/category/${catSlug}`)}
-                    >
-                      <img
-                        src={cat.image || '/images/categories_straight.jpg'}
-                        alt={cat.label || getCategoryLabel(cat)}
-                        className="cat-dropdown-thumb mobile"
-                        onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
-                      />
-                      <span>{cat.label || getCategoryLabel(cat)}</span>
-                    </button>
-                  )
-                })}
+              {/* Drawer Header */}
+              <div className="mobile-drawer-header">
+                <div className="mobile-drawer-brand">
+                  <span className="drawer-atelier-tag">✦ SEEMEE ATELIER</span>
+                  <img src={logo} alt="See Mee Logo" className="drawer-logo-img" onClick={() => handleNavigation('/')} />
+                </div>
+                <button
+                  className="mobile-drawer-close-btn"
+                  onClick={() => setMenuOpen(false)}
+                  title="Close Menu"
+                >
+                  ✕
+                </button>
               </div>
-            )}
-          </div>
 
-          <button onClick={() => handleNavigation('/collections')} className={isActiveRoute('/collections') ? 'active' : ''}>Shop</button>
-          <button onClick={() => handleNavigation('/catalog')} className={`mobile-catalog-btn ${isActiveRoute('/catalog') ? 'active' : ''}`}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: '-2px', marginRight: '6px' }}>
-              <polygon points="23 7 16 12 23 17 23 7" />
-              <rect x="1" y="5" width="15" height="14" rx="2.5" ry="2.5" />
-            </svg>
-            Catalog Reels
-          </button>
-          <button onClick={() => handleNavigation('/fabrics')} className={isActiveRoute('/fabrics') ? 'active' : ''}>Fabrics</button>
-          <button onClick={() => handleNavigation('/magazine')} className={isActiveRoute('/magazine') ? 'active' : ''}>Magazine</button>
-          <button onClick={() => handleNavigation('/about')} className={isActiveRoute('/about') ? 'active' : ''}>About</button>
-          {user?.role === 'admin' && (
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
-                const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || localStorage.getItem('adminUser') || '';
-                window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
-              }}
-              className="mobile-admin-btn"
-              style={{ color: '#D4AF37', fontWeight: '600', letterSpacing: '0.05em' }}
-            >
-              ✦ Admin Dashboard
-            </button>
-          )}
-        </motion.div>
-      )}
+              {/* Drawer Search Input */}
+              <form className="mobile-drawer-search" onSubmit={handleSearch}>
+                <div className="drawer-search-input-wrap">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#78716c">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search silhouettes, kurtis, shararas..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </form>
+
+              {/* Quick Visual Category Chips Carousel */}
+              {availableCategories.length > 0 && (
+                <div className="mobile-drawer-cat-carousel">
+                  <span className="carousel-section-label">EXPLORE CATEGORIES</span>
+                  <div className="cat-chips-scroll">
+                    {availableCategories.map((cat) => {
+                      const catSlug = cat.slug || cat
+                      return (
+                        <div
+                          key={catSlug}
+                          className="mobile-cat-chip"
+                          onClick={() => handleNavigation(`/category/${catSlug}`)}
+                        >
+                          <img
+                            src={cat.image || '/images/categories_straight.jpg'}
+                            alt={cat.label || getCategoryLabel(cat)}
+                            onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
+                          />
+                          <span>{cat.label || getCategoryLabel(cat)}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Links List */}
+              <div className="mobile-drawer-nav-list">
+                <button onClick={() => handleNavigation('/')} className={`drawer-nav-link ${isActiveRoute('/') ? 'active' : ''}`}>
+                  <span className="link-num">01</span>
+                  <span className="link-text">Home</span>
+                </button>
+
+                <button onClick={() => handleNavigation('/collections')} className={`drawer-nav-link ${isActiveRoute('/collections') ? 'active' : ''}`}>
+                  <span className="link-num">02</span>
+                  <span className="link-text">Shop Collections</span>
+                </button>
+
+                <button onClick={() => handleNavigation('/catalog')} className={`drawer-nav-link highlight-reels ${isActiveRoute('/catalog') ? 'active' : ''}`}>
+                  <span className="link-num">03</span>
+                  <span className="link-text">Catalog Reels</span>
+                  <span className="reels-live-badge">🎬 REELS</span>
+                </button>
+
+                {/* Categories Collapsible Submenu */}
+                <div className="drawer-submenu-group">
+                  <button
+                    className={`drawer-nav-link ${isActiveRoute('/categories') ? 'active' : ''}`}
+                    onClick={() => setCategoriesOpen(!categoriesOpen)}
+                  >
+                    <span className="link-num">04</span>
+                    <span className="link-text">Categories</span>
+                    <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" style={{ transform: categoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', marginLeft: 'auto' }}>
+                      <path d="M6 9L1 4h10z" />
+                    </svg>
+                  </button>
+
+                  <AnimatePresence>
+                    {categoriesOpen && (
+                      <motion.div
+                        className="drawer-submenu-list"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                      >
+                        {availableCategories.map((cat) => {
+                          const catSlug = cat.slug || cat
+                          return (
+                            <button
+                              key={catSlug}
+                              className={`drawer-sub-link ${location.pathname === `/category/${catSlug}` ? 'active' : ''}`}
+                              onClick={() => handleNavigation(`/category/${catSlug}`)}
+                            >
+                              ✦ {cat.label || getCategoryLabel(cat)}
+                            </button>
+                          )
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <button onClick={() => handleNavigation('/fabrics')} className={`drawer-nav-link ${isActiveRoute('/fabrics') ? 'active' : ''}`}>
+                  <span className="link-num">05</span>
+                  <span className="link-text">Fabrics & Crafts</span>
+                </button>
+
+                <button onClick={() => handleNavigation('/magazine')} className={`drawer-nav-link ${isActiveRoute('/magazine') ? 'active' : ''}`}>
+                  <span className="link-num">06</span>
+                  <span className="link-text">Magazine</span>
+                </button>
+
+                <button onClick={() => handleNavigation('/about')} className={`drawer-nav-link ${isActiveRoute('/about') ? 'active' : ''}`}>
+                  <span className="link-num">07</span>
+                  <span className="link-text">About Atelier</span>
+                </button>
+
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
+                      const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || localStorage.getItem('adminUser') || '';
+                      window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
+                    }}
+                    className="drawer-nav-link admin-gold-link"
+                  >
+                    <span className="link-num">✦</span>
+                    <span className="link-text">Admin Dashboard</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Drawer Footer Account Info */}
+              <div className="mobile-drawer-footer">
+                {isAuthenticated() ? (
+                  <div className="drawer-user-card">
+                    <div className="user-avatar-badge">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="user-card-info">
+                      <p className="user-card-name">{user?.name}</p>
+                      <p className="user-card-email">{user?.email}</p>
+                    </div>
+                    <button className="user-card-orders-btn" onClick={() => handleNavigation('/orders')}>
+                      Orders →
+                    </button>
+                  </div>
+                ) : (
+                  <button className="drawer-auth-btn" onClick={() => handleNavigation('/auth')}>
+                    Sign In / Create Account
+                  </button>
+                )}
+
+                <div className="drawer-help-tag">
+                  <span>Insured Express Royal Dispatch Across India</span>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.nav>
   )
 }

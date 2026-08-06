@@ -41,10 +41,37 @@ const ProductPage = () => {
   const [pdpCouponCode, setPdpCouponCode] = useState('')
   const [pdpCouponError, setPdpCouponError] = useState(null)
   const [showCouponModal, setShowCouponModal] = useState(false)
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const [sizeUnit, setSizeUnit] = useState('in')
+  const [addedToast, setAddedToast] = useState(false)
+  const [isZoomOpen, setIsZoomOpen] = useState(false)
+
+  const [selectedSize, setSelectedSize] = useState(() => {
+    if (passedProduct) {
+      const sizesList = (passedProduct.sizes && passedProduct.sizes.length > 0)
+        ? passedProduct.sizes
+        : (passedProduct.sizeStock && passedProduct.sizeStock.length > 0)
+          ? passedProduct.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
+          : []
+      return (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
+    }
+    return 'S'
+  })
 
   useEffect(() => {
     fetchAvailableCoupons()
   }, [])
+
+  useEffect(() => {
+    if (showCouponModal || showSizeGuide || isZoomOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showCouponModal, showSizeGuide, isZoomOpen])
 
   const fetchAvailableCoupons = async () => {
     try {
@@ -59,23 +86,6 @@ const ProductPage = () => {
       console.error('Error fetching available coupons:', err)
     }
   }
-
-  const [selectedSize, setSelectedSize] = useState(() => {
-    if (passedProduct) {
-      const sizesList = (passedProduct.sizes && passedProduct.sizes.length > 0)
-        ? passedProduct.sizes
-        : (passedProduct.sizeStock && passedProduct.sizeStock.length > 0)
-          ? passedProduct.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
-          : []
-      return (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
-    }
-    return 'S'
-  })
-
-  const [showSizeGuide, setShowSizeGuide] = useState(false)
-  const [sizeUnit, setSizeUnit] = useState('in')
-  const [addedToast, setAddedToast] = useState(false)
-  const [isZoomOpen, setIsZoomOpen] = useState(false)
 
   useEffect(() => {
     fetchProduct()

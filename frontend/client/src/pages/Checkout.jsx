@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react'
+import { useState, useContext, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
@@ -7,6 +7,102 @@ import { API_ENDPOINTS, RAZORPAY_KEY_ID } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { trackAddShippingInfo, trackAddPaymentInfo, trackPurchase } from '../utils/gtmEcommerce'
 import './Checkout.css'
+
+const INDIAN_STATES = [
+  "Andaman and Nicobar Islands",
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chandigarh",
+  "Chhattisgarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jammu and Kashmir",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Ladakh",
+  "Lakshadweep",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Puducherry",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal"
+]
+
+const CustomStateSelect = ({ value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div className="custom-state-dropdown" ref={dropdownRef}>
+      <button
+        type="button"
+        className={`custom-select-trigger ${isOpen ? 'active' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span className={value ? 'selected-val' : 'placeholder-val'}>
+          {value || 'Select State'}
+        </span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#78716c"
+          strokeWidth="2"
+          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+        >
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="custom-select-options-list">
+          {INDIAN_STATES.map((st) => (
+            <div
+              key={st}
+              className={`custom-select-option ${value === st ? 'selected' : ''}`}
+              onClick={() => {
+                onChange({ target: { name: 'state', value: st } })
+                setIsOpen(false)
+              }}
+            >
+              {st}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const Checkout = () => {
   const {
@@ -30,8 +126,7 @@ const Checkout = () => {
     city: '',
     state: '',
     pincode: '',
-    paymentMethod: 'online',
-    giftWrap: false
+    paymentMethod: 'online'
   })
   
   const [addresses, setAddresses] = useState([])
@@ -111,7 +206,6 @@ const Checkout = () => {
 
   const calculateTotal = () => {
     let total = calculateSubtotal() + calculateShipping()
-    if (formData.giftWrap) total += 250
     total = Math.max(0, total - couponDiscount)
     return total
   }
@@ -425,12 +519,6 @@ const Checkout = () => {
                   <span>White-Glove Shipping</span>
                   <span>₹{calculateShipping()}</span>
                 </div>
-                {formData.giftWrap && (
-                  <div className="calc-line gift-row">
-                    <span>Royal Gift Packaging</span>
-                    <span>+ ₹250</span>
-                  </div>
-                )}
                 <div className="calc-line grand-total-line">
                   <span>Total Payable</span>
                   <span className="gold-text">₹{calculateTotal().toLocaleString('en-IN')}</span>
@@ -564,14 +652,9 @@ const Checkout = () => {
                 </div>
                 <div className="input-group-luxury">
                   <label htmlFor="checkout-state">State *</label>
-                  <input 
-                    id="checkout-state"
-                    type="text" 
-                    name="state" 
+                  <CustomStateSelect 
                     value={formData.state} 
                     onChange={handleChange} 
-                    placeholder="Gujarat" 
-                    required 
                   />
                 </div>
                 <div className="input-group-luxury">
@@ -646,35 +729,7 @@ const Checkout = () => {
               </div>
             </motion.section>
 
-            {/* Section 3: Luxury Gift Options */}
-            <motion.section 
-              className="form-luxury-section"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <div className="section-header-box">
-                <span className="section-num">03</span>
-                <h2 className="section-title-luxury">Signature Packaging</h2>
-              </div>
 
-              <label className={`luxury-checkbox ${formData.giftWrap ? 'active' : ''}`}>
-                <input 
-                  type="checkbox" 
-                  checked={formData.giftWrap} 
-                  onChange={(e) => setFormData({...formData, giftWrap: e.target.checked})} 
-                />
-                <div className="checkbox-content">
-                  <div className="gift-title-row">
-                    <span className="option-title">Royal Gift Packaging (+ ₹250)</span>
-                    <span className="gift-ribbon-tag">✦ Silk Ribbon & Personalized Card</span>
-                  </div>
-                  <span className="option-desc">
-                    Hand-wrapped in luxury tissue inside an embossed See Mee gold-lettered keepsake box with a wax seal.
-                  </span>
-                </div>
-              </label>
-            </motion.section>
 
             {/* Submit Button */}
             <motion.button 
@@ -742,12 +797,6 @@ const Checkout = () => {
                 <span>Insured White-Glove Shipping</span>
                 <span>₹{calculateShipping()}</span>
               </div>
-              {formData.giftWrap && (
-                <div className="calc-line gift-row">
-                  <span>Royal Gift Packaging</span>
-                  <span>+ ₹250</span>
-                </div>
-              )}
             </div>
 
             <div className="summary-total-luxury">

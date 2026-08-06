@@ -64,7 +64,7 @@ const Wishlist = ({ isOpen, onClose }) => {
                       transition={{ type: 'spring', delay: 0.2 }}
                     >
                       <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                       </svg>
                     </motion.div>
                     <h3>Your wishlist is empty</h3>
@@ -76,7 +76,7 @@ const Wishlist = ({ isOpen, onClose }) => {
                       {wishlist.map((item) => {
                         // Normalize ID
                         const itemId = item.id || item._id
-                        
+
                         return (
                           <motion.div
                             key={itemId}
@@ -87,16 +87,16 @@ const Wishlist = ({ isOpen, onClose }) => {
                             layout
                           >
                             <div className="item-image-container">
-                              <img 
-                                src={getOptimizedImageUrl(item.images?.[0] || item.image, 'thumbnail')} 
-                                alt={item.name} 
+                              <img
+                                src={getOptimizedImageUrl(item.images?.[0] || item.image, 'thumbnail')}
+                                alt={item.name}
                               />
                             </div>
-                            
+
                             <div className="item-details">
                               <h3 className="item-name">{item.name}</h3>
                               <p className="item-price">{item.price}</p>
-                              
+
                               <div className="item-actions">
                                 <motion.button
                                   className="add-to-cart-btn"
@@ -105,13 +105,13 @@ const Wishlist = ({ isOpen, onClose }) => {
                                   onClick={() => handleAddToCart(item)}
                                 >
                                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <circle cx="9" cy="21" r="1"/>
-                                    <circle cx="20" cy="21" r="1"/>
-                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                                    <circle cx="9" cy="21" r="1" />
+                                    <circle cx="20" cy="21" r="1" />
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                                   </svg>
                                   Add to Cart
                                 </motion.button>
-                                
+
                                 <motion.button
                                   className="remove-btn"
                                   whileHover={{ scale: 1.1 }}

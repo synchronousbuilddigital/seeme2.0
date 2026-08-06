@@ -323,10 +323,13 @@
   }
 }
 
-/* ─── MOBILE CAROUSEL VIEW (768px and below) ─── */
+/* ─── MOBILE VIEW (768px and below) ─── */
 @media (max-width: 768px) {
   .fabric-rows-container {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    margin-bottom: 2.5rem;
   }
 
   .fabric-mobile-carousel {
@@ -529,91 +532,13 @@
 
 @media (max-width: 768px) {
   .homepage-fabric-section {
-    padding: 60px 0;
+    padding: 35px 0;
   }
 
   .fabric-section-container {
-    width: calc(100% - 40px);
-    padding: 0;
-  }
-
-  .fabric-section-header {
-    margin-bottom: 40px;
-    padding: 0 10px;
-  }
-
-  .fabric-heading {
-    font-size: 28px;
-    margin-bottom: 12px;
-  }
-
-  .fabric-section-intro {
-    font-size: 14px;
-    line-height: 1.6;
-  }
-
-  .fabric-rows-container {
-    gap: 48px;
-    margin-bottom: 40px;
-  }
-
-  .fabric-row-alternating,
-  .fabric-row-alternating.row-reverse {
-    flex-direction: column !important;
-    gap: 20px;
-    text-align: center;
-    align-items: center;
-  }
-
-  .fabric-large-circle-portal {
-    width: 220px;
-    height: 220px;
-    margin: 0 auto;
-  }
-
-  .fabric-row-details {
-    max-width: 100%;
-    padding: 0 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .fabric-row-title {
-    font-size: 22px;
-    margin-bottom: 8px;
-    text-align: center;
-  }
-
-  .fabric-row-description {
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 0;
-    text-align: center;
-    max-width: 420px;
-  }
-
-  .explore-fabrics-btn {
     width: 100%;
-    max-width: 300px;
-    justify-content: center;
-    padding: 14px 22px;
-    font-size: 13px;
-    margin-top: 10px;
-  }
-}
-
-/* Extra small screens (mobile devices < 375px) */
-@media (max-width: 374px) {
-  .homepage-fabric-section {
-    padding: 40px 0;
-    border-top: 1px solid rgba(212, 175, 55, 0.06);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.06);
-  }
-
-  .fabric-section-container {
-    width: calc(100% - 24px);
-    padding: 0;
+    padding: 0 16px;
+    box-sizing: border-box;
   }
 
   .fabric-section-header {
@@ -621,148 +546,109 @@
     padding: 0 8px;
   }
 
-  .fabric-kicker {
-    font-size: 0.8rem;
-    letter-spacing: 0.15em;
-    margin-bottom: 0.6rem;
-  }
-
   .fabric-heading {
-    font-size: 22px;
-    line-height: 1.2;
-    margin-bottom: 1rem;
-  }
-
-  .fabric-heading .italic {
-    font-style: italic;
-  }
-
-  .fabric-header-line {
-    width: 3rem;
-    margin: 0 auto 1rem;
+    font-size: 24px;
+    margin-bottom: 8px;
   }
 
   .fabric-section-intro {
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: rgba(43, 43, 43, 0.7);
+    font-size: 13px;
+    line-height: 1.5;
   }
 
   .fabric-rows-container {
-    gap: 2.5rem;
-    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-bottom: 30px;
   }
 
-  .fabric-row-alternating,
+  .fabric-row-alternating {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    text-align: left;
+    width: 100%;
+  }
+
   .fabric-row-alternating.row-reverse {
-    flex-direction: column !important;
-    gap: 1.5rem;
-    text-align: center;
-    padding: 0 4px;
+    display: flex !important;
+    flex-direction: row-reverse !important;
+    text-align: left;
   }
 
   .fabric-large-circle-portal {
-    width: 140px;
-    height: 140px;
-    border: 3px solid #ebd292;
-    margin: 0 auto;
+    width: clamp(105px, 28vw, 135px);
+    height: clamp(105px, 28vw, 135px);
+    border: 2.5px solid #ebd292;
+    margin: 0;
+    flex-shrink: 0;
   }
 
   .hoop-tension-adjuster {
-    width: 24px;
-    height: 10px;
-    top: -10px;
+    width: 22px;
+    height: 9px;
+    top: -9px;
   }
 
   .adjuster-screw {
     width: 6px;
     height: 6px;
+    top: -5px;
   }
 
   .fabric-editorial-text-card {
-    align-items: center;
-    text-align: center;
-    max-width: calc(100% - 16px);
-    padding: 0 8px;
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
   }
 
   .fabric-row-kicker {
-    font-size: 0.78rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--primary-gold);
+    margin-bottom: 3px;
+    text-transform: uppercase;
   }
 
   .fabric-row-title {
-    font-size: 1.3rem;
-    margin-bottom: 0.6rem;
+    font-size: clamp(1.1rem, 4vw, 1.35rem);
     font-weight: 500;
+    font-family: var(--font-heading, serif);
+    color: var(--charcoal);
+    margin-bottom: 4px;
+    text-align: left;
+    line-height: 1.2;
   }
 
   .fabric-row-divider {
-    width: 2.5rem;
-    margin-bottom: 1rem;
+    width: 2.2rem;
+    height: 1.5px;
+    background-color: var(--primary-gold);
+    margin: 4px 0 8px 0 !important;
   }
 
   .fabric-row-description {
-    font-size: 0.88rem;
-    line-height: 1.6;
-    margin-bottom: 0;
-    text-align: center;
-  }
-
-  .fabric-row-alternating:hover .fabric-large-circle-portal {
-    transform: scale(1.02);
-  }
-
-  .explore-fabrics-btn {
-    width: 90%;
-    max-width: 280px;
-    padding: 0.9rem 1.8rem;
-    font-size: 0.8rem;
-    margin-top: 8px;
-    border-radius: 40px;
-  }
-
-  .fabric-section-action {
-    margin-top: 1.5rem;
-    text-align: center;
-  }
-}
-
-/* Very small screens (< 320px) */
-@media (max-width: 319px) {
-  .fabric-section-header {
-    margin-bottom: 24px;
-  }
-
-  .fabric-heading {
-    font-size: 20px;
-    margin-bottom: 0.8rem;
-  }
-
-  .fabric-section-intro {
-    font-size: 0.85rem;
-  }
-
-  .fabric-rows-container {
-    gap: 2rem;
-  }
-
-  .fabric-large-circle-portal {
-    width: 120px;
-    height: 120px;
-  }
-
-  .fabric-row-title {
-    font-size: 1.2rem;
-  }
-
-  .fabric-row-description {
-    font-size: 0.82rem;
+    font-size: clamp(0.72rem, 2.5vw, 0.82rem);
     line-height: 1.5;
+    margin-bottom: 0;
+    text-align: left;
+    color: rgba(43, 43, 43, 0.78);
   }
 
   .explore-fabrics-btn {
-    padding: 0.8rem 1.6rem;
-    font-size: 0.75rem;
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 12px;
+    margin-top: 5px;
   }
 }

@@ -312,13 +312,13 @@ const CollectionsPage = () => {
             {/* Price Filter Slider Widget */}
             <div className="sidebar-widget">
               <h4 className="widget-title">PRICE RANGE</h4>
-              
+
               <div className="sidebar-price-slider-box">
                 <div className="price-slider-header">
                   <span className="price-slider-label">Max Price:</span>
                   <span className="price-slider-val">₹{maxPrice.toLocaleString('en-IN')}</span>
                 </div>
-                
+
                 <input
                   type="range"
                   min="0"
@@ -463,7 +463,7 @@ const CollectionsPage = () => {
                     <div
                       className="product-image-wrapper"
                       onClick={() => {
-                        try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) {}
+                        try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
                         navigate(`/product/${product._id}`, { state: { product } })
                       }}
                     >
@@ -509,7 +509,7 @@ const CollectionsPage = () => {
                       <h3
                         className="product-name"
                         onClick={() => {
-                          try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) {}
+                          try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
                           navigate(`/product/${product._id}`, { state: { product } })
                         }}
                       >
