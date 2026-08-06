@@ -62,15 +62,15 @@ const CategoryPage = () => {
       const activeProducts = rawList.filter(p => p.isActive !== false)
 
       let slidesList = []
-      if (settingsData?.success && settingsData.data?.categorySlides?.length > 0) {
-        slidesList = [...settingsData.data.categorySlides]
+      if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
+        slidesList = settingsData.data.categorySlides.filter(Boolean)
       }
 
       // Merge distinct product categories from Admin products
-      const existingSlugs = new Set(slidesList.map(c => (c.slug || c.title || '').toLowerCase().trim()))
+      const existingSlugs = new Set(slidesList.map(c => (c?.slug || c?.title || '').toLowerCase().trim()).filter(Boolean))
 
       activeProducts.forEach(p => {
-        if (!p.category) return
+        if (!p || !p.category) return
         const pCatSlug = p.category.toLowerCase().trim()
         const normPCat = pCatSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
 
@@ -98,6 +98,7 @@ const CategoryPage = () => {
       const targetNorm = targetSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
 
       let matchedSlide = slidesList.find(s => {
+        if (!s) return false
         const sSlug = (s.slug || s.title || '').toLowerCase().trim()
         const sNorm = sSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
         return sSlug === targetSlug || sNorm === targetNorm

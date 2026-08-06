@@ -84,7 +84,8 @@ const Magazine = () => {
 
   if (loading || magazineStories.length === 0) return null
 
-  const currentStory = magazineStories[currentIndex]
+  const currentStory = magazineStories[currentIndex] || {}
+  const storyTitle = currentStory.title || 'Journal'
 
   return (
     <section className="relative py-32 bg-[#faf9f6] overflow-hidden flex flex-col items-center" id="magazine">
@@ -129,7 +130,7 @@ const Magazine = () => {
               >
                 {/* Left Page (Visual Spread) */}
                 <div className="relative flex-1 h-full bg-[#f4f4f4] border-r border-black/10 overflow-hidden group">
-                  <img src={currentStory.image} alt="" className="w-full h-full object-cover grayscale-[0.1] contrast-[1.1] brightness-[0.95] hover:scale-105 transition-transform duration-[2s]" />
+                  <img src={currentStory.image || ''} alt={storyTitle} className="w-full h-full object-cover grayscale-[0.1] contrast-[1.1] brightness-[0.95] hover:scale-105 transition-transform duration-[2s]" />
                   <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-transparent"></div>
                   <div className="absolute bottom-8 left-8 text-[10px] tracking-[0.4em] text-white/90 uppercase font-medium">Plate No. 00{currentIndex + 1}</div>
                 </div>
@@ -142,14 +143,14 @@ const Magazine = () => {
                     <span className="block text-[10px] uppercase tracking-[0.6em] text-[#D4AF37] font-bold mb-6 opacity-80">Editorial Journal</span>
 
                     <h3 className="font-serif text-2xl md:text-3xl lg:text-4xl text-[#1a1a1a] leading-[1.3] mb-6 tracking-tight flex items-start">
-                      <span className="text-6xl md:text-7xl leading-[0.8] pr-4 text-[#D4AF37] font-serif font-extralight drop-shadow-sm mt-1">{currentStory.title.charAt(0)}</span>
-                      <span className="pt-1">{currentStory.title.slice(1)}</span>
+                      <span className="text-6xl md:text-7xl leading-[0.8] pr-4 text-[#D4AF37] font-serif font-extralight drop-shadow-sm mt-1">{storyTitle.charAt(0)}</span>
+                      <span className="pt-1">{storyTitle.slice(1)}</span>
                     </h3>
 
                     <div className="w-12 h-[1px] bg-[#D4AF37]/50 mb-8"></div>
 
                     <p className="font-sans text-sm md:text-base lg:text-lg leading-relaxed text-[#4a4a4a] mb-10 font-light italic">
-                      {currentStory.description}
+                      {currentStory.description || ''}
                     </p>
 
                     <div className="flex justify-between items-center pt-6 border-t border-black/5 mt-auto">

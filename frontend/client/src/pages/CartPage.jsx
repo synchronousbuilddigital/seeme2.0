@@ -45,18 +45,19 @@ const CartPage = () => {
     try {
       const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS).catch(() => null)
       if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
-        setAdminCategories(settingsData.data.categorySlides.map(c => ({
-          slug: c.slug || c.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-          title: c.title
-        })))
+        setAdminCategories(settingsData.data.categorySlides.filter(Boolean).map(c => {
+          const title = c?.title || c?.label || c?.name || ''
+          const slug = c?.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          return { slug, title }
+        }).filter(c => c.title))
       } else {
         const catData = await cachedFetch(API_ENDPOINTS.GET_CATEGORIES).catch(() => null)
         if (catData?.success && Array.isArray(catData.data)) {
-          setAdminCategories(catData.data.map(c => {
-            const name = typeof c === 'string' ? c : (c.name || c.title || '')
-            const slug = typeof c === 'object' && c.slug ? c.slug : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          setAdminCategories(catData.data.filter(Boolean).map(c => {
+            const name = typeof c === 'string' ? c : (c?.name || c?.title || '')
+            const slug = (typeof c === 'object' && c !== null && c.slug) ? c.slug : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
             return { title: name.replace(/-/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()), slug }
-          }))
+          }).filter(c => c.title))
         }
       }
     } catch (e) {}

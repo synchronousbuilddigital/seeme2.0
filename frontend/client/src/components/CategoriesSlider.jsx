@@ -57,12 +57,14 @@ const CategoriesSlider = () => {
 
         if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
           // Use strictly the categories created/managed in Admin Category Manager
-          categoryList = [...settingsData.data.categorySlides].sort((a, b) => (a.order || 0) - (b.order || 0))
+          categoryList = settingsData.data.categorySlides
+            .filter(Boolean)
+            .sort((a, b) => ((a?.order || 0) - (b?.order || 0)))
         } else {
           // Fallback only if no category slides exist in Admin
           const existingSlugs = new Set()
           activeProducts.forEach(p => {
-            if (!p.category) return
+            if (!p || !p.category) return
             const pCatSlug = p.category.toLowerCase().trim()
             if (!existingSlugs.has(pCatSlug)) {
               const titleFormatted = p.category.replace(/-/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
@@ -79,15 +81,16 @@ const CategoriesSlider = () => {
           })
         }
 
-        const mappedCategories = categoryList.map((cat, index) => {
-          const normCatSlug = cat.slug ? cat.slug.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '') : ''
+        const mappedCategories = categoryList.filter(Boolean).map((cat, index) => {
+          const catSlug = (cat?.slug || cat?.title || '').toLowerCase()
+          const normCatSlug = catSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
           const matchingProds = activeProducts.filter(p => {
-            if (!p.category) return false
+            if (!p || !p.category) return false
             const normPCat = p.category.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
-            return normPCat === normCatSlug || p.category.toLowerCase() === cat.slug?.toLowerCase()
+            return normPCat === normCatSlug || p.category.toLowerCase() === catSlug
           })
           const matchedProduct = matchingProds[0]
-          const fallback = categoryDefaults[cat.slug?.toLowerCase()]
+          const fallback = categoryDefaults[catSlug]
 
           const prodImg = matchedProduct && (matchedProduct.images?.[0] || matchedProduct.image)
           const poolImg = activeProducts[index % activeProducts.length]?.images?.[0] || activeProducts[index % activeProducts.length]?.image
@@ -96,12 +99,12 @@ const CategoriesSlider = () => {
             ...cat,
             indexCode: String(index + 1).padStart(2, '0'),
             productCount: matchingProds.length,
-            title: cat.title || fallback?.title || 'Collection',
-            features: cat.features && cat.features.length ? cat.features : (fallback?.features || ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut']),
-            subtitle: cat.subtitle || fallback?.subtitle || 'Atelier Collection',
-            description: cat.description || fallback?.description || 'Exquisite artisanal creations.',
+            title: cat?.title || fallback?.title || 'Collection',
+            features: cat?.features && cat.features.length ? cat.features : (fallback?.features || ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut']),
+            subtitle: cat?.subtitle || fallback?.subtitle || 'Atelier Collection',
+            description: cat?.description || fallback?.description || 'Exquisite artisanal creations.',
             // Strictly prioritize Admin Category Slide Image first!
-            image: cat.image ? cat.image : (prodImg || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png')
+            image: cat?.image ? cat.image : (prodImg || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png')
           }
         })
 
@@ -119,7 +122,7 @@ const CategoriesSlider = () => {
   if (loading || categories.length === 0) return null
 
   const dynamicSubtitle = categories.length > 0
-    ? `Explore ${categories.slice(0, 3).map(c => c.title).join(', ')}${categories.length > 3 ? ' & more curated luxury ensembles.' : '.'}`
+    ? `Explore ${categories.slice(0, 3).map(c => c?.title || 'Collection').join(', ')}${categories.length > 3 ? ' & more curated luxury ensembles.' : '.'}`
     : 'Explore curated luxury ensembles.'
 
   return (

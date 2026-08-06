@@ -173,12 +173,12 @@ const FabricSection = () => {
         {/* Desktop Alternating Rows View */}
         {!isMobile && (
           <div className="fabric-rows-container">
-            {fabrics.map((fabric, index) => {
+            {fabrics.filter(Boolean).map((fabric, index) => {
               const isImageLeft = index % 2 === 0
 
               return (
                 <motion.div
-                  key={fabric.title || index}
+                  key={fabric?.title || index}
                   className={`fabric-row-alternating ${isImageLeft ? 'image-left' : 'row-reverse'}`}
                   initial={{ opacity: 0, y: 50 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -193,8 +193,8 @@ const FabricSection = () => {
                     </div>
                     <div className="fabric-circle-inner">
                       <img
-                        src={getOptimizedImageUrl(fabric.image, 'hero')}
-                        alt={fabric.title}
+                        src={getOptimizedImageUrl(fabric?.image, 'hero')}
+                        alt={fabric?.title || ''}
                         className="fabric-circle-img"
                       />
                       <div className="fabric-circle-overlay" />
@@ -204,9 +204,9 @@ const FabricSection = () => {
                   {/* Editorial Storytelling Text Card */}
                   <div className="fabric-editorial-text-card">
                     <span className="fabric-row-kicker">Heritage 0{index + 1}</span>
-                    <h3 className="fabric-row-title">{fabric.title}</h3>
+                    <h3 className="fabric-row-title">{fabric?.title || ''}</h3>
                     <div className="fabric-row-divider" />
-                    <p className="fabric-row-description">{fabric.description}</p>
+                    <p className="fabric-row-description">{fabric?.description || ''}</p>
                   </div>
                 </motion.div>
               )

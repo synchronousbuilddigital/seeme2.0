@@ -65,9 +65,9 @@ const CollectionsPage = () => {
       catsMap.set('all', { value: 'all', label: 'All Collections' })
 
       if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
-        settingsData.data.categorySlides.forEach(slide => {
-          const val = (slide.slug || slide.title || '').toLowerCase().trim()
-          const label = slide.title || val.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+        settingsData.data.categorySlides.filter(Boolean).forEach(slide => {
+          const val = (slide?.slug || slide?.title || '').toLowerCase().trim()
+          const label = slide?.title || val.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
           if (val && !catsMap.has(val)) {
             catsMap.set(val, { value: val, label })
           }

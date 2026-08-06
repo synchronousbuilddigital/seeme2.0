@@ -21,22 +21,25 @@ const pushToDataLayer = (payload) => {
  * Adjust the left side (product.xxx) to match your actual
  * product object keys from your API / state.
  */
-export const mapProductToItem = (product, options = {}) => ({
-  item_id: String(product.id || product._id || product.sku || ''),
-  item_name: product.name || product.title || '',
-  item_brand: "See Mee",
-  item_category: product.category || "",            // e.g. "Anarkali Suits"
-  item_category2: product.subCategory || product.subcategory || "", // e.g. "Bridal"
-  item_variant: options.variant || product.selectedSize || product.size || product.color || "",
-  price: Number(product.salePrice ?? product.price ?? 0),
-  discount: product.mrp
-    ? Number((product.mrp - (product.salePrice ?? product.price ?? 0)).toFixed(2))
-    : 0,
-  quantity: options.quantity || product.quantity || 1,
-  item_list_name: options.listName || "",            // e.g. "Homepage Featured"
-  item_list_id: options.listId || "",
-  index: options.index ?? undefined,                 // position in list (0-based)
-});
+export const mapProductToItem = (rawProduct, options = {}) => {
+  const product = rawProduct || {}
+  return {
+    item_id: String(product.id || product._id || product.sku || ''),
+    item_name: product.name || product.title || '',
+    item_brand: "See Mee",
+    item_category: product.category || "",            // e.g. "Anarkali Suits"
+    item_category2: product.subCategory || product.subcategory || "", // e.g. "Bridal"
+    item_variant: options.variant || product.selectedSize || product.size || product.color || "",
+    price: Number(product.salePrice ?? product.price ?? 0),
+    discount: product.mrp
+      ? Number((product.mrp - (product.salePrice ?? product.price ?? 0)).toFixed(2))
+      : 0,
+    quantity: options.quantity || product.quantity || 1,
+    item_list_name: options.listName || "",            // e.g. "Homepage Featured"
+    item_list_id: options.listId || "",
+    index: options.index ?? undefined,                 // position in list (0-based)
+  }
+}
 
 const CURRENCY = "INR";
 

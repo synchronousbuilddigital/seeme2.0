@@ -109,7 +109,8 @@ const fallbackStories = [
   }
 ]
 
-const normalizeStory = (story = {}, index = 0) => {
+const normalizeStory = (rawStory, index = 0) => {
+  const story = rawStory || {}
   const fallback = fallbackStories[index % fallbackStories.length]
 
   return {

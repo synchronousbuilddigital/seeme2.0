@@ -317,8 +317,8 @@ const AboutPage = () => {
                   <AnimatePresence mode="wait">
                     <motion.img
                       key={activeStage}
-                      src={journeyStages[activeStage].image}
-                      alt={journeyStages[activeStage].title}
+                      src={journeyStages[activeStage]?.image || '/images/about/about_heritage.png'}
+                      alt={journeyStages[activeStage]?.title || ''}
                       onError={(e) => { e.target.src = '/images/about/about_heritage.png' }}
                       initial={{ scale: 1.08, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
@@ -329,15 +329,15 @@ const AboutPage = () => {
                   </AnimatePresence>
                   <div className="stage-image-overlay"></div>
                   <div className="stage-card-badge">
-                    {journeyStages[activeStage].stat}
+                    {journeyStages[activeStage]?.stat}
                   </div>
                 </div>
 
                 <div className="display-content-card">
-                  <span className="display-index">STAGE {journeyStages[activeStage].number}</span>
-                  <h4 className="display-title">{journeyStages[activeStage].title}</h4>
+                  <span className="display-index">STAGE {journeyStages[activeStage]?.number}</span>
+                  <h4 className="display-title">{journeyStages[activeStage]?.title}</h4>
                   <p className="display-description">
-                    {journeyStages[activeStage].detailedDesc}
+                    {journeyStages[activeStage]?.detailedDesc}
                   </p>
                 </div>
               </div>

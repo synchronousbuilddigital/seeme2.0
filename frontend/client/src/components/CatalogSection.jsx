@@ -109,7 +109,7 @@ const CatalogSection = () => {
                   ) : (
                     <img
                       src={getOptimizedImageUrl(posterImg || '/images/ruby_bridal_sharara.png', 'card')}
-                      alt={reel.title}
+                      alt={reel?.title || ''}
                       className="catalog-reel-poster"
                     />
                   )}
@@ -123,11 +123,11 @@ const CatalogSection = () => {
                       REEL
                     </span>
 
-                    {reel.videoUrl && (
+                    {reel?.videoUrl && (
                       <button
                         type="button"
                         className="catalog-mute-btn"
-                        onClick={(e) => toggleMute(reel._id, e)}
+                        onClick={(e) => toggleMute(reel?._id, e)}
                         title={isMuted ? "Unmute audio" : "Mute audio"}
                       >
                         {isMuted ? (
@@ -147,8 +147,8 @@ const CatalogSection = () => {
 
                   {/* Reel Info & Linked Product Pill */}
                   <div className="catalog-reel-info-overlay">
-                    <h3 className="catalog-reel-title">{reel.title}</h3>
-                    {reel.caption && <p className="catalog-reel-caption">{reel.caption}</p>}
+                    <h3 className="catalog-reel-title">{reel?.title || ''}</h3>
+                    {reel?.caption && <p className="catalog-reel-caption">{reel.caption}</p>}
 
                     {product && (
                       <div

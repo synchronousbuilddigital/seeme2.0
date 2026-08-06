@@ -34,21 +34,25 @@ const CategoriesPage = () => {
 
       let rawCategories = []
       if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides)) {
-        rawCategories = [...settingsData.data.categorySlides]
+        rawCategories = settingsData.data.categorySlides.filter(Boolean)
       }
 
       // Process only admin categories
       const processedCategories = rawCategories.map((cat) => {
-        const matching = getCategoryProducts(activeProducts, cat.slug || cat.title)
+        const catTitle = cat?.title || cat?.name || ''
+        const catSlug = cat?.slug || catTitle
+        const matching = getCategoryProducts(activeProducts, catSlug)
         const matchedProduct = matching[0]
 
         return {
           ...cat,
+          title: catTitle,
+          slug: catSlug,
           productCount: matching.length,
-          features: cat.features && cat.features.length > 0 ? cat.features : ['Luxury Tailoring', 'Pure Fabrics'],
-          subtitle: cat.subtitle || 'Atelier Collection',
-          description: cat.description || 'Artisanal heritage creations blending traditional weaves with contemporary grace.',
-          image: cat.image || (matchedProduct?.images?.[0] || matchedProduct?.image) || '/images/categories_straight.jpg'
+          features: cat?.features && cat.features.length > 0 ? cat.features : ['Luxury Tailoring', 'Pure Fabrics'],
+          subtitle: cat?.subtitle || 'Atelier Collection',
+          description: cat?.description || 'Artisanal heritage creations blending traditional weaves with contemporary grace.',
+          image: cat?.image || (matchedProduct?.images?.[0] || matchedProduct?.image) || '/images/categories_straight.jpg'
         }
       })
 

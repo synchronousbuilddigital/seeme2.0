@@ -27,18 +27,22 @@ const Footer = () => {
         let categoryList = []
 
         if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
-          categoryList = settingsData.data.categorySlides.map(cat => ({
-            title: cat.title || cat.label || cat.name,
-            slug: (cat.slug || cat.title || cat.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-          }))
+          categoryList = settingsData.data.categorySlides
+            .filter(Boolean)
+            .map(cat => {
+              const title = cat?.title || cat?.label || cat?.name || ''
+              const slug = (cat?.slug || title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+              return { title, slug }
+            })
+            .filter(c => c.title)
         }
 
         if (categoryList.length === 0 && categoriesData?.success && Array.isArray(categoriesData.data)) {
-          categoryList = categoriesData.data.map(cat => {
-            const name = typeof cat === 'string' ? cat : (cat.name || cat.title || '')
-            const slug = typeof cat === 'object' && cat.slug ? cat.slug : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+          categoryList = categoriesData.data.filter(Boolean).map(cat => {
+            const name = typeof cat === 'string' ? cat : (cat?.name || cat?.title || '')
+            const slug = (typeof cat === 'object' && cat !== null && cat.slug) ? cat.slug : name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
             return { title: name, slug }
-          })
+          }).filter(c => c.title)
         }
 
         if (isMounted && categoryList.length > 0) {

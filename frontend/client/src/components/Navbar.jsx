@@ -10,7 +10,7 @@ import './Navbar.css'
 
 const normalizeCategorySlug = (slug) => {
   if (!slug) return ''
-  const str = typeof slug === 'object' ? (slug.slug || slug.title || slug.name || '') : String(slug)
+  const str = (typeof slug === 'object' && slug !== null) ? (slug.slug || slug.title || slug.name || '') : String(slug)
   let s = str.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
   if (s.startsWith('2piece')) return '2piece'
   if (s.startsWith('3piece')) return '3piece'
@@ -20,7 +20,7 @@ const normalizeCategorySlug = (slug) => {
 
 const getCategoryLabel = (catItem) => {
   if (!catItem) return ''
-  if (typeof catItem === 'object') {
+  if (typeof catItem === 'object' && catItem !== null) {
     if (catItem.title) return catItem.title
     if (catItem.label) return catItem.label
     if (catItem.name) return catItem.name
@@ -31,9 +31,9 @@ const getCategoryLabel = (catItem) => {
 
 const getCategorySlug = (catItem) => {
   if (!catItem) return ''
-  if (typeof catItem === 'object') {
+  if (typeof catItem === 'object' && catItem !== null) {
     if (catItem.slug) return catItem.slug
-    if (catItem.title) return catItem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    if (catItem.title) return String(catItem.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
   }
   return String(catItem).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
@@ -103,14 +103,14 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
         const mergedCategories = []
 
         if (adminCategorySlides.length > 0) {
-          adminCategorySlides.forEach((cat, idx) => {
-            const key = (cat.slug || cat.title || '').toLowerCase().trim()
+          adminCategorySlides.filter(Boolean).forEach((cat, idx) => {
+            const key = (cat?.slug || cat?.title || '').toLowerCase().trim()
             if (key && !seenKeys.has(key)) {
               seenKeys.add(key)
 
               const normKey = key.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
               const matchedProduct = activeProducts.find(p => {
-                if (!p.category) return false
+                if (!p || !p.category) return false
                 const normPCat = p.category.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
                 return normPCat === normKey || p.category.toLowerCase() === key
               })
@@ -127,8 +127,8 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
             }
           })
         } else {
-          apiCategories.forEach((cat, idx) => {
-            const key = (typeof cat === 'string' ? cat : (cat.slug || cat.title || '')).toLowerCase().trim()
+          apiCategories.filter(Boolean).forEach((cat, idx) => {
+            const key = (typeof cat === 'string' ? cat : (cat?.slug || cat?.title || '')).toLowerCase().trim()
             if (key && !seenKeys.has(key)) {
               seenKeys.add(key)
 

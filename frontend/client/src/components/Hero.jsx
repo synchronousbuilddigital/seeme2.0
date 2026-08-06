@@ -202,15 +202,19 @@ const Hero = () => {
       try {
         const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
         if (isMounted && settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
-          const adminSlides = [...settingsData.data.categorySlides]
-            .sort((a, b) => (a.order || 0) - (b.order || 0))
-            .map(slide => ({
-              title: slide.title,
-              subtitle: slide.subtitle || 'SETS',
-              slug: slide.slug || slide.title.toLowerCase().replace(/\s+/g, '-'),
-              image: slide.image || '',
-              id: slide._id || slide.slug
-            }))
+          const adminSlides = settingsData.data.categorySlides
+            .filter(Boolean)
+            .sort((a, b) => ((a?.order || 0) - (b?.order || 0)))
+            .map(slide => {
+              const title = slide?.title || slide?.label || slide?.name || ''
+              return {
+                title,
+                subtitle: slide?.subtitle || 'SETS',
+                slug: slide?.slug || title.toLowerCase().replace(/\s+/g, '-'),
+                image: slide?.image || '',
+                id: slide?._id || slide?.slug
+              }
+            })
 
           setCategories(adminSlides)
           try {
@@ -276,13 +280,13 @@ const Hero = () => {
           // Also pull from SiteSettings categorySlides if available
           try {
             const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
-            if (settingsData && settingsData.success && settingsData.data?.categorySlides) {
-              settingsData.data.categorySlides.forEach(slide => {
-                if (slide.image) {
+            if (settingsData && settingsData.success && Array.isArray(settingsData.data?.categorySlides)) {
+              settingsData.data.categorySlides.filter(Boolean).forEach(slide => {
+                if (slide?.image) {
                   const rawSlug = (slide.slug || slide.title || '').toLowerCase().trim()
                   const normSlug = normalizeCategoryKey(slide.slug || slide.title)
-                  if (!imageMap[rawSlug]) imageMap[rawSlug] = slide.image
-                  if (!imageMap[normSlug]) imageMap[normSlug] = slide.image
+                  if (rawSlug && !imageMap[rawSlug]) imageMap[rawSlug] = slide.image
+                  if (normSlug && !imageMap[normSlug]) imageMap[normSlug] = slide.image
                   allProductImgs.push(slide.image)
                 }
               })
