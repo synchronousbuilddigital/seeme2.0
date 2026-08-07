@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import Order from '../models/Order.js'
 import Product from '../models/Product.js'
 import asyncHandler from '../utils/asyncHandler.js'
@@ -5,20 +8,25 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { sendOrderEmail } from '../services/emailService.js'
 
-// Initialize Razorpay conditionally
-let razorpay;
-if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
-  try {
-    razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID,
-      key_secret: process.env.RAZORPAY_KEY_SECRET
-    });
-    console.log('✅ Razorpay initialized successfully');
-  } catch (error) {
-    console.error('❌ Failed to initialize Razorpay:', error.message);
+// Initialize Razorpay dynamically
+let razorpayInstance = null
+
+export const getRazorpay = () => {
+  if (razorpayInstance) return razorpayInstance
+  const keyId = (process.env.RAZORPAY_KEY_ID || '').trim()
+  const keySecret = (process.env.RAZORPAY_KEY_SECRET || '').trim()
+  if (keyId && keySecret && !keyId.includes('your_razorpay_key')) {
+    try {
+      razorpayInstance = new Razorpay({
+        key_id: keyId,
+        key_secret: keySecret
+      })
+      console.log(`✅ Razorpay initialized successfully (${keyId})`)
+    } catch (error) {
+      console.error('❌ Failed to initialize Razorpay:', error.message)
+    }
   }
-} else {
-  console.warn('⚠️ Razorpay keys missing. Payment will work in MOCK mode.');
+  return razorpayInstance
 }
 
 // @desc    Create new order
@@ -223,12 +231,13 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
   }
 
   // Razorpay Configuration Guard
-  const isDev = process.env.NODE_ENV === 'development';
-  const hasKeys = process.env.RAZORPAY_KEY_ID && !process.env.RAZORPAY_KEY_ID.includes('your_razorpay_key');
+  const razorpay = getRazorpay()
+  const keyId = (process.env.RAZORPAY_KEY_ID || '').trim()
+  const hasKeys = !!razorpay && keyId && !keyId.includes('your_razorpay_key')
 
   if (!hasKeys) {
-    if (isDev) {
-      console.warn('⚠️ WARNING: Razorpay keys are not configured. Returning a mock order for development.');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️ WARNING: Razorpay keys are not configured. Returning a mock order for development.')
       return res.json({
         success: true,
         data: {
@@ -238,8 +247,8 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
         }
       })
     } else {
-      res.status(500);
-      throw new Error('Razorpay payment gateway is not configured for production.');
+      res.status(500)
+      throw new Error('Razorpay payment gateway is not configured for production.')
     }
   }
 

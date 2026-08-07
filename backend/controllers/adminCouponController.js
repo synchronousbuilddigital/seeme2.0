@@ -35,6 +35,7 @@ export const getAdminCoupons = asyncHandler(async (req, res) => {
   const sort = { [sortBy]: sortOrder === 'asc' ? 1 : -1 }
 
   const coupons = await Coupon.find(filter)
+    .populate('allowedUsers', '_id name email phone')
     .sort(sort)
     .skip(skip)
     .limit(Number(limit))
@@ -58,7 +59,7 @@ export const getAdminCoupons = asyncHandler(async (req, res) => {
 // @route   GET /api/admin/coupons/:id
 // @access  Admin
 export const getAdminCouponById = asyncHandler(async (req, res) => {
-  const coupon = await Coupon.findById(req.params.id)
+  const coupon = await Coupon.findById(req.params.id).populate('allowedUsers', '_id name email phone')
   if (!coupon) {
     res.status(404)
     throw new Error('Coupon not found')

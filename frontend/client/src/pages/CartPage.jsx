@@ -27,6 +27,8 @@ const CartPage = () => {
 
   const navigate = useNavigate()
 
+  const { user, token } = useAuth()
+
   const [promoCode, setPromoCode] = useState('')
   const [availableCoupons, setAvailableCoupons] = useState([])
   const [adminCategories, setAdminCategories] = useState([])
@@ -38,7 +40,7 @@ const CartPage = () => {
   useEffect(() => {
     fetchAvailableCoupons()
     fetchAdminCategories()
-  }, [])
+  }, [token])
 
   const fetchAdminCategories = async () => {
     try {
@@ -64,7 +66,10 @@ const CartPage = () => {
 
   const fetchAvailableCoupons = async () => {
     try {
-      const res = await fetch(API_ENDPOINTS.COUPON_AVAILABLE)
+      const headers = {}
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
+      const res = await fetch(API_ENDPOINTS.COUPON_AVAILABLE, { headers })
       const contentType = res.headers.get('content-type') || ''
       if (!res.ok || !contentType.includes('application/json')) return
       const data = await res.json()
@@ -140,8 +145,6 @@ const CartPage = () => {
     removeFromCart(itemId, item.selectedSize || item.size)
     showToast(`✦ Moved "${item.name}" to your Wishlist ❤️`)
   }
-
-  const { user, token } = useAuth()
 
   const handleCheckout = () => {
     if (!user || !token) {
@@ -400,9 +403,14 @@ const CartPage = () => {
                 {availableCoupons.map(c => {
                   const isApplied = appliedCoupon?.code === c.code
                   return (
-                    <div key={c._id || c.code} className={`coupon-suggestion-card ${isApplied ? 'applied' : ''}`}>
+                    <div key={c._id || c.code} className={`coupon-suggestion-card ${isApplied ? 'applied' : ''} ${c.isExclusiveForUser ? 'exclusive' : ''}`}>
                       <div className="coupon-card-left">
-                        <span className="coupon-code-badge">✦ {c.code}</span>
+                        <div className="coupon-code-badge-wrap">
+                          <span className="coupon-code-badge">✦ {c.code}</span>
+                          {c.isExclusiveForUser && (
+                            <span className="exclusive-user-badge">⭐ Exclusive For You</span>
+                          )}
+                        </div>
                         <p className="coupon-card-desc">{c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`}</p>
                       </div>
                       <button 

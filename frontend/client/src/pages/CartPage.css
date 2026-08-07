@@ -1059,3 +1059,28 @@
   font-size: 0.76rem;
   color: #991b1b;
 }
+
+.coupon-code-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.exclusive-user-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #7e22ce;
+  background: #f3e8ff;
+  border: 1px solid #d8b4fe;
+  padding: 2px 7px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.coupon-suggestion-card.exclusive {
+  border-color: #d8b4fe;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+

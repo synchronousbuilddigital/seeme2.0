@@ -1,6 +1,7 @@
 import Coupon from '../models/Coupon.js'
 import CouponUsage from '../models/CouponUsage.js'
 import Order from '../models/Order.js'
+import User from '../models/User.js'
 
 export const validateAndCalculateCoupon = async ({
   code,
@@ -35,6 +36,33 @@ export const validateAndCalculateCoupon = async ({
   if (coupon.usageLimit !== null && coupon.usedCount >= coupon.usageLimit) {
     return { isValid: false, reason: 'USAGE_LIMIT_EXCEEDED', message: 'This coupon limit has been fully redeemed.' }
   }
+
+  // Check target user restriction if targeted to selected users
+  const isTargeted = coupon.targetAudience === 'selected' || (coupon.allowedUsers && coupon.allowedUsers.length > 0)
+  if (isTargeted) {
+    const allowedUserIds = (coupon.allowedUsers || []).map(u => String(u._id || u))
+    let userMatched = false
+
+    if (userId && allowedUserIds.includes(String(userId))) {
+      userMatched = true
+    }
+
+    if (!userMatched && userEmail) {
+      const userObj = await User.findOne({ email: String(userEmail).toLowerCase().trim() }).select('_id')
+      if (userObj && allowedUserIds.includes(String(userObj._id))) {
+        userMatched = true
+      }
+    }
+
+    if (!userMatched) {
+      return {
+        isValid: false,
+        reason: 'USER_NOT_ELIGIBLE',
+        message: 'This coupon is valid only for specific selected customers.'
+      }
+    }
+  }
+
 
   // Check per-user limit
   const userIdentifier = userId || userEmail

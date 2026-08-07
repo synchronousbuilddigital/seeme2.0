@@ -104,7 +104,16 @@ const couponSchema = new mongoose.Schema({
     buyQuantity: { type: Number, default: 1 },
     getQuantity: { type: Number, default: 1 },
     getDiscountPercentage: { type: Number, default: 100 }
-  }
+  },
+  targetAudience: {
+    type: String,
+    enum: ['all', 'selected'],
+    default: 'all'
+  },
+  allowedUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 }, {
   timestamps: true
 })

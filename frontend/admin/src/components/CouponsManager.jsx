@@ -14,6 +14,10 @@ const CouponsManager = () => {
   const [toast, setToast] = useState(null)
   const [viewingUsage, setViewingUsage] = useState(null)
 
+  const [customers, setCustomers] = useState([])
+  const [loadingCustomers, setLoadingCustomers] = useState(false)
+  const [customerSearch, setCustomerSearch] = useState('')
+
   const initialFormState = {
     code: '',
     description: '',
@@ -29,7 +33,9 @@ const CouponsManager = () => {
     expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
     freeShipping: false,
     firstOrderOnly: false,
-    isActive: true
+    isActive: true,
+    targetAudience: 'all', // 'all' | 'selected'
+    allowedUsers: []
   }
 
   const [formData, setFormData] = useState(initialFormState)
@@ -47,6 +53,21 @@ const CouponsManager = () => {
     if (navigator.clipboard && code) {
       navigator.clipboard.writeText(code)
       showToast(`Copied "${code}" to clipboard!`, 'success')
+    }
+  }
+
+  const fetchCustomers = async () => {
+    if (customers.length > 0) return
+    try {
+      setLoadingCustomers(true)
+      const data = await apiRequest(API_ENDPOINTS.ADMIN.CUSTOMERS, { auth: true })
+      if (data.success && Array.isArray(data.data)) {
+        setCustomers(data.data)
+      }
+    } catch (err) {
+      console.error('Error fetching customer list:', err)
+    } finally {
+      setLoadingCustomers(false)
     }
   }
 
@@ -77,11 +98,14 @@ const CouponsManager = () => {
   const handleOpenCreateModal = () => {
     setEditingCoupon(null)
     setFormData(initialFormState)
+    setCustomerSearch('')
     setIsModalOpen(true)
+    fetchCustomers()
   }
 
   const handleOpenEditModal = (coupon) => {
     setEditingCoupon(coupon)
+    const allowedUserIds = (coupon.allowedUsers || []).map(u => typeof u === 'object' ? u._id : u)
     setFormData({
       code: coupon.code,
       description: coupon.description || '',
@@ -97,9 +121,13 @@ const CouponsManager = () => {
       expiryDate: coupon.expiryDate ? new Date(coupon.expiryDate).toISOString().slice(0, 10) : '',
       freeShipping: coupon.freeShipping || false,
       firstOrderOnly: coupon.firstOrderOnly || false,
-      isActive: coupon.isActive !== undefined ? coupon.isActive : true
+      isActive: coupon.isActive !== undefined ? coupon.isActive : true,
+      targetAudience: coupon.targetAudience || (allowedUserIds.length > 0 ? 'selected' : 'all'),
+      allowedUsers: allowedUserIds
     })
+    setCustomerSearch('')
     setIsModalOpen(true)
+    fetchCustomers()
   }
 
   const handleToggleStatus = async (coupon) => {
@@ -162,6 +190,11 @@ const CouponsManager = () => {
       return
     }
 
+    if (formData.targetAudience === 'selected' && (!formData.allowedUsers || formData.allowedUsers.length === 0)) {
+      showToast('Please select at least one customer for a targeted coupon', 'error')
+      return
+    }
+
     const payload = {
       ...formData,
       code: formData.code.trim().toUpperCase(),
@@ -173,7 +206,9 @@ const CouponsManager = () => {
       perUserLimit: Number(formData.perUserLimit) || 1,
       applicableCategories: formData.applicableCategories
         ? formData.applicableCategories.split(',').map(c => c.trim()).filter(Boolean)
-        : []
+        : [],
+      targetAudience: formData.targetAudience,
+      allowedUsers: formData.targetAudience === 'selected' ? formData.allowedUsers : []
     }
 
     try {
@@ -336,6 +371,13 @@ const CouponsManager = () => {
                           {coupon.maximumDiscount > 0 && (
                             <span className="cap-sub">Max Cap: ₹{coupon.maximumDiscount}</span>
                           )}
+                          {coupon.targetAudience === 'selected' || (coupon.allowedUsers && coupon.allowedUsers.length > 0) ? (
+                            <span className="audience-badge selected" title={`Assigned to ${coupon.allowedUsers?.length || 0} customer(s)`}>
+                              🎯 Targeted ({coupon.allowedUsers?.length || 0} Users)
+                            </span>
+                          ) : (
+                            <span className="audience-badge all">🌐 All Users</span>
+                          )}
                         </td>
 
                         <td>₹{(coupon.minimumOrder || 0).toLocaleString('en-IN')}</td>
@@ -446,15 +488,18 @@ const CouponsManager = () => {
                       </div>
                     )}
 
-                    {(coupon.freeShipping || coupon.firstOrderOnly || (coupon.applicableCategories && coupon.applicableCategories.length > 0)) && (
-                      <div className="mobile-card-tags">
-                        {coupon.freeShipping && <span className="m-tag gold">Free Shipping</span>}
-                        {coupon.firstOrderOnly && <span className="m-tag blue">First Order Only</span>}
-                        {coupon.applicableCategories?.map(cat => (
-                          <span className="m-tag gray" key={cat}>{cat}</span>
-                        ))}
-                      </div>
-                    )}
+                    <div className="mobile-card-tags">
+                      {coupon.targetAudience === 'selected' || (coupon.allowedUsers && coupon.allowedUsers.length > 0) ? (
+                        <span className="m-tag purple">🎯 Targeted ({coupon.allowedUsers?.length || 0} Users)</span>
+                      ) : (
+                        <span className="m-tag gray">🌐 All Users</span>
+                      )}
+                      {coupon.freeShipping && <span className="m-tag gold">Free Shipping</span>}
+                      {coupon.firstOrderOnly && <span className="m-tag blue">First Order Only</span>}
+                      {coupon.applicableCategories?.map(cat => (
+                        <span className="m-tag gray" key={cat}>{cat}</span>
+                      ))}
+                    </div>
 
                     <div className="mobile-card-actions">
                       <button className="m-action-btn edit" onClick={() => handleOpenEditModal(coupon)}>
@@ -502,6 +547,131 @@ const CouponsManager = () => {
               </div>
 
               <form onSubmit={handleSubmitForm} className="admin-coupon-form">
+                {/* Target Audience Section */}
+                <div className="form-group audience-selection-group">
+                  <label className="audience-group-label">Target Audience *</label>
+                  <div className="audience-toggle-row">
+                    <button
+                      type="button"
+                      className={`audience-toggle-btn ${formData.targetAudience === 'all' ? 'active' : ''}`}
+                      onClick={() => setFormData({ ...formData, targetAudience: 'all' })}
+                    >
+                      <span className="audience-icon">🌐</span>
+                      <div className="audience-text">
+                        <strong>All Customers</strong>
+                        <small>Public promo code for all shoppers</small>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`audience-toggle-btn ${formData.targetAudience === 'selected' ? 'active' : ''}`}
+                      onClick={() => {
+                        setFormData({ ...formData, targetAudience: 'selected' })
+                        fetchCustomers()
+                      }}
+                    >
+                      <span className="audience-icon">🎯</span>
+                      <div className="audience-text">
+                        <strong>Selected Users Only</strong>
+                        <small>Exclusive offer for specific customers</small>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Customer Multi-Selector Box */}
+                {formData.targetAudience === 'selected' && (
+                  <div className="selected-users-manager">
+                    <div className="users-manager-header">
+                      <span className="users-manager-title">
+                        Assign Customer(s) ({formData.allowedUsers.length} Selected)
+                      </span>
+                      <div className="users-manager-actions">
+                        <input
+                          type="text"
+                          className="user-search-input"
+                          placeholder="🔍 Search customer name, email..."
+                          value={customerSearch}
+                          onChange={(e) => setCustomerSearch(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Selected User Chips */}
+                    {formData.allowedUsers.length > 0 && (
+                      <div className="selected-user-chips-row">
+                        {formData.allowedUsers.map(uId => {
+                          const userObj = customers.find(c => String(c._id) === String(uId))
+                          const name = userObj ? userObj.name : 'User'
+                          const email = userObj ? userObj.email : uId
+                          return (
+                            <span key={uId} className="user-chip">
+                              <span className="chip-avatar">👤</span> {name} ({email})
+                              <button
+                                type="button"
+                                className="chip-remove-btn"
+                                onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    allowedUsers: prev.allowedUsers.filter(id => String(id) !== String(uId))
+                                  }))
+                                }}
+                              >✕</button>
+                            </span>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Customer Selection Scroll List */}
+                    <div className="customer-selection-list">
+                      {loadingCustomers ? (
+                        <div className="customer-list-status">Loading customers list...</div>
+                      ) : customers.length === 0 ? (
+                        <div className="customer-list-status">No registered customers found.</div>
+                      ) : (
+                        customers
+                          .filter(c => {
+                            if (!customerSearch.trim()) return true
+                            const q = customerSearch.toLowerCase()
+                            return (
+                              (c.name && c.name.toLowerCase().includes(q)) ||
+                              (c.email && c.email.toLowerCase().includes(q)) ||
+                              (c.phone && c.phone.includes(q))
+                            )
+                          })
+                          .map(c => {
+                            const isSelected = formData.allowedUsers.some(id => String(id) === String(c._id))
+                            return (
+                              <label key={c._id} className={`customer-item ${isSelected ? 'selected' : ''}`}>
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setFormData(prev => ({ ...prev, allowedUsers: [...prev.allowedUsers, c._id] }))
+                                    } else {
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        allowedUsers: prev.allowedUsers.filter(id => String(id) !== String(c._id))
+                                      }))
+                                    }
+                                  }}
+                                />
+                                <div className="cust-info">
+                                  <span className="cust-name">{c.name || 'Customer'}</span>
+                                  <span className="cust-email">{c.email} {c.phone ? `• ${c.phone}` : ''}</span>
+                                </div>
+                                {isSelected && <span className="cust-check-badge">Selected ✓</span>}
+                              </label>
+                            )
+                          })
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 <div className="form-grid-2">
                   <div className="form-group">
                     <label>Coupon Code *</label>

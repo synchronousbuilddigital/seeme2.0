@@ -75,6 +75,19 @@ export const CartProvider = ({ children }) => {
     }
   }, [wishlist])
 
+  // Remove Coupon Method
+  const removeCoupon = (silent = false) => {
+    if (appliedCoupon && !silent) {
+      try {
+        trackCouponRemoved({ coupon_code: appliedCoupon.code })
+      } catch (e) {}
+    }
+    setAppliedCoupon(null)
+    setCouponDiscount(0)
+    setIsFreeShippingFromCoupon(false)
+    localStorage.removeItem('seemee-applied-coupon')
+  }
+
   // Auto-validate applied coupon when cart updates
   useEffect(() => {
     if (!appliedCoupon || !cart.length) {
@@ -86,9 +99,12 @@ export const CartProvider = ({ children }) => {
 
     const revalidate = async () => {
       try {
+        const headers = { 'Content-Type': 'application/json' }
+        if (token) headers['Authorization'] = `Bearer ${token}`
+
         const response = await fetch(API_ENDPOINTS.COUPON_APPLY, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify({
             code: appliedCoupon.code,
             cartItems: cart,
@@ -98,12 +114,12 @@ export const CartProvider = ({ children }) => {
         })
         const contentType = response.headers.get('content-type') || ''
         if (!contentType.includes('application/json')) return
+
         const data = await response.json()
         if (data.success && data.data?.isValid) {
           setCouponDiscount(data.data.discountAmount || 0)
           setIsFreeShippingFromCoupon(data.data.isFreeShipping || false)
         } else {
-          // Coupon no longer valid (e.g. minimum order not met after removing item)
           try {
             trackCouponInvalid({ coupon_code: appliedCoupon.code, reason: data.message })
           } catch (e) {}
@@ -119,7 +135,7 @@ export const CartProvider = ({ children }) => {
 
     const timer = setTimeout(revalidate, 300)
     return () => clearTimeout(timer)
-  }, [cart, user])
+  }, [cart, user, token])
 
   // Apply Coupon Method (Backend Validated)
   const applyCoupon = async (code) => {
@@ -130,9 +146,12 @@ export const CartProvider = ({ children }) => {
     setCouponLoading(true)
 
     try {
+      const headers = { 'Content-Type': 'application/json' }
+      if (token) headers['Authorization'] = `Bearer ${token}`
+
       const response = await fetch(API_ENDPOINTS.COUPON_APPLY, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           code: cleanCode,
           cartItems: cart,
@@ -178,19 +197,6 @@ export const CartProvider = ({ children }) => {
     } finally {
       setCouponLoading(false)
     }
-  }
-
-  // Remove Coupon Method
-  const removeCoupon = (silent = false) => {
-    if (appliedCoupon && !silent) {
-      try {
-        trackCouponRemoved({ coupon_code: appliedCoupon.code })
-      } catch (e) {}
-    }
-    setAppliedCoupon(null)
-    setCouponDiscount(0)
-    setIsFreeShippingFromCoupon(false)
-    localStorage.removeItem('seemee-applied-coupon')
   }
 
   // Sync with backend on login / mount

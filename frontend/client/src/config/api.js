@@ -87,6 +87,7 @@ export const API_ENDPOINTS = {
 }
 
 // Razorpay Key (use environment variable in production)
-export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_your_key_id'
+export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TMn9U39AjsZco4'
+
 
 export default API_BASE_URL
