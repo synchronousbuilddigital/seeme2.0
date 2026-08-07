@@ -5,6 +5,7 @@ import { CartContext } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
 import { API_ENDPOINTS, RAZORPAY_KEY_ID } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { fetchPincodeDetails } from '../utils/pincodeService'
 import { trackAddShippingInfo, trackAddPaymentInfo, trackPurchase } from '../utils/gtmEcommerce'
 import './Checkout.css'
 
@@ -133,11 +134,106 @@ const Checkout = () => {
   const [selectedAddressId, setSelectedAddressId] = useState(null)
   const [showMobileSummary, setShowMobileSummary] = useState(false)
 
+  const [pincodeLoading, setPincodeLoading] = useState(false)
+  const [pincodeError, setPincodeError] = useState('')
+
+  const [placedOrder, setPlacedOrder] = useState(null)
+  const [cancellingId, setCancellingId] = useState(null)
+
   useEffect(() => {
+    if (placedOrder) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [placedOrder])
+
+  const handleCancelOrderFromModal = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return
+    setCancellingId(orderId)
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDERS_CANCEL(orderId), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setPlacedOrder(prev => prev ? { ...prev, status: 'Cancelled' } : null)
+      } else {
+        alert(data.message || 'Failed to cancel order.')
+      }
+    } catch (err) {
+      console.error('Cancel order error:', err)
+      alert('Failed to cancel order. Please try again.')
+    } finally {
+      setCancellingId(null)
+    }
+  }
+
+  // Automatic State & City autofill via India Post API
+  useEffect(() => {
+    const rawPin = formData.pincode ? String(formData.pincode).trim() : ''
+
+    // Reset error when user alters pincode
+    setPincodeError('')
+
+    // Only lookup when exactly 6 numeric digits are entered
+    if (rawPin.length !== 6 || !/^\d{6}$/.test(rawPin)) {
+      setPincodeLoading(false)
+      return
+    }
+
+    let isMounted = true
+    const timer = setTimeout(async () => {
+      if (!isMounted) return
+      setPincodeLoading(true)
+      const res = await fetchPincodeDetails(rawPin)
+      if (!isMounted) return
+      setPincodeLoading(false)
+
+      if (res.success) {
+        setFormData(prev => ({
+          ...prev,
+          city: res.city || prev.city,
+          state: res.state || prev.state
+        }))
+        setPincodeError('')
+      } else if (!res.aborted) {
+        setPincodeError(res.error || 'Invalid or non-existent PIN code.')
+        setFormData(prev => ({
+          ...prev,
+          city: '',
+          state: ''
+        }))
+      }
+    }, 400) // 400ms debounce
+
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
+    }
+  }, [formData.pincode])
+
+  useEffect(() => {
+    if (!user || !token) {
+      navigate('/auth', {
+        state: {
+          message: 'Please sign in or create an account to place an order.',
+          from: '/checkout'
+        }
+      })
+      return
+    }
     if (cart.length === 0) {
       navigate('/')
     }
-  }, [cart, navigate])
+  }, [user, token, cart, navigate])
 
   useEffect(() => {
     if (user && token) {
@@ -279,8 +375,14 @@ const Checkout = () => {
         const result = await verifyResponse.json()
         if (result.success) {
           clearCart()
-          alert('Order placed successfully via Online Payment!')
-          navigate('/orders')
+          setPlacedOrder(result.data || {
+            _id: 'ORD-' + Date.now(),
+            customer: orderData.customer,
+            items: orderData.items,
+            totalAmount: orderData.totalAmount,
+            paymentMethod: 'online',
+            status: 'Placed'
+          })
         } else {
           alert('Payment verification failed: ' + result.message)
         }
@@ -321,8 +423,14 @@ const Checkout = () => {
               console.error('GTM purchase tracking error:', e)
             }
             clearCart()
-            alert('Payment successful! Your order has been placed.')
-            navigate('/orders')
+            setPlacedOrder(result.data || {
+              _id: 'ORD-' + Date.now(),
+              customer: orderData.customer,
+              items: orderData.items,
+              totalAmount: orderData.totalAmount,
+              paymentMethod: 'online',
+              status: 'Placed'
+            })
           } else {
             alert('Payment verification failed. Please contact support.')
           }
@@ -414,8 +522,14 @@ const Checkout = () => {
             console.error('GTM purchase tracking error:', e)
           }
           clearCart()
-          alert('Order placed successfully! You will pay on delivery.')
-          navigate('/orders')
+          setPlacedOrder(result.data || {
+            _id: 'ORD-' + Date.now(),
+            customer: orderData.customer,
+            items: orderData.items,
+            totalAmount: orderData.totalAmount,
+            paymentMethod: orderData.paymentMethod,
+            status: 'Placed'
+          })
         } else {
           alert('Order failed: ' + (result.message || 'Please try again.'))
         }
@@ -658,7 +772,10 @@ const Checkout = () => {
                   />
                 </div>
                 <div className="input-group-luxury">
-                  <label htmlFor="checkout-pincode">Pincode / Zipcode *</label>
+                  <label htmlFor="checkout-pincode">
+                    Pincode / Zipcode *
+                    {pincodeLoading && <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: '#d4af37' }}>🔍 Verifying PIN...</span>}
+                  </label>
                   <input 
                     id="checkout-pincode"
                     type="text" 
@@ -666,8 +783,10 @@ const Checkout = () => {
                     value={formData.pincode} 
                     onChange={handleChange} 
                     placeholder="394210" 
+                    maxLength={6}
                     required 
                   />
+                  {pincodeError && <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '4px', display: 'block' }}>{pincodeError}</span>}
                 </div>
               </div>
             </motion.section>
@@ -853,6 +972,120 @@ const Checkout = () => {
           )}
         </button>
       </div>
+
+      {/* Order Placed Confirmation Window Modal */}
+      <AnimatePresence>
+        {placedOrder && (
+          <div className="order-placed-modal-overlay">
+            <motion.div 
+              className="order-placed-card-luxury"
+              initial={{ scale: 0.9, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 30 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            >
+              <div className="placed-header">
+                <div className="placed-icon-circle">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span className="editorial-mini-label">✦ ORDER CONFIRMED</span>
+                <h2 className="placed-title">Order Placed Successfully</h2>
+                <p className="placed-subtitle">
+                  Thank you for choosing SEEMEE Haute Couture. We have received your order and sent a confirmation email to <strong>{placedOrder.customer?.email}</strong>.
+                </p>
+              </div>
+
+              <div className="placed-details-box">
+                <div className="detail-row">
+                  <span>Order Reference ID:</span>
+                  <strong>#{placedOrder._id ? String(placedOrder._id).slice(-8).toUpperCase() : 'SEEMEE'}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Status:</span>
+                  <span className={`placed-status-pill ${(placedOrder.status || 'placed').toLowerCase()}`}>
+                    {placedOrder.status || 'Placed'}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span>Payment Method:</span>
+                  <strong>{placedOrder.paymentMethod === 'online' ? 'Online Payment (Razorpay)' : 'Cash on Delivery'}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Total Amount:</span>
+                  <strong className="gold-total-text">₹{Number(placedOrder.totalAmount || 0).toLocaleString('en-IN')}.00</strong>
+                </div>
+                {placedOrder.customer?.address && (
+                  <div className="detail-row address-summary">
+                    <span>Shipping Destination:</span>
+                    <p>
+                      <strong>{placedOrder.customer.name}</strong><br/>
+                      {placedOrder.customer.address.street}, {placedOrder.customer.address.city}, {placedOrder.customer.address.state} - {placedOrder.customer.address.pincode}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="placed-items-container">
+                <span className="items-header-title">Ordered Items ({placedOrder.items?.length || 0})</span>
+                <div className="placed-items-list">
+                  {placedOrder.items?.map((item, idx) => (
+                    <div key={idx} className="placed-item-card">
+                      <img 
+                        src={getOptimizedImageUrl(item.image || item.images?.[0], 'thumbnail')} 
+                        alt={item.name} 
+                        onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
+                      />
+                      <div className="item-meta">
+                        <h4>{item.name}</h4>
+                        <span>Qty: {item.quantity} | Size: {item.size || item.selectedSize || 'M'}</span>
+                      </div>
+                      <span className="item-price-val">₹{((item.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="placed-modal-actions">
+                {placedOrder.status !== 'Cancelled' ? (
+                  <>
+                    <button 
+                      type="button" 
+                      className="btn-cancel-modal-action"
+                      onClick={() => handleCancelOrderFromModal(placedOrder._id)}
+                      disabled={cancellingId === placedOrder._id}
+                    >
+                      {cancellingId === placedOrder._id ? 'Cancelling...' : '🚫 Cancel Order'}
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn-primary-modal-action"
+                      onClick={() => navigate('/orders')}
+                    >
+                      View Orders in Account
+                    </button>
+                    <button 
+                      type="button" 
+                      className="btn-secondary-modal-action"
+                      onClick={() => navigate('/collections')}
+                    >
+                      Continue Shopping
+                    </button>
+                  </>
+                ) : (
+                  <div className="cancelled-state-notice">
+                    <span className="cancelled-msg">⚠️ This order is cancelled</span>
+                    <button type="button" className="btn-primary-modal-action" onClick={() => navigate('/collections')}>
+                      Continue Shopping
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

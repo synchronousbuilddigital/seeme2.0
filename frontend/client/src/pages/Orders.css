@@ -511,6 +511,32 @@
   color: #27AE60 !important;
 }
 
+.pay-status.cancelled {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #DC2626 !important;
+}
+
+.timeline-cancelled-banner {
+  background: #FFF1F2;
+  border: 1px solid #FECDD3;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.timeline-cancelled-banner .cancelled-icon-badge {
+  font-size: 1.2rem;
+}
+
+.timeline-cancelled-banner .cancelled-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #991B1B;
+}
+
 .order-footer-actions {
   background: #FCFCFC !important;
   border-top: 1.5px solid #F0F0F0;
@@ -557,5 +583,29 @@
   background: #FAFAFA !important;
   border-color: #D4AF37 !important;
   color: #D4AF37 !important;
+  transform: translateY(-2px);
+}
+
+.cancel-order-action-btn {
+  border-radius: 8px !important;
+  padding: 12px 22px !important;
+  font-family: inherit;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #FFF1F2 !important;
+  color: #BE123C !important;
+  border: 1.5px solid #FECDD3 !important;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.cancel-order-action-btn:hover {
+  background: #FFE4E6 !important;
+  border-color: #FDA4AF !important;
   transform: translateY(-2px);
 }

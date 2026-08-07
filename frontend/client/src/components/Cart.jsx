@@ -2,12 +2,14 @@ import { useContext, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
 import './Cart.css'
 
 const Cart = ({ isOpen, onClose }) => {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useContext(CartContext)
+  const { user, token } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -21,6 +23,16 @@ const Cart = ({ isOpen, onClose }) => {
   }, [isOpen, cart.length])
 
   const handleCheckout = () => {
+    if (!user || !token) {
+      onClose()
+      navigate('/auth', {
+        state: {
+          message: 'Please sign in or create an account to place an order.',
+          from: '/checkout'
+        }
+      })
+      return
+    }
     try {
       trackBeginCheckout(cart)
     } catch (e) { }

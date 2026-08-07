@@ -22,6 +22,9 @@ router.get('/:id', orderController.getOrder)
 router.post('/create-razorpay-order', orderController.createRazorpayOrder)
 router.post('/verify-payment', orderController.verifyPayment)
 
+// Cancel order (user or admin)
+router.put('/:id/cancel', protect, orderController.cancelMyOrder)
+
 // Update order status (admin only)
 router.put('/:id/status', protect, admin, orderController.updateOrderStatus)
 

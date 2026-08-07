@@ -165,6 +165,15 @@ const ProductPage = () => {
   }
 
   const handleBuyNow = () => {
+    if (!user || !token) {
+      navigate('/auth', {
+        state: {
+          message: 'Please sign in or create an account to place an order.',
+          from: '/checkout'
+        }
+      })
+      return
+    }
     if (!selectedSize) {
       alert('Please select a size to proceed')
       return
@@ -340,7 +349,7 @@ const ProductPage = () => {
                 </button>
                 <button
                   className={`icon-action-btn ${isInWishlist(product._id) ? 'active-wish' : ''}`}
-                  onClick={() => toggleWishlist(product)}
+                  onClick={() => toggleWishlist(product, navigate)}
                   title="Add to Wishlist"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
@@ -596,19 +605,56 @@ const ProductPage = () => {
           <div className="related-products-section">
             <h2 className="related-section-title">You May Also Like</h2>
             <div className="related-products-grid">
-              {relatedProducts.map(rel => (
-                <div
-                  key={rel._id}
-                  className="related-product-card"
-                  onClick={() => navigate(`/product/${rel._id}`, { state: { product: rel } })}
-                >
-                  <img src={getImageUrl(rel.images?.[0] || rel.image)} alt={rel.name} />
-                  <div className="related-card-info">
-                    <h4>{rel.name}</h4>
-                    <span className="related-card-price">₹{Number(rel.price || 0).toLocaleString('en-IN')}</span>
+              {relatedProducts.map(rel => {
+                const rPrice = Number(rel.price || 0)
+                const rMrp = (rel.mrp || rel.discountPrice) ? Number(rel.mrp || rel.discountPrice) : null
+                const rHasDiscount = rMrp && rMrp > rPrice
+                const rDiscountPercent = rHasDiscount ? Math.round(((rMrp - rPrice) / rMrp) * 100) : 0
+
+                return (
+                  <div
+                    key={rel._id}
+                    className="related-product-card"
+                    onClick={() => navigate(`/product/${rel._id}`, { state: { product: rel } })}
+                  >
+                    <div className="related-image-wrapper">
+                      {rHasDiscount && (
+                        <span className="related-discount-pill">{rDiscountPercent}% OFF</span>
+                      )}
+                      <img src={getImageUrl(rel.images?.[0] || rel.image)} alt={rel.name} />
+                    </div>
+                    <div className="related-card-info">
+                      <h4>{rel.name}</h4>
+                      <div className="related-card-prices-row">
+                        <span className="related-card-price">₹{rPrice.toLocaleString('en-IN')}</span>
+                        {rHasDiscount && (
+                          <span className="related-card-mrp">₹{rMrp.toLocaleString('en-IN')}</span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="related-add-cart-btn"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          addToCart({
+                            id: rel._id || rel.id,
+                            _id: rel._id || rel.id,
+                            name: rel.name,
+                            price: rel.price,
+                            image: rel.images?.[0] || rel.image,
+                            size: 'M',
+                            quantity: 1
+                          })
+                          setAddedToast(true)
+                          setTimeout(() => setAddedToast(false), 3500)
+                        }}
+                      >
+                        + ADD TO BAG
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}

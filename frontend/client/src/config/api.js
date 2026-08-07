@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
   // ─── Orders ────────────────────────────────────
   ORDERS: `${API_BASE_URL}/api/orders`,
   ORDERS_MY: `${API_BASE_URL}/api/orders/myorders`,
+  ORDERS_CANCEL: (id) => `${API_BASE_URL}/api/orders/${id}/cancel`,
   CREATE_RAZORPAY_ORDER: `${API_BASE_URL}/api/orders/create-razorpay-order`,
   VERIFY_PAYMENT: `${API_BASE_URL}/api/orders/verify-payment`,
 

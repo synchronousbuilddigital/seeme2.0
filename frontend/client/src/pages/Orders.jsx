@@ -43,6 +43,36 @@ const Orders = () => {
     }
   }
 
+  const [cancellingId, setCancellingId] = useState(null)
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order? Item stock will be restored.')) {
+      return
+    }
+    setCancellingId(orderId)
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDERS_CANCEL(orderId), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        alert('Order cancelled successfully.')
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Cancelled' } : o))
+      } else {
+        alert(data.message || 'Failed to cancel order.')
+      }
+    } catch (err) {
+      console.error('Error cancelling order:', err)
+      alert('Failed to cancel order.')
+    } finally {
+      setCancellingId(null)
+    }
+  }
+
   const getStatusColor = (status) => {
     const colors = {
       pending: '#f39c12',
@@ -54,7 +84,7 @@ const Orders = () => {
       delivered: '#27ae60',
       cancelled: '#e74c3c'
     }
-    return colors[status] || '#95a5a6'
+    return colors[(status || '').toLowerCase()] || '#95a5a6'
   }
 
   const handlePrint = (order) => {
@@ -413,19 +443,26 @@ const Orders = () => {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.4 }}
                     >
-                      <div className="tracking-timeline-horizontal">
-                         {['pending', 'confirmed', 'processing', 'shipped', 'delivered'].map((step, idx, arr) => {
-                           const currentStepIdx = arr.indexOf(order.status);
-                           const isCompleted = idx <= currentStepIdx;
-                           const isCurrent = idx === currentStepIdx;
-                           return (
-                             <div key={step} className={`timeline-step ${isCompleted ? 'active' : ''} ${isCurrent ? 'current' : ''}`}>
-                               <div className="step-dot" />
-                               <span className="step-label">{step}</span>
-                             </div>
-                           )
-                         })}
-                      </div>
+                      {(order.status || '').toLowerCase() === 'cancelled' ? (
+                        <div className="timeline-cancelled-banner">
+                          <span className="cancelled-icon-badge">🚫</span>
+                          <span className="cancelled-text">This order is cancelled</span>
+                        </div>
+                      ) : (
+                        <div className="tracking-timeline-horizontal">
+                           {['pending', 'confirmed', 'processing', 'shipped', 'delivered'].map((step, idx, arr) => {
+                             const currentStepIdx = arr.indexOf((order.status || '').toLowerCase());
+                             const isCompleted = idx <= currentStepIdx;
+                             const isCurrent = idx === currentStepIdx;
+                             return (
+                               <div key={step} className={`timeline-step ${isCompleted ? 'active' : ''} ${isCurrent ? 'current' : ''}`}>
+                                 <div className="step-dot" />
+                                 <span className="step-label">{step}</span>
+                               </div>
+                             )
+                           })}
+                        </div>
+                      )}
 
                       <div className="details-grid">
                         <div className="items-section">
@@ -459,7 +496,9 @@ const Orders = () => {
                           <div className="payment-info">
                             <h4>Payment</h4>
                             <p>Method: {order.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}</p>
-                            <p className={`pay-status ${order.paymentStatus}`}>Status: {order.paymentStatus.toUpperCase()}</p>
+                            <p className={`pay-status ${(order.status || '').toLowerCase() === 'cancelled' ? 'cancelled' : (order.paymentStatus || '').toLowerCase()}`}>
+                              Status: {(order.status || '').toLowerCase() === 'cancelled' ? 'CANCELLED' : (order.paymentStatus || 'pending').toUpperCase()}
+                            </p>
                           </div>
 
                           {order.trackingNumber && (
@@ -473,6 +512,16 @@ const Orders = () => {
                       </div>
                       
                       <div className="order-footer-actions">
+                        {!['cancelled', 'shipped', 'delivered'].includes((order.status || '').toLowerCase()) && (
+                          <button 
+                            className="cancel-order-action-btn" 
+                            onClick={() => handleCancelOrder(order._id)}
+                            disabled={cancellingId === order._id}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                            {cancellingId === order._id ? 'Cancelling...' : 'Cancel Order'}
+                          </button>
+                        )}
                         <button className="invoice-btn" onClick={() => handlePrint(order)}>
                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
                            Print Receipt

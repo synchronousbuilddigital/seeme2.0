@@ -351,7 +351,6 @@ export const CartProvider = ({ children }) => {
 
   const getCartTotal = () => {
     return cart.reduce((total, item) => {
-      // Handle both string and number prices, with safety checks
       let price = 0
       if (item.price) {
         if (typeof item.price === 'string') {
@@ -365,12 +364,21 @@ export const CartProvider = ({ children }) => {
   }
 
   const getCartCount = () => {
-    return cart.reduce((count, item) => count + item.quantity, 0)
+    return cart.reduce((count, item) => count + (item.quantity || 1), 0)
   }
 
-  const toggleWishlist = (product) => {
+  const toggleWishlist = (product, customNavigate) => {
+    if (!user || !token) {
+      const msg = 'Please sign in or create an account to save items to your wishlist.'
+      if (typeof customNavigate === 'function') {
+        customNavigate('/auth', { state: { message: msg, from: window.location.pathname } })
+      } else {
+        window.location.href = `/auth`
+      }
+      return false
+    }
+
     setWishlist(prevWishlist => {
-      // Normalize product ID
       const productId = product.id || product._id
       const normalizedProduct = {
         ...product,
@@ -400,6 +408,7 @@ export const CartProvider = ({ children }) => {
       console.log('New wishlist:', newWishlist)
       return newWishlist
     })
+    return true
   }
 
   const isInWishlist = (productId) => {

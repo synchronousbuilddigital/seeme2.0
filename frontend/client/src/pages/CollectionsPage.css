@@ -1710,12 +1710,12 @@
 
 @media (max-width: 600px) {
   .collections-page {
-    padding-top: 98px;
+    padding-top: 72px !important;
   }
 
   .editorial-back-nav {
-    padding: 10px 14px 4px;
-    margin-top: 4px;
+    padding: 6px 14px 2px !important;
+    margin-top: 0 !important;
     width: 100%;
     box-sizing: border-box;
   }
@@ -1741,15 +1741,16 @@
   }
 
   .collections-header {
-    padding: 8px 14px 6px;
+    padding: 6px 14px 6px !important;
   }
 
   .collections-title {
-    font-size: 2.2rem;
+    font-size: 2.1rem !important;
+    margin-bottom: 4px !important;
   }
 
   .collections-subtitle {
-    font-size: 0.88rem;
+    font-size: 0.85rem !important;
   }
 
   .collections-grid {

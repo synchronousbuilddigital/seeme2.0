@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
+import { useAuth } from '../context/AuthContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
@@ -140,7 +141,18 @@ const CartPage = () => {
     showToast(`✦ Moved "${item.name}" to your Wishlist ❤️`)
   }
 
+  const { user, token } = useAuth()
+
   const handleCheckout = () => {
+    if (!user || !token) {
+      navigate('/auth', {
+        state: {
+          message: 'Please sign in or create an account to place an order.',
+          from: '/checkout'
+        }
+      })
+      return
+    }
     try {
       trackBeginCheckout(cart, appliedCoupon?.code || '')
     } catch (e) {

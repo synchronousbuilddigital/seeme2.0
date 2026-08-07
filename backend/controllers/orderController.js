@@ -145,6 +145,71 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, data: order })
 })
 
+// @desc    Cancel order by user
+// @route   PUT /api/orders/:id/cancel
+// @access  Private
+export const cancelMyOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+
+  if (!order) {
+    res.status(404)
+    throw new Error('Order not found')
+  }
+
+  // Ensure user owns this order or is admin
+  const userEmail = (req.user?.email || '').trim().toLowerCase()
+  const orderEmail = (order.customer?.email || '').trim().toLowerCase()
+  const isOwner = (orderEmail && orderEmail === userEmail) || (order.user && String(order.user) === String(req.user?._id))
+
+  if (!isOwner && req.user?.role !== 'admin') {
+    res.status(403)
+    throw new Error('Not authorized to cancel this order')
+  }
+
+  const currentStatus = (order.status || '').toLowerCase()
+  if (['shipped', 'delivered'].includes(currentStatus)) {
+    res.status(400)
+    throw new Error(`Cannot cancel order. Status is already ${order.status}.`)
+  }
+
+  if (currentStatus === 'cancelled') {
+    res.status(400)
+    throw new Error('Order is already cancelled.')
+  }
+
+  // Restore inventory stock
+  if (order.items && order.items.length > 0) {
+    for (const item of order.items) {
+      if (item.product) {
+        const product = await Product.findById(item.product)
+        if (product) {
+          if (product.sizeStock && product.sizeStock.length > 0) {
+            const sizeItem = product.sizeStock.find(s => s.size === item.size)
+            if (sizeItem) {
+              sizeItem.quantity += (item.quantity || 1)
+            }
+          } else {
+            product.stock += (item.quantity || 1)
+          }
+          await product.save()
+        }
+      }
+    }
+  }
+
+  order.status = 'cancelled'
+  await order.save()
+
+  // Send Order Cancelled Email
+  try {
+    await sendOrderEmail(order, 'Cancelled')
+  } catch (err) {
+    console.error('Order cancellation email error:', err.message)
+  }
+
+  res.json({ success: true, message: 'Order cancelled successfully.', data: order })
+})
+
 // @desc    Create Razorpay order
 // @route   POST /api/orders/create-razorpay-order
 // @access  Public

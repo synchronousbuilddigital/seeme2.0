@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { fetchPincodeDetails } from '../utils/pincodeService'
 import './AccountPage.css'
 
 const AccountPage = () => {
@@ -33,6 +34,80 @@ const AccountPage = () => {
   const [newAddress, setNewAddress] = useState({
     street: '', city: '', state: '', pincode: '', isDefault: false
   })
+
+  const [pincodeLoading, setPincodeLoading] = useState(false)
+  const [pincodeError, setPincodeError] = useState('')
+  const [cancellingOrderId, setCancellingOrderId] = useState(null)
+
+  const handleCancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order? Item stock will be restored.')) {
+      return
+    }
+    setCancellingOrderId(orderId)
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDERS_CANCEL(orderId), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setMessage({ type: 'success', text: 'Order cancelled successfully.' })
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Cancelled' } : o))
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Failed to cancel order' })
+      }
+    } catch (err) {
+      console.error('Error cancelling order:', err)
+      setMessage({ type: 'error', text: 'Failed to cancel order' })
+    } finally {
+      setCancellingOrderId(null)
+    }
+  }
+
+  // Automatic State & City autofill via India Post API for AccountPage address form
+  useEffect(() => {
+    const rawPin = newAddress.pincode ? String(newAddress.pincode).trim() : ''
+
+    setPincodeError('')
+
+    if (rawPin.length !== 6 || !/^\d{6}$/.test(rawPin)) {
+      setPincodeLoading(false)
+      return
+    }
+
+    let isMounted = true
+    const timer = setTimeout(async () => {
+      if (!isMounted) return
+      setPincodeLoading(true)
+      const res = await fetchPincodeDetails(rawPin)
+      if (!isMounted) return
+      setPincodeLoading(false)
+
+      if (res.success) {
+        setNewAddress(prev => ({
+          ...prev,
+          city: res.city || prev.city,
+          state: res.state || prev.state
+        }))
+        setPincodeError('')
+      } else if (!res.aborted) {
+        setPincodeError(res.error || 'Invalid or non-existent PIN code.')
+        setNewAddress(prev => ({
+          ...prev,
+          city: '',
+          state: ''
+        }))
+      }
+    }, 400)
+
+    return () => {
+      isMounted = false
+      clearTimeout(timer)
+    }
+  }, [newAddress.pincode])
 
   // Sync profileData when user state updates
   useEffect(() => {
@@ -659,19 +734,26 @@ const AccountPage = () => {
                           {/* Delivery Progress Bar */}
                           <div className="order-progress-wrapper">
                             <h4 className="progress-title">Order Status Timeline</h4>
-                            <div className="progress-bar-steps">
-                              {steps.map((step, idx) => {
-                                const isDone = idx <= currentStepIdx && currentStatus !== 'cancelled'
-                                return (
-                                  <div key={step} className={`progress-step-item ${isDone ? 'completed' : ''} ${idx === currentStepIdx ? 'active' : ''}`}>
-                                    <div className="step-dot">
-                                      {isDone ? '✓' : idx + 1}
+                            {currentStatus === 'cancelled' ? (
+                              <div className="timeline-cancelled-banner">
+                                <span className="cancelled-icon-badge">🚫</span>
+                                <span className="cancelled-text">This order is cancelled</span>
+                              </div>
+                            ) : (
+                              <div className="progress-bar-steps">
+                                {steps.map((step, idx) => {
+                                  const isDone = idx <= currentStepIdx
+                                  return (
+                                    <div key={step} className={`progress-step-item ${isDone ? 'completed' : ''} ${idx === currentStepIdx ? 'active' : ''}`}>
+                                      <div className="step-dot">
+                                        {isDone ? '✓' : idx + 1}
+                                      </div>
+                                      <span className="step-name">{step}</span>
                                     </div>
-                                    <span className="step-name">{step}</span>
-                                  </div>
-                                )
-                              })}
-                            </div>
+                                  )
+                                })}
+                              </div>
+                            )}
                           </div>
 
                           <div className="order-detail-grid">
@@ -721,8 +803,8 @@ const AccountPage = () => {
                                   </div>
                                   <div className="payment-row">
                                     <span>Status:</span>
-                                    <strong className={`payment-status ${(order.paymentStatus || '').toLowerCase()}`}>
-                                      {(order.paymentStatus || 'pending').toUpperCase()}
+                                    <strong className={`payment-status ${currentStatus === 'cancelled' ? 'cancelled' : (order.paymentStatus || '').toLowerCase()}`}>
+                                      {currentStatus === 'cancelled' ? 'CANCELLED' : (order.paymentStatus || 'pending').toUpperCase()}
                                     </strong>
                                   </div>
                                 </div>
@@ -731,6 +813,16 @@ const AccountPage = () => {
                           </div>
 
                           <div className="order-detail-actions">
+                            {!['cancelled', 'shipped', 'delivered'].includes((order.status || '').toLowerCase()) && (
+                              <button 
+                                type="button" 
+                                className="btn-editorial outline cancel-btn-editorial" 
+                                onClick={() => handleCancelOrder(order._id)}
+                                disabled={cancellingOrderId === order._id}
+                              >
+                                {cancellingOrderId === order._id ? 'Cancelling...' : '🚫 Cancel Order'}
+                              </button>
+                            )}
                             <button type="button" className="btn-editorial gold" onClick={() => handlePrint(order)}>
                               🖨 Print Invoice Receipt
                             </button>
@@ -961,14 +1053,19 @@ const AccountPage = () => {
                           />
                         </div>
                         <div className="form-group">
-                          <label>Pincode</label>
+                          <label>
+                            Pincode
+                            {pincodeLoading && <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: '#d4af37' }}>🔍 Verifying PIN...</span>}
+                          </label>
                           <input 
                             type="text" 
                             placeholder="6-digit Pincode" 
                             required 
+                            maxLength={6}
                             value={newAddress.pincode} 
                             onChange={(e) => setNewAddress({ ...newAddress, pincode: e.target.value })} 
                           />
+                          {pincodeError && <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '4px', display: 'block' }}>{pincodeError}</span>}
                         </div>
                       </div>
 

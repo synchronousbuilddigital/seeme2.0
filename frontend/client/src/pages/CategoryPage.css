@@ -1020,3 +1020,9 @@
     letter-spacing: 0.3px;
   }
 }
+
+@media (max-width: 768px) {
+  .category-page-header {
+    padding-top: 80px !important;
+  }
+}

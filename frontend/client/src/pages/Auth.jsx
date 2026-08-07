@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import './Auth.css'
 
@@ -23,11 +23,19 @@ const Auth = () => {
   
   const { user, token, login, signup, forgotPassword } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  const authNotice = location.state?.message
+  const redirectTarget = location.state?.from || location.state?.redirectUrl || '/'
 
   useEffect(() => {
-    if (user && user.role === 'admin') {
-      const adminToken = token || localStorage.getItem('seemee-token') || '';
-      window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(JSON.stringify(user))}`
+    if (user) {
+      if (user.role === 'admin') {
+        const adminToken = token || localStorage.getItem('seemee-token') || ''
+        window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(JSON.stringify(user))}`
+      } else {
+        navigate(redirectTarget, { replace: true })
+      }
     }
   }, [user, token])
 
@@ -198,6 +206,12 @@ const Auth = () => {
                   : 'Join the world of SEEMEE for a curated luxury experience.'}
               </p>
             </div>
+
+            {authNotice && (
+              <div className="auth-notice-banner">
+                <span>🔒 {authNotice}</span>
+              </div>
+            )}
 
             <AnimatePresence mode="wait">
               {error && (

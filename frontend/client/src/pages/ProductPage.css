@@ -841,46 +841,120 @@
 }
 
 .related-product-card {
-  background: #faf8f5;
-  border-radius: 14px;
-  border: 1px solid #f0eee9;
+  background: #ffffff;
+  border-radius: 16px;
   overflow: hidden;
+  border: 1px solid #e7e5e4;
   cursor: pointer;
-  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .related-product-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  border-color: #d4af37;
 }
 
-.related-product-card img {
+.related-image-wrapper {
+  position: relative;
   width: 100%;
-  height: 280px;
-  object-fit: contain;
-  background: #faf8f5;
-  padding: 6px;
-  box-sizing: border-box;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: #f5f5f4;
+}
+
+.related-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0 !important;
+}
+
+.related-product-card:hover .related-image-wrapper img {
+  transform: scale(1.05);
+}
+
+.related-discount-pill {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
 }
 
 .related-card-info {
-  padding: 14px;
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }
 
 .related-card-info h4 {
-  font-size: 0.9rem;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.85rem;
   font-weight: 600;
   color: #1c1917;
-  margin: 0 0 6px 0;
+  margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.related-card-prices-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .related-card-price {
   font-size: 0.95rem;
   font-weight: 700;
   color: #1c1917;
+}
+
+.related-card-mrp {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #a8a29e;
+  text-decoration: line-through;
+}
+
+.related-add-cart-btn {
+  margin-top: 4px;
+  width: 100%;
+  padding: 8px 12px;
+  background: #1c1917;
+  color: #d4af37;
+  border: 1px solid #1c1917;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.related-add-cart-btn:hover {
+  background: #d4af37;
+  color: #1c1917;
+  border-color: #d4af37;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
 }
 
 /* Zoom Modal */
@@ -1452,4 +1526,41 @@
 .btn-coupon-list-apply.btn-applied {
   background: #16a34a;
   color: #ffffff;
+}
+
+/* Mobile Responsive Overrides for Product Page Top Spacing & Breadcrumbs */
+@media (max-width: 768px) {
+  .modern-product-page,
+  .product-page-wrapper {
+    padding-top: 85px !important;
+  }
+
+  .product-layout-container {
+    padding: 0 16px !important;
+  }
+
+  .product-top-breadcrumbs {
+    margin-bottom: 12px !important;
+    font-size: 0.76rem !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px !important;
+  }
+
+  .product-top-breadcrumbs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .product-top-breadcrumbs .crumb-current {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
+  }
 }

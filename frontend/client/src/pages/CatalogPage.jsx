@@ -49,30 +49,34 @@ const CatalogPage = () => {
     }
   }
 
-  // Handle Video Autoplay / Pause based on active index
+  // Handle Video Autoplay / Pause based on IntersectionObserver on page scroll
   useEffect(() => {
-    if (viewMode !== 'feed') return
-    Object.keys(videoRefs.current).forEach((key) => {
-      const vid = videoRefs.current[key]
-      if (vid) {
-        if (parseInt(key, 10) === currentReelIndex) {
-          vid.play().catch(() => {})
-        } else {
-          vid.pause()
-          vid.currentTime = 0
-        }
-      }
-    })
-  }, [currentReelIndex, reels, viewMode])
+    if (viewMode !== 'feed' || reels.length === 0) return
 
-  const handleScroll = () => {
-    if (!containerRef.current) return
-    const container = containerRef.current
-    const index = Math.round(container.scrollTop / container.clientHeight)
-    if (index !== currentReelIndex && index >= 0 && index < reels.length) {
-      setCurrentReelIndex(index)
-    }
-  }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const index = parseInt(entry.target.getAttribute('data-index'), 10)
+          const vid = videoRefs.current[index]
+          if (entry.isIntersecting) {
+            setCurrentReelIndex(index)
+            if (vid) vid.play().catch(() => {})
+          } else {
+            if (vid) {
+              vid.pause()
+              vid.currentTime = 0
+            }
+          }
+        })
+      },
+      { threshold: 0.5 }
+    )
+
+    const slides = document.querySelectorAll('.reel-slide')
+    slides.forEach((slide) => observer.observe(slide))
+
+    return () => observer.disconnect()
+  }, [reels, viewMode])
 
   const showToast = (msg) => {
     setToastMessage(msg)
@@ -238,11 +242,7 @@ const CatalogPage = () => {
 
       {/* 1. Feed Mode: Instagram Reels Snap-Scroll View */}
       {viewMode === 'feed' && (
-        <div 
-          className="reels-feed-container" 
-          ref={containerRef}
-          onScroll={handleScroll}
-        >
+        <div className="reels-feed-container" ref={containerRef}>
           {reels.map((reel, index) => {
             const product = reel.product
             const isLiked = likedReels[reel._id] !== undefined 
@@ -251,7 +251,7 @@ const CatalogPage = () => {
             const mediaImage = reel.coverImage || product?.images?.[0] || product?.image
 
             return (
-              <div key={reel._id || index} className="reel-slide">
+              <div key={reel._id || index} className="reel-slide" data-index={index}>
                 {/* Media Player (Video or Full Image) */}
                 <div className="reel-media-wrapper" onClick={() => toggleVideoPlay(index)}>
                   {reel.videoUrl ? (

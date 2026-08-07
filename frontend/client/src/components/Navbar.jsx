@@ -40,6 +40,7 @@ const getCategorySlug = (catItem) => {
 
 const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   const [scrolled, setScrolled] = useState(false)
+  const [navVisible, setNavVisible] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const [logo, setLogo] = useState('/images/logoSEEMEE1.png')
@@ -175,14 +176,81 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   }, [])
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 100)
+    let lastScrollPos = 0
+    let ticking = false
+
+    const isCatalogPage = location.pathname.startsWith('/catalog')
+
+    const updateNav = (scrollTop) => {
+      const isScrolled = scrollTop > 40
+      setScrolled(isScrolled)
+
+      if (isCatalogPage) {
+        setNavVisible(true)
+        ticking = false
+        return
+      }
+
+      if (scrollTop > 60) {
+        if (scrollTop > lastScrollPos + 4) {
+          setNavVisible(false)
+        } else if (scrollTop < lastScrollPos - 4) {
+          setNavVisible(true)
+        }
+      } else {
+        setNavVisible(true)
+      }
+      lastScrollPos = Math.max(0, scrollTop)
+      ticking = false
     }
 
-    window.addEventListener('scroll', handleScroll)
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    const handleWindowScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateNav(window.scrollY || document.documentElement.scrollTop || 0)
+        })
+        ticking = true
+      }
+    }
+
+    const handleContainerScroll = (e) => {
+      const target = e.target
+      if (target && target.scrollTop !== undefined) {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            updateNav(target.scrollTop)
+          })
+          ticking = true
+        }
+      }
+    }
+
+    window.addEventListener('scroll', handleWindowScroll, { passive: true })
+    handleWindowScroll()
+
+    let reelsContainer = document.querySelector('.reels-feed-container')
+    if (reelsContainer) {
+      reelsContainer.addEventListener('scroll', handleContainerScroll, { passive: true })
+    }
+
+    const observer = new MutationObserver(() => {
+      const container = document.querySelector('.reels-feed-container')
+      if (container && container !== reelsContainer) {
+        if (reelsContainer) reelsContainer.removeEventListener('scroll', handleContainerScroll)
+        reelsContainer = container
+        reelsContainer.addEventListener('scroll', handleContainerScroll, { passive: true })
+      }
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+
+    return () => {
+      window.removeEventListener('scroll', handleWindowScroll)
+      if (reelsContainer) {
+        reelsContainer.removeEventListener('scroll', handleContainerScroll)
+      }
+      observer.disconnect()
+    }
+  }, [location.pathname])
 
   useEffect(() => {
     if (menuOpen) {
@@ -228,10 +296,10 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
 
   return (
     <motion.nav
-      className={`navbar ${scrolled ? 'scrolled' : ''} ${isAboutPage ? 'about-navbar' : ''}`}
+      className={`navbar ${scrolled ? 'scrolled' : ''} ${isAboutPage ? 'about-navbar' : ''} ${!navVisible ? 'nav-hidden' : ''}`}
       initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      animate={{ y: navVisible ? 0 : -100 }}
+      transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
       <div className="navbar-container">
         <motion.div
@@ -366,7 +434,13 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
             className="icon-btn wishlist-btn"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={onWishlistOpen}
+            onClick={() => {
+              if (!isAuthenticated()) {
+                navigate('/auth', { state: { message: 'Please sign in or create an account to view your wishlist.' } })
+              } else {
+                onWishlistOpen()
+              }
+            }}
             title="Wishlist"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
