@@ -39,6 +39,10 @@ const Search = lazy(() => import('./pages/Search'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
 const FabricsPage = lazy(() => import('./pages/FabricsPage'))
 const CatalogPage = lazy(() => import('./pages/CatalogPage'))
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
+const TermsConditionsPage = lazy(() => import('./pages/TermsConditionsPage'))
+const ReturnPolicyPage = lazy(() => import('./pages/ReturnPolicyPage'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
 
 const AdminRedirect = () => {
   useEffect(() => {
@@ -182,9 +186,21 @@ function App() {
                 {/* Redirect New Arrivals to Collections */}
                 <Route path="/new-arrivals" element={<Navigate to="/collections" replace />} />
 
-                {/* About Page */}
+                {/* About & Contact Pages */}
                 <Route path="/about" element={<PageWithNav><AboutPage /></PageWithNav>} />
+                <Route path="/contact" element={<PageWithNav><ContactPage /></PageWithNav>} />
+                <Route path="/contact-us" element={<PageWithNav><ContactPage /></PageWithNav>} />
 				<Route path="/fabrics" element={<PageWithNav><FabricsPage /></PageWithNav>} />
+
+                {/* Footer Policy Pages */}
+                <Route path="/privacy" element={<PageWithNav><PrivacyPolicyPage /></PageWithNav>} />
+                <Route path="/privacy-policy" element={<PageWithNav><PrivacyPolicyPage /></PageWithNav>} />
+                <Route path="/terms" element={<PageWithNav><TermsConditionsPage /></PageWithNav>} />
+                <Route path="/terms-conditions" element={<PageWithNav><TermsConditionsPage /></PageWithNav>} />
+                <Route path="/terms-and-conditions" element={<PageWithNav><TermsConditionsPage /></PageWithNav>} />
+                <Route path="/return-policy" element={<PageWithNav><ReturnPolicyPage /></PageWithNav>} />
+                <Route path="/returns" element={<PageWithNav><ReturnPolicyPage /></PageWithNav>} />
+                <Route path="/return-exchange-policy" element={<PageWithNav><ReturnPolicyPage /></PageWithNav>} />
 
                 {/* Search Page */}
                 <Route path="/search" element={<PageWithNav><Search /></PageWithNav>} />

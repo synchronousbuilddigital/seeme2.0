@@ -826,7 +826,7 @@ const AccountPage = () => {
                             <button type="button" className="btn-editorial gold" onClick={() => handlePrint(order)}>
                               🖨 Print Invoice Receipt
                             </button>
-                            <button type="button" className="btn-editorial outline" onClick={() => window.location.href='mailto:support@seemee.com'}>
+                            <button type="button" className="btn-editorial outline" onClick={() => window.location.href='mailto:bizseemee@gmail.com'}>
                               ✉ Contact Customer Support
                             </button>
                           </div>

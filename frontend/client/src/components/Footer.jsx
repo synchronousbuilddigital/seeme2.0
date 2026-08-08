@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useInView } from '../hooks/useInView'
 import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
@@ -10,9 +10,6 @@ const Footer = () => {
   const [ref, inView] = useInView({ once: true, threshold: 0.02 })
   const navigate = useNavigate()
   
-  const [email, setEmail] = useState('')
-  const [subscribed, setSubscribed] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const [categories, setCategories] = useState([])
 
   useEffect(() => {
@@ -64,16 +61,6 @@ const Footer = () => {
     fetchAdminCategories()
     return () => { isMounted = false }
   }, [])
-
-  const handleSubscribe = async (e) => {
-    e.preventDefault()
-    if (!email || !email.trim()) return
-    setSubmitting(true)
-    await new Promise(resolve => setTimeout(resolve, 1200))
-    setSubmitting(false)
-    setSubscribed(true)
-    setEmail('')
-  }
   
   return (
     <footer className="footer-editorial" id="contact" ref={ref}>
@@ -182,61 +169,14 @@ const Footer = () => {
               <li><button onClick={() => navigate('/contact')}>Contact Us</button></li>
             </ul>
           </motion.div>
-
-          <motion.div 
-            className="footer-newsletter-column"
-            initial={{ opacity: 0, y: 30 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
-          >
-            <h4 className="column-title">Newsletter</h4>
-            <p className="newsletter-description">
-              Join our list for exclusive access to new arrivals and heritage stories.
-            </p>
-            <AnimatePresence mode="wait">
-              {!subscribed ? (
-                <motion.form 
-                  onSubmit={handleSubscribe} 
-                  className="editorial-input-group"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  <input 
-                    type="email" 
-                    placeholder="email@example.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={submitting}
-                  />
-                  <button type="submit" className="input-submit" disabled={submitting}>
-                    {submitting ? '...' : 'Join'}
-                  </button>
-                </motion.form>
-              ) : (
-                <motion.div 
-                  className="newsletter-success-msg"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px', verticalAlign: 'middle' }}>
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                  <span>Thank you for subscribing!</span>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
         </div>
 
         {/* Bottom Section: Legal & Credits */}
         <div className="footer-bottom-bar">
           <div className="legal-links">
-            <button onClick={() => navigate('/privacy')}>Privacy</button>
-            <button onClick={() => navigate('/terms')}>Terms</button>
-            <button onClick={() => navigate('/shipping')}>Shipping</button>
+            <button onClick={() => navigate('/privacy')}>Privacy Policy</button>
+            <button onClick={() => navigate('/terms')}>Terms & Conditions</button>
+            <button onClick={() => navigate('/return-policy')}>Return & Exchange Policy</button>
           </div>
           <div className="copyright-text">
             &copy; {new Date().getFullYear()} See Mee Heritage. All Rights Reserved.
