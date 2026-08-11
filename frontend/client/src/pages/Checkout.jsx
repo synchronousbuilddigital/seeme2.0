@@ -137,6 +137,12 @@ const Checkout = () => {
   const [pincodeLoading, setPincodeLoading] = useState(false)
   const [pincodeError, setPincodeError] = useState('')
 
+  // Ad2Ship Shipping Rate & Courier Partner state
+  const [shippingPartners, setShippingPartners] = useState([])
+  const [selectedPartner, setSelectedPartner] = useState(null)
+  const [shippingLoading, setShippingLoading] = useState(false)
+  const [shippingError, setShippingError] = useState('')
+
   const [placedOrder, setPlacedOrder] = useState(null)
   const [cancellingId, setCancellingId] = useState(null)
 
