@@ -130,6 +130,9 @@ async function createApp() {
     const { default: adminCouponRoutes } = await import('../routes/adminCoupons.js')
     console.log('✅ Admin Coupon routes loaded')
 
+    const { default: shippingRoutes } = await import('../routes/shipping.js')
+    console.log('✅ Shipping routes loaded')
+
     app.use('/api/auth', authRoutes)
     app.use('/api/products', productRoutes)
     app.use('/api/orders', orderRoutes)
@@ -139,6 +142,7 @@ async function createApp() {
     app.use('/api/site-settings', siteSettingsRoutes)
     app.use('/api/coupon', couponRoutes)
     app.use('/api/admin/coupons', adminCouponRoutes)
+    app.use('/api/shipping', shippingRoutes)
     app.use('/api/admin', adminRoutes)
     app.use('/api/users', userRoutes)
     app.use('/api/reels', reelRoutes)
