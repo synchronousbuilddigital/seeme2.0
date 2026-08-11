@@ -836,10 +836,10 @@ const Checkout = () => {
                   />
                   {pincodeError && <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '4px', display: 'block' }}>{pincodeError}</span>}
                   
-                  {/* Ad2Ship Logistics Serviceability Display */}
+                  {/* Customer-facing Delivery Serviceability Display */}
                   {shippingLoading && (
                     <span style={{ fontSize: '0.75rem', color: '#d4af37', marginTop: '6px', display: 'block' }}>
-                      🚚 Calculating express shipping rates...
+                      🚚 Checking priority dispatch availability...
                     </span>
                   )}
                   {shippingError && (
@@ -850,8 +850,7 @@ const Checkout = () => {
                   {!shippingLoading && shippingPartners.length > 0 && (
                     <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(212, 175, 55, 0.08)', borderRadius: '6px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
                       <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#d4af37', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>✓ Serviceable by Ad2Ship Courier Network</span>
-                        <span>({shippingPartners.length} partners available)</span>
+                        <span>✓ Eligible for Express Doorstep Delivery</span>
                       </span>
                     </div>
                   )}

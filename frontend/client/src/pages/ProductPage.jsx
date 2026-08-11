@@ -165,6 +165,13 @@ const ProductPage = () => {
   }
 
   const handleBuyNow = () => {
+    const sizeToUse = selectedSize || (availableSizes && availableSizes.length > 0 ? availableSizes[0] : 'S')
+    
+    // Add item to cart first
+    for (let i = 0; i < quantity; i++) {
+      addToCart({ ...product, selectedSize: sizeToUse })
+    }
+
     if (!user || !token) {
       navigate('/auth', {
         state: {
@@ -174,13 +181,7 @@ const ProductPage = () => {
       })
       return
     }
-    if (!selectedSize) {
-      alert('Please select a size to proceed')
-      return
-    }
-    for (let i = 0; i < quantity; i++) {
-      addToCart({ ...product, selectedSize })
-    }
+
     navigate('/checkout')
   }
 

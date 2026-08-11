@@ -126,8 +126,8 @@ const Auth = () => {
           
           window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`
         } else {
-          // Regular user goes to home
-          navigate('/')
+          // Regular user goes to redirect target or home
+          navigate(redirectTarget)
         }
       } else {
         setError(result.error || 'Authentication failed')
