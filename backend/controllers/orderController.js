@@ -7,6 +7,7 @@ import asyncHandler from '../utils/asyncHandler.js'
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { sendOrderEmail } from '../services/emailService.js'
+import shippingService from '../services/shippingService.js'
 
 // Initialize Razorpay dynamically
 let razorpayInstance = null
@@ -91,6 +92,13 @@ export const createOrder = asyncHandler(async (req, res) => {
     totalAmount,
     paymentMethod
   })
+
+  // Automatically initialize Ad2Ship shipment order
+  try {
+    await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+  } catch (shipErr) {
+    console.warn(`⚠️ Ad2Ship order creation notice for #${order.orderNumber}:`, shipErr.message)
+  }
 
   // Send Order Placed Email via Nodemailer Gmail Service
   sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
@@ -202,6 +210,15 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
           await product.save()
         }
       }
+    }
+  }
+
+  // Synchronize cancellation with Ad2Ship if shipment exists
+  if (order.shipping?.ad2shipOrderId) {
+    try {
+      await shippingService.cancelShipment(order._id)
+    } catch (shipErr) {
+      console.warn(`⚠️ Ad2Ship cancellation notice for #${order.orderNumber}:`, shipErr.message)
     }
   }
 
@@ -324,6 +341,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     // Send confirmation email
     sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
 
+    // Initialize Ad2Ship shipment order after verified online payment
+    try {
+      await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+    } catch (shipErr) {
+      console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
+    }
+
     return res.json({ success: true, data: order })
   }
 
@@ -367,6 +391,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
   // Send confirmation email
   sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
+
+  // Initialize Ad2Ship shipment order after verified online payment
+  try {
+    await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+  } catch (shipErr) {
+    console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
+  }
 
   res.json({ success: true, data: order })
 })

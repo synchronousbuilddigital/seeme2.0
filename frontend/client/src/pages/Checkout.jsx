@@ -176,16 +176,19 @@ const Checkout = () => {
     }
   }
 
-  // Automatic State & City autofill via India Post API
+  // Automatic State & City autofill + Ad2Ship Rate Calculation
   useEffect(() => {
     const rawPin = formData.pincode ? String(formData.pincode).trim() : ''
 
     // Reset error when user alters pincode
     setPincodeError('')
+    setShippingError('')
 
     // Only lookup when exactly 6 numeric digits are entered
     if (rawPin.length !== 6 || !/^\d{6}$/.test(rawPin)) {
       setPincodeLoading(false)
+      setShippingPartners([])
+      setSelectedPartner(null)
       return
     }
 
@@ -193,6 +196,8 @@ const Checkout = () => {
     const timer = setTimeout(async () => {
       if (!isMounted) return
       setPincodeLoading(true)
+      setShippingLoading(true)
+
       const res = await fetchPincodeDetails(rawPin)
       if (!isMounted) return
       setPincodeLoading(false)
@@ -204,8 +209,45 @@ const Checkout = () => {
           state: res.state || prev.state
         }))
         setPincodeError('')
+
+        // Call Backend Ad2Ship Rate Calculator API
+        try {
+          const rateRes = await fetch(API_ENDPOINTS.SHIPPING_RATE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              deliveryPincode: rawPin,
+              paymentType: formData.paymentMethod === 'cod' ? 'cod' : 'prepaid',
+              items: cart.map(i => ({ product: i.id || i._id, quantity: i.quantity, price: i.price })),
+              invoiceAmount: getCartTotal()
+            })
+          })
+          const rateData = await rateRes.json()
+          if (!isMounted) return
+
+          if (rateData.success && rateData.data?.partners?.length > 0) {
+            setShippingPartners(rateData.data.partners)
+            setSelectedPartner(rateData.data.partners[0])
+            setShippingError('')
+          } else {
+            setShippingPartners([])
+            setSelectedPartner(null)
+            setShippingError(rateData.message || 'Pincode not serviceable by courier partners.')
+          }
+        } catch (err) {
+          console.error('Rate calculation error:', err)
+          if (isMounted) {
+            setShippingPartners([])
+            setSelectedPartner(null)
+          }
+        } finally {
+          if (isMounted) setShippingLoading(false)
+        }
       } else if (!res.aborted) {
         setPincodeError(res.error || 'Invalid or non-existent PIN code.')
+        setShippingLoading(false)
+        setShippingPartners([])
+        setSelectedPartner(null)
         setFormData(prev => ({
           ...prev,
           city: '',
@@ -218,7 +260,7 @@ const Checkout = () => {
       isMounted = false
       clearTimeout(timer)
     }
-  }, [formData.pincode])
+  }, [formData.pincode, formData.paymentMethod, cart, getCartTotal])
 
   useEffect(() => {
     if (!user || !token) {
@@ -787,6 +829,26 @@ const Checkout = () => {
                     required 
                   />
                   {pincodeError && <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '4px', display: 'block' }}>{pincodeError}</span>}
+                  
+                  {/* Ad2Ship Logistics Serviceability Display */}
+                  {shippingLoading && (
+                    <span style={{ fontSize: '0.75rem', color: '#d4af37', marginTop: '6px', display: 'block' }}>
+                      🚚 Calculating express shipping rates...
+                    </span>
+                  )}
+                  {shippingError && (
+                    <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '6px', display: 'block' }}>
+                      ⚠️ {shippingError}
+                    </span>
+                  )}
+                  {!shippingLoading && shippingPartners.length > 0 && (
+                    <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(212, 175, 55, 0.08)', borderRadius: '6px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#d4af37', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>✓ Serviceable by Ad2Ship Courier Network</span>
+                        <span>({shippingPartners.length} partners available)</span>
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.section>

@@ -2,6 +2,7 @@ import Order from '../models/Order.js'
 import Product from '../models/Product.js'
 import User from '../models/User.js'
 import asyncHandler from '../utils/asyncHandler.js'
+import shippingService from '../services/shippingService.js'
 
 // @desc    Get quick dashboard summary
 // @route   GET /api/admin/dashboard-summary
@@ -204,6 +205,15 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   order.status = status || order.status
   if (trackingNumber) order.trackingNumber = trackingNumber
   if (estimatedDelivery) order.estimatedDelivery = estimatedDelivery
+
+  // Synchronize cancellation with Ad2Ship if order status is set to cancelled
+  if (String(status || '').toLowerCase() === 'cancelled' && order.shipping?.ad2shipOrderId) {
+    try {
+      await shippingService.cancelShipment(order._id)
+    } catch (shipErr) {
+      console.warn(`⚠️ Ad2Ship cancellation notice for #${order.orderNumber}:`, shipErr.message)
+    }
+  }
 
   order.timeline.push({
     status: order.status,

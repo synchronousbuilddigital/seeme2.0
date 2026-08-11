@@ -81,6 +81,26 @@ const orderSchema = new mongoose.Schema({
     state: String,
     pincode: String,
     country: { type: String, default: 'India' }
+  },
+  shipping: {
+    provider: { type: String, default: 'ad2ship' },
+    ad2shipOrderId: Number,
+    courierPartnerId: Number,
+    courierName: String,
+    courierKeyword: String,
+    awbNumber: String,
+    routeCode: String,
+    status: String,
+    shippingCharges: { type: Number, default: 0 },
+    codCharges: { type: Number, default: 0 },
+    otherCharges: { type: Number, default: 0 },
+    totalCharges: { type: Number, default: 0 },
+    labelUrl: String,
+    invoiceUrl: String,
+    manifestGenerated: { type: Boolean, default: false },
+    shippedAt: Date,
+    pickupAt: Date,
+    expectedDeliveryAt: Date
   }
 }, {
   timestamps: true
@@ -99,5 +119,8 @@ orderSchema.pre('save', async function(next) {
 orderSchema.index({ 'customer.email': 1 })
 orderSchema.index({ status: 1 })
 orderSchema.index({ createdAt: -1 })
+orderSchema.index({ 'shipping.ad2shipOrderId': 1 })
+orderSchema.index({ 'shipping.awbNumber': 1 })
 
 export default mongoose.model('Order', orderSchema)
+

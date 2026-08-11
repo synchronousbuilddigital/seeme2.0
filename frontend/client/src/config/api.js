@@ -52,6 +52,12 @@ export const API_ENDPOINTS = {
   CREATE_RAZORPAY_ORDER: `${API_BASE_URL}/api/orders/create-razorpay-order`,
   VERIFY_PAYMENT: `${API_BASE_URL}/api/orders/verify-payment`,
 
+  // ─── Shipping & Logistics (Ad2Ship) ───────────
+  SHIPPING_RATE: `${API_BASE_URL}/api/shipping/rate`,
+  SHIPPING_TRACK: `${API_BASE_URL}/api/shipping/track`,
+  SHIPPING_CANCEL: `${API_BASE_URL}/api/shipping/cancel`,
+  SHIPPING_INVOICE: `${API_BASE_URL}/api/shipping/invoice`,
+
   // ─── Users ─────────────────────────────────────
   USERS_PROFILE: `${API_BASE_URL}/api/users/profile`,
   USERS_ADDRESSES: `${API_BASE_URL}/api/users/addresses`,

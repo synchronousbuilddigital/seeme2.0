@@ -12,6 +12,10 @@ const Orders = () => {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedOrder, setExpandedOrder] = useState(null)
+  
+  // Ad2Ship Tracking modal state
+  const [activeTrackingData, setActiveTrackingData] = useState(null)
+  const [trackingLoading, setTrackingLoading] = useState(false)
 
   useEffect(() => {
     if (!token) {
@@ -24,6 +28,29 @@ const Orders = () => {
     const interval = setInterval(fetchOrders, 30000)
     return () => clearInterval(interval)
   }, [token, navigate])
+
+  const handleFetchTracking = async (order) => {
+    const awb = order.shipping?.awbNumber || order.trackingNumber
+    setTrackingLoading(true)
+    try {
+      const response = await fetch(API_ENDPOINTS.SHIPPING_TRACK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ awbNumber: awb, orderId: order._id })
+      })
+      const data = await response.json()
+      if (data.success) {
+        setActiveTrackingData(data.data)
+      } else {
+        alert(data.message || 'Tracking information unavailable at the moment.')
+      }
+    } catch (err) {
+      console.error('Tracking fetch error:', err)
+      alert('Failed to retrieve live tracking.')
+    } finally {
+      setTrackingLoading(false)
+    }
+  }
 
   const fetchOrders = async () => {
     try {
@@ -501,11 +528,25 @@ const Orders = () => {
                             </p>
                           </div>
 
-                          {order.trackingNumber && (
-                            <div className="tracking-info-box">
-                               <h4>Shipping Details</h4>
-                               <p>Tracking #: <strong>{order.trackingNumber}</strong></p>
-                               <p>Est. Arrival: {new Date(order.estimatedDelivery).toLocaleDateString()}</p>
+                          {(order.shipping?.awbNumber || order.trackingNumber || order.shipping?.ad2shipOrderId) && (
+                            <div className="tracking-info-box" style={{ background: '#fafafa', border: '1px solid #eaeaea', padding: '16px', borderRadius: '8px', marginTop: '16px' }}>
+                               <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#111' }}>
+                                 🚚 Logistics & Delivery Status
+                               </h4>
+                               {order.shipping?.courierName && <p style={{ fontSize: '0.82rem', margin: '4px 0', color: '#444' }}>Courier: <strong>{order.shipping.courierName}</strong></p>}
+                               {(order.shipping?.awbNumber || order.trackingNumber) && (
+                                 <p style={{ fontSize: '0.82rem', margin: '4px 0', color: '#444' }}>AWB / Tracking #: <strong>{order.shipping?.awbNumber || order.trackingNumber}</strong></p>
+                               )}
+                               {order.estimatedDelivery && <p style={{ fontSize: '0.82rem', margin: '4px 0', color: '#444' }}>Est. Arrival: <strong>{new Date(order.estimatedDelivery).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}
+
+                               <button 
+                                 type="button"
+                                 onClick={() => handleFetchTracking(order)}
+                                 disabled={trackingLoading}
+                                 style={{ marginTop: '10px', padding: '6px 14px', fontSize: '0.78rem', background: '#111', color: '#d4af37', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
+                               >
+                                 {trackingLoading ? 'Loading Checkpoints...' : 'View Live Tracking History'}
+                               </button>
                             </div>
                           )}
                         </div>
@@ -539,6 +580,50 @@ const Orders = () => {
           </div>
         )}
       </div>
+
+      {/* Customer Live Tracking Modal */}
+      <AnimatePresence>
+        {activeTrackingData && (
+          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }} onClick={() => setActiveTrackingData(null)}>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              style={{ background: '#fff', color: '#111', borderRadius: '12px', padding: '30px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px' }}>
+                <h3 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.4rem' }}>Shipment Progress</h3>
+                <button onClick={() => setActiveTrackingData(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#888' }}>&times;</button>
+              </div>
+
+              <div style={{ background: '#fafafa', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+                <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>Courier: <strong>{activeTrackingData.CourierPartner || 'Ad2Ship Network'}</strong></p>
+                <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>AWB #: <strong>{activeTrackingData.AWBNumber}</strong></p>
+                <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>Status: <strong style={{ color: '#27ae60', textTransform: 'uppercase' }}>{activeTrackingData.CurrentStatus}</strong></p>
+                {activeTrackingData.ExpectedDeliveryDate && (
+                  <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>Expected Arrival: <strong>{new Date(activeTrackingData.ExpectedDeliveryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></p>
+                )}
+              </div>
+
+              <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#888', marginBottom: '15px' }}>Tracking Events</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {activeTrackingData.OrderHistory?.map((ev, idx) => (
+                  <div key={idx} style={{ paddingLeft: '16px', borderLeft: '2px solid #d4af37', position: 'relative' }}>
+                    <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#111' }}>{ev.status || ev.status_code}</div>
+                    <div style={{ fontSize: '0.82rem', color: '#666', marginTop: '2px' }}>{ev.status_description || ev.remarks}</div>
+                    {ev.location && <div style={{ fontSize: '0.78rem', color: '#c49a27', marginTop: '2px' }}>📍 {ev.location}</div>}
+                    <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '4px' }}>{ev.event_date ? new Date(ev.event_date).toLocaleString('en-IN') : ''}</div>
+                  </div>
+                ))}
+                {(!activeTrackingData.OrderHistory || activeTrackingData.OrderHistory.length === 0) && (
+                  <p style={{ fontSize: '0.85rem', color: '#888' }}>No checkpoint logs available yet.</p>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

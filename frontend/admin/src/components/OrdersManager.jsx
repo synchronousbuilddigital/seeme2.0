@@ -16,9 +16,171 @@ const OrdersManager = () => {
   const [exportFormat, setExportFormat] = useState('csv')
   const [exportProgressText, setExportProgressText] = useState('')
 
+  // Ad2Ship Logistics States
+  const [ad2shipLoading, setAd2shipLoading] = useState(false)
+  const [ad2shipPartners, setAd2shipPartners] = useState([])
+  const [selectedCourierId, setSelectedCourierId] = useState('')
+  const [trackingModalData, setTrackingModalData] = useState(null)
+
   useEffect(() => {
     fetchOrders()
   }, [])
+
+  const handleCalculateRate = async (order) => {
+    if (!order.customer?.address?.pincode) {
+      showNotification('Pincode missing for this order address', 'error')
+      return
+    }
+    setAd2shipLoading(true)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.SHIPPING.RATE, {
+        method: 'POST',
+        body: {
+          deliveryPincode: order.customer.address.pincode,
+          paymentType: order.paymentMethod === 'cod' ? 'cod' : 'prepaid',
+          items: order.items.map(i => ({ product: i.product?._id || i.product, quantity: i.quantity, price: i.price })),
+          invoiceAmount: order.totalAmount
+        }
+      })
+      if (data.success && data.data?.partners?.length > 0) {
+        setAd2shipPartners(data.data.partners)
+        setSelectedCourierId(String(data.data.partners[0].id))
+        showNotification(`Found ${data.data.partners.length} available courier partners!`)
+      } else {
+        showNotification(data.message || 'No serviceable partners found', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Rate calculation failed', 'error')
+    } finally {
+      setAd2shipLoading(false)
+    }
+  }
+
+  const handleCreateAd2ShipOrder = async (orderId) => {
+    setAd2shipLoading(true)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.SHIPPING.CREATE, {
+        method: 'POST',
+        auth: true,
+        body: { orderId }
+      })
+      if (data.success) {
+        showNotification('Ad2Ship order initialized!')
+        fetchOrders()
+        if (selectedOrder && selectedOrder._id === orderId) {
+          setSelectedOrder(data.data)
+        }
+      } else {
+        showNotification(data.message || 'Failed to create Ad2Ship order', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Creation failed', 'error')
+    } finally {
+      setAd2shipLoading(false)
+    }
+  }
+
+  const handleShipOrder = async (orderId) => {
+    if (!selectedCourierId) {
+      showNotification('Please select a courier partner first', 'error')
+      return
+    }
+    setAd2shipLoading(true)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.SHIPPING.SHIP, {
+        method: 'POST',
+        auth: true,
+        body: { orderId, courierPartnerId: Number(selectedCourierId) }
+      })
+      if (data.success) {
+        showNotification(`Shipment dispatched! AWB: ${data.shipping?.awbNumber || ''}`)
+        fetchOrders()
+        if (selectedOrder && selectedOrder._id === orderId) {
+          setSelectedOrder(data.data)
+        }
+      } else {
+        showNotification(data.message || 'Shipment failed', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Shipment failed', 'error')
+    } finally {
+      setAd2shipLoading(false)
+    }
+  }
+
+  const handleGenerateDocument = async (orderId, type) => {
+    setAd2shipLoading(true)
+    try {
+      const endpoint = type === 'label' ? API_ENDPOINTS.SHIPPING.LABEL : type === 'invoice' ? API_ENDPOINTS.SHIPPING.INVOICE : API_ENDPOINTS.SHIPPING.MANIFEST
+      const data = await apiRequest(endpoint, {
+        method: 'POST',
+        auth: true,
+        body: { orderId }
+      })
+      if (data.success) {
+        showNotification(`${type.toUpperCase()} generated successfully!`)
+        if (data.labelUrl) window.open(data.labelUrl, '_blank')
+        if (data.invoiceUrl) window.open(data.invoiceUrl, '_blank')
+        fetchOrders()
+      } else {
+        showNotification(data.message || `Failed to generate ${type}`, 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || `Document generation failed`, 'error')
+    } finally {
+      setAd2shipLoading(false)
+    }
+  }
+
+  const handleTrackShipment = async (order) => {
+    const awb = order.shipping?.awbNumber || order.trackingNumber
+    const ad2shipId = order.shipping?.ad2shipOrderId
+    if (!awb && !ad2shipId) {
+      showNotification('No AWB or Ad2Ship Order ID found for tracking', 'error')
+      return
+    }
+    setAd2shipLoading(true)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.SHIPPING.TRACK, {
+        method: 'POST',
+        body: { awbNumber: awb, orderId: order._id }
+      })
+      if (data.success) {
+        setTrackingModalData(data.data)
+      } else {
+        showNotification(data.message || 'Tracking failed', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Tracking failed', 'error')
+    } finally {
+      setAd2shipLoading(false)
+    }
+  }
+
+  const handleCancelShipment = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this shipment?')) return
+    setAd2shipLoading(true)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.SHIPPING.CANCEL, {
+        method: 'POST',
+        auth: true,
+        body: { orderId }
+      })
+      if (data.success) {
+        showNotification('Shipment cancelled successfully!')
+        fetchOrders()
+        if (selectedOrder && selectedOrder._id === orderId) {
+          setSelectedOrder(data.data)
+        }
+      } else {
+        showNotification(data.message || 'Cancellation failed', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Cancellation failed', 'error')
+    } finally {
+      setAd2shipLoading(false)
+    }
+  }
 
   const fetchOrders = async () => {
     try {
@@ -555,6 +717,126 @@ const OrdersManager = () => {
                         </div>
                         <button type="submit" className="update-track-btn">Update Tracking</button>
                       </form>
+
+                      {/* Ad2Ship Logistics Management Card */}
+                      <div className="ad2ship-fulfillment-card" style={{ marginTop: '20px', padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(212, 175, 55, 0.3)', paddingBottom: '10px' }}>
+                          <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#d4af37', fontWeight: '700', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>🚚 AD2SHIP LOGISTICS CONTROL</span>
+                          </h4>
+                          {ad2shipLoading && <span style={{ fontSize: '0.8rem', color: '#facc15', fontWeight: '600' }}>Processing Ad2Ship...</span>}
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
+                          <div><span style={{ color: '#a3a3a3' }}>Ad2Ship Order ID:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.ad2shipOrderId || 'None'}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>AWB Number:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.awbNumber || selectedOrder.trackingNumber || 'Unassigned'}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Courier Partner:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.courierName || 'Unassigned'}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Shipping Fee:</span> <strong style={{ color: '#facc15', marginLeft: '4px', fontWeight: '700' }}>₹{selectedOrder.shipping?.totalCharges || 0}</strong></div>
+                        </div>
+
+                        {/* Partner Selection Dropdown */}
+                        {ad2shipPartners.length > 0 && !selectedOrder.shipping?.awbNumber && (
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={{ fontSize: '0.8rem', color: '#d4af37', fontWeight: '700', marginBottom: '6px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Courier Partner:</label>
+                            <select 
+                              value={selectedCourierId} 
+                              onChange={(e) => setSelectedCourierId(e.target.value)}
+                              style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: '#1c1917', color: '#ffffff', border: '1.5px solid #d4af37', fontSize: '0.88rem', fontWeight: '600', outline: 'none', WebkitAppearance: 'none', appearance: 'none', cursor: 'pointer' }}
+                            >
+                              {ad2shipPartners.map(p => (
+                                <option key={p.id} value={p.id} style={{ background: '#1c1917', color: '#ffffff', padding: '8px' }}>
+                                  {p.name} — ₹{p.total_charge} (Freight: ₹{p.freight_charge}, COD: ₹{p.cod_charge})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {/* Ad2Ship Action Buttons */}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                          <button 
+                            type="button" 
+                            disabled={ad2shipLoading}
+                            onClick={() => handleCalculateRate(selectedOrder)}
+                            style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#1c1917', color: '#d4af37', border: '1.5px solid #d4af37', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' }}
+                          >
+                            Calculate Rates
+                          </button>
+
+                          {!selectedOrder.shipping?.ad2shipOrderId && (
+                            <button 
+                              type="button" 
+                              disabled={ad2shipLoading}
+                              onClick={() => handleCreateAd2ShipOrder(selectedOrder._id)}
+                              style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#d4af37', color: '#000000', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)' }}
+                            >
+                              Create Ad2Ship Order
+                            </button>
+                          )}
+
+                          {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && (
+                            <button 
+                              type="button" 
+                              disabled={ad2shipLoading || !selectedCourierId}
+                              onClick={() => handleShipOrder(selectedOrder._id)}
+                              style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)' }}
+                            >
+                              Ship Order & Assign AWB
+                            </button>
+                          )}
+
+                          {(selectedOrder.shipping?.awbNumber || selectedOrder.shipping?.ad2shipOrderId) && (
+                            <button 
+                              type="button" 
+                              disabled={ad2shipLoading}
+                              onClick={() => handleTrackShipment(selectedOrder)}
+                              style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                            >
+                              Track Live
+                            </button>
+                          )}
+
+                          {selectedOrder.shipping?.ad2shipOrderId && (
+                            <>
+                              <button 
+                                type="button" 
+                                disabled={ad2shipLoading}
+                                onClick={() => handleGenerateDocument(selectedOrder._id, 'label')}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#334155', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                              >
+                                Download Label
+                              </button>
+                              <button 
+                                type="button" 
+                                disabled={ad2shipLoading}
+                                onClick={() => handleGenerateDocument(selectedOrder._id, 'invoice')}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#334155', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                              >
+                                Download Invoice
+                              </button>
+                              <button 
+                                type="button" 
+                                disabled={ad2shipLoading}
+                                onClick={() => handleGenerateDocument(selectedOrder._id, 'manifest')}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#334155', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                              >
+                                Manifest
+                              </button>
+                            </>
+                          )}
+
+                          {selectedOrder.shipping?.ad2shipOrderId && selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'delivered' && (
+                            <button 
+                              type="button" 
+                              disabled={ad2shipLoading}
+                              onClick={() => handleCancelShipment(selectedOrder._id)}
+                              style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                            >
+                              Cancel Shipment
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </section>
 
@@ -704,6 +986,54 @@ const OrdersManager = () => {
                   <button className="done-btn" onClick={() => setIsExportModalOpen(false)}>Done</button>
                 </div>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Live Tracking Modal */}
+      <AnimatePresence>
+        {trackingModalData && (
+          <div className="modal-overlay" onClick={() => setTrackingModalData(null)}>
+            <motion.div 
+              className="order-detail-modal"
+              style={{ maxWidth: '600px', width: '90%' }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-sidebar-header">
+                <h2>Ad2Ship Live Tracking</h2>
+                <button className="close-side-modal" onClick={() => setTrackingModalData(null)}>&times;</button>
+              </div>
+              <div style={{ padding: '24px', overflowY: 'auto', maxHeight: '80vh' }}>
+                <div style={{ marginBottom: '16px', padding: '12px', background: '#171717', borderRadius: '8px', border: '1px solid #333' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>AWB Number: <strong style={{ color: '#d4af37' }}>{trackingModalData.AWBNumber}</strong></div>
+                  <div style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>Courier Partner: <strong style={{ color: '#fff' }}>{trackingModalData.CourierPartner || 'N/A'}</strong></div>
+                  <div style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>Current Status: <strong style={{ color: '#22c55e', textTransform: 'uppercase' }}>{trackingModalData.CurrentStatus}</strong></div>
+                  {trackingModalData.ExpectedDeliveryDate && (
+                    <div style={{ fontSize: '0.85rem', color: '#a3a3a3' }}>Est. Delivery: <strong style={{ color: '#fff' }}>{new Date(trackingModalData.ExpectedDeliveryDate).toLocaleDateString()}</strong></div>
+                  )}
+                </div>
+
+                <h4 style={{ fontSize: '0.85rem', color: '#d4af37', textTransform: 'uppercase', marginBottom: '12px' }}>Tracking History</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {trackingModalData.OrderHistory?.map((ev, idx) => (
+                    <div key={idx} style={{ padding: '10px 14px', background: '#262626', borderRadius: '6px', borderLeft: '3px solid #d4af37' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: '600', color: '#fff' }}>
+                        <span>{ev.status || ev.status_code}</span>
+                        <span style={{ color: '#a3a3a3', fontSize: '0.75rem' }}>{ev.event_date ? new Date(ev.event_date).toLocaleString() : ''}</span>
+                      </div>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: '#a3a3a3' }}>{ev.status_description || ev.remarks}</p>
+                      {ev.location && <span style={{ fontSize: '0.72rem', color: '#d4af37' }}>📍 {ev.location}</span>}
+                    </div>
+                  ))}
+                  {(!trackingModalData.OrderHistory || trackingModalData.OrderHistory.length === 0) && (
+                    <p style={{ fontSize: '0.85rem', color: '#737373' }}>No tracking checkpoints recorded yet.</p>
+                  )}
+                </div>
+              </div>
             </motion.div>
           </div>
         )}
