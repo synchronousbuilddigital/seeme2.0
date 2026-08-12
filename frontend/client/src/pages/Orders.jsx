@@ -553,7 +553,7 @@ const Orders = () => {
                       </div>
                       
                       <div className="order-footer-actions">
-                        {!['cancelled', 'shipped', 'delivered'].includes((order.status || '').toLowerCase()) && (
+                        {!['cancelled', 'shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes((order.status || '').toLowerCase()) && !order.shipping?.awbNumber && (
                           <button 
                             className="cancel-order-action-btn" 
                             onClick={() => handleCancelOrder(order._id)}

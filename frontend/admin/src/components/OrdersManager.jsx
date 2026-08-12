@@ -109,6 +109,11 @@ const OrdersManager = () => {
   }
 
   const handleGenerateDocument = async (orderId, type) => {
+    if (selectedOrder && !selectedOrder.shipping?.awbNumber) {
+      showNotification('Please ship the order & assign AWB first before generating documents', 'error')
+      return
+    }
+
     setAd2shipLoading(true)
     try {
       const endpoint = type === 'label' ? API_ENDPOINTS.SHIPPING.LABEL : type === 'invoice' ? API_ENDPOINTS.SHIPPING.INVOICE : API_ENDPOINTS.SHIPPING.MANIFEST
@@ -121,6 +126,7 @@ const OrdersManager = () => {
         showNotification(`${type.toUpperCase()} generated successfully!`)
         if (data.labelUrl) window.open(data.labelUrl, '_blank')
         if (data.invoiceUrl) window.open(data.invoiceUrl, '_blank')
+        if (data.manifestUrl) window.open(data.manifestUrl, '_blank')
         fetchOrders()
       } else {
         showNotification(data.message || `Failed to generate ${type}`, 'error')
@@ -562,7 +568,7 @@ const OrdersManager = () => {
                 </div>
                 <div className="mobile-customer-text">
                   <h4>{order.customer?.name || 'Customer'}</h4>
-                  <p>{order.customer?.email || order.customer?.phone || 'No contact details'}</p>
+                  <p>{order.customer?.phone || order.customer?.email || 'No contact details'}</p>
                 </div>
               </div>
               
@@ -575,6 +581,22 @@ const OrdersManager = () => {
                 </div>
               </div>
             </div>
+
+            {/* Item Thumbnail Strip for Mobile */}
+            {order.items && order.items.length > 0 && (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', overflowX: 'auto', padding: '2px 0 6px 0' }}>
+                {order.items.slice(0, 4).map((item, idx) => (
+                  <div key={idx} style={{ width: '38px', height: '48px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#f4f1ea', border: '1px solid #eae7e0' }}>
+                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                ))}
+                {order.items.length > 4 && (
+                  <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#B8860B', background: 'rgba(212, 175, 55, 0.1)', padding: '2px 8px', borderRadius: '10px' }}>
+                    +{order.items.length - 4} more
+                  </span>
+                )}
+              </div>
+            )}
 
             <div className="mobile-order-card-footer">
               <span className={`payment-badge ${order.paymentStatus || 'unpaid'}`}>
@@ -753,7 +775,7 @@ const OrdersManager = () => {
                         )}
 
                         {/* Ad2Ship Action Buttons */}
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                        <div className="ad2ship-buttons-mobile-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                           <button 
                             type="button" 
                             disabled={ad2shipLoading}
@@ -800,32 +822,35 @@ const OrdersManager = () => {
                             <>
                               <button 
                                 type="button" 
-                                disabled={ad2shipLoading}
+                                disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
+                                title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download shipping label'}
                                 onClick={() => handleGenerateDocument(selectedOrder._id, 'label')}
-                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#334155', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b', color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
                               >
                                 Download Label
                               </button>
                               <button 
                                 type="button" 
-                                disabled={ad2shipLoading}
+                                disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
+                                title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download tax invoice'}
                                 onClick={() => handleGenerateDocument(selectedOrder._id, 'invoice')}
-                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#334155', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b', color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
                               >
                                 Download Invoice
                               </button>
                               <button 
                                 type="button" 
-                                disabled={ad2shipLoading}
+                                disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
+                                title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Generate courier manifest'}
                                 onClick={() => handleGenerateDocument(selectedOrder._id, 'manifest')}
-                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#334155', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.manifestGenerated ? '#15803d' : (selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b'), color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
                               >
-                                Manifest
+                                {selectedOrder.shipping?.manifestGenerated ? 'Manifested ✓' : 'Manifest'}
                               </button>
                             </>
                           )}
 
-                          {selectedOrder.shipping?.ad2shipOrderId && selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'delivered' && (
+                          {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'shipped' && selectedOrder.status !== 'delivered' && (
                             <button 
                               type="button" 
                               disabled={ad2shipLoading}

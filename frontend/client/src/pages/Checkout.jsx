@@ -223,9 +223,9 @@ const Checkout = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               deliveryPincode: rawPin,
-              paymentType: formData.paymentMethod === 'cod' ? 'cod' : 'prepaid',
+              paymentType: 'prepaid',
               items: cart.map(i => ({ product: i.id || i._id, quantity: i.quantity, price: i.price })),
-              invoiceAmount: getCartTotal()
+              invoiceAmount: calculateTotal()
             })
           })
           const rateData = await rateRes.json()
@@ -238,7 +238,20 @@ const Checkout = () => {
           } else {
             setShippingPartners([])
             setSelectedPartner(null)
-            setShippingError(rateData.message || 'Pincode not serviceable by courier partners.')
+            let errMsg = 'Pincode not serviceable by courier partners.'
+            if (rateData.message) {
+              let rawStr = typeof rateData.message === 'string'
+                ? rateData.message
+                : (typeof rateData.message === 'object'
+                  ? Object.entries(rateData.message).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('; ')
+                  : String(rateData.message))
+
+              // Filter out raw API validation technical text
+              if (rawStr && !rawStr.includes('InvoiceAmount') && !rawStr.includes('ApiKey')) {
+                errMsg = rawStr
+              }
+            }
+            setShippingError(errMsg)
           }
         } catch (err) {
           console.error('Rate calculation error:', err)
@@ -844,7 +857,7 @@ const Checkout = () => {
                   )}
                   {shippingError && (
                     <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '6px', display: 'block' }}>
-                      ⚠️ {shippingError}
+                      ⚠️ {typeof shippingError === 'string' ? shippingError : JSON.stringify(shippingError)}
                     </span>
                   )}
                   {!shippingLoading && shippingPartners.length > 0 && (
@@ -871,12 +884,12 @@ const Checkout = () => {
               </div>
 
               <div className="payment-grid-luxury">
-                <label className={`payment-card-luxury ${formData.paymentMethod === 'online' ? 'active' : ''}`}>
+                <label className="payment-card-luxury active" style={{ gridColumn: '1 / -1' }}>
                   <input 
                     type="radio" 
                     name="paymentMethod" 
                     value="online" 
-                    checked={formData.paymentMethod === 'online'} 
+                    checked={true} 
                     onChange={handleChange} 
                   />
                   <div className="payment-card-content">
@@ -885,37 +898,14 @@ const Checkout = () => {
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                         <line x1="1" y1="10" x2="23" y2="10"></line>
                       </svg>
-                      <span className="gold-security-badge">Recommended</span>
+                      <span className="gold-security-badge">100% Encrypted Payment</span>
                     </div>
                     <span className="method-title">Instant Online Payment</span>
-                    <span className="method-desc">UPI, Razorpay, Credit / Debit Cards, NetBanking</span>
-                  </div>
-                </label>
-
-                <label className={`payment-card-luxury ${formData.paymentMethod === 'cod' ? 'active' : ''}`}>
-                  <input 
-                    type="radio" 
-                    name="paymentMethod" 
-                    value="cod" 
-                    checked={formData.paymentMethod === 'cod'} 
-                    onChange={handleChange} 
-                  />
-                  <div className="payment-card-content">
-                    <div className="payment-icon-head">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                        <rect x="2" y="6" width="20" height="12" rx="2"></rect>
-                        <circle cx="12" cy="12" r="2"></circle>
-                        <path d="M6 12h.01M18 12h.01"></path>
-                      </svg>
-                    </div>
-                    <span className="method-title">Pay On Delivery (COD)</span>
-                    <span className="method-desc">Cash or QR payment at your doorstep</span>
+                    <span className="method-desc">UPI (GPay / PhonePe / Paytm), Credit & Debit Cards, NetBanking</span>
                   </div>
                 </label>
               </div>
             </motion.section>
-
-
 
             {/* Submit Button */}
             <motion.button 
@@ -928,14 +918,11 @@ const Checkout = () => {
               {loading ? (
                 <span className="btn-loading-state">
                   <span className="btn-spinner"></span>
-                  Processing Secure Order...
+                  Processing Secure Payment...
                 </span>
               ) : (
                 <span>
-                  {formData.paymentMethod === 'online' 
-                    ? `Proceed to Secure Payment — ₹${calculateTotal().toLocaleString('en-IN')}` 
-                    : `Confirm Cash on Delivery Order — ₹${calculateTotal().toLocaleString('en-IN')}`
-                  }
+                  {`Proceed to Secure Payment — ₹${calculateTotal().toLocaleString('en-IN')}`}
                 </span>
               )}
             </motion.button>

@@ -21,10 +21,15 @@ const isApiKeyConfigured = () => {
 }
 
 const isMockMode = () => {
+  // Rule 11: Do not use fake/mock Ad2Ship responses in production code
+  if (process.env.NODE_ENV === 'production') {
+    return false
+  }
+
   if (process.env.AD2SHIP_MOCK_MODE === 'true' || process.env.AD2SHIP_MOCK_MODE === '1') {
     return true
   }
-  // If API key is not configured, default to mock mode unless explicitly set to 'false'
+  // If API key is not configured in dev, default to mock mode unless explicitly set to 'false'
   if (!isApiKeyConfigured() && process.env.AD2SHIP_MOCK_MODE !== 'false') {
     return true
   }

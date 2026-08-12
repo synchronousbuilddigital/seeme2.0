@@ -3,6 +3,30 @@ import Product from '../models/Product.js'
 import ad2shipService from './ad2shipService.js'
 import { mapAd2ShipStatusToOrder, AD2SHIP_STATUSES } from '../utils/shippingStatuses.js'
 
+export const cleanPhone = (phone) => {
+  const digits = String(phone || '').replace(/\D/g, '')
+  if (digits.length >= 10) return digits.slice(-10)
+  return digits.padStart(10, '9')
+}
+
+export const parseAd2ShipMessage = (msgData) => {
+  if (!msgData) return 'Ad2Ship operation failed'
+  if (typeof msgData === 'string') return msgData
+  if (Array.isArray(msgData)) {
+    return msgData.map(parseAd2ShipMessage).filter(Boolean).join('; ')
+  }
+  if (typeof msgData === 'object') {
+    if (msgData.message) return parseAd2ShipMessage(msgData.message)
+    if (msgData.error) return parseAd2ShipMessage(msgData.error)
+    const entries = Object.entries(msgData).map(([k, v]) => {
+      const valStr = typeof v === 'object' ? parseAd2ShipMessage(v) : (Array.isArray(v) ? v.join(', ') : String(v))
+      return `${k}: ${valStr}`
+    })
+    return entries.join('; ')
+  }
+  return String(msgData)
+}
+
 /**
  * Calculates aggregate shipment weight (kg) and dimensions (cm) for an array of cart/order items
  */
@@ -57,15 +81,15 @@ export const calculateShipmentSpecs = async (items = []) => {
  * Helper to get default pickup warehouse details from environment
  */
 export const getPickupWarehouseDetails = () => {
-  const warehouseName = process.env.AD2SHIP_PICKUP_WAREHOUSE_NAME
-  const contactName = process.env.AD2SHIP_PICKUP_CONTACT_NAME
-  const addressLine1 = process.env.AD2SHIP_PICKUP_ADDRESS_LINE1
-  const addressLine2 = process.env.AD2SHIP_PICKUP_ADDRESS_LINE2 || ''
-  const city = process.env.AD2SHIP_PICKUP_CITY
-  const state = process.env.AD2SHIP_PICKUP_STATE
-  const pincode = process.env.AD2SHIP_PICKUP_PINCODE
-  const phone = process.env.AD2SHIP_PICKUP_PHONE
-  const email = process.env.AD2SHIP_PICKUP_EMAIL
+  const warehouseName = process.env.WAREHOUSE_NAME || process.env.AD2SHIP_PICKUP_WAREHOUSE_NAME
+  const contactName = process.env.WAREHOUSE_CONTACT_NAME || process.env.AD2SHIP_PICKUP_CONTACT_NAME
+  const addressLine1 = process.env.WAREHOUSE_ADDRESS_LINE1 || process.env.AD2SHIP_PICKUP_ADDRESS_LINE1
+  const addressLine2 = process.env.WAREHOUSE_ADDRESS_LINE2 || process.env.AD2SHIP_PICKUP_ADDRESS_LINE2 || ''
+  const city = process.env.WAREHOUSE_CITY || process.env.AD2SHIP_PICKUP_CITY
+  const state = process.env.WAREHOUSE_STATE || process.env.AD2SHIP_PICKUP_STATE
+  const pincode = process.env.WAREHOUSE_PINCODE || process.env.AD2SHIP_PICKUP_PINCODE
+  const phone = process.env.WAREHOUSE_CONTACT || process.env.AD2SHIP_PICKUP_PHONE
+  const email = process.env.WAREHOUSE_EMAIL || process.env.AD2SHIP_PICKUP_EMAIL
 
   if (!addressLine1 || !city || !state || !pincode) {
     const err = new Error('Pickup warehouse address is not configured.')
@@ -103,14 +127,24 @@ export const getShippingRates = async ({
     throw err
   }
 
-  const pickupPincode = process.env.AD2SHIP_PICKUP_PINCODE
+  const pickupPincode = (process.env.WAREHOUSE_PINCODE || process.env.AD2SHIP_PICKUP_PINCODE || '').trim()
   if (!pickupPincode) {
-    const err = new Error('AD2SHIP_PICKUP_PINCODE is missing .')
+    const err = new Error('Pickup pincode (WAREHOUSE_PINCODE) is missing in environment.')
     err.statusCode = 400
     throw err
   }
 
   const specs = await calculateShipmentSpecs(items)
+
+  let cleanInvoiceAmount = 100
+  if (invoiceAmount) {
+    if (typeof invoiceAmount === 'number' && !isNaN(invoiceAmount) && invoiceAmount > 0) {
+      cleanInvoiceAmount = invoiceAmount
+    } else if (typeof invoiceAmount === 'string') {
+      const parsed = parseFloat(invoiceAmount.replace(/[^\d.]/g, ''))
+      if (!isNaN(parsed) && parsed > 0) cleanInvoiceAmount = parsed
+    }
+  }
 
   const result = await ad2shipService.calculateRate({
     pickupPincode,
@@ -121,13 +155,19 @@ export const getShippingRates = async ({
     length: specs.length,
     breadth: specs.breadth,
     height: specs.height,
-    invoiceAmount
+    invoiceAmount: cleanInvoiceAmount
   })
 
   if (!result || result.status === false) {
+    let msg = result?.message || 'Pincode not serviceable by logistics network.'
+    if (typeof msg === 'object' && msg !== null) {
+      msg = Object.entries(msg)
+        .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+        .join('; ')
+    }
     return {
       success: false,
-      message: result?.message || 'Pincode not serviceable by logistics network.',
+      message: String(msg),
       partners: []
     }
   }
@@ -167,6 +207,10 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
   }
 
   const pickupDetails = getPickupWarehouseDetails()
+  if (pickupDetails.Contact) {
+    pickupDetails.Contact = cleanPhone(pickupDetails.Contact)
+  }
+
   const specs = await calculateShipmentSpecs(order.items)
 
   const formattedDate = new Date(order.createdAt || Date.now())
@@ -185,8 +229,8 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
     Length: specs.length,
     Breadth: specs.breadth,
     Height: specs.height,
-    InvoiceAmount: order.totalAmount,
-    CollectableAmount: order.paymentMethod === 'cod' ? order.totalAmount : 0,
+    InvoiceAmount: Number(order.totalAmount || 0),
+    CollectableAmount: order.paymentMethod === 'cod' ? Number(order.totalAmount || 0) : 0,
     Addresses: {
       ShippingAddress: {
         CustomerName: order.customer.name || 'Customer',
@@ -195,7 +239,7 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
         City: order.customer.address?.city || 'City',
         State: order.customer.address?.state || 'State',
         Pincode: cleanShippingPin,
-        Contact: String(order.customer.phone || '9999999999'),
+        Contact: cleanPhone(order.customer.phone),
         Email: order.customer.email || ''
       },
       BillingAddress: {
@@ -205,17 +249,17 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
         City: order.billingAddress?.city || order.customer.address?.city || 'City',
         State: order.billingAddress?.state || order.customer.address?.state || 'State',
         Pincode: String(order.billingAddress?.pincode || cleanShippingPin).replace(/\D/g, '') || cleanShippingPin,
-        Contact: String(order.customer.phone || '9999999999'),
+        Contact: cleanPhone(order.customer.phone),
         Email: order.customer.email || ''
       },
       PickupAddress: pickupDetails
     },
     ProductDetails: order.items.map(item => {
       const p = item.product
-      const skuVal = typeof p === 'object' && p !== null ? (p.sku || String(p._id)) : String(p)
+      const skuVal = typeof p === 'object' && p !== null ? (p.sku || String(p._id)) : String(p || 'SKU001')
       return {
         Name: item.name || 'Product',
-        SKU: skuVal,
+        SKU: String(skuVal),
         QTY: String(item.quantity || 1),
         Amount: String(item.price || 0)
       }
@@ -228,9 +272,11 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
   }
 
   const response = await ad2shipService.createOrder([orderPayload])
+  console.log('📦 Ad2Ship createOrder response:', JSON.stringify(response))
 
   if (!Array.isArray(response) || !response[0] || response[0].status === false) {
-    const errorMsg = response?.[0]?.message || response?.message || 'Order creation failed in Ad2Ship.'
+    const rawMsg = response?.[0]?.message || response?.message || 'Order creation failed in Ad2Ship.'
+    const errorMsg = parseAd2ShipMessage(rawMsg)
     throw new Error(errorMsg)
   }
 
@@ -247,7 +293,7 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
 
   return {
     success: true,
-    message: response[0].message || 'Order created successfully in Ad2Ship.',
+    message: parseAd2ShipMessage(response[0].message) || 'Order created successfully in Ad2Ship.',
     ad2shipOrderId,
     order
   }
@@ -264,8 +310,8 @@ export const shipAd2ShipOrder = async ({ orderId, courierPartnerId }) => {
 
   // Ensure Ad2Ship order exists first
   if (!order.shipping?.ad2shipOrderId) {
-    await createAd2ShipOrderForSeemeeOrder(order._id)
-    await order.reload()
+    const createdRes = await createAd2ShipOrderForSeemeeOrder(order._id)
+    order.shipping = createdRes.order.shipping
   }
 
   // DUPLICATE SHIPMENT CHECK
@@ -277,9 +323,13 @@ export const shipAd2ShipOrder = async ({ orderId, courierPartnerId }) => {
     orderId: order.shipping.ad2shipOrderId,
     courierPartnerId
   })
+  console.log('📦 Ad2Ship shipOrder response:', JSON.stringify(response))
 
   if (!response || response.status === false) {
-    throw new Error(response?.message || 'Failed to dispatch shipment via Ad2Ship.')
+    const errorMsg = parseAd2ShipMessage(response?.message || response)
+    const err = new Error(errorMsg || 'Failed to dispatch shipment via Ad2Ship.')
+    err.statusCode = 400
+    throw err
   }
 
   const shipData = response.data || {}
@@ -326,37 +376,81 @@ export const generateShippingDocument = async ({ orderId, documentType }) => {
   const order = await Order.findById(orderId)
   if (!order) throw new Error('Order not found.')
   if (!order.shipping?.ad2shipOrderId) {
-    throw new Error('No Ad2Ship Order ID found for this order.')
+    const err = new Error('No Ad2Ship Order ID found for this order.')
+    err.statusCode = 400
+    throw err
+  }
+
+  if (!order.shipping?.awbNumber) {
+    const err = new Error(`Order must be shipped with an assigned AWB number before generating ${documentType}. Please ship the order first.`)
+    err.statusCode = 400
+    throw err
   }
 
   const ad2shipId = order.shipping.ad2shipOrderId
 
   if (documentType === 'label') {
     const res = await ad2shipService.generateLabel({ orderId: ad2shipId })
-    if (!res || res.status === false) throw new Error(res?.message || 'Failed to generate label.')
+    if (!res || res.status === false) {
+      const err = new Error(parseAd2ShipMessage(res?.message) || 'Failed to generate label.')
+      err.statusCode = 400
+      throw err
+    }
     
     order.shipping.labelUrl = res.label
     await order.save()
-    return { success: true, labelUrl: res.label, message: res.message }
+    return { success: true, labelUrl: res.label, message: parseAd2ShipMessage(res.message) || 'Label generated successfully.' }
   }
 
   if (documentType === 'invoice') {
     const res = await ad2shipService.generateInvoice({ orderId: ad2shipId })
-    if (!res || res.status === false) throw new Error(res?.message || 'Failed to generate invoice.')
+    if (!res || res.status === false) {
+      const err = new Error(parseAd2ShipMessage(res?.message) || 'Failed to generate invoice.')
+      err.statusCode = 400
+      throw err
+    }
     
     order.shipping.invoiceUrl = res.invoice
     await order.save()
-    return { success: true, invoiceUrl: res.invoice, message: res.message }
+    return { success: true, invoiceUrl: res.invoice, message: parseAd2ShipMessage(res.message) || 'Invoice generated successfully.' }
   }
 
   if (documentType === 'manifest') {
+    if (order.shipping?.manifestGenerated) {
+      return {
+        success: true,
+        message: 'Manifest has already been generated for this order.',
+        manifestUrl: order.shipping.manifestUrl || '',
+        manifestGenerated: true
+      }
+    }
+
     const res = await ad2shipService.generateManifest({ orderId: ad2shipId })
-    if (!res || res.status === false) throw new Error(res?.message || 'Failed to generate manifest.')
+    if (!res || res.status === false) {
+      const msgStr = parseAd2ShipMessage(res?.message)
+      // Ad2Ship returns "Unable to generate manifest." if already generated or processed
+      if (msgStr.toLowerCase().includes('unable') || msgStr.toLowerCase().includes('already')) {
+        order.shipping.manifestGenerated = true
+        await order.save()
+        return {
+          success: true,
+          message: 'Manifest marked as generated for this order.',
+          manifestGenerated: true
+        }
+      }
+      const err = new Error(msgStr || 'Order cannot be manifested.')
+      err.statusCode = 400
+      throw err
+    }
     
+    const manifestPdfUrl = res.manifest || res.url || res.manifest_url || res.data?.manifest || ''
     order.shipping.manifestGenerated = true
     order.shipping.status = AD2SHIP_STATUSES.MANIFESTED
+    if (manifestPdfUrl) {
+      order.shipping.manifestUrl = manifestPdfUrl
+    }
     await order.save()
-    return { success: true, message: res.message }
+    return { success: true, manifestUrl: manifestPdfUrl, message: parseAd2ShipMessage(res.message) || 'Manifest generated successfully.', manifestGenerated: true }
   }
 
   throw new Error(`Unsupported document type: ${documentType}`)
@@ -411,23 +505,75 @@ export const trackShipment = async ({ awbNumber, orderId }) => {
  */
 export const cancelShipment = async (orderId) => {
   const order = await Order.findById(orderId)
-  if (!order) throw new Error('Order not found.')
+  if (!order) {
+    const err = new Error('Order not found.')
+    err.statusCode = 404
+    throw err
+  }
 
   const currentStatus = String(order.status).toLowerCase()
-  if (['delivered'].includes(currentStatus)) {
-    throw new Error('Cannot cancel an order that has already been delivered.')
-  }
+  const shippingStatus = String(order.shipping?.status || '').toLowerCase()
+
   if (currentStatus === 'cancelled') {
-    throw new Error('Order is already cancelled.')
+    return {
+      success: true,
+      message: 'Order is already cancelled.',
+      order
+    }
+  }
+
+  // RULE 1: Cancellation can ONLY be done BEFORE shipping
+  const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery'].includes(currentStatus) ||
+                    ['shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+                    Boolean(order.shipping?.awbNumber)
+
+  if (isShipped) {
+    const err = new Error('Order cancellation is ONLY allowed BEFORE shipping. Once shipped with an AWB, the order cannot be cancelled.')
+    err.statusCode = 400
+    throw err
+  }
+
+  // RULE 2: Refund can ONLY be done BEFORE pickup from warehouse
+  const isPickedUp = ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(currentStatus) ||
+                     ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+                     Boolean(order.shipping?.pickupAt)
+
+  if (isPickedUp) {
+    const err = new Error('Refunds and cancellation are ONLY allowed BEFORE package pickup from warehouse.')
+    err.statusCode = 400
+    throw err
   }
 
   // If Ad2Ship Order exists, call Ad2Ship cancel API
   if (order.shipping?.ad2shipOrderId) {
     const res = await ad2shipService.cancelOrder({ orderId: order.shipping.ad2shipOrderId })
     if (!res || res.status === false) {
-      throw new Error(res?.message || 'Ad2Ship order cancellation rejected.')
+      const err = new Error(parseAd2ShipMessage(res?.message) || 'Ad2Ship order cancellation rejected.')
+      err.statusCode = 400
+      throw err
     }
+    if (!order.shipping) order.shipping = {}
     order.shipping.status = AD2SHIP_STATUSES.CANCELLED
+  }
+
+  // Restore inventory stock
+  if (order.items && order.items.length > 0) {
+    for (const item of order.items) {
+      if (item.product) {
+        const product = await Product.findById(item.product).catch(() => null)
+        if (product) {
+          if (product.sizeStock && product.sizeStock.length > 0) {
+            const sizeItem = product.sizeStock.find(s => s.size === item.size)
+            if (sizeItem) {
+              sizeItem.quantity += (item.quantity || 1)
+            }
+          } else {
+            product.stock += (item.quantity || 1)
+          }
+          await product.save()
+        }
+      }
+    }
   }
 
   // Update order status to cancelled
@@ -437,14 +583,14 @@ export const cancelShipment = async (orderId) => {
   order.timeline.push({
     status: 'Cancelled',
     timestamp: new Date(),
-    note: 'Order shipment cancelled.'
+    note: 'Shipment and order cancelled by admin.'
   })
 
   await order.save()
 
   return {
     success: true,
-    message: 'Shipment cancelled successfully.',
+    message: 'Shipment cancelled successfully and inventory restored.',
     order
   }
 }

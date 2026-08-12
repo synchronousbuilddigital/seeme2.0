@@ -90,14 +90,20 @@ export const createOrder = asyncHandler(async (req, res) => {
     customer,
     items: orderItems,
     totalAmount,
-    paymentMethod
+    paymentMethod: paymentMethod || 'online'
   })
 
-  // Automatically initialize Ad2Ship shipment order
+  // Automatically initialize Ad2Ship shipment order directly upon customer placement
   try {
-    await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+    const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+    if (shipResult?.ad2shipOrderId) {
+      if (!order.shipping) order.shipping = {}
+      order.shipping.provider = 'ad2ship'
+      order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
+      order.shipping.status = 'pending'
+    }
   } catch (shipErr) {
-    console.warn(`⚠️ Ad2Ship order creation notice for #${order.orderNumber}:`, shipErr.message)
+    console.warn(`⚠️ Ad2Ship auto-creation notice for #${order.orderNumber}:`, shipErr.message)
   }
 
   // Send Order Placed Email via Nodemailer Gmail Service
@@ -183,14 +189,31 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
   }
 
   const currentStatus = (order.status || '').toLowerCase()
-  if (['shipped', 'delivered'].includes(currentStatus)) {
-    res.status(400)
-    throw new Error(`Cannot cancel order. Status is already ${order.status}.`)
-  }
+  const shippingStatus = (order.shipping?.status || '').toLowerCase()
 
   if (currentStatus === 'cancelled') {
     res.status(400)
     throw new Error('Order is already cancelled.')
+  }
+
+  // RULE 1: Cancellation can ONLY be done BEFORE shipping
+  const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery'].includes(currentStatus) ||
+                    ['shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+                    Boolean(order.shipping?.awbNumber)
+
+  if (isShipped) {
+    res.status(400)
+    throw new Error('Order cancellation is ONLY allowed BEFORE shipping. Once shipped with an assigned AWB, the order cannot be cancelled.')
+  }
+
+  // RULE 2: Refund can ONLY be done BEFORE pickup from warehouse
+  const isPickedUp = ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(currentStatus) ||
+                     ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+                     Boolean(order.shipping?.pickupAt)
+
+  if (isPickedUp) {
+    res.status(400)
+    throw new Error('Refunds and cancellation can ONLY be processed BEFORE package pickup from warehouse.')
   }
 
   // Restore inventory stock
@@ -222,7 +245,19 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
     }
   }
 
+  // Mark payment as refunded if order was paid before pickup
+  if (order.paymentStatus === 'paid' || order.paymentMethod === 'online') {
+    order.paymentStatus = 'refunded'
+  }
+
   order.status = 'cancelled'
+  if (!order.timeline) order.timeline = []
+  order.timeline.push({
+    status: 'Cancelled',
+    timestamp: new Date(),
+    note: 'Order cancelled before shipping & warehouse pickup. Payment refunded.'
+  })
+
   await order.save()
 
   // Send Order Cancelled Email
@@ -343,7 +378,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
     // Initialize Ad2Ship shipment order after verified online payment
     try {
-      await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+      const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+      if (shipResult?.ad2shipOrderId) {
+        if (!order.shipping) order.shipping = {}
+        order.shipping.provider = 'ad2ship'
+        order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
+        order.shipping.status = 'pending'
+      }
     } catch (shipErr) {
       console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
     }
@@ -394,7 +435,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
   // Initialize Ad2Ship shipment order after verified online payment
   try {
-    await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+    const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+    if (shipResult?.ad2shipOrderId) {
+      if (!order.shipping) order.shipping = {}
+      order.shipping.provider = 'ad2ship'
+      order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
+      order.shipping.status = 'pending'
+    }
   } catch (shipErr) {
     console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
   }

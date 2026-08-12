@@ -1,6 +1,19 @@
 import asyncHandler from '../utils/asyncHandler.js'
 import shippingService from '../services/shippingService.js'
 
+// Helper error wrapper for shipping actions
+const handleShippingAction = async (res, actionFn) => {
+  try {
+    return await actionFn()
+  } catch (error) {
+    const status = error.statusCode || 400
+    res.status(status).json({
+      success: false,
+      message: error.message || 'Shipping operation failed'
+    })
+  }
+}
+
 // @desc    Calculate shipping rates and courier partner availability
 // @route   POST /api/shipping/rate
 // @access  Public
@@ -8,22 +21,23 @@ export const calculateRate = asyncHandler(async (req, res) => {
   const { deliveryPincode, paymentType, orderType, items, invoiceAmount } = req.body
 
   if (!deliveryPincode) {
-    res.status(400)
-    throw new Error('Delivery pincode is required')
+    return res.status(400).json({ success: false, message: 'Delivery pincode is required' })
   }
 
-  const result = await shippingService.getShippingRates({
-    deliveryPincode,
-    paymentType: paymentType || 'prepaid',
-    orderType: orderType || 'forward',
-    items: items || [],
-    invoiceAmount: invoiceAmount || 0
-  })
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.getShippingRates({
+      deliveryPincode,
+      paymentType: paymentType || 'prepaid',
+      orderType: orderType || 'forward',
+      items: items || [],
+      invoiceAmount: invoiceAmount || 0
+    })
 
-  res.json({
-    success: result.success,
-    data: result.data || result,
-    message: result.message
+    res.json({
+      success: result.success,
+      data: result.data || result,
+      message: result.message
+    })
   })
 })
 
@@ -34,17 +48,18 @@ export const createOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.body
 
   if (!orderId) {
-    res.status(400)
-    throw new Error('Seemee Order ID is required')
+    return res.status(400).json({ success: false, message: 'Seemee Order ID is required' })
   }
 
-  const result = await shippingService.createAd2ShipOrderForSeemeeOrder(orderId)
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.createAd2ShipOrderForSeemeeOrder(orderId)
 
-  res.json({
-    success: true,
-    message: result.message,
-    ad2shipOrderId: result.ad2shipOrderId,
-    data: result.order
+    res.json({
+      success: true,
+      message: result.message,
+      ad2shipOrderId: result.ad2shipOrderId,
+      data: result.order
+    })
   })
 })
 
@@ -55,17 +70,18 @@ export const shipOrder = asyncHandler(async (req, res) => {
   const { orderId, courierPartnerId } = req.body
 
   if (!orderId || !courierPartnerId) {
-    res.status(400)
-    throw new Error('Order ID and CourierPartnerId are required')
+    return res.status(400).json({ success: false, message: 'Order ID and CourierPartnerId are required' })
   }
 
-  const result = await shippingService.shipAd2ShipOrder({ orderId, courierPartnerId })
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.shipAd2ShipOrder({ orderId, courierPartnerId })
 
-  res.json({
-    success: true,
-    message: result.message,
-    shipping: result.shipping,
-    data: result.order
+    res.json({
+      success: true,
+      message: result.message,
+      shipping: result.shipping,
+      data: result.order
+    })
   })
 })
 
@@ -76,18 +92,19 @@ export const generateManifest = asyncHandler(async (req, res) => {
   const { orderId } = req.body
 
   if (!orderId) {
-    res.status(400)
-    throw new Error('Order ID is required')
+    return res.status(400).json({ success: false, message: 'Order ID is required' })
   }
 
-  const result = await shippingService.generateShippingDocument({
-    orderId,
-    documentType: 'manifest'
-  })
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.generateShippingDocument({
+      orderId,
+      documentType: 'manifest'
+    })
 
-  res.json({
-    success: true,
-    message: result.message
+    res.json({
+      success: true,
+      message: result.message
+    })
   })
 })
 
@@ -98,19 +115,20 @@ export const generateLabel = asyncHandler(async (req, res) => {
   const { orderId } = req.body
 
   if (!orderId) {
-    res.status(400)
-    throw new Error('Order ID is required')
+    return res.status(400).json({ success: false, message: 'Order ID is required' })
   }
 
-  const result = await shippingService.generateShippingDocument({
-    orderId,
-    documentType: 'label'
-  })
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.generateShippingDocument({
+      orderId,
+      documentType: 'label'
+    })
 
-  res.json({
-    success: true,
-    message: result.message,
-    labelUrl: result.labelUrl
+    res.json({
+      success: true,
+      message: result.message,
+      labelUrl: result.labelUrl
+    })
   })
 })
 
@@ -121,19 +139,20 @@ export const generateInvoice = asyncHandler(async (req, res) => {
   const { orderId } = req.body
 
   if (!orderId) {
-    res.status(400)
-    throw new Error('Order ID is required')
+    return res.status(400).json({ success: false, message: 'Order ID is required' })
   }
 
-  const result = await shippingService.generateShippingDocument({
-    orderId,
-    documentType: 'invoice'
-  })
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.generateShippingDocument({
+      orderId,
+      documentType: 'invoice'
+    })
 
-  res.json({
-    success: true,
-    message: result.message,
-    invoiceUrl: result.invoiceUrl
+    res.json({
+      success: true,
+      message: result.message,
+      invoiceUrl: result.invoiceUrl
+    })
   })
 })
 
@@ -144,15 +163,16 @@ export const trackOrder = asyncHandler(async (req, res) => {
   const { awbNumber, orderId } = req.body
 
   if (!awbNumber && !orderId) {
-    res.status(400)
-    throw new Error('AWB Number or Order ID is required for tracking')
+    return res.status(400).json({ success: false, message: 'AWB Number or Order ID is required for tracking' })
   }
 
-  const result = await shippingService.trackShipment({ awbNumber, orderId })
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.trackShipment({ awbNumber, orderId })
 
-  res.json({
-    success: true,
-    data: result.data
+    res.json({
+      success: true,
+      data: result.data
+    })
   })
 })
 
@@ -163,15 +183,16 @@ export const trackOrderById = asyncHandler(async (req, res) => {
   const { orderId } = req.body
 
   if (!orderId) {
-    res.status(400)
-    throw new Error('Ad2Ship Order ID is required')
+    return res.status(400).json({ success: false, message: 'Ad2Ship Order ID is required' })
   }
 
-  const result = await shippingService.trackShipment({ orderId })
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.trackShipment({ orderId })
 
-  res.json({
-    success: true,
-    data: result.data
+    res.json({
+      success: true,
+      data: result.data
+    })
   })
 })
 
@@ -182,16 +203,17 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.body
 
   if (!orderId) {
-    res.status(400)
-    throw new Error('Order ID is required')
+    return res.status(400).json({ success: false, message: 'Order ID is required' })
   }
 
-  const result = await shippingService.cancelShipment(orderId)
+  await handleShippingAction(res, async () => {
+    const result = await shippingService.cancelShipment(orderId)
 
-  res.json({
-    success: true,
-    message: result.message,
-    data: result.order
+    res.json({
+      success: true,
+      message: result.message,
+      data: result.order
+    })
   })
 })
 
