@@ -72,7 +72,7 @@ node scripts/importCatalog.js
 ==================================================
 ✅ Connected to MongoDB
 🔄 Preserving admin and purging other data...
-✅ Admin preserved: admin@seemee.com
+✅ Admin preserved: your_admin_email@example.com
 🗑️  Removed 0 non-admin users
 🗑️  Cleared products: 5 documents
 📦 Importing 10 products...

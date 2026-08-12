@@ -69,7 +69,7 @@ const AdminLogin = () => {
       >
         <img src="/images/logoSEEMEE1.png" alt="See Mee" className="login-logo" />
         <h2>Admin Login</h2>
-        <p>Access the SEEMEE Atelier management suite</p>
+        <p>Access the SEEMEE management </p>
 
         {error && <div className="error-message">{error}</div>}
 
@@ -79,7 +79,7 @@ const AdminLogin = () => {
             <input
               id="admin-email"
               type="email"
-              placeholder="seemee@admin.com"
+              placeholder="admin@example.com"
               value={credentials.email}
               onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
               required

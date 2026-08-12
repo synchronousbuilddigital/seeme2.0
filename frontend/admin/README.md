@@ -21,8 +21,8 @@ Admin panel will be available at: **http://localhost:3001**
 **URL:** http://localhost:3001/login
 
 **Credentials:**
-- Email: `admin@seemee.com`
-- Password: `admin123`
+- Email: Configured in `backend/.env` (`ADMIN_EMAIL`)
+- Password: Configured in `backend/.env` (`ADMIN_PASSWORD`)
 
 ## 📊 Features
 

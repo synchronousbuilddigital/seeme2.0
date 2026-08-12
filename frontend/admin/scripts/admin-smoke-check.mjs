@@ -1,8 +1,32 @@
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 const baseUrl = (process.env.VITE_API_URL || process.env.ADMIN_API_URL || 'http://localhost:5000')
   .trim()
   .replace(/\/+$/, '')
-const adminEmail = (process.env.ADMIN_EMAIL || 'admin@seemee.com').trim()
-const adminPassword = (process.env.ADMIN_PASSWORD || 'admin123').trim()
+
+let adminEmail = (process.env.ADMIN_EMAIL || '').trim()
+let adminPassword = (process.env.ADMIN_PASSWORD || '').trim()
+
+if (!adminEmail || !adminPassword) {
+  const envPath = path.resolve(__dirname, '../../backend/.env')
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8')
+    const emailMatch = envContent.match(/^ADMIN_EMAIL\s*=\s*(.+)$/m)
+    const passMatch = envContent.match(/^ADMIN_PASSWORD\s*=\s*(.+)$/m)
+    if (emailMatch && !adminEmail) adminEmail = emailMatch[1].trim()
+    if (passMatch && !adminPassword) adminPassword = passMatch[1].trim()
+  }
+}
+
+if (!adminEmail || !adminPassword) {
+  console.error('❌ ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be defined in backend/.env')
+  process.exit(1)
+}
 
 const fail = (message) => {
   console.error(`❌ ${message}`)

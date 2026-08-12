@@ -23,8 +23,8 @@ PORT=5000
 NODE_ENV=development
 
 # Admin Account (Created on first run)
-ADMIN_EMAIL=admin@seemee.com
-ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=your_admin_email@example.com
+ADMIN_PASSWORD=your_admin_password
 
 # Cloudinary Configuration (for image upload)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
@@ -174,8 +174,8 @@ DELETE /api/reviews/:id         - Delete review
 **Users (3 accounts)**
 ```
 Admin:
-  Email: admin@seemee.com
-  Password: admin123
+  Email: Configured in backend/.env (ADMIN_EMAIL)
+  Password: Configured in backend/.env (ADMIN_PASSWORD)
 
 Customer 1:
   Email: customer@seemee.com

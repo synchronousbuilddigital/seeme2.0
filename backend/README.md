@@ -13,8 +13,8 @@ PORT=5000
 MONGODB_URI=your_mongodb_uri_here
 JWT_SECRET=your_secret_key_here
 NODE_ENV=development
-ADMIN_EMAIL=admin@seemee.com
-ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=your_admin_email@example.com
+ADMIN_PASSWORD=your_admin_password
 ```
 
 3. **Create admin user:**
@@ -29,8 +29,8 @@ npm run dev
 
 ## Admin Panel Access
 - URL: http://localhost:3000/admin/login
-- Email: admin@seemee.com
-- Password: admin123
+- Email: Set via `ADMIN_EMAIL` in `.env`
+- Password: Set via `ADMIN_PASSWORD` in `.env`
 
 ## Features
 ✅ Product Management (CRUD)

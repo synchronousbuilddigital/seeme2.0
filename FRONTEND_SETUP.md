@@ -217,8 +217,8 @@ import api from '@/config/api'
 
 // Login
 const response = await api.post('/auth/login', {
-  email: 'admin@seemee.com',
-  password: 'admin123'
+  email: 'your_admin_email@example.com',
+  password: 'your_admin_password'
 })
 
 // Token stored in localStorage as 'token'

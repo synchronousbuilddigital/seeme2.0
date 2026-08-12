@@ -15,7 +15,12 @@ dns.setServers(['1.1.1.1', '8.8.8.8'])
 dotenv.config()
 
 const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase()
-const adminPassword = process.env.ADMIN_PASSWORD || ''
+const adminPassword = (process.env.ADMIN_PASSWORD || '').trim()
+
+if (!adminEmail || !adminPassword) {
+  console.error('❌ ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be defined in .env')
+  process.exit(1)
+}
 
 const connect = async () => {
   if (!process.env.MONGODB_URI) {

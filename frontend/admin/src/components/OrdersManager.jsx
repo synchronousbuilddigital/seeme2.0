@@ -739,12 +739,12 @@ const OrdersManager = () => {
                           <div style={{ marginBottom: '16px' }}>
                             <label style={{ fontSize: '0.8rem', color: '#d4af37', fontWeight: '700', marginBottom: '6px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Courier Partner:</label>
                             <select 
+                              className="ad2ship-courier-select"
                               value={selectedCourierId} 
                               onChange={(e) => setSelectedCourierId(e.target.value)}
-                              style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', background: '#1c1917', color: '#ffffff', border: '1.5px solid #d4af37', fontSize: '0.88rem', fontWeight: '600', outline: 'none', WebkitAppearance: 'none', appearance: 'none', cursor: 'pointer' }}
                             >
                               {ad2shipPartners.map(p => (
-                                <option key={p.id} value={p.id} style={{ background: '#1c1917', color: '#ffffff', padding: '8px' }}>
+                                <option key={p.id} value={p.id} style={{ background: '#ffffff', color: '#111111', fontWeight: '600' }}>
                                   {p.name} — ₹{p.total_charge} (Freight: ₹{p.freight_charge}, COD: ₹{p.cod_charge})
                                 </option>
                               ))}
