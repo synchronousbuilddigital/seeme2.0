@@ -297,16 +297,18 @@ export const CartProvider = ({ children }) => {
         return itemId === productId && itemSize === productSize
       })
 
+      const addedQty = Number(product.quantity) || 1
+
       if (existingIndex > -1) {
         return prevCart.map((item, idx) => {
           if (idx === existingIndex) {
-            return { ...item, quantity: (item.quantity || 1) + 1 }
+            return { ...item, quantity: (item.quantity || 1) + addedQty }
           }
           return item
         })
       }
 
-      return [...prevCart, { ...normalizedProduct, quantity: 1 }]
+      return [...prevCart, { ...normalizedProduct, quantity: addedQty }]
     })
   }
 

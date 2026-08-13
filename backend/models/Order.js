@@ -82,6 +82,33 @@ const orderSchema = new mongoose.Schema({
     pincode: String,
     country: { type: String, default: 'India' }
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  paymentDetails: {
+    orderId: String,
+    paymentId: String,
+    signature: String
+  },
+  refundStatus: {
+    type: String,
+    enum: [
+      'not_refunded',
+      'refund_requested',
+      'refund_approved',
+      'refund_processing',
+      'partially_refunded',
+      'refunded',
+      'refund_rejected',
+      'refund_failed'
+    ],
+    default: 'not_refunded'
+  },
+  refundedAmount: {
+    type: Number,
+    default: 0
+  },
   shipping: {
     provider: { type: String, default: 'ad2ship' },
     ad2shipOrderId: Number,
@@ -118,6 +145,7 @@ orderSchema.pre('save', async function(next) {
 // Add indexes for fast queries
 orderSchema.index({ 'customer.email': 1 })
 orderSchema.index({ status: 1 })
+orderSchema.index({ refundStatus: 1 })
 orderSchema.index({ createdAt: -1 })
 orderSchema.index({ 'shipping.ad2shipOrderId': 1 })
 orderSchema.index({ 'shipping.awbNumber': 1 })

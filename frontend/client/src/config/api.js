@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
   AUTH_FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
   AUTH_VERIFY_OTP: `${API_BASE_URL}/api/auth/verify-otp`,
   AUTH_RESET_PASSWORD: `${API_BASE_URL}/api/auth/reset-password`,
+  GOOGLE_AUTH: `${API_BASE_URL}/api/auth/google`,
 
   // ─── Products ──────────────────────────────────
   PRODUCTS: `${API_BASE_URL}/api/products`,
@@ -49,6 +50,8 @@ export const API_ENDPOINTS = {
   ORDERS: `${API_BASE_URL}/api/orders`,
   ORDERS_MY: `${API_BASE_URL}/api/orders/myorders`,
   ORDERS_CANCEL: (id) => `${API_BASE_URL}/api/orders/${id}/cancel`,
+  ORDERS_REFUND_REQUEST: (id) => `${API_BASE_URL}/api/orders/${id}/refund-request`,
+  ORDERS_REFUND_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/refund`,
   CREATE_RAZORPAY_ORDER: `${API_BASE_URL}/api/orders/create-razorpay-order`,
   VERIFY_PAYMENT: `${API_BASE_URL}/api/orders/verify-payment`,
 

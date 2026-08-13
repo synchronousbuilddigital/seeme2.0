@@ -23,16 +23,6 @@ const Cart = ({ isOpen, onClose }) => {
   }, [isOpen, cart.length])
 
   const handleCheckout = () => {
-    if (!user || !token) {
-      onClose()
-      navigate('/auth', {
-        state: {
-          message: 'Please sign in or create an account to place an order.',
-          from: '/checkout'
-        }
-      })
-      return
-    }
     try {
       trackBeginCheckout(cart)
     } catch (e) { }

@@ -22,9 +22,78 @@ const OrdersManager = () => {
   const [selectedCourierId, setSelectedCourierId] = useState('')
   const [trackingModalData, setTrackingModalData] = useState(null)
 
+  // Refund Management States
+  const [refunds, setRefunds] = useState([])
+  const [refundProcessingId, setRefundProcessingId] = useState(null)
+
   useEffect(() => {
     fetchOrders()
+    fetchRefunds()
   }, [])
+
+  const fetchRefunds = async () => {
+    try {
+      const data = await apiRequest(API_ENDPOINTS.ADMIN.REFUNDS, { auth: true })
+      if (data.success) {
+        setRefunds(data.data)
+      }
+    } catch (err) {
+      console.error('Error fetching refunds:', err)
+    }
+  }
+
+  const handleApproveRefund = async (refundId) => {
+    if (!window.confirm('Are you sure you want to approve this refund? The payment gateway will process the refund to the customer.')) return
+    setRefundProcessingId(refundId)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.ADMIN.REFUND_APPROVE(refundId), {
+        method: 'POST',
+        auth: true
+      })
+      if (data.success) {
+        showNotification('Refund approved and processed via Razorpay!')
+        fetchOrders()
+        fetchRefunds()
+        if (selectedOrder) {
+          setSelectedOrder(data.order || { ...selectedOrder, refundStatus: 'refunded', status: 'refunded', paymentStatus: 'refunded' })
+        }
+      } else {
+        showNotification(data.message || 'Refund approval failed', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Refund approval failed', 'error')
+    } finally {
+      setRefundProcessingId(null)
+    }
+  }
+
+  const handleRejectRefund = async (refundId) => {
+    const reason = window.prompt('Enter reason for rejecting refund (optional):', 'Order does not meet refund policy conditions')
+    if (reason === null) return
+
+    setRefundProcessingId(refundId)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.ADMIN.REFUND_REJECT(refundId), {
+        method: 'POST',
+        auth: true,
+        body: { adminNote: reason }
+      })
+      if (data.success) {
+        showNotification('Refund request rejected.')
+        fetchOrders()
+        fetchRefunds()
+        if (selectedOrder) {
+          setSelectedOrder(data.order || { ...selectedOrder, refundStatus: 'refund_rejected' })
+        }
+      } else {
+        showNotification(data.message || 'Refund rejection failed', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Refund rejection failed', 'error')
+    } finally {
+      setRefundProcessingId(null)
+    }
+  }
 
   const handleCalculateRate = async (order) => {
     if (!order.customer?.address?.pincode) {
@@ -338,7 +407,9 @@ const OrdersManager = () => {
 
   const filteredOrders = filter === 'all' 
     ? orders 
-    : orders.filter(order => order.status === filter)
+    : filter === 'refund_requested'
+      ? orders.filter(order => order.refundStatus === 'refund_requested' || order.status === 'refunded')
+      : orders.filter(order => order.status === filter)
 
   const visibleOrders = filteredOrders.filter((order) => {
     const haystack = [
@@ -355,7 +426,7 @@ const OrdersManager = () => {
   const pendingCount = orders.filter(o => o.status === 'pending' || o.status === 'processing').length
   const shippedCount = orders.filter(o => o.status === 'shipped').length
   const totalRevenue = orders
-    .filter(o => o.status !== 'cancelled')
+    .filter(o => o.status !== 'cancelled' && o.status !== 'refunded')
     .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
 
   return (
@@ -438,16 +509,20 @@ const OrdersManager = () => {
         </div>
         
         <div className="filters-row">
-          {['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map(status => (
+          {['all', 'refund_requested', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map(status => (
             <button
               key={status}
               className={`filter-tab ${filter === status ? 'active' : ''}`}
               onClick={() => setFilter(status)}
             >
               <span className={`status-dot ${status}`} />
-              <span className="tab-name">{status}</span>
+              <span className="tab-name">{status === 'refund_requested' ? 'Refund Requests' : status}</span>
               <span className="count">
-                {status === 'all' ? orders.length : orders.filter(o => o.status === status).length}
+                {status === 'all' 
+                  ? orders.length 
+                  : status === 'refund_requested' 
+                    ? orders.filter(o => o.refundStatus === 'refund_requested' || o.status === 'refunded').length 
+                    : orders.filter(o => o.status === status).length}
               </span>
             </button>
           ))}
@@ -705,6 +780,109 @@ const OrdersManager = () => {
                         <p>{selectedOrder.customer.address?.city}, {selectedOrder.customer.address?.state}</p>
                         <p>{selectedOrder.customer.address?.pincode}</p>
                       </div>
+                    </div>
+                  </section>
+
+                  {/* Refund Control Card */}
+                  <section className="refund-section" style={{ marginTop: '20px' }}>
+                    <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>💳 Payment & Refund Control</h3>
+                    <div style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
+                        <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentMethod || 'online').toUpperCase()}</strong></div>
+                        <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: selectedOrder.paymentStatus === 'paid' ? '#22c55e' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentStatus || 'pending').toUpperCase()}</strong></div>
+                        <div><span style={{ color: '#a3a3a3' }}>Refund Status:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.refundStatus || 'not_refunded').toUpperCase()}</strong></div>
+                        <div><span style={{ color: '#a3a3a3' }}>Refunded Amount:</span> <strong style={{ color: '#22c55e', marginLeft: '4px', fontWeight: '700' }}>₹{selectedOrder.refundedAmount || 0}</strong></div>
+                      </div>
+
+                      {/* Active Refund Request Details */}
+                      {(() => {
+                        const matchingRefund = refunds.find(r => (r.order?._id || r.order) === selectedOrder._id) || (selectedOrder.refundStatus === 'refund_requested' ? { status: 'requested', amount: selectedOrder.totalAmount, reason: 'Customer requested refund' } : null)
+
+                        if (!matchingRefund && selectedOrder.refundStatus !== 'refund_requested') {
+                          return (
+                            <div style={{ fontSize: '0.82rem', color: '#a3a3a3', fontStyle: 'italic', borderTop: '1px solid #333', paddingTop: '10px' }}>
+                              No active refund request submitted for this order.
+                            </div>
+                          )
+                        }
+
+                        const isShippedOrAWB = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes((selectedOrder.status || '').toLowerCase()) || Boolean(selectedOrder.shipping?.awbNumber)
+
+                        return (
+                          <div style={{ background: '#1c1917', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #d4af37', marginTop: '12px' }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#d4af37', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                              CUSTOMER REFUND REQUEST
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
+                              <strong>Refund Amount:</strong> ₹{Number(matchingRefund.amount || selectedOrder.totalAmount).toLocaleString('en-IN')}
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
+                              <strong>Reason:</strong> {matchingRefund.reason || 'Ordered by mistake'}
+                            </div>
+                            {matchingRefund.createdAt && (
+                              <div style={{ fontSize: '0.78rem', color: '#a3a3a3', marginBottom: '12px' }}>
+                                Requested on: {new Date(matchingRefund.createdAt).toLocaleString('en-IN')}
+                              </div>
+                            )}
+
+                            {/* Eligibility Check Badge */}
+                            {isShippedOrAWB ? (
+                              <div style={{ background: 'rgba(220, 38, 38, 0.2)', border: '1px solid #dc2626', color: '#f87171', padding: '10px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '600', marginBottom: '12px' }}>
+                                ⚠️ CANNOT APPROVE: Order has already shipped from warehouse. Refunds are disabled after shipping.
+                              </div>
+                            ) : (
+                              <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', color: '#4ade80', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', marginBottom: '12px' }}>
+                                ✓ Eligible for refund approval (Order not shipped from warehouse)
+                              </div>
+                            )}
+
+                            {/* Approval / Rejection Action Buttons */}
+                            {(matchingRefund.status === 'requested' || selectedOrder.refundStatus === 'refund_requested') ? (
+                              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                                <button
+                                  type="button"
+                                  disabled={refundProcessingId === (matchingRefund._id || selectedOrder._id) || isShippedOrAWB}
+                                  onClick={() => handleApproveRefund(matchingRefund._id || selectedOrder._id)}
+                                  style={{
+                                    padding: '8px 18px',
+                                    fontSize: '0.82rem',
+                                    background: isShippedOrAWB ? '#444444' : '#16a34a',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    fontWeight: '700',
+                                    cursor: isShippedOrAWB ? 'not-allowed' : 'pointer',
+                                    boxShadow: isShippedOrAWB ? 'none' : '0 4px 12px rgba(22, 163, 74, 0.3)'
+                                  }}
+                                >
+                                  {refundProcessingId === (matchingRefund._id || selectedOrder._id) ? 'Processing Gateway Refund...' : 'Approve Refund'}
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={refundProcessingId === (matchingRefund._id || selectedOrder._id)}
+                                  onClick={() => handleRejectRefund(matchingRefund._id || selectedOrder._id)}
+                                  style={{
+                                    padding: '8px 16px',
+                                    fontSize: '0.82rem',
+                                    background: 'transparent',
+                                    color: '#ef4444',
+                                    border: '1.5px solid #ef4444',
+                                    borderRadius: '6px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  Reject Request
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '0.82rem', color: '#d4af37', marginTop: '8px', fontWeight: '600' }}>
+                                Status: {(matchingRefund.status || selectedOrder.refundStatus).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })()}
                     </div>
                   </section>
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -13,9 +13,14 @@ const Orders = () => {
   const [loading, setLoading] = useState(true)
   const [expandedOrder, setExpandedOrder] = useState(null)
   
+  // Filter & Search states
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+
   // Ad2Ship Tracking modal state
   const [activeTrackingData, setActiveTrackingData] = useState(null)
   const [trackingLoading, setTrackingLoading] = useState(false)
+  const [cancellingId, setCancellingId] = useState(null)
 
   useEffect(() => {
     if (!token) {
@@ -28,6 +33,24 @@ const Orders = () => {
     const interval = setInterval(fetchOrders, 30000)
     return () => clearInterval(interval)
   }, [token, navigate])
+
+  const fetchOrders = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDERS_MY, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setOrders(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleFetchTracking = async (order) => {
     const awb = order.shipping?.awbNumber || order.trackingNumber
@@ -52,26 +75,6 @@ const Orders = () => {
     }
   }
 
-  const fetchOrders = async () => {
-    try {
-      const response = await fetch(API_ENDPOINTS.ORDERS_MY, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      const data = await response.json()
-      if (data.success) {
-        setOrders(data.data)
-      }
-    } catch (error) {
-      console.error('Error fetching orders:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const [cancellingId, setCancellingId] = useState(null)
-
   const handleCancelOrder = async (orderId) => {
     if (!window.confirm('Are you sure you want to cancel this order? Item stock will be restored.')) {
       return
@@ -88,7 +91,7 @@ const Orders = () => {
       const data = await response.json()
       if (data.success) {
         alert('Order cancelled successfully.')
-        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Cancelled' } : o))
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: 'Cancelled', refundStatus: o.paymentMethod === 'online' ? 'refund_requested' : o.refundStatus } : o))
       } else {
         alert(data.message || 'Failed to cancel order.')
       }
@@ -100,20 +103,6 @@ const Orders = () => {
     }
   }
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: '#f39c12',
-      confirmed: '#3498db',
-      processing: '#9b59b6',
-      printing: '#e67e22',
-      packaging: '#16a085',
-      shipped: '#2ecc71',
-      delivered: '#27ae60',
-      cancelled: '#e74c3c'
-    }
-    return colors[(status || '').toLowerCase()] || '#95a5a6'
-  }
-
   const handlePrint = (order) => {
     const win = window.open('', '', 'height=800,width=950')
     win.document.write(`
@@ -122,502 +111,430 @@ const Orders = () => {
           <title>SEE MEE - Order Receipt #${order.orderNumber}</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
-            
-            body {
-              font-family: 'Outfit', sans-serif;
-              padding: 50px;
-              color: #111;
-              background-color: #FFF;
-              line-height: 1.6;
-            }
-            .invoice-wrapper {
-              max-width: 850px;
-              margin: 0 auto;
-              border: 1.5px solid #F0F0F0;
-              padding: 50px;
-              position: relative;
-              box-shadow: 0 10px 40px rgba(0, 0, 0, 0.02);
-            }
-            .invoice-wrapper::before {
-              content: '';
-              position: absolute;
-              top: 0; left: 0; right: 0;
-              height: 4px;
-              background: linear-gradient(90deg, #D4AF37 0%, #F3E5AB 50%, #C49A27 100%);
-            }
-            .header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              border-bottom: 1.5px solid #F0F0F0;
-              padding-bottom: 30px;
-              margin-bottom: 35px;
-            }
-            .brand-logo h1 {
-              font-family: 'Playfair Display', serif;
-              font-size: 2.2rem;
-              font-weight: 700;
-              letter-spacing: 0.1em;
-              margin: 0;
-              color: #000;
-              text-transform: uppercase;
-            }
-            .brand-logo p {
-              font-family: 'Outfit', sans-serif;
-              font-size: 0.72rem;
-              text-transform: uppercase;
-              letter-spacing: 0.25em;
-              margin: 6px 0 0 0;
-              color: #C49A27;
-              font-weight: 600;
-            }
-            .invoice-meta {
-              text-align: right;
-            }
-            .invoice-meta h2 {
-              font-family: 'Playfair Display', serif;
-              font-size: 1.6rem;
-              font-weight: 400;
-              text-transform: uppercase;
-              letter-spacing: 0.05em;
-              margin: 0 0 8px 0;
-            }
-            .invoice-meta p {
-              font-size: 0.85rem;
-              color: #666;
-              margin: 3px 0;
-            }
-            .grid-details {
-              display: grid;
-              grid-template-columns: 1fr 1fr;
-              gap: 50px;
-              margin-bottom: 40px;
-            }
-            .detail-block h3 {
-              font-size: 0.75rem;
-              font-weight: 700;
-              text-transform: uppercase;
-              letter-spacing: 0.08em;
-              color: #888;
-              border-bottom: 1.5px solid #F0F0F0;
-              padding-bottom: 8px;
-              margin-bottom: 12px;
-            }
-            .detail-block p {
-              font-size: 0.88rem;
-              color: #333;
-              margin: 4px 0;
-              line-height: 1.5;
-            }
-            .detail-block strong {
-              color: #000;
-              font-size: 0.95rem;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 35px;
-            }
-            th {
-              font-size: 0.75rem;
-              font-weight: 700;
-              text-transform: uppercase;
-              letter-spacing: 0.08em;
-              color: #888;
-              background-color: #FAFAFA;
-              padding: 14px 16px;
-              text-align: left;
-              border-bottom: 1.5px solid #EAEAEA;
-            }
-            td {
-              padding: 18px 16px;
-              font-size: 0.88rem;
-              color: #444;
-              border-bottom: 1px solid #F0F0F0;
-            }
-            .item-name {
-              font-weight: 600;
-              color: #000;
-            }
-            .item-spec {
-              font-size: 0.78rem;
-              color: #666;
-              margin-top: 4px;
-            }
-            .totals-container {
-              display: flex;
-              justify-content: flex-end;
-              margin-top: 25px;
-            }
-            .totals-table {
-              width: 320px;
-              border: none;
-              margin-bottom: 0;
-            }
-            .totals-table td {
-              padding: 8px 16px;
-              border: none;
-            }
-            .totals-table tr.grand-total td {
-              font-family: 'Playfair Display', serif;
-              font-size: 1.4rem;
-              font-weight: 700;
-              color: #C49A27;
-              padding-top: 15px;
-              border-top: 1.5px solid #111;
-            }
-            .footer {
-              margin-top: 70px;
-              text-align: center;
-              font-size: 0.8rem;
-              color: #777;
-              border-top: 1px solid #F0F0F0;
-              padding-top: 35px;
-            }
-            .footer p {
-              margin: 4px 0;
-            }
-            .footer-sig {
-              font-family: 'Playfair Display', serif;
-              font-style: italic;
-              color: #C49A27;
-              font-size: 1.15rem;
-              margin-bottom: 12px !important;
-            }
-            
-            @media print {
-              body { padding: 0; background: none; }
-              .invoice-wrapper { border: none; padding: 0; box-shadow: none; }
-            }
+            body { font-family: 'Outfit', sans-serif; padding: 40px; color: #111; background-color: #FFF; line-height: 1.6; }
+            .invoice-wrapper { max-width: 850px; margin: 0 auto; border: 1.5px solid #F0F0F0; padding: 45px; position: relative; }
+            .invoice-wrapper::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #D4AF37 0%, #F3E5AB 50%, #C49A27 100%); }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #F0F0F0; padding-bottom: 25px; margin-bottom: 30px; }
+            .brand-logo h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; letter-spacing: 0.1em; margin: 0; color: #000; text-transform: uppercase; }
+            .brand-logo p { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.25em; margin: 4px 0 0 0; color: #C49A27; font-weight: 600; }
+            .invoice-meta { text-align: right; }
+            .invoice-meta h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 400; margin: 0 0 6px 0; }
+            .grid-details { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 35px; }
+            .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            .table th { background: #FAF9F6; text-align: left; padding: 12px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; }
+            .table td { padding: 14px 12px; border-bottom: 1px solid #F5F5F5; font-size: 0.88rem; }
+            .totals-row { text-align: right; margin-top: 20px; font-size: 1.1rem; font-weight: 700; color: #111; }
           </style>
         </head>
         <body>
           <div class="invoice-wrapper">
             <div class="header">
               <div class="brand-logo">
-                <h1>SEE MEE</h1>
-                <p>Atelier of Heritage & Style</p>
+                <h1>SEEMEE</h1>
+                <p>HAUTE COUTURE ATELIER</p>
               </div>
               <div class="invoice-meta">
-                <h2>Invoice</h2>
-                <p>Order #: <strong>${order.orderNumber}</strong></p>
-                <p>Date: ${new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                <p>Status: ${order.status.toUpperCase()}</p>
+                <h2>INVOICE RECEIPT</h2>
+                <p>Order #: <strong>#${order.orderNumber}</strong></p>
+                <p>Date: <strong>${new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>
               </div>
             </div>
-            
             <div class="grid-details">
-              <div class="detail-block">
-                <h3>Delivery Address</h3>
-                <p><strong>${order.customer.name}</strong></p>
-                <p>${order.customer.address.street}</p>
-                <p>${order.customer.address.city}, ${order.customer.address.state} - ${order.customer.address.pincode}</p>
-                <p>T: ${order.customer.phone}</p>
+              <div>
+                <h4 style="margin:0 0 8px 0; font-size:0.8rem; text-transform:uppercase; color:#888;">Billed & Delivered To:</h4>
+                <p style="margin:0; font-weight:700;">${order.customer?.name}</p>
+                <p style="margin:2px 0;">${order.customer?.address?.street}</p>
+                <p style="margin:2px 0;">${order.customer?.address?.city}, ${order.customer?.address?.state} - ${order.customer?.address?.pincode}</p>
+                <p style="margin:2px 0;">Phone: ${order.customer?.phone}</p>
               </div>
-              <div class="detail-block" style="text-align: right;">
-                <h3>Billing & Payment</h3>
-                <p>Payment Method: <strong>${order.paymentMethod === 'online' ? 'Online Credit/Debit Card' : 'Cash on Delivery'}</strong></p>
-                <p>Payment Status: <strong style="color: ${order.paymentStatus === 'paid' ? '#27AE60' : '#D97706'}">${order.paymentStatus.toUpperCase()}</strong></p>
+              <div>
+                <h4 style="margin:0 0 8px 0; font-size:0.8rem; text-transform:uppercase; color:#888;">Payment Info:</h4>
+                <p style="margin:0;">Method: <strong>${(order.paymentMethod || 'online').toUpperCase()}</strong></p>
+                <p style="margin:2px 0;">Status: <strong>${(order.paymentStatus || 'pending').toUpperCase()}</strong></p>
               </div>
             </div>
-            
-            <table>
+            <table class="table">
               <thead>
                 <tr>
-                  <th>Items Ordered</th>
-                  <th style="text-align: center;">Price</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: right;">Subtotal</th>
+                  <th>Item Description</th>
+                  <th>Size</th>
+                  <th>Quantity</th>
+                  <th style="text-align: right;">Amount</th>
                 </tr>
               </thead>
               <tbody>
-                ${order.items.map(item => `
+                ${(order.items || []).map(i => `
                   <tr>
-                    <td>
-                      <div class="item-name">${item.name}</div>
-                      <div class="item-spec">Size: ${item.size} • Color: ${item.color || 'Standard'}</div>
-                    </td>
-                    <td style="text-align: center;">₹${item.price.toLocaleString('en-IN')}</td>
-                    <td style="text-align: center;">${item.quantity}</td>
-                    <td style="text-align: right; font-weight: 600;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</td>
+                    <td><strong>${i.name}</strong></td>
+                    <td>${i.size || i.selectedSize || 'Standard'}</td>
+                    <td>${i.quantity}</td>
+                    <td style="text-align: right;">₹${(i.price * i.quantity).toLocaleString('en-IN')}</td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
-            
-            <div class="totals-container">
-              <table class="totals-table">
-                <tr>
-                  <td style="color: #666;">Subtotal</td>
-                  <td style="text-align: right; font-weight: 600;">₹${order.totalAmount.toLocaleString('en-IN')}</td>
-                </tr>
-                <tr>
-                  <td style="color: #666;">Shipping & Handling</td>
-                  <td style="text-align: right; color: #27AE60; font-weight: 600;">Complimentary</td>
-                </tr>
-                <tr class="grand-total">
-                  <td>Total</td>
-                  <td style="text-align: right;">₹${order.totalAmount.toLocaleString('en-IN')}</td>
-                </tr>
-              </table>
-            </div>
-            
-            <div class="footer">
-              <p class="footer-sig">Thank you for your patronage</p>
-              <p>Each piece is crafted with care at the Atelier of See Mee.</p>
-              <p>© ${new Date().getFullYear()} See Mee. All rights reserved.</p>
+            <div class="totals-row">
+              Grand Total: <span style="color: #D4AF37;">₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</span>
             </div>
           </div>
         </body>
       </html>
     `)
     win.document.close()
-    win.print()
+    win.focus()
+    setTimeout(() => win.print(), 300)
   }
+
+  // Filter & KPI calculations
+  const filteredOrders = useMemo(() => {
+    return orders.filter(order => {
+      const status = (order.status || '').toLowerCase()
+      
+      let matchesStatus = true
+      if (statusFilter === 'active') {
+        matchesStatus = ['pending', 'confirmed', 'processing', 'printing', 'packaging', 'shipped', 'in_transit'].includes(status)
+      } else if (statusFilter === 'delivered') {
+        matchesStatus = status === 'delivered'
+      } else if (statusFilter === 'cancelled') {
+        matchesStatus = status === 'cancelled'
+      }
+
+      const haystack = [
+        order.orderNumber,
+        order.shipping?.courierName,
+        order.shipping?.awbNumber,
+        ...(order.items || []).map(i => i.name)
+      ].join(' ').toLowerCase()
+
+      const matchesSearch = !searchTerm || haystack.includes(searchTerm.toLowerCase())
+
+      return matchesStatus && matchesSearch
+    })
+  }, [orders, statusFilter, searchTerm])
+
+  const kpis = useMemo(() => {
+    const total = orders.length
+    const active = orders.filter(o => ['pending', 'confirmed', 'processing', 'printing', 'packaging', 'shipped', 'in_transit'].includes((o.status || '').toLowerCase())).length
+    const delivered = orders.filter(o => (o.status || '').toLowerCase() === 'delivered').length
+    const investment = orders
+      .filter(o => (o.status || '').toLowerCase() !== 'cancelled')
+      .reduce((sum, o) => sum + (Number(o.totalAmount) || 0), 0)
+
+    return { total, active, delivered, investment }
+  }, [orders])
 
   if (loading) {
     return (
       <div className="luxury-orders-loading">
-        <div className="luxury-spinner"></div>
-        <p>Loading your orders...</p>
+        <div className="luxury-spinner" />
+        <p className="loading-text">Loading Your  Register...</p>
       </div>
     )
   }
 
   return (
     <div className="luxury-orders-page">
-      {/* Elegant Back Navigation */}
-      <div className="editorial-back-nav">
-        <button onClick={() => navigate(-1)} className="editorial-back-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          <span>Back</span>
-        </button>
-      </div>
-      <div className="orders-hero">
-        <motion.div 
-          className="hero-content"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-        >
-          <span className="eyebrow">Your Orders</span>
-          <h1>My Orders</h1>
-          <p>View and track all your orders.</p>
-        </motion.div>
-      </div>
+      {/* Luxury Hero Banner */}
+      <section className="orders-hero">
+        <div className="hero-content">
+          
+          <h1>My  Orders</h1>
+          <p>Real-time order tracking,  tailoring status & invoice history</p>
+        </div>
+      </section>
 
       <div className="orders-main-container">
-        {orders.length === 0 ? (
-          <motion.div 
-            className="empty-orders-luxury"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <div className="empty-icon">
-              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-                <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-              </svg>
-            </div>
-            <h2>Your Archive is Empty</h2>
-            <p>You haven't placed any orders yet. Start shopping!</p>
-            <button className="start-shopping-btn" onClick={() => navigate('/collections')}>
-              Browse Collections
-            </button>
-          </motion.div>
-        ) : (
-          <div className="orders-list-luxury">
-            {orders.map((order, index) => (
-              <motion.div
-                key={order._id}
-                className={`order-card-luxury ${expandedOrder === order._id ? 'expanded' : ''}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+        {/* Filters & Search Toolbar */}
+        <div className="orders-filter-toolbar">
+          <div className="filter-tabs">
+            {[
+              { id: 'all', label: 'All Orders', count: orders.length },
+              { id: 'active', label: 'In Progress', count: kpis.active },
+              { id: 'delivered', label: 'Delivered', count: kpis.delivered },
+              { id: 'cancelled', label: 'Cancelled', count: orders.filter(o => (o.status || '').toLowerCase() === 'cancelled').length }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                className={`tab-btn ${statusFilter === tab.id ? 'active' : ''}`}
+                onClick={() => setStatusFilter(tab.id)}
               >
-                <div 
-                  className="order-card-header"
-                  onClick={() => setExpandedOrder(expandedOrder === order._id ? null : order._id)}
-                >
-                  <div className="order-main-info">
-                    <span className="order-number">#{order.orderNumber}</span>
-                    <span className="order-date">{new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                  </div>
-                  
-                  <div className="order-status-group">
-                    <div className="status-badge-luxury" style={{ backgroundColor: getStatusColor(order.status) + '15', color: getStatusColor(order.status) }}>
-                      <span className="status-dot" style={{ backgroundColor: getStatusColor(order.status) }}></span>
-                      {order.status.toUpperCase()}
-                    </div>
-                    <span className="order-total">₹{order.totalAmount.toLocaleString('en-IN')}</span>
-                    <div className="expand-icon">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d={expandedOrder === order._id ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+                <span>{tab.label}</span>
+                <span className="tab-badge">{tab.count}</span>
+              </button>
+            ))}
+          </div>
 
-                <AnimatePresence>
-                  {expandedOrder === order._id && (
-                    <motion.div 
-                      className="order-card-details"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      {(order.status || '').toLowerCase() === 'cancelled' ? (
-                        <div className="timeline-cancelled-banner">
-                          <span className="cancelled-icon-badge">🚫</span>
-                          <span className="cancelled-text">This order is cancelled</span>
-                        </div>
-                      ) : (
-                        <div className="tracking-timeline-horizontal">
-                           {['pending', 'confirmed', 'processing', 'shipped', 'delivered'].map((step, idx, arr) => {
-                             const currentStepIdx = arr.indexOf((order.status || '').toLowerCase());
-                             const isCompleted = idx <= currentStepIdx;
-                             const isCurrent = idx === currentStepIdx;
-                             return (
-                               <div key={step} className={`timeline-step ${isCompleted ? 'active' : ''} ${isCurrent ? 'current' : ''}`}>
-                                 <div className="step-dot" />
-                                 <span className="step-label">{step}</span>
-                               </div>
-                             )
-                           })}
-                        </div>
-                      )}
+          <div className="search-wrap">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+              type="text"
+              placeholder="Search by Order #, Item, or Courier..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button className="clear-btn" onClick={() => setSearchTerm('')}>✕</button>
+            )}
+          </div>
+        </div>
 
-                      <div className="details-grid">
-                        <div className="items-section">
-                          <h4>Items Ordered</h4>
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="order-item-row">
-                              <div className="item-thumb">
-                                <img src={getOptimizedImageUrl(item.image, 'thumbnail')} alt={item.name} />
-                              </div>
-                              <div className="item-info">
-                                <h5>{item.name}</h5>
-                                <p>Qty: {item.quantity} • Size: {item.size || item.selectedSize || 'Standard'}</p>
-                              </div>
-                              <div className="item-price">
-                                ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+        {/* Empty State */}
+        {filteredOrders.length === 0 ? (
+          <div className="empty-orders-luxury">
+            <div className="empty-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            </div>
+            <h2>No Orders Found</h2>
+            <p>{searchTerm ? 'No orders match your search term.' : 'You have not placed any couture orders yet.'}</p>
+            <button className="start-shopping-btn" onClick={() => navigate('/collections')}>
+              EXPLORE COLLECTIONS
+            </button>
+          </div>
+        ) : (
+          /* Luxury Orders Grid */
+          <div className="orders-list-luxury">
+            {filteredOrders.map((order) => {
+              const statusLower = (order.status || 'pending').toLowerCase()
+              const isCancelled = statusLower === 'cancelled'
+              const isExpanded = expandedOrder === order._id
 
-                        <div className="delivery-section">
-                          <h4>Delivery Address</h4>
-                          <div className="address-block">
-                            <p className="customer-name">{order.customer.name}</p>
-                            <p>{order.customer.address.street}</p>
-                            <p>{order.customer.address.city}, {order.customer.address.state}</p>
-                            <p>{order.customer.address.pincode}</p>
-                            <p className="customer-phone">T: {order.customer.phone}</p>
-                          </div>
-                          
-                          <div className="payment-info">
-                            <h4>Payment</h4>
-                            <p>Method: {order.paymentMethod === 'online' ? 'Online Payment' : 'Cash on Delivery'}</p>
-                            <p className={`pay-status ${(order.status || '').toLowerCase() === 'cancelled' ? 'cancelled' : (order.paymentStatus || '').toLowerCase()}`}>
-                              Status: {(order.status || '').toLowerCase() === 'cancelled' ? 'CANCELLED' : (order.paymentStatus || 'pending').toUpperCase()}
-                            </p>
-                          </div>
-
-                          {(order.shipping?.awbNumber || order.trackingNumber || order.shipping?.ad2shipOrderId) && (
-                            <div className="tracking-info-box" style={{ background: '#fafafa', border: '1px solid #eaeaea', padding: '16px', borderRadius: '8px', marginTop: '16px' }}>
-                               <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#111' }}>
-                                 🚚 Logistics & Delivery Status
-                               </h4>
-                               {order.shipping?.courierName && <p style={{ fontSize: '0.82rem', margin: '4px 0', color: '#444' }}>Courier: <strong>{order.shipping.courierName}</strong></p>}
-                               {(order.shipping?.awbNumber || order.trackingNumber) && (
-                                 <p style={{ fontSize: '0.82rem', margin: '4px 0', color: '#444' }}>AWB / Tracking #: <strong>{order.shipping?.awbNumber || order.trackingNumber}</strong></p>
-                               )}
-                               {order.estimatedDelivery && <p style={{ fontSize: '0.82rem', margin: '4px 0', color: '#444' }}>Est. Arrival: <strong>{new Date(order.estimatedDelivery).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}
-
-                               <button 
-                                 type="button"
-                                 onClick={() => handleFetchTracking(order)}
-                                 disabled={trackingLoading}
-                                 style={{ marginTop: '10px', padding: '6px 14px', fontSize: '0.78rem', background: '#111', color: '#d4af37', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: '600' }}
-                               >
-                                 {trackingLoading ? 'Loading Checkpoints...' : 'View Live Tracking History'}
-                               </button>
-                            </div>
-                          )}
-                        </div>
+              return (
+                <div key={order._id} className={`order-card-luxury ${isCancelled ? 'cancelled-card' : ''}`}>
+                  {/* Card Header Header Strip */}
+                  <div 
+                    className="order-card-header"
+                    onClick={() => setExpandedOrder(isExpanded ? null : order._id)}
+                  >
+                    <div className="order-main-info">
+                      <div className="order-num-row">
+                        <span className="order-number">ORDER #{order.orderNumber}</span>
+                        <span className="order-date">
+                          {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </span>
                       </div>
                       
-                      <div className="order-footer-actions">
-                        {!['cancelled', 'shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes((order.status || '').toLowerCase()) && !order.shipping?.awbNumber && (
-                          <button 
-                            className="cancel-order-action-btn" 
-                            onClick={() => handleCancelOrder(order._id)}
-                            disabled={cancellingId === order._id}
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                            {cancellingId === order._id ? 'Cancelling...' : 'Cancel Order'}
-                          </button>
+                      {/* Items Preview Strip */}
+                      <div className="items-preview-strip">
+                        {(order.items || []).slice(0, 3).map((item, idx) => (
+                          <div key={idx} className="preview-item">
+                            <img src={getOptimizedImageUrl(item.image, 'thumbnail')} alt={item.name} />
+                            <span className="preview-title">{item.name}</span>
+                          </div>
+                        ))}
+                        {(order.items || []).length > 3 && (
+                          <span className="more-count">+{(order.items || []).length - 3} more</span>
                         )}
-                        <button className="invoice-btn" onClick={() => handlePrint(order)}>
-                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
-                           Print Receipt
-                        </button>
-                        <button className="support-btn" onClick={() => window.location.href='mailto:bizseemee@gmail.com'}>
-                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                           Contact Concierge
-                        </button>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
+                    </div>
+
+                    <div className="order-status-group">
+                      <div className="status-badges">
+                        <span className={`status-pill ${statusLower}`}>
+                          <span className="status-dot" />
+                          {statusLower.toUpperCase()}
+                        </span>
+                        <span className={`payment-pill ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}`}>
+                          {(order.paymentMethod || 'online').toUpperCase()} • {(order.paymentStatus || 'pending').toUpperCase()}
+                        </span>
+                      </div>
+
+                      <div className="order-total-block">
+                        <span className="total-label">Total Amount</span>
+                        <span className="total-val">₹{Number(order.totalAmount).toLocaleString('en-IN')}</span>
+                      </div>
+
+                      <button className="expand-toggle-btn">
+                        {isExpanded ? 'Hide Details ▲' : 'View Details ▼'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded Card Body */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div 
+                        className="order-card-details"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {/* Horizontal Tracking Timeline */}
+                        {isCancelled ? (
+                          <div className="timeline-cancelled-banner">
+                            <span className="cancelled-icon-badge">🚫</span>
+                            <div className="cancelled-text">
+                              <strong>This Order Has Been Cancelled</strong>
+                              <p>Cancelled prior to warehouse dispatch & pickup.</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="tracking-timeline-horizontal">
+                            {['pending', 'confirmed', 'processing', 'shipped', 'delivered'].map((step, idx, arr) => {
+                              const currentStepIdx = arr.indexOf(statusLower)
+                              const isCompleted = idx <= currentStepIdx
+                              const isCurrent = idx === currentStepIdx
+                              return (
+                                <div key={step} className={`timeline-step ${isCompleted ? 'active' : ''} ${isCurrent ? 'current' : ''}`}>
+                                  <div className="step-dot" />
+                                  <span className="step-label">{step}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        <div className="details-grid">
+                          {/* Items Section */}
+                          <div className="items-section">
+                            <h4>Ordered Atelier Items</h4>
+                            {(order.items || []).map((item, idx) => (
+                              <div key={idx} className="order-item-row">
+                                <div className="item-thumb">
+                                  <img src={getOptimizedImageUrl(item.image, 'thumbnail')} alt={item.name} />
+                                </div>
+                                <div className="item-info">
+                                  <h5>{item.name}</h5>
+                                  <p>Size: <strong>{item.size || item.selectedSize || 'Standard'}</strong> | Qty: <strong>{item.quantity}</strong></p>
+                                </div>
+                                <div className="item-price">
+                                  ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Delivery & Payment Info */}
+                          <div className="delivery-section">
+                            <h4>Delivery Address</h4>
+                            <div className="address-block">
+                              <p className="customer-name">📍 {order.customer?.name}</p>
+                              <p>{order.customer?.address?.street}</p>
+                              <p>{order.customer?.address?.city}, {order.customer?.address?.state} - {order.customer?.address?.pincode}</p>
+                              <p className="customer-phone">📞 T: {order.customer?.phone}</p>
+                            </div>
+
+                            <div className="payment-info">
+                              <h4>Payment & Financial Notice</h4>
+                              <p>Method: <strong>{(order.paymentMethod || 'online').toUpperCase()}</strong></p>
+                              <p>Payment Status: <strong className={`pay-status ${(order.paymentStatus || 'pending').toLowerCase()}`}>{(order.paymentStatus || 'pending').toUpperCase()}</strong></p>
+
+                              {/* Refund Notice Banner */}
+                              {order.paymentMethod === 'online' && (
+                                <div className="refund-status-box">
+                                  {order.refundStatus === 'refunded' ? (
+                                    <div className="refund-text success">
+                                      ✓ Refund Status: <strong>Refunded</strong> (₹{Number(order.refundedAmount || order.totalAmount).toLocaleString('en-IN')})
+                                    </div>
+                                  ) : order.refundStatus === 'refund_rejected' ? (
+                                    <div className="refund-text danger">
+                                      ✕ Refund Status: <strong>Refund Rejected</strong>
+                                    </div>
+                                  ) : (isCancelled || ['refund_requested', 'refund_processing', 'refund_approved'].includes(order.refundStatus)) ? (
+                                    <div className="refund-text warning">
+                                      <div className="refund-title">💳 Refund Status: <strong>Refund Initiated</strong></div>
+                                      <div className="refund-sub">
+                                        Your refund of <strong>₹{Number(order.totalAmount).toLocaleString('en-IN')}</strong> will be credited to your original payment method within <strong>5-7 working days</strong>.
+                                      </div>
+                                    </div>
+                                  ) : (['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(statusLower) || Boolean(order.shipping?.awbNumber)) ? (
+                                    <p className="refund-sub info">
+                                      <em>Refund is not available because this order has already been shipped from the warehouse.</em>
+                                    </p>
+                                  ) : null}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Logistics & Live Tracking Card */}
+                            {(order.shipping?.awbNumber || order.trackingNumber || order.shipping?.ad2shipOrderId) && (
+                              <div className="tracking-info-box">
+                                <h4>🚚 Logistics Checkpoint</h4>
+                                {order.shipping?.courierName && <p>Courier: <strong>{order.shipping.courierName}</strong></p>}
+                                {(order.shipping?.awbNumber || order.trackingNumber) && (
+                                  <p>AWB Tracking #: <strong>{order.shipping?.awbNumber || order.trackingNumber}</strong></p>
+                                )}
+                                {order.estimatedDelivery && <p>Est. Arrival: <strong>{new Date(order.estimatedDelivery).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}
+
+                                <button 
+                                  type="button"
+                                  className="track-live-btn"
+                                  onClick={() => handleFetchTracking(order)}
+                                  disabled={trackingLoading}
+                                >
+                                  {trackingLoading ? 'Retrieving Checkpoints...' : 'View Live Tracking Logs'}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Action Footer */}
+                        <div className="order-footer-actions">
+                          {!['cancelled', 'shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(statusLower) && !order.shipping?.awbNumber && (
+                            <button 
+                              className="cancel-order-action-btn" 
+                              onClick={() => handleCancelOrder(order._id)}
+                              disabled={cancellingId === order._id}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                              {cancellingId === order._id ? 'Cancelling...' : 'Cancel Order'}
+                            </button>
+                          )}
+                          <button className="invoice-btn" onClick={() => handlePrint(order)}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+                            Print Invoice
+                          </button>
+                          <button className="support-btn" onClick={() => window.location.href='mailto:bizseemee@gmail.com'}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            Contact Concierge
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
 
-      {/* Customer Live Tracking Modal */}
+      {/* Customer Live Tracking Checkpoints Modal */}
       <AnimatePresence>
         {activeTrackingData && (
-          <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }} onClick={() => setActiveTrackingData(null)}>
+          <div className="modal-overlay" onClick={() => setActiveTrackingData(null)}>
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              style={{ background: '#fff', color: '#111', borderRadius: '12px', padding: '30px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' }}
+              className="tracking-modal-card"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '20px' }}>
-                <h3 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.4rem' }}>Shipment Progress</h3>
-                <button onClick={() => setActiveTrackingData(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#888' }}>&times;</button>
+              <div className="modal-header">
+                <h3>Live Courier Checkpoints</h3>
+                <button className="close-btn" onClick={() => setActiveTrackingData(null)}>&times;</button>
               </div>
 
-              <div style={{ background: '#fafafa', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-                <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>Courier: <strong>{activeTrackingData.CourierPartner || 'Ad2Ship Network'}</strong></p>
-                <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>AWB #: <strong>{activeTrackingData.AWBNumber}</strong></p>
-                <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>Status: <strong style={{ color: '#27ae60', textTransform: 'uppercase' }}>{activeTrackingData.CurrentStatus}</strong></p>
-                {activeTrackingData.ExpectedDeliveryDate && (
-                  <p style={{ margin: '4px 0', fontSize: '0.88rem' }}>Expected Arrival: <strong>{new Date(activeTrackingData.ExpectedDeliveryDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></p>
-                )}
+              <div className="tracking-summary-strip">
+                <div>AWB #: <strong>{activeTrackingData.awbNumber || activeTrackingData.awb}</strong></div>
+                <div>Courier: <strong>{activeTrackingData.courier || 'Ad2Ship Express'}</strong></div>
+                <div>Status: <strong className="gold-text">{activeTrackingData.status || 'In Transit'}</strong></div>
               </div>
 
-              <h4 style={{ fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#888', marginBottom: '15px' }}>Tracking Events</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {activeTrackingData.OrderHistory?.map((ev, idx) => (
-                  <div key={idx} style={{ paddingLeft: '16px', borderLeft: '2px solid #d4af37', position: 'relative' }}>
-                    <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#111' }}>{ev.status || ev.status_code}</div>
-                    <div style={{ fontSize: '0.82rem', color: '#666', marginTop: '2px' }}>{ev.status_description || ev.remarks}</div>
-                    {ev.location && <div style={{ fontSize: '0.78rem', color: '#c49a27', marginTop: '2px' }}>📍 {ev.location}</div>}
-                    <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '4px' }}>{ev.event_date ? new Date(ev.event_date).toLocaleString('en-IN') : ''}</div>
+              <div className="checkpoint-list">
+                {(activeTrackingData.OrderHistory || activeTrackingData.history || []).map((cp, idx) => (
+                  <div key={idx} className="checkpoint-item">
+                    <div className="cp-dot" />
+                    <div className="cp-info">
+                      <div className="cp-status">{cp.status || cp.location || 'Checkpoint Scanned'}</div>
+                      <div className="cp-location">{cp.message || cp.detail || cp.location || ''}</div>
+                      <div className="cp-time">{cp.date || cp.timestamp || ''}</div>
+                    </div>
                   </div>
                 ))}
                 {(!activeTrackingData.OrderHistory || activeTrackingData.OrderHistory.length === 0) && (
-                  <p style={{ fontSize: '0.85rem', color: '#888' }}>No checkpoint logs available yet.</p>
+                  <p className="no-logs">No checkpoint logs available yet.</p>
                 )}
               </div>
             </motion.div>

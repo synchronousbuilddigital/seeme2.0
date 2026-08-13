@@ -29,7 +29,10 @@ export const API_ENDPOINTS = {
     INVENTORY: `${API_BASE_URL}/api/admin/inventory`,
     CUSTOMERS: `${API_BASE_URL}/api/admin/customers`,
     DASHBOARD_SUMMARY: `${API_BASE_URL}/api/admin/dashboard-summary`,
-    COUPONS: `${API_BASE_URL}/api/admin/coupons`
+    COUPONS: `${API_BASE_URL}/api/admin/coupons`,
+    REFUNDS: `${API_BASE_URL}/api/admin/refunds`,
+    REFUND_APPROVE: (id) => `${API_BASE_URL}/api/admin/refunds/${id}/approve`,
+    REFUND_REJECT: (id) => `${API_BASE_URL}/api/admin/refunds/${id}/reject`
   },
   UPLOAD: {
     IMAGE: `${API_BASE_URL}/api/upload/image`,

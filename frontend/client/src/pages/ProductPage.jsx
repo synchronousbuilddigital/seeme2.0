@@ -11,6 +11,7 @@ import './ProductPage.css'
 const ProductPage = () => {
   const {
     addToCart,
+    clearCart,
     toggleWishlist,
     isInWishlist,
     appliedCoupon,
@@ -167,21 +168,13 @@ const ProductPage = () => {
   const handleBuyNow = () => {
     const sizeToUse = selectedSize || (availableSizes && availableSizes.length > 0 ? availableSizes[0] : 'S')
     
-    // Add item to cart first
-    for (let i = 0; i < quantity; i++) {
-      addToCart({ ...product, selectedSize: sizeToUse })
-    }
+    // Clear previous cart items for direct 1-click checkout
+    if (clearCart) clearCart()
+    
+    // Set only this item for checkout
+    addToCart({ ...product, selectedSize: sizeToUse, quantity })
 
-    if (!user || !token) {
-      navigate('/auth', {
-        state: {
-          message: 'Please sign in or create an account to place an order.',
-          from: '/checkout'
-        }
-      })
-      return
-    }
-
+    // Open Checkout page directly
     navigate('/checkout')
   }
 

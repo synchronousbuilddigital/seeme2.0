@@ -13,6 +13,10 @@ router.post('/signup', registerValidationRules(), validate, authController.regis
 // Login
 router.post('/login', loginValidationRules(), validate, authController.login)
 
+// Google OAuth
+router.get('/google', authController.googleAuthStart)
+router.get('/google/callback', authController.googleAuthCallback)
+
 // Refresh Token
 router.post('/refresh', authController.refresh)
 

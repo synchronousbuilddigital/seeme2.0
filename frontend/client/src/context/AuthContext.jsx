@@ -140,6 +140,11 @@ export const AuthProvider = ({ children }) => {
     setUser(prev => ({ ...prev, ...userData }))
   }
 
+  const loginWithToken = (newToken, newUser) => {
+    setToken(newToken)
+    setUser(newUser)
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -148,6 +153,7 @@ export const AuthProvider = ({ children }) => {
         login,
         signup,
         logout,
+        loginWithToken,
         isAuthenticated,
         updateUser,
         forgotPassword: async (email) => {

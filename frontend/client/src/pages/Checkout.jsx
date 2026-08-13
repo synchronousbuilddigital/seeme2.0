@@ -70,7 +70,7 @@ const CustomStateSelect = ({ value, onChange }) => {
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className={value ? 'selected-val' : 'placeholder-val'}>
-          {value || 'Select State'}
+          {value || 'Select Delivery State'}
         </span>
         <svg
           width="12"
@@ -186,11 +186,9 @@ const Checkout = () => {
   useEffect(() => {
     const rawPin = formData.pincode ? String(formData.pincode).trim() : ''
 
-    // Reset error when user alters pincode
     setPincodeError('')
     setShippingError('')
 
-    // Only lookup when exactly 6 numeric digits are entered
     if (rawPin.length !== 6 || !/^\d{6}$/.test(rawPin)) {
       setPincodeLoading(false)
       setShippingPartners([])
@@ -246,7 +244,6 @@ const Checkout = () => {
                   ? Object.entries(rateData.message).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join('; ')
                   : String(rateData.message))
 
-              // Filter out raw API validation technical text
               if (rawStr && !rawStr.includes('InvoiceAmount') && !rawStr.includes('ApiKey')) {
                 errMsg = rawStr
               }
@@ -273,7 +270,7 @@ const Checkout = () => {
           state: ''
         }))
       }
-    }, 400) // 400ms debounce
+    }, 400)
 
     return () => {
       isMounted = false
@@ -282,19 +279,10 @@ const Checkout = () => {
   }, [formData.pincode, formData.paymentMethod, cart, getCartTotal])
 
   useEffect(() => {
-    if (!user || !token) {
-      navigate('/auth', {
-        state: {
-          message: 'Please sign in or create an account to place an order.',
-          from: '/checkout'
-        }
-      })
-      return
-    }
-    if (cart.length === 0) {
+    if (cart.length === 0 && !placedOrder) {
       navigate('/')
     }
-  }, [user, token, cart, navigate])
+  }, [cart, placedOrder, navigate])
 
   useEffect(() => {
     if (user && token) {
@@ -363,7 +351,7 @@ const Checkout = () => {
 
   const calculateTotal = () => {
     let total = calculateSubtotal() + calculateShipping()
-    total = Math.max(0, total - couponDiscount)
+    total = Math.max(0, total - (couponDiscount || 0))
     return total
   }
 
@@ -514,7 +502,6 @@ const Checkout = () => {
     if (!validateForm()) return
     setLoading(true)
 
-    // Fire GTM Shipping and Payment Info events
     try {
       trackAddShippingInfo(cart, 'Express', '')
       trackAddPaymentInfo(cart, formData.paymentMethod === 'online' ? 'Razorpay' : 'COD', '')
@@ -546,7 +533,7 @@ const Checkout = () => {
           product: itemId, 
           name: item.name, 
           price: price, 
-          quantity: item.quantity, 
+          quantity: item.quantity || 1, 
           size: item.selectedSize || item.size || 'M',
           color: item.color || 'Standard',
           image: item.images?.[0] || item.image 
@@ -603,31 +590,12 @@ const Checkout = () => {
     }
   }
 
-  if (cart.length === 0) return null
+  if (cart.length === 0 && !placedOrder) return null
+
+  const totalItemsCount = cart.reduce((acc, item) => acc + (item.quantity || 1), 0)
 
   return (
     <div className="editorial-checkout">
-      {/* Top Luxury Banner */}
-      <div className="checkout-top-nav-bar">
-        <div className="checkout-nav-container">
-          <button onClick={() => navigate('/cart')} className="checkout-back-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="19" y1="12" x2="5" y2="12"></line>
-              <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            <span>Return to Shopping Bag</span>
-          </button>
-
-          <div className="checkout-progress-stepper">
-            <span className="step-pill active">1. Delivery Details</span>
-            <span className="step-line"></span>
-            <span className="step-pill active">2. Payment</span>
-            <span className="step-line"></span>
-            <span className="step-pill">3. Confirmation</span>
-          </div>
-        </div>
-      </div>
-
       {/* Mobile Collapsible Order Summary Accordion Bar */}
       <div className="mobile-checkout-summary-bar">
         <button 
@@ -636,12 +604,12 @@ const Checkout = () => {
           onClick={() => setShowMobileSummary(!showMobileSummary)}
         >
           <div className="toggle-left">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
               <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
               <line x1="3" y1="6" x2="21" y2="6"></line>
               <path d="M16 10a4 4 0 0 1-8 0"></path>
             </svg>
-            <span>{showMobileSummary ? 'Hide Order Summary' : 'Show Order Summary'}</span>
+            <span>{showMobileSummary ? 'Hide Order Summary' : `Show Order Summary (${totalItemsCount} items)`}</span>
             <svg 
               width="14" 
               height="14" 
@@ -690,9 +658,15 @@ const Checkout = () => {
                   <span>Subtotal</span>
                   <span>₹{calculateSubtotal().toLocaleString('en-IN')}</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="calc-line discount-line">
+                    <span>Discount ({appliedCoupon.code})</span>
+                    <span className="gold-text">-₹{couponDiscount.toLocaleString('en-IN')}</span>
+                  </div>
+                )}
                 <div className="calc-line">
-                  <span>White-Glove Shipping</span>
-                  <span>₹{calculateShipping()}</span>
+                  <span>Priority Shipping</span>
+                  <span className="green-text">FREE</span>
                 </div>
                 <div className="calc-line grand-total-line">
                   <span>Total Payable</span>
@@ -704,20 +678,22 @@ const Checkout = () => {
         </AnimatePresence>
       </div>
 
+      {/* Main Luxury Header Hero Banner */}
       <header className="checkout-header-luxury">
         <div className="header-container-luxury">
-          <span className="editorial-mini-label">✦ SECURE ATELIER CHECKOUT</span>
+          
           <h1 className="checkout-main-title">Complete Your Order</h1>
-          <p className="checkout-subtitle">Insured priority dispatch across India & international destinations.</p>
+          <p className="checkout-subtitle">Priority insured white-glove dispatch across India & International destinations.</p>
         </div>
       </header>
 
+      {/* Main Checkout Layout Grid */}
       <div className="checkout-grid-luxury">
-        {/* Left Form Column */}
+        {/* Left Column: Form & Address Details */}
         <div className="checkout-form-column">
           <form id="checkout-luxury-form" onSubmit={handleSubmit} className="luxury-form">
             
-            {/* Section 1: Saved Addresses & Delivery Information */}
+            {/* Section 01: Delivery Details */}
             <motion.section 
               className="form-luxury-section"
               initial={{ opacity: 0, y: 20 }}
@@ -725,8 +701,11 @@ const Checkout = () => {
               transition={{ duration: 0.5 }}
             >
               <div className="section-header-box">
-                <span className="section-num">01</span>
-                <h2 className="section-title-luxury">Delivery Details</h2>
+                <div className="section-badge-pill">01</div>
+                <div>
+                  <h2 className="section-title-luxury">Delivery Destination</h2>
+                  <p className="section-desc">Enter your shipping address for insured express delivery</p>
+                </div>
               </div>
               
               {user && addresses.length > 0 && (
@@ -740,10 +719,10 @@ const Checkout = () => {
                         onClick={() => handleAddressSelect(addr)}
                       >
                         <div className="pill-top">
-                          <span className="pill-text">{addr.street ? `${addr.street.slice(0, 22)}...` : addr.city}</span>
+                          <span className="pill-text">{addr.name || user.name}</span>
                           {addr.isDefault && <span className="pill-badge">Default</span>}
                         </div>
-                        <span className="pill-sub">{addr.city}, {addr.state} - {addr.pincode}</span>
+                        <span className="pill-sub">{addr.street}, {addr.city}, {addr.state} - {addr.pincode}</span>
                       </div>
                     ))}
                     <div 
@@ -761,55 +740,79 @@ const Checkout = () => {
 
               <div className="input-group-luxury">
                 <label htmlFor="checkout-name">Recipient Full Name *</label>
-                <input 
-                  id="checkout-name"
-                  type="text" 
-                  name="name" 
-                  value={formData.name} 
-                  onChange={handleChange} 
-                  placeholder="e.g. Maharani Gayatri Devi" 
-                  required 
-                />
+                <div className="input-with-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <input 
+                    id="checkout-name"
+                    type="text" 
+                    name="name" 
+                    value={formData.name} 
+                    onChange={handleChange} 
+                    placeholder="Enter full name of recipient" 
+                    required 
+                  />
+                </div>
               </div>
 
               <div className="input-row-luxury">
                 <div className="input-group-luxury">
                   <label htmlFor="checkout-email">Email Address (Order Confirmation) *</label>
-                  <input 
-                    id="checkout-email"
-                    type="email" 
-                    name="email" 
-                    value={formData.email} 
-                    onChange={handleChange} 
-                    placeholder="client@domain.com" 
-                    required 
-                  />
+                  <div className="input-with-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                      <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <input 
+                      id="checkout-email"
+                      type="email" 
+                      name="email" 
+                      value={formData.email} 
+                      onChange={handleChange} 
+                      placeholder="client@domain.com" 
+                      required 
+                    />
+                  </div>
                 </div>
+
                 <div className="input-group-luxury">
-                  <label htmlFor="checkout-phone">Phone Number (For Delivery Updates) *</label>
-                  <input 
-                    id="checkout-phone"
-                    type="tel" 
-                    name="phone" 
-                    value={formData.phone} 
-                    onChange={handleChange} 
-                    placeholder="+91 98765 43210" 
-                    required 
-                  />
+                  <label htmlFor="checkout-phone">Phone Number (Delivery Updates) *</label>
+                  <div className="input-with-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                    <input 
+                      id="checkout-phone"
+                      type="tel" 
+                      name="phone" 
+                      value={formData.phone} 
+                      onChange={handleChange} 
+                      placeholder="+91 98765 43210" 
+                      required 
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="input-group-luxury">
                 <label htmlFor="checkout-street">Street Address / House / Flat / Locality *</label>
-                <input 
-                  id="checkout-street"
-                  type="text" 
-                  name="street" 
-                  value={formData.street} 
-                  onChange={handleChange} 
-                  placeholder="e.g. Flat 402, Silver Residency, Dindoli Road" 
-                  required 
-                />
+                <div className="input-with-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                  <input 
+                    id="checkout-street"
+                    type="text" 
+                    name="street" 
+                    value={formData.street} 
+                    onChange={handleChange} 
+                    placeholder="Flat 402, Building / House Name, Street, Landmark" 
+                    required 
+                  />
+                </div>
               </div>
 
               <div className="input-row-luxury tri">
@@ -821,10 +824,11 @@ const Checkout = () => {
                     name="city" 
                     value={formData.city} 
                     onChange={handleChange} 
-                    placeholder="Surat" 
+                    placeholder="City / District" 
                     required 
                   />
                 </div>
+
                 <div className="input-group-luxury">
                   <label htmlFor="checkout-state">State *</label>
                   <CustomStateSelect 
@@ -832,10 +836,11 @@ const Checkout = () => {
                     onChange={handleChange} 
                   />
                 </div>
+
                 <div className="input-group-luxury">
                   <label htmlFor="checkout-pincode">
-                    Pincode / Zipcode *
-                    {pincodeLoading && <span style={{ marginLeft: '8px', fontSize: '0.75rem', color: '#d4af37' }}>🔍 Verifying PIN...</span>}
+                    Pincode *
+                    {pincodeLoading && <span className="pincode-status-text">🔍 Verifying...</span>}
                   </label>
                   <input 
                     id="checkout-pincode"
@@ -843,35 +848,23 @@ const Checkout = () => {
                     name="pincode" 
                     value={formData.pincode} 
                     onChange={handleChange} 
-                    placeholder="394210" 
+                    placeholder="6-Digit PIN" 
                     maxLength={6}
                     required 
                   />
-                  {pincodeError && <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '4px', display: 'block' }}>{pincodeError}</span>}
-                  
-                  {/* Customer-facing Delivery Serviceability Display */}
-                  {shippingLoading && (
-                    <span style={{ fontSize: '0.75rem', color: '#d4af37', marginTop: '6px', display: 'block' }}>
-                      🚚 Checking priority dispatch availability...
-                    </span>
-                  )}
-                  {shippingError && (
-                    <span style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '6px', display: 'block' }}>
-                      ⚠️ {typeof shippingError === 'string' ? shippingError : JSON.stringify(shippingError)}
-                    </span>
-                  )}
-                  {!shippingLoading && shippingPartners.length > 0 && (
-                    <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(212, 175, 55, 0.08)', borderRadius: '6px', border: '1px solid rgba(212, 175, 55, 0.2)' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: '600', color: '#d4af37', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>✓ Eligible for Express Doorstep Delivery</span>
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
+
+              {pincodeError && (
+                <div className="pincode-alert-box error">
+                  <span>⚠️ {pincodeError}</span>
+                </div>
+              )}
+
+
             </motion.section>
 
-            {/* Section 2: Payment Method */}
+            {/* Section 02: Payment Options Selection */}
             <motion.section 
               className="form-luxury-section"
               initial={{ opacity: 0, y: 20 }}
@@ -879,12 +872,16 @@ const Checkout = () => {
               transition={{ duration: 0.5, delay: 0.1 }}
             >
               <div className="section-header-box">
-                <span className="section-num">02</span>
-                <h2 className="section-title-luxury">Payment Selection</h2>
+                <div className="section-badge-pill">02</div>
+                <div>
+                  <h2 className="section-title-luxury">Payment Method</h2>
+                  <p className="section-desc">Select your preferred payment gateway option</p>
+                </div>
               </div>
 
               <div className="payment-grid-luxury">
-                <label className="payment-card-luxury active" style={{ gridColumn: '1 / -1' }}>
+                {/* Razorpay Online Payment Option */}
+                <label className="payment-card-luxury active">
                   <input 
                     type="radio" 
                     name="paymentMethod" 
@@ -894,20 +891,28 @@ const Checkout = () => {
                   />
                   <div className="payment-card-content">
                     <div className="payment-icon-head">
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                         <line x1="1" y1="10" x2="23" y2="10"></line>
                       </svg>
-                      <span className="gold-security-badge">100% Encrypted Payment</span>
+                      <span className="gold-security-badge">✦ 100% Encrypted Payment</span>
                     </div>
-                    <span className="method-title">Instant Online Payment</span>
-                    <span className="method-desc">UPI (GPay / PhonePe / Paytm), Credit & Debit Cards, NetBanking</span>
+                    <span className="method-title">Instant Online Payment (Razorpay)</span>
+                    <span className="method-desc">UPI (GPay / PhonePe / Paytm / BHIM), Credit & Debit Cards, NetBanking, Wallets</span>
+                    <div className="payment-logos-strip">
+                      <span className="pay-tag">GPay</span>
+                      <span className="pay-tag">PhonePe</span>
+                      <span className="pay-tag">Paytm</span>
+                      <span className="pay-tag">UPI</span>
+                      <span className="pay-tag">Visa</span>
+                      <span className="pay-tag">Mastercard</span>
+                    </div>
                   </div>
                 </label>
               </div>
             </motion.section>
 
-            {/* Submit Button */}
+            {/* Desktop Action Submit Button */}
             <motion.button 
               type="submit" 
               className="place-order-luxury-btn"
@@ -918,7 +923,7 @@ const Checkout = () => {
               {loading ? (
                 <span className="btn-loading-state">
                   <span className="btn-spinner"></span>
-                  Processing Secure Payment...
+                  Processing Your Order...
                 </span>
               ) : (
                 <span>
@@ -929,12 +934,12 @@ const Checkout = () => {
           </form>
         </div>
 
-        {/* Right Summary Sidebar */}
+        {/* Right Column: Sticky Order Summary Card */}
         <aside className="checkout-summary-column">
           <div className="summary-card-luxury">
             <div className="summary-header">
               <h2 className="summary-title-luxury">Order Summary</h2>
-              <span className="items-count-tag">{cart.reduce((acc, item) => acc + (item.quantity || 1), 0)} Items</span>
+              <span className="items-count-tag">{totalItemsCount} Items</span>
             </div>
 
             <div className="summary-items-scroll">
@@ -946,12 +951,13 @@ const Checkout = () => {
                       alt={item.name} 
                       onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                     />
+                    <span className="item-qty-badge">{item.quantity || 1}</span>
                   </div>
                   <div className="mini-item-info">
                     <h4>{item.name}</h4>
                     <div className="mini-item-meta">
-                      <span className="meta-chip">Qty: {item.quantity}</span>
                       <span className="meta-chip gold">Size: {item.selectedSize || item.size || 'M'}</span>
+                      {item.color && <span className="meta-chip">{item.color}</span>}
                     </div>
                   </div>
                   <div className="mini-item-price">
@@ -967,42 +973,58 @@ const Checkout = () => {
                 <span>₹{calculateSubtotal().toLocaleString('en-IN')}</span>
               </div>
               <div className="calc-line">
-                <span>Insured White-Glove Shipping</span>
-                <span>₹{calculateShipping()}</span>
+                <span>Insured Express Shipping</span>
+                <span className="green-text">FREE</span>
               </div>
+              {appliedCoupon && (
+                <div className="calc-line discount-line">
+                  <span className="coupon-code-label">Promo Coupon ({appliedCoupon.code})</span>
+                  <span className="gold-text">-₹{couponDiscount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
             </div>
 
             <div className="summary-total-luxury">
-              <span className="total-label">Grand Total</span>
-              <span className="total-value">₹{calculateTotal().toLocaleString('en-IN')}</span>
-              <span className="total-tax-note">Inclusive of all taxes & insurance</span>
+              <div className="total-title-row">
+                <span className="total-label">Grand Total</span>
+                <span className="total-value">₹{calculateTotal().toLocaleString('en-IN')}</span>
+              </div>
             </div>
 
             <div className="checkout-trust">
               <div className="trust-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                 </svg>
-                <span>256-Bit SSL Encrypted Checkout</span>
+                <div>
+                  <strong>256-Bit SSL Encryption</strong>
+                  <p>Bank-grade secure transactions</p>
+                </div>
               </div>
               <div className="trust-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2">
                   <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                 </svg>
-                <span>Priority Insured Dispatch</span>
+                <div>
+                  <strong>Priority Insured Shipping</strong>
+                  <p>Tracked doorstep delivery</p>
+                </div>
               </div>
               <div className="trust-item">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                <span>Authentic Heritage Guarantee</span>
+                <div>
+                  <strong>Authentic Heritage Quality</strong>
+                  <p>Certified ethnic luxury craftsmanship</p>
+                </div>
               </div>
             </div>
           </div>
         </aside>
       </div>
 
-      {/* Sticky Mobile Bottom CTA Action Bar */}
+      {/* Sticky Mobile Bottom CTA Bar */}
       <div className="mobile-sticky-action-bar">
         <div className="mobile-sticky-price-box">
           <span className="mobile-sticky-label">Grand Total</span>
@@ -1021,7 +1043,7 @@ const Checkout = () => {
             </span>
           ) : (
             <span>
-              {formData.paymentMethod === 'online' ? 'Proceed to Pay →' : 'Confirm Order →'}
+              Proceed to Pay →
             </span>
           )}
         </button>

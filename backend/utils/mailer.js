@@ -32,7 +32,7 @@ const transporter = createTransporter()
 export const sendEmail = async ({ to, subject, html }) => {
   try {
     const info = await transporter.sendMail({
-      from: `"SEE MEE Atelier" <${process.env.SMTP_FROM || 'noreply@seemee.com'}>`,
+      from: `"SEEMEE" <${process.env.SMTP_FROM || 'noreply@seemee.com'}>`,
       to,
       subject,
       html
@@ -47,11 +47,17 @@ export const sendEmail = async ({ to, subject, html }) => {
 
 // Transactional Email Templates
 export const sendOrderConfirmation = async (order) => {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+  const logoUrl = `${clientUrl}/images/logoSEEMEE1.png`
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-      <h1 style="color: #D4AF37; border-bottom: 1px solid #eee; padding-bottom: 20px;">Order Confirmed</h1>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="${logoUrl}" alt="SEEMEE" style="max-height: 52px; height: 52px; width: auto; margin-bottom: 8px; display: inline-block;" />
+        <h2 style="color: #1C1917; font-family: Georgia, serif; margin: 0; font-size: 24px;">SEEMEE</h2>
+      </div>
+      <h3 style="color: #D4AF37; border-bottom: 1px solid #eee; padding-bottom: 10px;">Order Confirmed</h3>
       <p>Hello ${order.customer.name},</p>
-      <p>Thank you for your acquisition at SEE MEE. Your order <strong>#${order._id}</strong> has been successfully placed.</p>
+      <p>Thank you for shopping at SEEMEE. Your order <strong>#${order._id}</strong> has been successfully placed.</p>
       
       <div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0;">
         <h3>Order Summary</h3>
@@ -68,21 +74,27 @@ export const sendOrderConfirmation = async (order) => {
         </div>
       </div>
       
-      <p>We will notify you once your selection has been shipped.</p>
-      <p>Warm regards,<br>The SEE MEE Atelier Team</p>
+      <p>We will notify you once your order has been shipped.</p>
+      <p>Warm regards,<br><strong>SEEMEE</strong></p>
     </div>
   `
   return sendEmail({ to: order.customer.email, subject: `Order Confirmed - #${order._id}`, html })
 }
 
 export const sendStatusUpdate = async (order) => {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+  const logoUrl = `${clientUrl}/images/logoSEEMEE1.png`
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-      <h1 style="color: #D4AF37;">Order Status Updated</h1>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <img src="${logoUrl}" alt="SEEMEE" style="max-height: 52px; height: 52px; width: auto; margin-bottom: 8px; display: inline-block;" />
+        <h2 style="color: #1C1917; font-family: Georgia, serif; margin: 0; font-size: 24px;">SEEMEE</h2>
+      </div>
+      <h3 style="color: #D4AF37;">Order Status Updated</h3>
       <p>Hello ${order.customer.name},</p>
       <p>The status of your order <strong>#${order._id}</strong> has been updated to: <strong>${order.status.toUpperCase()}</strong>.</p>
       <p>You can track your order in your account dashboard.</p>
-      <p>Warm regards,<br>The SEE MEE Atelier Team</p>
+      <p>Warm regards,<br><strong>SEEMEE</strong></p>
     </div>
   `
   return sendEmail({ to: order.customer.email, subject: `Order Status Update - #${order._id}`, html })

@@ -1,5 +1,6 @@
 import crypto from 'crypto'
 import * as authService from '../services/authService.js'
+import * as googleAuthService from '../services/googleAuthService.js'
 import User from '../models/User.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import { sendOtpEmail } from '../services/emailService.js'
@@ -221,3 +222,109 @@ export const resetPassword = asyncHandler(async (req, res) => {
     message: 'Password reset successfully. Please sign in with your new password.'
   })
 })
+
+/**
+ * @desc    Start Google OAuth Flow
+ * @route   GET /api/auth/google
+ * @access  Public
+ */
+export const googleAuthStart = asyncHandler(async (req, res) => {
+  const state = crypto.randomBytes(32).toString('hex')
+
+  res.cookie('oauth_state', state, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 10 * 60 * 1000 // 10 minutes
+  })
+
+  const googleUrl = googleAuthService.getGoogleAuthUrl(state)
+  res.redirect(googleUrl)
+})
+
+/**
+ * @desc    Google OAuth Callback Handler
+ * @route   GET /api/auth/google/callback
+ * @access  Public
+ */
+export const googleAuthCallback = asyncHandler(async (req, res) => {
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '')
+  const { code, state, error } = req.query
+  const storedState = req.cookies.oauth_state
+
+  res.clearCookie('oauth_state')
+
+  if (error) {
+    console.warn('⚠️ Google Auth User Cancelled/Error:', error)
+    return res.redirect(`${clientUrl}/auth?error=${encodeURIComponent('Google authentication was cancelled or failed.')}`)
+  }
+
+  if (!code || !state || !storedState || state !== storedState) {
+    console.error('❌ OAuth CSRF State Mismatch or Missing Code')
+    return res.redirect(`${clientUrl}/auth?error=${encodeURIComponent('Invalid OAuth state session. Please try again.')}`)
+  }
+
+  try {
+    const googleUser = await googleAuthService.getGoogleUserFromCode(code)
+
+    if (!googleUser.email) {
+      return res.redirect(`${clientUrl}/auth?error=${encodeURIComponent('Google account did not return a valid email address.')}`)
+    }
+
+    if (!googleUser.emailVerified) {
+      return res.redirect(`${clientUrl}/auth?error=${encodeURIComponent('Unverified Google email accounts are not permitted.')}`)
+    }
+
+    const email = googleUser.email.toLowerCase().trim()
+
+    // 1. Search by googleId first
+    let user = await User.findOne({ googleId: googleUser.googleId })
+
+    // 2. Search by email if not found by googleId
+    if (!user) {
+      user = await User.findOne({ email })
+      if (user) {
+        // Link Google account to existing user
+        user.googleId = googleUser.googleId
+        if (googleUser.avatar && !user.avatar) {
+          user.avatar = googleUser.avatar
+        }
+        await user.save()
+      } else {
+        // Create new user (Role defaults to 'customer' - NEVER admin)
+        user = await User.create({
+          name: googleUser.name,
+          email: email,
+          googleId: googleUser.googleId,
+          avatar: googleUser.avatar,
+          role: 'customer'
+        })
+      }
+    }
+
+    if (user.isBlocked) {
+      return res.redirect(`${clientUrl}/auth?error=${encodeURIComponent('Your account has been suspended. Please contact support.')}`)
+    }
+
+    // Generate JWT access token & refresh token
+    const accessToken = authService.generateToken(user._id)
+    const refreshToken = authService.generateRefreshToken(user._id)
+
+    setRefreshTokenCookie(res, refreshToken)
+
+    const userPayload = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      createdAt: user.createdAt
+    }
+
+    res.redirect(`${clientUrl}/auth?token=${encodeURIComponent(accessToken)}&user=${encodeURIComponent(JSON.stringify(userPayload))}`)
+  } catch (err) {
+    console.error('❌ Google Auth Callback Exception:', err.message)
+    res.redirect(`${clientUrl}/auth?error=${encodeURIComponent(err.message || 'Google authentication failed.')}`)
+  }
+})
+

@@ -147,15 +147,6 @@ const CartPage = () => {
   }
 
   const handleCheckout = () => {
-    if (!user || !token) {
-      navigate('/auth', {
-        state: {
-          message: 'Please sign in or create an account to place an order.',
-          from: '/checkout'
-        }
-      })
-      return
-    }
     try {
       trackBeginCheckout(cart, appliedCoupon?.code || '')
     } catch (e) {

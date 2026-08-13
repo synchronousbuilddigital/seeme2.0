@@ -9,6 +9,7 @@ import {
   getCustomers,
   getDashboardSummary
 } from '../controllers/adminController.js'
+import * as refundController from '../controllers/refundController.js'
 
 const router = express.Router()
 
@@ -23,4 +24,10 @@ router.put('/orders/:id/status', updateOrderStatus)
 router.put('/products/bulk', bulkUpdateProducts)
 router.get('/dashboard-summary', getDashboardSummary)
 
+// Admin Refund endpoints
+router.get('/refunds', refundController.getAllRefunds)
+router.post('/refunds/:refundId/approve', refundController.approveRefund)
+router.post('/refunds/:refundId/reject', refundController.rejectRefund)
+
 export default router
+

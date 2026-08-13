@@ -26,7 +26,7 @@ const createTransporter = () => {
  */
 export const sendEmail = async ({ to, subject, html }) => {
   const user = (process.env.GMAIL_USER || '').trim()
-  const from = process.env.EMAIL_FROM || user || 'SEEMEE Atelier <noreply@seemee.com>'
+  const from = process.env.EMAIL_FROM || `"SEEMEE" <${user || 'noreply@seemee.com'}>`
 
   const transporter = createTransporter()
 
@@ -89,16 +89,25 @@ export const sendEmail = async ({ to, subject, html }) => {
   }
 }
 
+const getLogoHeaderHtml = (subtitle = 'Notification') => {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+  const logoUrl = `${clientUrl}/images/logoSEEMEE1.png`
+  return `
+    <div style="text-align: center; margin-bottom: 25px;">
+      <img src="${logoUrl}" alt="SEEMEE" style="max-height: 52px; height: 52px; width: auto; margin-bottom: 8px; display: inline-block;" />
+      <h2 style="font-family: Georgia, serif; color: #1C1917; font-size: 26px; font-weight: bold; margin: 0; letter-spacing: 2px;">SEEMEE</h2>
+      <p style="color: #D4AF37; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin-top: 4px;">${subtitle}</p>
+    </div>
+  `
+}
+
 /**
  * 1. Send Forgot Password OTP Email
  */
 export const sendOtpEmail = async (email, name, otp) => {
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FAF9F6; padding: 30px; border-radius: 12px; border: 1px solid #E7E5E4; color: #1C1917;">
-      <div style="text-align: center; margin-bottom: 25px;">
-        <h2 style="font-family: Georgia, serif; color: #1C1917; font-size: 24px; margin: 0;">SEEMEE HAUTE COUTURE</h2>
-        <p style="color: #D4AF37; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin-top: 5px;">Security Verification</p>
-      </div>
+      ${getLogoHeaderHtml('Security Verification')}
 
       <div style="background: #FFFFFF; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
         <h3 style="margin-top: 0; color: #1C1917; font-size: 20px;">Password Reset Request</h3>
@@ -113,7 +122,7 @@ export const sendOtpEmail = async (email, name, otp) => {
       </div>
 
       <div style="text-align: center; margin-top: 25px; font-size: 12px; color: #A8A29E;">
-        <p>© ${new Date().getFullYear()} SEEMEE Atelier. All rights reserved.</p>
+        <p>© ${new Date().getFullYear()} SEEMEE. All rights reserved.</p>
       </div>
     </div>
   `
@@ -150,7 +159,7 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
   const itemsList = (order.items || []).map(item => `
     <tr>
       <td style="padding: 12px 0; border-bottom: 1px solid #F5F5F4;">
-        <strong style="color: #1C1917; font-size: 14px;">${item.name || 'Atelier Item'}</strong>
+        <strong style="color: #1C1917; font-size: 14px;">${item.name || 'Item'}</strong>
         <div style="color: #78716C; font-size: 12px; margin-top: 4px;">
           Size: ${item.size || 'Standard'} | Color: ${item.color || 'Standard'} | Qty: ${item.quantity}
         </div>
@@ -173,10 +182,7 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #FAF9F6; padding: 30px; border-radius: 12px; border: 1px solid #E7E5E4; color: #1C1917;">
-      <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="font-family: Georgia, serif; color: #1C1917; font-size: 24px; margin: 0;">SEEMEE HAUTE COUTURE</h2>
-        <p style="color: #D4AF37; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin-top: 5px;">Order Notification</p>
-      </div>
+      ${getLogoHeaderHtml('Order Notification')}
 
       <div style="background: #FFFFFF; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F5F5F4; padding-bottom: 15px; margin-bottom: 20px;">
@@ -189,11 +195,26 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
         <p style="color: #57534E; font-size: 14px; line-height: 1.6;">Hello <strong>${customerName}</strong>,</p>
         <p style="color: #57534E; font-size: 14px; line-height: 1.6;">
           ${statusStr === 'PLACED' ? 'Thank you for your order! Your selection has been placed successfully.' : ''}
-          ${statusStr === 'CONFIRMED' ? 'Great news! Your order has been confirmed by our atelier.' : ''}
+          ${statusStr === 'CONFIRMED' ? 'Great news! Your order has been confirmed.' : ''}
           ${statusStr === 'SHIPPED' ? 'Your order has been shipped and is on its way to your location.' : ''}
           ${statusStr === 'DELIVERED' ? 'Your order has been delivered successfully. Thank you for shopping with SEEMEE!' : ''}
-          ${statusStr === 'CANCELLED' ? 'Your order has been cancelled as requested.' : ''}
+          ${statusStr === 'CANCELLED' ? 'Your order has been cancelled as requested before shipping.' : ''}
+          ${statusStr === 'REFUNDED' ? 'Your order refund has been processed successfully.' : ''}
         </p>
+
+        ${(statusStr === 'CANCELLED' || statusStr === 'REFUNDED') ? (
+          (order.paymentMethod === 'online' || order.paymentStatus === 'paid') ? `
+            <div style="background: #FFFBEB; border: 1.5px solid #F59E0B; padding: 16px; border-radius: 8px; margin: 20px 0; color: #92400E; font-size: 14px; line-height: 1.5;">
+              <strong style="font-size: 15px; color: #78350F; display: block; margin-bottom: 4px;">💳 Refund Notice:</strong>
+              Your refund of <strong>₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</strong> will be processed and credited to your original payment method within <strong>5-7 working days</strong>.
+            </div>
+          ` : `
+            <div style="background: #F3F4F6; border: 1px solid #E5E7EB; padding: 14px; border-radius: 8px; margin: 20px 0; color: #4B5563; font-size: 13px; line-height: 1.5;">
+              <strong style="color: #1F2937; display: block; margin-bottom: 4px;">ℹ️ Payment Notice:</strong>
+              As this was a Cash on Delivery (COD) order, no payment refund is required.
+            </div>
+          `
+        ) : ''}
 
         <h4 style="color: #1C1917; font-size: 15px; margin-top: 25px; margin-bottom: 10px; border-bottom: 1px solid #D4AF37; padding-bottom: 6px;">Ordered Items</h4>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
@@ -213,12 +234,12 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
         </div>
 
         <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #F5F5F4;">
-          <p style="font-size: 15px; font-family: Georgia, serif; color: #1C1917; margin: 0;">Thank you for choosing SEEMEE Haute Couture.</p>
+          <p style="font-size: 15px; font-family: Georgia, serif; color: #1C1917; margin: 0;">Thank you for choosing SEEMEE.</p>
         </div>
       </div>
 
       <div style="text-align: center; margin-top: 25px; font-size: 12px; color: #A8A29E;">
-        <p>© ${new Date().getFullYear()} SEEMEE Atelier. All rights reserved.</p>
+        <p>© ${new Date().getFullYear()} SEEMEE. All rights reserved.</p>
       </div>
     </div>
   `

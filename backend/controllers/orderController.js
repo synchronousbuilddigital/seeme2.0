@@ -245,9 +245,25 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
     }
   }
 
-  // Mark payment as refunded if order was paid before pickup
-  if (order.paymentStatus === 'paid' || order.paymentMethod === 'online') {
-    order.paymentStatus = 'refunded'
+  // Initialize refund request record if order was online / prepaid
+  if (order.paymentMethod === 'online' || order.paymentStatus === 'paid') {
+    order.refundStatus = 'refund_requested'
+    try {
+      const Refund = (await import('../models/Refund.js')).default
+      const existingRefund = await Refund.findOne({ order: order._id })
+      if (!existingRefund) {
+        await Refund.create({
+          order: order._id,
+          paymentId: order.paymentDetails?.paymentId || 'online_pay',
+          amount: order.totalAmount,
+          reason: 'Order cancelled by customer before shipping',
+          status: 'requested',
+          requestedBy: req.user?._id
+        })
+      }
+    } catch (rErr) {
+      console.warn('⚠️ Auto-refund record creation notice:', rErr.message)
+    }
   }
 
   order.status = 'cancelled'
@@ -255,7 +271,7 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
   order.timeline.push({
     status: 'Cancelled',
     timestamp: new Date(),
-    note: 'Order cancelled before shipping & warehouse pickup. Payment refunded.'
+    note: 'Order cancelled before shipping & warehouse pickup. Refund of 5-7 working days initiated.'
   })
 
   await order.save()
