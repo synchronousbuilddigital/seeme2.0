@@ -8,6 +8,7 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import { sendOrderEmail } from '../services/emailService.js'
 import shippingService from '../services/shippingService.js'
+import pushNotificationService from '../services/pushNotificationService.js'
 
 // Initialize Razorpay dynamically
 let razorpayInstance = null
@@ -109,6 +110,9 @@ export const createOrder = asyncHandler(async (req, res) => {
   // Send Order Placed Email via Nodemailer Gmail Service
   sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
 
+  // Trigger Native Web Push & In-App Admin Notification
+  pushNotificationService.sendNewOrderNotification(order).catch(err => console.error('Order push notification error:', err.message))
+
   res.status(201).json({ success: true, data: order })
 })
 
@@ -164,6 +168,10 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   // Send Order Status Email (Confirmed, Shipped, Delivered, Cancelled, etc.)
   sendOrderEmail(order, status).catch(err => console.error('Order status email error:', err.message))
 
+  if (String(status || '').toLowerCase() === 'cancelled') {
+    pushNotificationService.sendOrderCancelledNotification(order).catch(err => console.error('Order cancellation push error:', err.message))
+  }
+
   res.json({ success: true, data: order })
 })
 
@@ -198,8 +206,8 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
 
   // RULE 1: Cancellation can ONLY be done BEFORE shipping
   const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery'].includes(currentStatus) ||
-                    ['shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
-                    Boolean(order.shipping?.awbNumber)
+    ['shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+    Boolean(order.shipping?.awbNumber)
 
   if (isShipped) {
     res.status(400)
@@ -208,8 +216,8 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
 
   // RULE 2: Refund can ONLY be done BEFORE pickup from warehouse
   const isPickedUp = ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(currentStatus) ||
-                     ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
-                     Boolean(order.shipping?.pickupAt)
+    ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+    Boolean(order.shipping?.pickupAt)
 
   if (isPickedUp) {
     res.status(400)
@@ -276,12 +284,15 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
 
   await order.save()
 
-  // Send Order Cancelled Email
+  // Send Order Cancelled Email to customer with SEEMEE Logo
   try {
     await sendOrderEmail(order, 'Cancelled')
   } catch (err) {
     console.error('Order cancellation email error:', err.message)
   }
+
+  // Trigger Admin Web Push & In-App Notification for Order Cancellation
+  pushNotificationService.sendOrderCancelledNotification(order).catch(err => console.error('Order cancellation push error:', err.message))
 
   res.json({ success: true, message: 'Order cancelled successfully.', data: order })
 })
@@ -392,6 +403,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     // Send confirmation email
     sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
 
+    // Trigger Native Web Push & In-App Admin Notification
+    pushNotificationService.sendNewOrderNotification(order).catch(err => console.error('Order push notification error:', err.message))
+
     // Initialize Ad2Ship shipment order after verified online payment
     try {
       const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
@@ -448,6 +462,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
   // Send confirmation email
   sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
+
+  // Trigger Native Web Push & In-App Admin Notification
+  pushNotificationService.sendNewOrderNotification(order).catch(err => console.error('Order push notification error:', err.message))
 
   // Initialize Ad2Ship shipment order after verified online payment
   try {

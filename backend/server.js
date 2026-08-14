@@ -24,6 +24,7 @@ import reelRoutes from './routes/reels.js'
 import couponRoutes from './routes/coupons.js'
 import adminCouponRoutes from './routes/adminCoupons.js'
 import shippingRoutes from './routes/shipping.js'
+import pushNotificationRoutes from './routes/notificationRoutes.js'
 
 // Security Middlewares
 import helmet from 'helmet'
@@ -72,11 +73,11 @@ app.use(cors({
     if (!origin || process.env.NODE_ENV !== 'production') {
       return callback(null, true)
     }
-    
+
     // In production, check against whitelist
-    const isAllowed = allowedOrigins.includes(origin) || 
-                      origin.endsWith('.vercel.app')
-                      
+    const isAllowed = allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app')
+
     if (isAllowed) {
       return callback(null, true)
     }
@@ -103,8 +104,8 @@ app.use(cookieParser())
 
 // Rate Limiting - Disabled or relaxed in development
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: process.env.NODE_ENV === 'production' ? 500 : 5000, 
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 500 : 5000,
   message: { success: false, message: 'Too many requests, please try again later.' }
 })
 
@@ -160,6 +161,8 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/reels', reelRoutes)
 app.use('/api/shipping', shippingRoutes)
+app.use('/api/notifications', pushNotificationRoutes)
+app.use('/api/admin/push', pushNotificationRoutes)
 
 // ─── 404 HANDLER ───────────────────────────────────────
 app.use('/api/*', (req, res) => {

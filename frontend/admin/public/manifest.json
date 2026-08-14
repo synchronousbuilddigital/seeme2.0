@@ -1,0 +1,19 @@
+{
+  "short_name": "SeeMee Admin",
+  "name": "See Mee - Admin Order Operations",
+  "description": "Admin management dashboard & real-time order alerts for See Mee ethnic wear.",
+  "icons": [
+    {
+      "src": "/images/logoSEEMEE1.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/dashboard",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["business", "shopping", "utilities"]
+}

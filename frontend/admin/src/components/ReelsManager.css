@@ -81,7 +81,7 @@
   font-size: 0.9rem;
 }
 
-.status-badge {
+.reel-card .status-badge {
   position: absolute;
   top: 12px;
   left: 12px;
@@ -92,12 +92,12 @@
   text-transform: uppercase;
 }
 
-.status-badge.active {
+.reel-card .status-badge.active {
   background: #dcfce7;
   color: #15803d;
 }
 
-.status-badge.inactive {
+.reel-card .status-badge.inactive {
   background: #fee2e2;
   color: #b91c1c;
 }

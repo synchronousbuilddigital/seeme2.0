@@ -5,7 +5,7 @@ import { apiRequest } from '../utils/apiClient'
 import { getImageUrl } from '../utils/imageHelper'
 import './OrdersManager.css'
 
-const OrdersManager = () => {
+const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
   const [orders, setOrders] = useState([])
   const [filter, setFilter] = useState('all')
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -30,6 +30,21 @@ const OrdersManager = () => {
     fetchOrders()
     fetchRefunds()
   }, [])
+
+  useEffect(() => {
+    if (targetOrderId && orders.length > 0) {
+      const match = orders.find(o => String(o._id) === String(targetOrderId) || String(o.orderNumber) === String(targetOrderId))
+      if (match) {
+        setSelectedOrder(match)
+      } else {
+        apiRequest(`${API_ENDPOINTS.ORDERS}/${targetOrderId}`, { auth: true })
+          .then(res => {
+            if (res.success && res.data) setSelectedOrder(res.data)
+          })
+          .catch(e => console.warn('Direct target order fetch error:', e.message))
+      }
+    }
+  }, [targetOrderId, orders])
 
   const fetchRefunds = async () => {
     try {
@@ -336,17 +351,17 @@ const OrdersManager = () => {
 
   const triggerExportGeneration = () => {
     setExportStep('generating')
-    
+
     const steps = [
       'Establishing secure ledger synthesis sequence...',
       'Serializing customer purchase metrics...',
       'Compiling cryptographic archive metadata...',
       'Ledger payload fully structured and sealed.'
     ]
-    
+
     let currentStep = 0
     setExportProgressText(steps[0])
-    
+
     const interval = setInterval(() => {
       currentStep++
       if (currentStep < steps.length) {
@@ -362,7 +377,7 @@ const OrdersManager = () => {
 
   const performLedgerDownload = () => {
     const listToExport = exportRange === 'filtered' ? visibleOrders : orders
-    
+
     if (exportFormat === 'json') {
       const jsonContent = JSON.stringify(listToExport, null, 2)
       const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' })
@@ -405,8 +420,8 @@ const OrdersManager = () => {
     setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000)
   }
 
-  const filteredOrders = filter === 'all' 
-    ? orders 
+  const filteredOrders = filter === 'all'
+    ? orders
     : filter === 'refund_requested'
       ? orders.filter(order => order.refundStatus === 'refund_requested' || order.status === 'refunded')
       : orders.filter(order => order.status === filter)
@@ -440,7 +455,7 @@ const OrdersManager = () => {
         </div>
         <div className="header-actions">
           <button className="export-btn" onClick={openExportModal}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
             Export Ledger
           </button>
         </div>
@@ -507,7 +522,7 @@ const OrdersManager = () => {
             <button className="clear-search-btn" onClick={() => setSearchTerm('')}>✕</button>
           )}
         </div>
-        
+
         <div className="filters-row">
           {['all', 'refund_requested', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map(status => (
             <button
@@ -518,10 +533,10 @@ const OrdersManager = () => {
               <span className={`status-dot ${status}`} />
               <span className="tab-name">{status === 'refund_requested' ? 'Refund Requests' : status}</span>
               <span className="count">
-                {status === 'all' 
-                  ? orders.length 
-                  : status === 'refund_requested' 
-                    ? orders.filter(o => o.refundStatus === 'refund_requested' || o.status === 'refunded').length 
+                {status === 'all'
+                  ? orders.length
+                  : status === 'refund_requested'
+                    ? orders.filter(o => o.refundStatus === 'refund_requested' || o.status === 'refunded').length
                     : orders.filter(o => o.status === status).length}
               </span>
             </button>
@@ -646,7 +661,7 @@ const OrdersManager = () => {
                   <p>{order.customer?.phone || order.customer?.email || 'No contact details'}</p>
                 </div>
               </div>
-              
+
               <div className="mobile-order-financials">
                 <div className="mobile-order-items-badge">
                   📦 {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
@@ -699,7 +714,7 @@ const OrdersManager = () => {
       <AnimatePresence>
         {selectedOrder && (
           <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
-            <motion.div 
+            <motion.div
               className="order-detail-modal"
               initial={{ opacity: 0, x: 100 }}
               animate={{ opacity: 1, x: 0 }}
@@ -891,8 +906,8 @@ const OrdersManager = () => {
                     <div className="status-control-card">
                       <div className="control-group">
                         <label>Current Stage</label>
-                        <select 
-                          value={selectedOrder.status} 
+                        <select
+                          value={selectedOrder.status}
                           onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
                         >
                           <option value="pending">Pending Receipt</option>
@@ -938,9 +953,9 @@ const OrdersManager = () => {
                         {ad2shipPartners.length > 0 && !selectedOrder.shipping?.awbNumber && (
                           <div style={{ marginBottom: '16px' }}>
                             <label style={{ fontSize: '0.8rem', color: '#d4af37', fontWeight: '700', marginBottom: '6px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Courier Partner:</label>
-                            <select 
+                            <select
                               className="ad2ship-courier-select"
-                              value={selectedCourierId} 
+                              value={selectedCourierId}
                               onChange={(e) => setSelectedCourierId(e.target.value)}
                             >
                               {ad2shipPartners.map(p => (
@@ -954,8 +969,8 @@ const OrdersManager = () => {
 
                         {/* Ad2Ship Action Buttons */}
                         <div className="ad2ship-buttons-mobile-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             disabled={ad2shipLoading}
                             onClick={() => handleCalculateRate(selectedOrder)}
                             style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#1c1917', color: '#d4af37', border: '1.5px solid #d4af37', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' }}
@@ -964,8 +979,8 @@ const OrdersManager = () => {
                           </button>
 
                           {!selectedOrder.shipping?.ad2shipOrderId && (
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               disabled={ad2shipLoading}
                               onClick={() => handleCreateAd2ShipOrder(selectedOrder._id)}
                               style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#d4af37', color: '#000000', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)' }}
@@ -975,8 +990,8 @@ const OrdersManager = () => {
                           )}
 
                           {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && (
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               disabled={ad2shipLoading || !selectedCourierId}
                               onClick={() => handleShipOrder(selectedOrder._id)}
                               style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)' }}
@@ -986,8 +1001,8 @@ const OrdersManager = () => {
                           )}
 
                           {(selectedOrder.shipping?.awbNumber || selectedOrder.shipping?.ad2shipOrderId) && (
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               disabled={ad2shipLoading}
                               onClick={() => handleTrackShipment(selectedOrder)}
                               style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
@@ -998,8 +1013,8 @@ const OrdersManager = () => {
 
                           {selectedOrder.shipping?.ad2shipOrderId && (
                             <>
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
                                 title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download shipping label'}
                                 onClick={() => handleGenerateDocument(selectedOrder._id, 'label')}
@@ -1007,8 +1022,8 @@ const OrdersManager = () => {
                               >
                                 Download Label
                               </button>
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
                                 title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download tax invoice'}
                                 onClick={() => handleGenerateDocument(selectedOrder._id, 'invoice')}
@@ -1016,8 +1031,8 @@ const OrdersManager = () => {
                               >
                                 Download Invoice
                               </button>
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
                                 title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Generate courier manifest'}
                                 onClick={() => handleGenerateDocument(selectedOrder._id, 'manifest')}
@@ -1029,8 +1044,8 @@ const OrdersManager = () => {
                           )}
 
                           {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'shipped' && selectedOrder.status !== 'delivered' && (
-                            <button 
-                              type="button" 
+                            <button
+                              type="button"
                               disabled={ad2shipLoading}
                               onClick={() => handleCancelShipment(selectedOrder._id)}
                               style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
@@ -1098,7 +1113,7 @@ const OrdersManager = () => {
       <AnimatePresence>
         {isExportModalOpen && (
           <div className="modal-overlay" onClick={() => setIsExportModalOpen(false)}>
-            <motion.div 
+            <motion.div
               className="premium-export-modal"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1113,11 +1128,11 @@ const OrdersManager = () => {
               {exportStep === 'options' && (
                 <div className="export-modal-body">
                   <p className="subtitle">Compile and serialize your orders metadata into a clean ledger document.</p>
-                  
+
                   <div className="export-option-group">
                     <label>Export Range</label>
                     <div className="custom-radio-group">
-                      <div 
+                      <div
                         className={`radio-card ${exportRange === 'filtered' ? 'active' : ''}`}
                         onClick={() => setExportRange('filtered')}
                       >
@@ -1127,7 +1142,7 @@ const OrdersManager = () => {
                           <p>Current search & state status filters</p>
                         </div>
                       </div>
-                      <div 
+                      <div
                         className={`radio-card ${exportRange === 'all' ? 'active' : ''}`}
                         onClick={() => setExportRange('all')}
                       >
@@ -1143,14 +1158,14 @@ const OrdersManager = () => {
                   <div className="export-option-group">
                     <label>Serialization Format</label>
                     <div className="format-grid">
-                      <button 
+                      <button
                         className={`format-tile ${exportFormat === 'csv' ? 'active' : ''}`}
                         onClick={() => setExportFormat('csv')}
                       >
                         <div className="tile-icon">📄</div>
                         <span>CSV Spreadsheet</span>
                       </button>
-                      <button 
+                      <button
                         className={`format-tile ${exportFormat === 'json' ? 'active' : ''}`}
                         onClick={() => setExportFormat('json')}
                       >
@@ -1162,7 +1177,7 @@ const OrdersManager = () => {
 
                   <button className="primary-action-btn" onClick={triggerExportGeneration}>
                     <span>Initiate Ledger Synthesis</span>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                   </button>
                 </div>
               )}
@@ -1198,7 +1213,7 @@ const OrdersManager = () => {
       <AnimatePresence>
         {trackingModalData && (
           <div className="modal-overlay" onClick={() => setTrackingModalData(null)}>
-            <motion.div 
+            <motion.div
               className="order-detail-modal"
               style={{ maxWidth: '600px', width: '90%' }}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -1245,7 +1260,7 @@ const OrdersManager = () => {
       {/* Toast Notification */}
       <AnimatePresence>
         {notification.show && (
-          <motion.div 
+          <motion.div
             className={`toast-notification ${notification.type}`}
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}

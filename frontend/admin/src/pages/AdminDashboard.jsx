@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
-import { apiRequest, clearAdminSession } from '../utils/apiClient'
+import { apiRequest } from '../utils/apiClient'
 import './AdminDashboard.css'
 import NewArrivalsManager from '../components/NewArrivalsManager'
 import ProductsManager from '../components/ProductsManager'
@@ -17,7 +17,10 @@ import HeroCarouselManager from '../components/HeroCarouselManager'
 import MagazineManager from '../components/MagazineManager'
 import ReelsManager from '../components/ReelsManager'
 import CouponsManager from '../components/CouponsManager'
-import { isAdminSessionValid } from '../utils/apiClient'
+import NotificationSettings from '../components/NotificationSettings'
+import NotificationBell from '../components/NotificationBell'
+import NotificationCenter from '../components/NotificationCenter'
+import { isAdminSessionValid, getStoredAdminUser, clearAdminSession } from '../utils/apiClient'
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
@@ -35,7 +38,23 @@ const AdminDashboard = () => {
   const [lastSync, setLastSync] = useState(new Date())
   const [selectedProductForHero, setSelectedProductForHero] = useState(null)
   const [timeframe, setTimeframe] = useState('6months')
+  const [targetOrderId, setTargetOrderId] = useState(null)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Check URL parameters for push notification clicks (?orderId=xxx)
+    const params = new URLSearchParams(window.location.search)
+    const orderIdParam = params.get('orderId')
+    if (orderIdParam) {
+      handleSelectOrderFromNotif(orderIdParam)
+    }
+  }, [])
+
+  const handleSelectOrderFromNotif = (orderId) => {
+    setTargetOrderId(orderId)
+    setActiveTab('orders')
+    setVisitedTabs(prev => new Set(prev).add('orders'))
+  }
 
   useEffect(() => {
     if (!isAdminSessionValid()) {
@@ -127,8 +146,8 @@ const AdminDashboard = () => {
       {/* Mobile Backdrop Overlay when drawer menu is open */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
-            className="mobile-nav-backdrop" 
+          <motion.div
+            className="mobile-nav-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -140,8 +159,8 @@ const AdminDashboard = () => {
       {/* Mobile Sticky Top Header Bar */}
       <header className="mobile-header-bar">
         <div className="mobile-header-left">
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="mobile-hamburger-btn"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle navigation menu"
@@ -188,9 +207,9 @@ const AdminDashboard = () => {
           </div>
           {!sidebarCollapsed && <span className="admin-brand-name">ADMIN PANEL</span>}
           {/* Mobile close button inside sidebar */}
-          <button 
-            type="button" 
-            className="mobile-sidebar-close" 
+          <button
+            type="button"
+            className="mobile-sidebar-close"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             ✕
@@ -249,6 +268,10 @@ const AdminDashboard = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
             <span>Coupons & Offers</span>
           </button>
+          <button className={activeTab === 'notifications' ? 'active' : ''} onClick={() => handleTabClick('notifications')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span>Notifications</span>
+          </button>
 
           <button className="logout-btn" onClick={handleLogout}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -272,16 +295,17 @@ const AdminDashboard = () => {
                 {activeTab === 'hero' && 'Hero Carousel'}
                 {activeTab === 'magazine' && 'Magazine Booklet'}
                 {activeTab === 'reels' && 'Catalog Reels Studio'}
+                {activeTab === 'notifications' && 'Notifications History'}
               </h1>
             </div>
 
             <div className="topbar-actions">
               <GlobalSearch onResults={(selection) => {
                 if (selection.type === 'product') setActiveTab('products')
-                if (selection.type === 'order') setActiveTab('orders')
+                if (selection.type === 'order') handleSelectOrderFromNotif(selection.id)
                 if (selection.type === 'customer') setActiveTab('customers')
-                // We could also set a filter or scroll to the item here
               }} />
+              <NotificationBell onSelectOrder={handleSelectOrderFromNotif} />
               <div className="admin-profile">
                 <div className="admin-info">
                   <p className="admin-name">Atelier Admin</p>
@@ -297,6 +321,7 @@ const AdminDashboard = () => {
 
         <div style={{ display: activeTab === 'overview' ? 'block' : 'none' }}>
           <div className="overview-section">
+            <NotificationSettings />
             <div className="stats-grid">
               <motion.div className="stat-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="stat-icon blue">
@@ -354,7 +379,7 @@ const AdminDashboard = () => {
                         <span className="period-label">Selected Period Revenue</span>
                       </div>
                     </div>
-                    <select 
+                    <select
                       className="minimal-select"
                       value={timeframe}
                       onChange={(e) => handleTimeframeChange(e.target.value)}
@@ -504,18 +529,18 @@ const AdminDashboard = () => {
 
         {visitedTabs.has('products') && (
           <div style={{ display: activeTab === 'products' ? 'block' : 'none' }}>
-            <ProductsManager 
+            <ProductsManager
               onPromoteToHero={(product) => {
                 setSelectedProductForHero(product)
                 handleTabClick('hero')
-              }} 
+              }}
             />
           </div>
         )}
 
         {visitedTabs.has('orders') && (
           <div style={{ display: activeTab === 'orders' ? 'block' : 'none' }}>
-            <OrdersManager />
+            <OrdersManager targetOrderId={targetOrderId} onClearTargetOrder={() => setTargetOrderId(null)} />
           </div>
         )}
 
@@ -545,8 +570,8 @@ const AdminDashboard = () => {
 
         {visitedTabs.has('hero') && (
           <div style={{ display: activeTab === 'hero' ? 'block' : 'none' }}>
-            <HeroCarouselManager 
-              preSelectedProduct={selectedProductForHero} 
+            <HeroCarouselManager
+              preSelectedProduct={selectedProductForHero}
               onClearPreSelected={() => setSelectedProductForHero(null)}
             />
           </div>
@@ -569,11 +594,17 @@ const AdminDashboard = () => {
             <CouponsManager />
           </div>
         )}
+
+        {visitedTabs.has('notifications') && (
+          <div style={{ display: activeTab === 'notifications' ? 'block' : 'none' }}>
+            <NotificationCenter onSelectOrder={handleSelectOrderFromNotif} />
+          </div>
+        )}
       </main>
 
       {/* Sticky Mobile Bottom Navigation Bar */}
       <nav className="mobile-bottom-nav">
-        <button 
+        <button
           className={`mobile-bottom-nav-item ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => handleTabClick('overview')}
         >
@@ -581,7 +612,7 @@ const AdminDashboard = () => {
           <span>Overview</span>
         </button>
 
-        <button 
+        <button
           className={`mobile-bottom-nav-item ${activeTab === 'products' ? 'active' : ''}`}
           onClick={() => handleTabClick('products')}
         >
@@ -589,7 +620,7 @@ const AdminDashboard = () => {
           <span>Products</span>
         </button>
 
-        <button 
+        <button
           className={`mobile-bottom-nav-item ${activeTab === 'orders' ? 'active' : ''}`}
           onClick={() => handleTabClick('orders')}
         >
@@ -597,7 +628,7 @@ const AdminDashboard = () => {
           <span>Orders</span>
         </button>
 
-        <button 
+        <button
           className={`mobile-bottom-nav-item ${activeTab === 'inventory' ? 'active' : ''}`}
           onClick={() => handleTabClick('inventory')}
         >
@@ -605,7 +636,7 @@ const AdminDashboard = () => {
           <span>Inventory</span>
         </button>
 
-        <button 
+        <button
           className={`mobile-bottom-nav-item ${isMobileMenuOpen ? 'active' : ''}`}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >

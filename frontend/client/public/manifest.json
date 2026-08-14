@@ -1,0 +1,19 @@
+{
+  "short_name": "See Mee",
+  "name": "See Mee - Premium Ethnic Wear & Women's Suits",
+  "description": "Discover handcrafted ethnic wear, Anarkali suits, Sharara sets, and royal bridal couture.",
+  "icons": [
+    {
+      "src": "/images/logoSEEMEE1.png",
+      "type": "image/png",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FAF9F6",
+  "theme_color": "#FAF9F6",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["shopping", "lifestyle"]
+}

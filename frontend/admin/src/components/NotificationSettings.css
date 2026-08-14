@@ -1,0 +1,210 @@
+.notification-settings-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #EAEAEA;
+  border-radius: 18px;
+  padding: 22px 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+
+.pwa-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  position: relative;
+  width: 100%;
+}
+
+.pwa-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+  min-width: 260px;
+}
+
+.notif-settings-icon {
+  font-size: 1.6rem;
+  width: 46px;
+  height: 46px;
+  background: #F4EFE0;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #B8860B;
+}
+
+.pwa-header-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111111;
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  line-height: 1.3;
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #666666;
+  line-height: 1.35;
+}
+
+.pwa-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.pwa-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  line-height: 1;
+}
+
+.pwa-status-pill.enabled {
+  background: #ECFDF5;
+  color: #059669;
+  border-color: #A7F3D0;
+}
+
+.pwa-status-pill.disabled {
+  background: #FEF2F2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+.pwa-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+}
+
+.notif-alert-banner {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+  line-height: 1.45;
+}
+
+.notif-alert-banner.success {
+  background: #ECFDF5;
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.notif-alert-banner.error {
+  background: #FEF2F2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}
+
+.notif-alert-banner.info {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+}
+
+.notif-unsupported-notice {
+  font-size: 0.85rem;
+  color: #B45309;
+  background: #FFFBEB;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid #FDE68A;
+  font-weight: 600;
+}
+
+.notif-settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-enable-push,
+.btn-test-push,
+.btn-disable-push,
+.btn-install-pwa {
+  border: none;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-enable-push {
+  background: linear-gradient(135deg, #111111 0%, #171717 100%);
+  color: #ffffff;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+}
+.btn-enable-push:hover {
+  background: #000000;
+  border-color: #D4AF37;
+  transform: translateY(-1px);
+}
+
+.btn-test-push {
+  background: linear-gradient(135deg, #B8860B 0%, #D4AF37 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.25);
+}
+.btn-test-push:hover {
+  background: linear-gradient(135deg, #996515 0%, #B8860B 100%);
+  transform: translateY(-1px);
+}
+
+.btn-disable-push {
+  background: #F4F4F4;
+  color: #555555;
+  border: 1px solid #EAEAEA;
+}
+.btn-disable-push:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+  border-color: #FCA5A5;
+}
+
+.btn-install-pwa {
+  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.25);
+}
+.btn-install-pwa:hover {
+  background: linear-gradient(135deg, #6D28D9 0%, #7C3AED 100%);
+  transform: translateY(-1px);
+}

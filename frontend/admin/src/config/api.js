@@ -46,5 +46,20 @@ export const API_ENDPOINTS = {
   HERO_CAROUSEL: `${API_BASE_URL}/api/carousel`,
   HERO_CAROUSEL_ALL: `${API_BASE_URL}/api/carousel/all`,
   REELS: `${API_BASE_URL}/api/reels`,
-  REELS_ALL: `${API_BASE_URL}/api/reels/all`
+  REELS_ALL: `${API_BASE_URL}/api/reels/all`,
+  PUSH: {
+    VAPID_KEY: `${API_BASE_URL}/api/notifications/vapid-key`,
+    SUBSCRIBE: `${API_BASE_URL}/api/notifications/subscribe`,
+    UNSUBSCRIBE: `${API_BASE_URL}/api/notifications/unsubscribe`,
+    STATUS: `${API_BASE_URL}/api/notifications/status`,
+    SEND_TEST: `${API_BASE_URL}/api/notifications/send-test`
+  },
+  NOTIFICATIONS: {
+    BASE: `${API_BASE_URL}/api/notifications`,
+    UNREAD_COUNT: `${API_BASE_URL}/api/notifications/unread-count`,
+    MARK_READ: (id) => `${API_BASE_URL}/api/notifications/${id}/read`,
+    MARK_ALL_READ: `${API_BASE_URL}/api/notifications/read-all`,
+    DELETE: (id) => `${API_BASE_URL}/api/notifications/${id}`,
+    CLEAR_ALL: `${API_BASE_URL}/api/notifications/clear-all`
+  }
 }

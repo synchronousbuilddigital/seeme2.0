@@ -3,6 +3,8 @@ import Product from '../models/Product.js'
 import User from '../models/User.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import shippingService from '../services/shippingService.js'
+import { sendOrderEmail } from '../services/emailService.js'
+import pushNotificationService from '../services/pushNotificationService.js'
 
 // @desc    Get quick dashboard summary
 // @route   GET /api/admin/dashboard-summary
@@ -222,6 +224,14 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   })
 
   await order.save()
+
+  // Send status update email with SEEMEE Logo to customer
+  sendOrderEmail(order, order.status).catch(err => console.error('Admin status email error:', err.message))
+
+  // Trigger Push Notification to admins if order was cancelled
+  if (String(status || '').toLowerCase() === 'cancelled') {
+    pushNotificationService.sendOrderCancelledNotification(order).catch(err => console.error('Admin cancellation push error:', err.message))
+  }
 
   res.json({
     success: true,

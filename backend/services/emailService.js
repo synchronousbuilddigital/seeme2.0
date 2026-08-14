@@ -1,4 +1,32 @@
 import nodemailer from 'nodemailer'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+/**
+ * Get inline logo attachment for Nodemailer CID embedding
+ */
+const getLogoAttachment = () => {
+  const possiblePaths = [
+    path.join(__dirname, '..', 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(__dirname, '..', '..', 'frontend', 'client', 'public', 'images', 'logoSEEMEE1.png')
+  ]
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return [{
+        filename: 'logoSEEMEE1.png',
+        path: p,
+        cid: 'seemee_logo_header@seemee.com',
+        contentDisposition: 'inline'
+      }]
+    }
+  }
+  return []
+}
 
 /**
  * Create Gmail Transporter using Nodemailer's built-in Gmail Service
@@ -22,7 +50,7 @@ const createTransporter = () => {
 }
 
 /**
- * Reusable email sending function with Gmail fallback
+ * Reusable email sending function with inline logo attachment & Gmail fallback
  */
 export const sendEmail = async ({ to, subject, html }) => {
   const user = (process.env.GMAIL_USER || '').trim()
@@ -39,15 +67,19 @@ export const sendEmail = async ({ to, subject, html }) => {
     return { success: false, error: 'Gmail credentials not configured in .env' }
   }
 
+  const attachments = getLogoAttachment()
+
+  const mailOptions = {
+    from,
+    to,
+    subject,
+    html,
+    ...(attachments.length > 0 && { attachments })
+  }
+
   // Attempt 1: Standard Gmail Service
   try {
-    const info = await transporter.sendMail({
-      from,
-      to,
-      subject,
-      html
-    })
-
+    const info = await transporter.sendMail(mailOptions)
     console.log(`✅ [GMAIL SENT] Email successfully delivered to ${to} (MessageId: ${info.messageId})`)
     return { success: true, info }
   } catch (err) {
@@ -65,13 +97,7 @@ export const sendEmail = async ({ to, subject, html }) => {
         tls: { rejectUnauthorized: false }
       })
 
-      const info = await fallbackTransporter.sendMail({
-        from,
-        to,
-        subject,
-        html
-      })
-
+      const info = await fallbackTransporter.sendMail(mailOptions)
       console.log(`✅ [GMAIL SENT via Port 587] Email successfully delivered to ${to} (MessageId: ${info.messageId})`)
       return { success: true, info }
     } catch (fallbackErr) {
@@ -90,13 +116,32 @@ export const sendEmail = async ({ to, subject, html }) => {
 }
 
 const getLogoHeaderHtml = (subtitle = 'Notification') => {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
-  const logoUrl = `${clientUrl}/images/logoSEEMEE1.png`
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '')
+
+  // 1. Convert local logo file to Base64 Data URI if present
+  let logoSrc = 'cid:seemee_logo_header@seemee.com'
+  const logoPath = path.join(__dirname, '..', 'public', 'images', 'logoSEEMEE1.png')
+
+  if (fs.existsSync(logoPath)) {
+    try {
+      const b64 = fs.readFileSync(logoPath).toString('base64')
+      logoSrc = `data:image/png;base64,${b64}`
+    } catch (e) {
+      console.warn('Base64 logo read warning:', e.message)
+    }
+  } else if (process.env.PUBLIC_LOGO_URL) {
+    logoSrc = process.env.PUBLIC_LOGO_URL
+  } else if (process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost')) {
+    logoSrc = `${clientUrl}/images/logoSEEMEE1.png`
+  }
+
   return `
     <div style="text-align: center; margin-bottom: 25px;">
-      <img src="${logoUrl}" alt="SEEMEE" style="max-height: 52px; height: 52px; width: auto; margin-bottom: 8px; display: inline-block;" />
-      <h2 style="font-family: Georgia, serif; color: #1C1917; font-size: 26px; font-weight: bold; margin: 0; letter-spacing: 2px;">SEEMEE</h2>
-      <p style="color: #D4AF37; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin-top: 4px;">${subtitle}</p>
+      <a href="${clientUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+        <img src="${logoSrc}" alt="SEEMEE Logo" width="160" height="56" style="max-height: 56px; height: 56px; width: auto; max-width: 180px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; border: 0; outline: none; text-decoration: none;" />
+      </a>
+      <h2 style="font-family: Georgia, 'Times New Roman', serif; color: #1C1917; font-size: 26px; font-weight: bold; margin: 0; letter-spacing: 2px;">SEEMEE</h2>
+      <p style="color: #D4AF37; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin-top: 4px; margin-bottom: 0;">${subtitle}</p>
     </div>
   `
 }
@@ -143,7 +188,7 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
     return null
   }
 
-  const orderId = order._id || order.id || 'ORDER'
+  const orderId = order.orderNumber || order._id || order.id || 'ORDER'
   const customerName = order.customer?.name || 'Valued Customer'
   const statusStr = String(statusType || order.status || 'Placed').toUpperCase()
 
@@ -182,7 +227,7 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #FAF9F6; padding: 30px; border-radius: 12px; border: 1px solid #E7E5E4; color: #1C1917;">
-      ${getLogoHeaderHtml('Order Notification')}
+      ${getLogoHeaderHtml(statusStr === 'PLACED' ? 'Order Confirmation' : statusStr === 'CANCELLED' ? 'Order Cancellation' : 'Order Update')}
 
       <div style="background: #FFFFFF; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F5F5F4; padding-bottom: 15px; margin-bottom: 20px;">
