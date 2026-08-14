@@ -406,7 +406,7 @@ const CatalogPage = () => {
       {viewMode === 'grid' && (
         <div className="catalog-grid-wrapper">
           <div className="catalog-grid-header">
-            <h2>✦ Atelier Lookbook Catalog</h2>
+            <h2>✦ Catalog Products</h2>
             <p>Explore high-resolution visual stories and tap any reel card to play</p>
           </div>
 

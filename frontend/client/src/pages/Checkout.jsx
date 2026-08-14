@@ -1124,39 +1124,55 @@ const Checkout = () => {
               </div>
 
               <div className="placed-modal-actions">
-                {placedOrder.status !== 'Cancelled' ? (
-                  <>
-                    <button 
-                      type="button" 
-                      className="btn-cancel-modal-action"
-                      onClick={() => handleCancelOrderFromModal(placedOrder._id)}
-                      disabled={cancellingId === placedOrder._id}
-                    >
-                      {cancellingId === placedOrder._id ? 'Cancelling...' : '🚫 Cancel Order'}
-                    </button>
-                    <button 
-                      type="button" 
-                      className="btn-primary-modal-action"
-                      onClick={() => navigate('/orders')}
-                    >
-                      View Orders in Account
-                    </button>
-                    <button 
-                      type="button" 
-                      className="btn-secondary-modal-action"
-                      onClick={() => navigate('/collections')}
-                    >
-                      Continue Shopping
-                    </button>
-                  </>
-                ) : (
-                  <div className="cancelled-state-notice">
-                    <span className="cancelled-msg">⚠️ This order is cancelled</span>
-                    <button type="button" className="btn-primary-modal-action" onClick={() => navigate('/collections')}>
-                      Continue Shopping
-                    </button>
-                  </div>
-                )}
+                {(() => {
+                  const ordStatus = String(placedOrder.status || '').toLowerCase().trim()
+                  const shipStatus = String(placedOrder.shipping?.status || '').toLowerCase().trim()
+                  const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(ordStatus) ||
+                                    ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(shipStatus) ||
+                                    Boolean(placedOrder.shipping?.awbNumber || placedOrder.trackingNumber) ||
+                                    Boolean(placedOrder.shipping?.pickupAt)
+                  const isCancelled = ordStatus === 'cancelled'
+
+                  if (isCancelled) {
+                    return (
+                      <div className="cancelled-state-notice">
+                        <span className="cancelled-msg">⚠️ This order is cancelled</span>
+                        <button type="button" className="btn-primary-modal-action" onClick={() => navigate('/collections')}>
+                          Continue Shopping
+                        </button>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <>
+                      {!isShipped && (
+                        <button 
+                          type="button" 
+                          className="btn-cancel-modal-action"
+                          onClick={() => handleCancelOrderFromModal(placedOrder._id)}
+                          disabled={cancellingId === placedOrder._id}
+                        >
+                          {cancellingId === placedOrder._id ? 'Cancelling...' : '🚫 Cancel Order'}
+                        </button>
+                      )}
+                      <button 
+                        type="button" 
+                        className="btn-primary-modal-action"
+                        onClick={() => navigate('/orders')}
+                      >
+                        View Orders in Account
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn-secondary-modal-action"
+                        onClick={() => navigate('/collections')}
+                      >
+                        Continue Shopping
+                      </button>
+                    </>
+                  )
+                })()}
               </div>
             </motion.div>
           </div>

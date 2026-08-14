@@ -953,76 +953,338 @@
   border-radius: 18px;
 }
 
-/* Responsive adjustments */
+/* ==========================================================================
+   MOBILE FILTER DRAWER & RESPONSIVE DESIGN (LUXURY MOBILE EXPERIENCE)
+   ========================================================================== */
+
+.mobile-filter-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 13, 12, 0.72);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mobile-filter-drawer {
+  width: 86%;
+  max-width: 380px;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+}
+
+.mobile-filter-drawer .drawer-header {
+  padding: 20px 22px;
+  border-bottom: 1px solid #f0eee9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FAF8F5;
+}
+
+.mobile-filter-drawer .drawer-header h3 {
+  font-family: var(--cat-heading-font, serif);
+  font-size: 1.25rem;
+  color: var(--cat-charcoal, #1c1917);
+  margin: 0;
+  font-weight: 600;
+}
+
+.mobile-filter-drawer .drawer-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e7e5e4;
+  background: #ffffff;
+  color: #1c1917;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.mobile-filter-drawer .drawer-body {
+  padding: 22px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.mobile-filter-drawer .drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobile-filter-drawer .drawer-section label {
+  font-family: var(--cat-body-font, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #78716c;
+}
+
+.mobile-filter-drawer .drawer-section input,
+.mobile-filter-drawer .drawer-section select {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--cat-border, #e7e5e4);
+  border-radius: 12px;
+  font-family: var(--cat-body-font, sans-serif);
+  font-size: 0.88rem;
+  background: #faf8f5;
+  color: var(--cat-charcoal, #1c1917);
+  box-sizing: border-box;
+}
+
+.mobile-filter-drawer .drawer-size-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mobile-filter-drawer .drawer-size-pill {
+  min-width: 42px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #e7e5e4;
+  background: #faf8f5;
+  font-family: var(--cat-body-font, sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1c1917;
+  cursor: pointer;
+}
+
+.mobile-filter-drawer .drawer-size-pill.active {
+  background: #1c1917;
+  color: #D4AF37;
+  border-color: #1c1917;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.mobile-filter-drawer .drawer-footer {
+  padding: 16px 22px;
+  border-top: 1px solid #f0eee9;
+  display: flex;
+  gap: 12px;
+  background: #ffffff;
+}
+
+.mobile-filter-drawer .reset-drawer-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 25px;
+  border: 1px solid #e7e5e4;
+  background: #faf8f5;
+  color: #dc2626;
+  font-family: var(--cat-body-font, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobile-filter-drawer .apply-drawer-btn {
+  flex: 2;
+  padding: 12px;
+  border-radius: 25px;
+  border: none;
+  background: #1c1917;
+  color: #D4AF37;
+  font-family: var(--cat-body-font, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(28, 25, 23, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   Media Queries - Tablet & Mobile Optimization
+   -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
+  .category-page-header {
+    padding-top: 75px !important;
+    padding-bottom: 12px;
+  }
+
+  .category-header-container {
+    padding: 0 16px;
+  }
+
+  .category-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .category-main-heading {
+    font-size: clamp(1.6rem, 5vw, 2.2rem) !important;
+    line-height: 1.15;
+    margin: 4px 0 6px;
+  }
+
+  .category-description-sub {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  /* Normal Scrolling Toolbar on Mobile (Scrolls along with page) */
+  .unique-toolbar-section {
+    position: relative;
+    top: auto;
+    z-index: 10;
+    padding: 0 14px;
+    margin-top: 10px;
+  }
+
+  .toolbar-glass-card {
+    padding: 10px 14px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .toolbar-primary-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .toolbar-left-group {
+    gap: 8px;
+  }
+
+  .count-badge-luxury {
+    font-size: 0.68rem;
+    padding: 5px 10px;
+  }
+
+  .mobile-filter-trigger-btn {
+    display: inline-flex !important;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+  }
+
+  .toolbar-center-search {
+    display: none; /* Accessible in mobile filter drawer */
+  }
+
+  .toolbar-right-selects {
+    display: flex;
+    gap: 6px;
+  }
+
+  .luxury-select-wrapper select {
+    padding: 6px 24px 6px 10px;
+    font-size: 0.74rem;
+    border-radius: 16px;
+  }
+
+  .size-filter-row {
+    display: none; /* Handled in Refine Filter drawer on mobile */
+  }
+
+  /* 2-Column Mobile Product Grid */
+  .unique-showcase-section {
+    padding: 0 12px;
+    margin-top: 18px;
+  }
+
+  .unique-product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .unique-product-card {
+    border-radius: 16px;
+  }
+
+  .card-media-box {
+    height: 220px !important;
+    padding: 6px !important;
+  }
+
+  .card-info-content {
+    padding: 10px 8px !important;
+    gap: 6px !important;
+  }
+
+  .card-editorial-title {
+    font-size: 0.86rem !important;
+    line-height: 1.25 !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-price-main {
+    font-size: 0.95rem !important;
+  }
+
+  .card-price-strikethrough {
+    font-size: 0.78rem !important;
+  }
+
+  .card-add-cart-btn-full {
+    padding: 8px 6px !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.5px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Quickview Modal on Mobile */
   .modal-split-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
   .modal-media-side {
-    height: 300px;
+    height: 280px !important;
   }
   .modal-details-side {
-    padding: 20px;
-  }
-  .unique-product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-  .card-media-box {
-    height: 240px;
-  }
-  .card-info-content {
-    padding: 12px 10px;
-  }
-  .card-editorial-title {
-    font-size: 0.98rem;
-  }
-  .card-price-main {
-    font-size: 1.05rem;
-  }
-  .card-add-cart-btn,
-  .card-add-cart-btn-full {
-    width: 100%;
-    padding: 8px 6px;
-    font-size: 0.74rem;
-    letter-spacing: 0.5px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    white-space: nowrap;
-    overflow: visible;
+    padding: 18px !important;
   }
 }
 
 @media (max-width: 480px) {
   .unique-product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
   }
-  .card-media-box {
-    height: 210px;
-  }
-  .card-info-content {
-    padding: 10px 8px;
-  }
-  .card-editorial-title {
-    font-size: 0.9rem;
-  }
-  .card-price-main {
-    font-size: 0.95rem;
-  }
-  .card-add-cart-btn,
-  .card-add-cart-btn-full {
-    padding: 7px 4px;
-    font-size: 0.7rem;
-    letter-spacing: 0.3px;
-  }
-}
 
-@media (max-width: 768px) {
-  .category-page-header {
-    padding-top: 80px !important;
+  .card-media-box {
+    height: 200px !important;
+  }
+
+  .card-info-content {
+    padding: 8px 6px !important;
+  }
+
+  .card-editorial-title {
+    font-size: 0.82rem !important;
+  }
+
+  .card-price-main {
+    font-size: 0.9rem !important;
+  }
+
+  .card-add-cart-btn-full {
+    padding: 7px 4px !important;
+    font-size: 0.68rem !important;
   }
 }

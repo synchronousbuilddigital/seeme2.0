@@ -66,9 +66,9 @@ const CatalogSection = () => {
       <div className="catalog-section-container">
         {/* Editorial Section Header */}
         <div className="catalog-section-header">
-          <span className="catalog-kicker">✦ Atelier Lookbook & Reels</span>
+          
           <h2 className="catalog-heading">
-            Couture in <span className="italic">Motion</span>
+            Catalog <span className="italic">Products</span>
           </h2>
           <div className="catalog-header-line" />
           <p className="catalog-section-intro">

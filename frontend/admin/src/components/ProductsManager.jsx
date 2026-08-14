@@ -442,10 +442,21 @@ const ProductsManager = ({ onPromoteToHero }) => {
         stock: totalStock,
         images: formData.images.map(normalizeMediaUrl).filter(Boolean),
         preview3dImages: (formData.preview3dImages || []).map(normalizeMediaUrl).filter(Boolean),
-        video: normalizeMediaUrl(formData.video),
         sizeStock: formData.sizeStock,
-        dimensions: formData.dimensions,
-        weight: formData.weight,
+        dimensions: {
+          length: parseFloat(formData.dimensions?.length) || 20,
+          width: parseFloat(formData.dimensions?.width) || 15,
+          height: parseFloat(formData.dimensions?.height) || 5,
+          lengthCm: parseFloat(formData.dimensions?.length) || 20,
+          widthCm: parseFloat(formData.dimensions?.width) || 15,
+          heightCm: parseFloat(formData.dimensions?.height) || 5
+        },
+        weight: parseFloat(formData.weightKg || formData.weight?.value || formData.weight) || 0.5,
+        weightKg: parseFloat(formData.weightKg || formData.weight?.value || formData.weight) || 0.5,
+        lengthCm: parseFloat(formData.dimensions?.length) || 20,
+        breadth: parseFloat(formData.dimensions?.width) || 15,
+        heightCm: parseFloat(formData.dimensions?.height) || 5,
+        height: parseFloat(formData.dimensions?.height) || 5,
         materials: formData.materials,
         fabric: formData.fabric,
         fit: formData.fit,
@@ -572,9 +583,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
       images: (product.images || []).map(normalizeMediaUrl),
       preview3dImages: (product.preview3dImages || []).map(normalizeMediaUrl),
       gallery: (product.gallery || []).map(normalizeMediaUrl),
-      video: normalizeMediaUrl(product.video),
-      dimensions: product.dimensions || { length: '', width: '', height: '' },
-      weight: product.weight || { value: '' },
+      dimensions: {
+        length: product.dimensions?.length || product.dimensions?.lengthCm || product.lengthCm || (typeof product.length === 'number' ? product.length : '') || '20',
+        width: product.dimensions?.width || product.dimensions?.widthCm || product.breadth || product.widthCm || '15',
+        height: product.dimensions?.height || product.dimensions?.heightCm || product.heightCm || product.height || '5'
+      },
+      weight: typeof product.weightKg === 'number' ? product.weightKg.toString() : (typeof product.weight === 'number' ? product.weight.toString() : (product.weight?.value || product.weight?.valueGrams ? (product.weight.valueGrams/1000).toString() : '0.5')),
+      weightKg: typeof product.weightKg === 'number' ? product.weightKg.toString() : (typeof product.weight === 'number' ? product.weight.toString() : (product.weight?.value || product.weight?.valueGrams ? (product.weight.valueGrams/1000).toString() : '0.5')),
       materials: product.materials || [],
       fabric: product.fabric || '',
       fit: product.fit || '',
@@ -1048,6 +1063,48 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       </div>
                     </div>
 
+                    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #cbd5e1', margin: '18px 0' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Weight (kg)</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            placeholder="e.g. 0.5" 
+                            value={formData.weightKg !== undefined ? formData.weightKg : (typeof formData.weight === 'string' ? formData.weight : (formData.weight?.value || ''))} 
+                            onChange={(e) => setFormData({ ...formData, weightKg: e.target.value, weight: e.target.value })} 
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Length (cm)</label>
+                          <input 
+                            type="number" 
+                            placeholder="e.g. 20" 
+                            value={formData.dimensions?.length !== undefined ? formData.dimensions.length : ''} 
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })} 
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Breadth / Width (cm)</label>
+                          <input 
+                            type="number" 
+                            placeholder="e.g. 15" 
+                            value={formData.dimensions?.width !== undefined ? formData.dimensions.width : ''} 
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })} 
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Height (cm)</label>
+                          <input 
+                            type="number" 
+                            placeholder="e.g. 5" 
+                            value={formData.dimensions?.height !== undefined ? formData.dimensions.height : ''} 
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     <h3 style={{ fontSize: '0.95rem', fontWeight: '700', color: '#1c1917', margin: '22px 0 14px 0' }}>
                       ✦ Specs & Care Instructions (Displays in Specs & Care Tab)
                     </h3>
@@ -1065,18 +1122,45 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
                 {formTab === 'advanced' && (
                   <div className="form-tab-content">
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label>Dimensions (LxWxH in cm)</label>
-                        <div className="triple-input">
-                          <input type="number" placeholder="L" value={formData.dimensions?.length} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })} />
-                          <input type="number" placeholder="W" value={formData.dimensions?.width} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })} />
-                          <input type="number" placeholder="H" value={formData.dimensions?.height} onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} />
+                    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '18px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Weight (kg)</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            placeholder="0.5" 
+                            value={formData.weightKg !== undefined ? formData.weightKg : (typeof formData.weight === 'string' ? formData.weight : (formData.weight?.value || ''))} 
+                            onChange={(e) => setFormData({ ...formData, weightKg: e.target.value, weight: e.target.value })} 
+                          />
                         </div>
-                      </div>
-                      <div className="form-group">
-                        <label>Weight (kg)</label>
-                        <input type="number" value={formData.weight?.value} onChange={(e) => setFormData({ ...formData, weight: { ...formData.weight, value: e.target.value } })} />
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Length (cm)</label>
+                          <input 
+                            type="number" 
+                            placeholder="20" 
+                            value={formData.dimensions?.length !== undefined ? formData.dimensions.length : ''} 
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })} 
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Breadth (cm)</label>
+                          <input 
+                            type="number" 
+                            placeholder="15" 
+                            value={formData.dimensions?.width !== undefined ? formData.dimensions.width : ''} 
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })} 
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Height (cm)</label>
+                          <input 
+                            type="number" 
+                            placeholder="5" 
+                            value={formData.dimensions?.height !== undefined ? formData.dimensions.height : ''} 
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} 
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="form-group">

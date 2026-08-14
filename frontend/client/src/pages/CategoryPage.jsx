@@ -12,7 +12,7 @@ import './CategoryPage.css'
 const CategoryPage = () => {
   const { categoryName } = useParams()
   const navigate = useNavigate()
-  const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
+  const { addToCart, buyNow, toggleWishlist, isInWishlist } = useContext(CartContext)
 
   const [products, setProducts] = useState([])
   const [allCategories, setAllCategories] = useState([])
@@ -281,24 +281,7 @@ const CategoryPage = () => {
               )}
             </div>
 
-            {allCategories.length > 0 && (
-              <div className="category-switch-pills">
-                {allCategories.map(cat => {
-                  const isCurrent = (cat.slug || '').toLowerCase() === categoryName?.toLowerCase() ||
-                    (cat.slug || '').toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '') === categoryName?.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
 
-                  return (
-                    <button
-                      key={cat._id || cat.slug}
-                      className={`cat-pill-btn ${isCurrent ? 'active' : ''}`}
-                      onClick={() => navigate(`/category/${cat.slug}`)}
-                    >
-                      {cat.title}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
           </div>
         </div>
       </header>
@@ -517,10 +500,7 @@ const CategoryPage = () => {
                       }}
                     >
                       <div className="card-media-box">
-                        {/* Top-Left Italic Gold Editorial Number (01, 02, 03...) */}
-                        <span className="card-editorial-number">
-                          {formattedIndexNum}
-                        </span>
+
 
                         <img
                           src={getOptimizedImageUrl(imagesList[0], 'product')}
@@ -681,6 +661,29 @@ const CategoryPage = () => {
                       }}
                     >
                       + ADD TO SHOPPING BAG
+                    </button>
+
+                    <button
+                      className="buy-now-modal-btn"
+                      style={{
+                        padding: '14px 20px',
+                        background: '#d4af37',
+                        color: '#000',
+                        fontWeight: 700,
+                        letterSpacing: '1px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        textTransform: 'uppercase',
+                        borderRadius: '2px',
+                        fontSize: '0.85rem'
+                      }}
+                      onClick={() => {
+                        if (buyNow) buyNow(quickViewProduct, selectedSize)
+                        setQuickViewProduct(null)
+                        navigate('/checkout')
+                      }}
+                    >
+                      BUY NOW
                     </button>
 
                     <button

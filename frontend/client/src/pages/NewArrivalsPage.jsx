@@ -33,7 +33,7 @@ const NewArrivalsPage = () => {
     try {
       const response = await fetch(API_ENDPOINTS.NEW_ARRIVALS)
       const data = await response.json()
-      
+
       if (data.success && data.data.length > 0) {
         const transformedArrivals = data.data.map(item => ({
           id: item._id,
@@ -47,7 +47,7 @@ const NewArrivalsPage = () => {
         setArrivals(transformedArrivals)
         try {
           trackViewItemList(transformedArrivals, 'New Arrivals', 'new_arrivals')
-        } catch (e) {}
+        } catch (e) { }
       }
     } catch (error) {
       console.error('Error fetching arrivals:', error)
@@ -160,7 +160,7 @@ const NewArrivalsPage = () => {
           <div className="toolbar-copy">
             <span className="toolbar-kicker">Curated this week</span>
             <h2>The Latest Masterpieces</h2>
-            <p>Refined silhouettes with handcrafted details, arranged as a visual edit for effortless browsing.</p>
+            <p>Refined  with handcrafted details, arranged as a visual edit for effortless browsing.</p>
           </div>
 
           <div className="toolbar-meta">
@@ -194,10 +194,10 @@ const NewArrivalsPage = () => {
               transition={{ duration: 0.65, delay: index * 0.05 }}
             >
               <button type="button" className="arrival-card-media" onClick={() => openModal(arrival)}>
-                <img 
-                  src={getOptimizedImageUrl(arrival.image, 'hero')} 
-                  alt={arrival.title} 
-                  className="card-image" 
+                <img
+                  src={getOptimizedImageUrl(arrival.image, 'hero')}
+                  alt={arrival.title}
+                  className="card-image"
                   onError={(e) => {
                     e.target.src = 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=800'
                   }}
@@ -209,7 +209,6 @@ const NewArrivalsPage = () => {
 
               <div className="arrival-card-content">
                 <div className="arrival-card-topline">
-                  <span className="card-number">{String(index + 1).padStart(2, '0')}</span>
                   <span className="card-category">{categoryLabels[arrival.category] || arrival.category}</span>
                 </div>
                 <h3 className="card-title">{arrival.title}</h3>
@@ -272,14 +271,14 @@ const NewArrivalsPage = () => {
       {/* Detail Modal */}
       <AnimatePresence>
         {selectedArrival && (
-          <motion.div 
+          <motion.div
             className="arrival-modal-overlay"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeModal}
           >
-            <motion.div 
+            <motion.div
               className="arrival-modal"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -289,14 +288,14 @@ const NewArrivalsPage = () => {
             >
               <button className="modal-close-btn" onClick={closeModal}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </button>
 
               <div className="modal-layout">
                 <div className="modal-image-section">
-                  <img 
-                    src={getOptimizedImageUrl(selectedArrival.image, 'hero')} 
+                  <img
+                    src={getOptimizedImageUrl(selectedArrival.image, 'hero')}
                     alt={selectedArrival.title}
                   />
                 </div>
@@ -319,7 +318,7 @@ const NewArrivalsPage = () => {
                       )}
                     </div>
                   )}
-                  
+
                   <div className="modal-features">
                     <h4>Artisan Details</h4>
                     <ul>

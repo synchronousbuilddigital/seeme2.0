@@ -11,6 +11,7 @@ import './ProductPage.css'
 const ProductPage = () => {
   const {
     addToCart,
+    buyNow,
     clearCart,
     toggleWishlist,
     isInWishlist,
@@ -166,13 +167,15 @@ const ProductPage = () => {
   }
 
   const handleBuyNow = () => {
+    if (!product) return
     const sizeToUse = selectedSize || (availableSizes && availableSizes.length > 0 ? availableSizes[0] : 'S')
     
-    // Clear previous cart items for direct 1-click checkout
-    if (clearCart) clearCart()
-    
-    // Set only this item for checkout
-    addToCart({ ...product, selectedSize: sizeToUse, quantity })
+    if (buyNow) {
+      buyNow(product, sizeToUse, quantity)
+    } else {
+      if (clearCart) clearCart()
+      addToCart({ ...product, selectedSize: sizeToUse, quantity })
+    }
 
     // Open Checkout page directly
     navigate('/checkout')
@@ -546,7 +549,7 @@ const ProductPage = () => {
                     <li><strong>Garment Length:</strong> {product.length}</li>
                   )}
                   {!((product.fabric || product.material) || product.fit || product.occasion || product.design || product.sleeves || product.length) && (
-                    <li>✦ Crafted with premium haute couture standards by SeeMee.</li>
+                    <li>✦ Crafted with premium  standards by SeeMee.</li>
                   )}
                 </ul>
               </div>
@@ -581,12 +584,43 @@ const ProductPage = () => {
                         <td>{product.careInstructions}</td>
                       </tr>
                     )}
-                    {product.weight?.valueGrams && (
-                      <tr>
-                        <td>Weight</td>
-                        <td>{product.weight.valueGrams} grams</td>
-                      </tr>
-                    )}
+                    {(() => {
+                      let displayWeight = ''
+                      if (typeof product.weightKg === 'number' && product.weightKg > 0) {
+                        displayWeight = `${product.weightKg} kg`
+                      } else if (product.weight?.valueGrams && product.weight.valueGrams > 0) {
+                        displayWeight = `${product.weight.valueGrams} g`
+                      } else if (typeof product.weight === 'number' && product.weight > 0) {
+                        displayWeight = product.weight < 20 ? `${product.weight} kg` : `${product.weight} g`
+                      } else if (product.weight?.value && !isNaN(parseFloat(product.weight.value))) {
+                        const val = parseFloat(product.weight.value)
+                        displayWeight = val < 20 ? `${val} kg` : `${val} g`
+                      }
+
+                      if (!displayWeight) return null
+
+                      return (
+                        <tr>
+                          <td>Package Weight</td>
+                          <td><strong>{displayWeight}</strong></td>
+                        </tr>
+                      )
+                    })()}
+                    {(() => {
+                      const dim = product.dimensions || {}
+                      const l = product.lengthCm || dim.lengthCm || dim.length || (typeof product.length === 'number' ? product.length : null)
+                      const b = product.breadth || product.widthCm || dim.widthCm || dim.width || dim.breadth
+                      const h = product.heightCm || product.height || dim.heightCm || dim.height
+
+                      if (!l && !b && !h) return null
+
+                      return (
+                        <tr>
+                          <td>Package Dimensions (L × B × H)</td>
+                          <td><strong>{l || '20'} cm × {b || '15'} cm × {h || '5'} cm</strong></td>
+                        </tr>
+                      )
+                    })()}
                   </tbody>
                 </table>
               </div>

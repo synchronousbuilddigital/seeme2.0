@@ -2,7 +2,7 @@
 
 .homepage-fabric-section {
   position: relative;
-  padding: 4.5rem 0;
+  padding: 3.5rem 0 1rem 0;
   background: radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.03) 0%, transparent 80%), #ffffff;
   overflow: hidden;
   border-top: 1px solid rgba(212, 175, 55, 0.08);

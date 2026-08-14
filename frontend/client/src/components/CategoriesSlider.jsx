@@ -10,37 +10,6 @@ const CategoriesSlider = () => {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const categoryDefaults = {
-    '2-piece-sets': {
-      title: 'Summer Dress Collection',
-      subtitle: 'Fit with the latest trends',
-      description: 'Fit with the latest trends',
-      image: '/images/categories_straight.jpg',
-      features: ['Tailored Silhouette', 'Fluid Trousers', 'Premium Comfort']
-    },
-    '3-piece-sets': {
-      title: 'Autumn Essentials',
-      subtitle: 'Warm and cozy for the colder months',
-      description: 'Warm and cozy for the colder months',
-      image: '/images/ruby_bridal_sharara.png',
-      features: ['Heritage Kurta', 'Symmetric Pants', 'Adorned Dupatta']
-    },
-    'co-ord-sets': {
-      title: 'Winter Collection',
-      subtitle: 'Colorful for the festive season',
-      description: 'Colorful for the festive season',
-      image: '/images/categories_straight.jpg',
-      features: ['Avant-garde Cut', 'Symmetric Drapes', 'Modern Aesthetic']
-    },
-    'anarkali-sets': {
-      title: 'Spring Accessories',
-      subtitle: 'Hidden treasures for the spring season',
-      description: 'Hidden treasures for the spring season',
-      image: '/images/ruby_bridal_sharara.png',
-      features: ['Grand Flare', 'Pure Dupatta', 'Heritage Weave']
-    }
-  }
-
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -61,7 +30,7 @@ const CategoriesSlider = () => {
             .filter(Boolean)
             .sort((a, b) => ((a?.order || 0) - (b?.order || 0)))
         } else {
-          // Fallback only if no category slides exist in Admin
+          // Fallback dynamically from active products uploaded in Admin Panel
           const existingSlugs = new Set()
           activeProducts.forEach(p => {
             if (!p || !p.category) return
@@ -72,9 +41,9 @@ const CategoriesSlider = () => {
                 slug: pCatSlug,
                 title: titleFormatted,
                 subtitle: 'Admin Collection',
-                description: `Curated haute couture designs in ${titleFormatted}.`,
+                description: `Curated designs in ${titleFormatted}.`,
                 features: ['Haute Couture', 'Pure Fabric', 'Editorial Cut'],
-                image: (p.images?.[0] || p.image) || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
+                image: p.images?.[0] || p.image || ''
               })
               existingSlugs.add(pCatSlug)
             }
@@ -90,23 +59,24 @@ const CategoriesSlider = () => {
             return normPCat === normCatSlug || p.category.toLowerCase() === catSlug
           })
           const matchedProduct = matchingProds[0]
-          const fallback = categoryDefaults[catSlug]
 
           const prodImg = matchedProduct && (matchedProduct.images?.[0] || matchedProduct.image)
           const poolImg = activeProducts[index % activeProducts.length]?.images?.[0] || activeProducts[index % activeProducts.length]?.image
+
+          // Strictly use Admin uploaded category slide image or Admin product image
+          const finalImage = cat?.image || prodImg || poolImg || ''
 
           return {
             ...cat,
             indexCode: String(index + 1).padStart(2, '0'),
             productCount: matchingProds.length,
-            title: cat?.title || fallback?.title || 'Collection',
-            features: cat?.features && cat.features.length ? cat.features : (fallback?.features || ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut']),
-            subtitle: cat?.subtitle || fallback?.subtitle || 'Atelier Collection',
-            description: cat?.description || fallback?.description || 'Exquisite artisanal creations.',
-            // Strictly prioritize Admin Category Slide Image first!
-            image: cat?.image ? cat.image : (prodImg || poolImg || 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png')
+            title: cat?.title || cat?.name || 'Collection',
+            features: cat?.features && cat.features.length ? cat.features : ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut'],
+            subtitle: cat?.subtitle || 'Atelier Collection',
+            description: cat?.description || 'Exquisite artisanal creations.',
+            image: finalImage
           }
-        })
+        }).filter(c => Boolean(c.image))
 
         setCategories(mappedCategories)
       } catch (err) {
@@ -141,7 +111,6 @@ const CategoriesSlider = () => {
           transition={{ duration: 0.6 }}
         >
           <div className="categories-header-left">
-            <span className="categories-badge-tag">✦ SEEMEE ATELIER</span>
             <h2 className="categories-title">
               Signature <span>Categories</span>
             </h2>
@@ -172,7 +141,6 @@ const CategoriesSlider = () => {
                     <img
                       src={getImageUrl(cat.image)}
                       alt={cat.title}
-                      onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                       loading="lazy"
                     />
 

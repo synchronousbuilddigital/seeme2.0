@@ -107,14 +107,43 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  // Physical Dimensions
+  // Physical Dimensions & Shipping Specs (Ad2Ship)
   dimensions: {
+    length: Number,
+    width: Number,
+    height: Number,
     lengthCm: Number,
     widthCm: Number,
-    heightCm: Number
+    heightCm: Number,
+    breadth: Number
   },
   weight: {
-    valueGrams: Number
+    type: mongoose.Schema.Types.Mixed,
+    default: 0.5
+  },
+  weightKg: {
+    type: Number,
+    default: 0.5
+  },
+  height: {
+    type: Number,
+    default: 5
+  },
+  heightCm: {
+    type: Number,
+    default: 5
+  },
+  breadth: {
+    type: Number,
+    default: 15
+  },
+  widthCm: {
+    type: Number,
+    default: 15
+  },
+  lengthCm: {
+    type: Number,
+    default: 20
   },
   // Material & Care
   material: {

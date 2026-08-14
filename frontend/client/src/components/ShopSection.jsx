@@ -94,7 +94,7 @@ const ShopSection = () => {
           </div>
 
           <h2 className="shop-title">
-            SHOP THE <span>ATELIER</span>
+            FEATURED <span>PRODUCTS</span>
           </h2>
           <div className="shop-gold-divider"></div>
 

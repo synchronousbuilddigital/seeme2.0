@@ -50,9 +50,9 @@ const CategoriesPage = () => {
           slug: catSlug,
           productCount: matching.length,
           features: cat?.features && cat.features.length > 0 ? cat.features : ['Luxury Tailoring', 'Pure Fabrics'],
-          subtitle: cat?.subtitle || 'Atelier Collection',
+          subtitle: cat?.subtitle || 'Seemee Collection',
           description: cat?.description || 'Artisanal heritage creations blending traditional weaves with contemporary grace.',
-          image: cat?.image || (matchedProduct?.images?.[0] || matchedProduct?.image) || '/images/categories_straight.jpg'
+          image: cat?.image || (matchedProduct?.images?.[0] || matchedProduct?.image) || ''
         }
       })
 
@@ -80,7 +80,7 @@ const CategoriesPage = () => {
     return (
       <div className="categories-page-loading">
         <div className="glowing-gold-spinner"></div>
-        <p>Curating SEEMEE Atelier Categories...</p>
+        <p>SEEMEE Categories...</p>
       </div>
     )
   }
@@ -178,7 +178,6 @@ const CategoriesPage = () => {
                         src={getImageUrl(cat.image)}
                         alt={cat.title}
                         loading="lazy"
-                        onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                       />
 
                       {/* Top-Left Index Overlay */}

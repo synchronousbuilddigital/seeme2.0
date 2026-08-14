@@ -352,6 +352,31 @@ export const CartProvider = ({ children }) => {
     )
   }
 
+  const buyNow = (product, selectedSize, quantity = 1) => {
+    if (!product) return
+    const productId = product.id || product._id
+    const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
+    const productSize = selectedSize || product.size || product.selectedSize || defaultSize
+    const addedQty = Number(quantity) || 1
+
+    const normalizedProduct = {
+      ...product,
+      id: productId,
+      size: productSize,
+      selectedSize: productSize,
+      quantity: addedQty
+    }
+
+    try {
+      trackAddToCart(product, addedQty, productSize)
+    } catch (e) {
+      console.error('GTM error in buyNow:', e)
+    }
+
+    setCart([normalizedProduct])
+    removeCoupon(true)
+  }
+
   const clearCart = () => {
     setCart([])
     removeCoupon(true)
@@ -435,6 +460,7 @@ export const CartProvider = ({ children }) => {
       value={{
         cart,
         addToCart,
+        buyNow,
         removeFromCart,
         updateQuantity,
         clearCart,

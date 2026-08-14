@@ -46,14 +46,39 @@ export const calculateShipmentSpecs = async (items = []) => {
     if (productId) {
       const product = await Product.findById(productId).lean().catch(() => null)
       if (product) {
-        if (product.weight?.valueGrams && product.weight.valueGrams > 0) {
+        // Parse Weight (kg or grams)
+        if (typeof product.weightKg === 'number' && product.weightKg > 0) {
+          weightGrams = product.weightKg * 1000
+        } else if (product.weight?.valueGrams && product.weight.valueGrams > 0) {
           weightGrams = product.weight.valueGrams
+        } else if (typeof product.weight === 'number' && product.weight > 0) {
+          weightGrams = product.weight < 20 ? product.weight * 1000 : product.weight
+        } else if (product.weight?.value && !isNaN(parseFloat(product.weight.value))) {
+          const val = parseFloat(product.weight.value)
+          weightGrams = val < 20 ? val * 1000 : val
         }
-        if (product.dimensions) {
-          if (product.dimensions.lengthCm > 0) l = product.dimensions.lengthCm
-          if (product.dimensions.widthCm > 0) b = product.dimensions.widthCm
-          if (product.dimensions.heightCm > 0) h = product.dimensions.heightCm
-        }
+
+        // Parse Dimensions (Length, Breadth/Width, Height in cm)
+        const dim = product.dimensions || {}
+
+        // Length
+        if (product.lengthCm > 0) l = product.lengthCm
+        else if (dim.lengthCm > 0) l = dim.lengthCm
+        else if (dim.length > 0) l = dim.length
+        else if (product.length && !isNaN(parseFloat(product.length))) l = parseFloat(product.length)
+
+        // Breadth / Width
+        if (product.breadth > 0) b = product.breadth
+        else if (product.widthCm > 0) b = product.widthCm
+        else if (dim.widthCm > 0) b = dim.widthCm
+        else if (dim.width > 0) b = dim.width
+        else if (dim.breadth > 0) b = dim.breadth
+
+        // Height
+        if (product.heightCm > 0) h = product.heightCm
+        else if (product.height > 0) h = product.height
+        else if (dim.heightCm > 0) h = dim.heightCm
+        else if (dim.height > 0) h = dim.height
       }
     }
 

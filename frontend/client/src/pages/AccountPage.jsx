@@ -804,7 +804,7 @@ const AccountPage = () => {
                                   <div className="payment-row">
                                     <span>Status:</span>
                                     <strong className={`payment-status ${currentStatus === 'cancelled' ? 'cancelled' : (order.paymentStatus || '').toLowerCase()}`}>
-                                      {currentStatus === 'cancelled' ? 'CANCELLED' : (order.paymentStatus || 'pending').toUpperCase()}
+                              {currentStatus === 'cancelled' ? 'CANCELLED' : (order.paymentStatus || 'pending').toUpperCase()}
                                     </strong>
                                   </div>
                                 </div>
@@ -813,16 +813,27 @@ const AccountPage = () => {
                           </div>
 
                           <div className="order-detail-actions">
-                            {!['cancelled', 'shipped', 'delivered'].includes((order.status || '').toLowerCase()) && (
-                              <button 
-                                type="button" 
-                                className="btn-editorial outline cancel-btn-editorial" 
-                                onClick={() => handleCancelOrder(order._id)}
-                                disabled={cancellingOrderId === order._id}
-                              >
-                                {cancellingOrderId === order._id ? 'Cancelling...' : '🚫 Cancel Order'}
-                              </button>
-                            )}
+                            {(() => {
+                               const ordStatus = String(order.status || '').toLowerCase().trim()
+                               const shipStatus = String(order.shipping?.status || '').toLowerCase().trim()
+                               const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(ordStatus) ||
+                                                 ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(shipStatus) ||
+                                                 Boolean(order.shipping?.awbNumber || order.trackingNumber) ||
+                                                 Boolean(order.shipping?.pickupAt)
+
+                               if (ordStatus === 'cancelled' || isShipped) return null
+
+                               return (
+                                 <button 
+                                   type="button" 
+                                   className="btn-editorial outline cancel-btn-editorial" 
+                                   onClick={() => handleCancelOrder(order._id)}
+                                   disabled={cancellingOrderId === order._id}
+                                 >
+                                   {cancellingOrderId === order._id ? 'Cancelling...' : '🚫 Cancel Order'}
+                                 </button>
+                               )
+                             })()}
                             <button type="button" className="btn-editorial gold" onClick={() => handlePrint(order)}>
                               🖨 Print Invoice Receipt
                             </button>
