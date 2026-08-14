@@ -53,7 +53,8 @@ const NotificationCenter = ({ onSelectOrder }) => {
     }
   }
 
-  const handleMarkAsRead = async (notif) => {
+  const handleMarkAsRead = async (e, notif) => {
+    if (e) e.stopPropagation()
     if (notif.isRead) return
     try {
       setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n))
@@ -118,7 +119,7 @@ const NotificationCenter = ({ onSelectOrder }) => {
   }
 
   const handleCardClick = (notif) => {
-    handleMarkAsRead(notif)
+    handleMarkAsRead(null, notif)
     const orderId = notif.order?._id || notif.order || notif.orderId
     if (orderId && onSelectOrder) {
       onSelectOrder(orderId)
@@ -126,12 +127,10 @@ const NotificationCenter = ({ onSelectOrder }) => {
   }
 
   const filteredNotifications = notifications.filter(n => {
-    // Category filter
     if (filter === 'unread' && n.isRead) return false
     if (filter === 'orders' && n.type !== 'NEW_ORDER') return false
     if (filter === 'cancellations' && (n.type !== 'ORDER_CANCELLED' && n.type !== 'CANCELLED')) return false
 
-    // Search filter
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase()
       const titleMatch = (n.title || '').toLowerCase().includes(term)
@@ -205,12 +204,12 @@ const NotificationCenter = ({ onSelectOrder }) => {
 
         <div className="toolbar-actions">
           {unreadCount > 0 && (
-            <button className="btn-action mark-read" onClick={handleMarkAllRead}>
+            <button type="button" className="btn-action mark-read" onClick={handleMarkAllRead}>
               ✓ Mark All Read
             </button>
           )}
           {notifications.length > 0 && (
-            <button className="btn-action clear-all" onClick={handleClearAll}>
+            <button type="button" className="btn-action clear-all" onClick={handleClearAll}>
               🗑️ Clear All
             </button>
           )}
@@ -290,6 +289,16 @@ const NotificationCenter = ({ onSelectOrder }) => {
                       </div>
 
                       <div className="card-action-trigger">
+                        {!n.isRead && (
+                          <button
+                            type="button"
+                            className="btn-mark-single-read"
+                            onClick={(e) => handleMarkAsRead(e, n)}
+                            title="Mark as Read"
+                          >
+                            ✓ Mark Read
+                          </button>
+                        )}
                         <button type="button" className="btn-view-order">
                           View Order Details →
                         </button>

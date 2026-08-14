@@ -342,3 +342,70 @@
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVE REELS MANAGER DESIGN (MAX-WIDTH 768px & 480px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .reels-manager-container {
+    padding: 16px;
+  }
+
+  .reels-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .reels-title {
+    font-size: 1.5rem;
+  }
+
+  .btn-add-reel {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 0.8rem;
+  }
+
+  .reels-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  .reel-media-preview {
+    height: 240px;
+  }
+
+  .modal-box {
+    width: 95vw !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .reels-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .reel-media-preview {
+    height: 210px;
+  }
+
+  .reel-info {
+    padding: 10px;
+  }
+
+  .reel-card-title {
+    font-size: 0.9rem;
+  }
+}

@@ -149,10 +149,6 @@ const InventoryManager = () => {
     <div className="inventory-manager-redesign">
       {/* Header Bar */}
       <div className="inventory-header">
-        <div>
-          <h2>Inventory Command Center</h2>
-          <p className="subtitle">Real-time stock monitoring, automated low-stock alerts, and fast restock control.</p>
-        </div>
         <div className="live-sync-badge">
           <span className="pulse-dot"></span>
           Live Inventory Sync

@@ -610,12 +610,67 @@
   }
 }
 
-@media (max-width: 580px) {
+@media (max-width: 768px) {
+  .activity-manager {
+    padding-bottom: 2rem;
+  }
+
+  .manager-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .manager-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .activity-kpi-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .kpi-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .kpi-value {
+    font-size: 1.3rem;
+  }
+
+  .filter-pills {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    width: 100%;
+  }
+
+  .filter-pill {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 0.76rem;
+  }
+
+  .activity-card {
+    padding: 14px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .manager-header h1 {
+    font-size: 1.5rem;
   }
 
   .activity-container {
-    padding: 1.25rem;
+    padding: 1rem;
   }
 }

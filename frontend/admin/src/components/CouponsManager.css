@@ -140,14 +140,18 @@
 .search-icon {
   position: absolute;
   left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 0.9rem;
   color: #94a3b8;
   pointer-events: none;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .search-box-wrap input {
   width: 100%;
-  padding: 11px 38px 11px 38px;
+  padding: 11px 38px 11px 42px !important;
   border: 1px solid #cbd5e1;
   border-radius: 12px;
   font-size: 0.88rem;
@@ -156,7 +160,9 @@
   color: #0f172a;
   transition: all 0.2s ease;
   box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  box-sizing: border-box;
 }
+
 
 .search-box-wrap input:focus {
   border-color: #d97706;
@@ -1143,5 +1149,72 @@
   background: #f3e8ff;
   padding: 2px 8px;
   border-radius: 10px;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE COUPONS MANAGER DESIGN (MAX-WIDTH 768px & 480px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .coupons-manager-container {
+    padding: 16px;
+  }
+
+  .coupons-hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .hero-left h2 {
+    font-size: 1.5rem;
+  }
+
+  .btn-create-coupon {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .coupons-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-tabs-row {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .coupons-table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 14px;
+  }
+
+  .coupons-table {
+    min-width: 650px;
+  }
+
+  .coupon-modal-card {
+    width: 95vw !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .form-row-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-left h2 {
+    font-size: 1.35rem;
+  }
 }
 

@@ -114,14 +114,7 @@ const CustomersManager = () => {
 
   return (
     <div className="customers-manager">
-      {/* Header & KPI Summary */}
-      <div className="manager-header">
-        <div>
-          <span className="executive-badge">✦ ATELIER CLIENT DIRECTORY</span>
-          <h1>Customer Management</h1>
-          <p>Client profiles, order history, lifetime value & relationship analytics</p>
-        </div>
-      </div>
+
 
       {/* Executive KPI Grid */}
       <div className="customers-kpi-grid">

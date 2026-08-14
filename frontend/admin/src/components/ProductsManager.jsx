@@ -672,10 +672,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
   return (
     <div className="products-manager">
       <div className="manager-header">
-        <div>
-          <h1>Products Management</h1>
-          <p>Manage your product inventory and stock</p>
-        </div>
         <div className="header-actions">
           <button className="add-btn" onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Cancel' : '+ Add Product'}

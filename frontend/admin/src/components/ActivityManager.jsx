@@ -84,14 +84,7 @@ const ActivityManager = () => {
 
   return (
     <div className="activity-manager">
-      {/* Header */}
-      <div className="manager-header">
-        <div>
-          <span className="executive-badge">✦ SEEMEE ATELIER AUDIT TRAIL</span>
-          <h1>Activity Log & Signal Feed</h1>
-          <p>Real-time system events, customer checkouts, inventory signals & store ledger</p>
-        </div>
-      </div>
+
 
       {/* Executive KPI Summary Cards */}
       <div className="activity-kpi-grid">

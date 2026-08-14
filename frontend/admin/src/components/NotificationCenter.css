@@ -168,6 +168,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
+  white-space: nowrap;
 }
 
 .filter-tab:hover {
@@ -189,17 +190,18 @@
   background: #FAF9F6;
   border: 1px solid #E2E0D8;
   border-radius: 50px;
-  padding: 0 16px;
+  padding: 0 14px;
   min-width: 240px;
   height: 40px;
   color: #666666;
   transition: all 0.2s ease;
 }
 
-.notif-search-box:focus-within {
-  border-color: #D4AF37;
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
-  color: #111111;
+.notif-search-box svg {
+  flex-shrink: 0;
+  margin-right: 6px;
+  color: #888888;
+  z-index: 2;
 }
 
 .notif-search-box input {
@@ -208,9 +210,11 @@
   outline: none;
   color: #111111;
   font-size: 0.84rem;
-  padding-left: 10px;
+  padding: 0 6px !important;
   width: 100%;
+  box-sizing: border-box;
 }
+
 
 .notif-search-box input::placeholder {
   color: #888888;
@@ -226,43 +230,74 @@
 }
 .clear-search-btn:hover { color: #DC2626; }
 
+/* FIX: Toolbar Action Buttons (Clear All & Mark Read) */
 .toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-shrink: 0 !important;
 }
 
 .btn-action {
-  border: none;
-  padding: 9px 18px;
-  border-radius: 50px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  border: 1px solid transparent !important;
+  padding: 8px 18px !important;
+  border-radius: 50px !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  transition: all 0.25s ease;
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+  height: 38px !important;
+  min-width: max-content !important;
+  width: auto !important;
+  box-sizing: border-box !important;
+  line-height: 1 !important;
 }
 
 .btn-action.mark-read {
-  background: #ECFDF5;
-  color: #059669;
-  border: 1px solid #A7F3D0;
+  background: #ECFDF5 !important;
+  color: #059669 !important;
+  border: 1px solid #A7F3D0 !important;
 }
 .btn-action.mark-read:hover {
-  background: #D1FAE5;
+  background: #D1FAE5 !important;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.15);
 }
 
 .btn-action.clear-all {
-  background: #FEF2F2;
-  color: #DC2626;
-  border: 1px solid #FECACA;
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
 }
 .btn-action.clear-all:hover {
-  background: #FEE2E2;
+  background: #FEE2E2 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+}
+
+/* Single Card Mark Read Button */
+.btn-mark-single-read {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+}
+.btn-mark-single-read:hover {
+  background: #D1FAE5;
   transform: translateY(-1px);
 }
 
@@ -483,4 +518,172 @@
 .notif-card:hover .btn-view-order {
   color: #111111;
   background: rgba(212, 175, 55, 0.15);
+}
+
+/* ==========================================================================
+   RESPONSIVE MOBILE VIEW DESIGN (SMARTPHONES & TABLETS)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .notification-center-container {
+    padding: 1rem;
+    border-radius: 14px;
+    margin: 0;
+  }
+
+  .notif-hero-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.4rem 1.2rem;
+    gap: 1.2rem;
+  }
+
+  .hero-left h2 {
+    font-size: 1.5rem;
+  }
+
+  .hero-left p {
+    font-size: 0.84rem;
+  }
+
+  .hero-right-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .hero-stat-card {
+    padding: 10px 14px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .hero-stat-num {
+    font-size: 1.35rem;
+  }
+
+  .notif-center-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 1.2rem;
+    padding-bottom: 1rem;
+  }
+
+  .toolbar-left-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .filter-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    width: 100%;
+  }
+
+  .filter-tab {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    font-size: 0.78rem;
+  }
+
+  .notif-search-box {
+    width: 100%;
+    min-width: 100%;
+    box-sizing: border-box;
+    height: 42px;
+  }
+
+  .toolbar-actions {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .btn-action {
+    flex: 1;
+    justify-content: center;
+    font-size: 0.78rem !important;
+    padding: 8px 10px !important;
+  }
+
+  .notif-card {
+    padding: 1rem 1.1rem;
+    border-radius: 14px;
+  }
+
+  .card-top-row {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .type-badge-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+  }
+
+  .card-type-title {
+    font-size: 0.92rem;
+  }
+
+  .card-category-label {
+    font-size: 0.68rem;
+  }
+
+  .card-message {
+    font-size: 0.84rem;
+    margin-bottom: 10px;
+  }
+
+  .card-bottom-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #F5F5F5;
+  }
+
+  .card-meta-tags {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .card-action-trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .btn-mark-single-read,
+  .btn-view-order {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-left h2 {
+    font-size: 1.35rem;
+  }
+
+  .hero-right-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .meta-order-number,
+  .meta-order-amount {
+    font-size: 0.74rem;
+    padding: 2px 7px;
+  }
 }

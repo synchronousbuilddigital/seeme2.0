@@ -91,13 +91,16 @@
   top: 50%;
   transform: translateY(-50%);
   color: #999;
+  pointer-events: none;
+  z-index: 2;
+  flex-shrink: 0;
 }
 
 .toolbar-input {
   width: 100%;
-  padding: 1.2rem 1.2rem 1.2rem 3.5rem;
+  padding: 0.9rem 1.2rem 0.9rem 3.6rem !important;
   border: 1px solid #EAEAEA;
-  border-radius: 6px;
+  border-radius: 8px;
   background: #FAFAFA;
   font-size: 0.95rem;
   transition: all 0.3s ease;
@@ -106,7 +109,9 @@
   caret-color: #111111 !important;
   -webkit-text-fill-color: #111111 !important;
   opacity: 1 !important;
+  box-sizing: border-box;
 }
+
 
 .toolbar-input:focus {
   outline: none;
@@ -1630,4 +1635,121 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   MOBILE RESPONSIVE PRODUCTS MANAGER DESIGN (MAX-WIDTH 768px & 480px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .products-manager {
+    padding-bottom: 2rem;
+  }
+
+  .manager-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-bottom: 1.2rem;
+  }
+
+  .manager-header h1 {
+    font-size: 1.8rem;
+  }
+
+  .header-left-group {
+    width: 100%;
+  }
+
+  .add-product-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.8rem 1.4rem;
+    font-size: 0.76rem;
+  }
+
+  .controls-bar, .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-box {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .category-filter-pills, .form-header-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    width: 100%;
+  }
+
+  .filter-pill, .form-tab-btn {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .product-card {
+    border-radius: 12px;
+  }
+
+  .product-image-container {
+    height: 180px;
+  }
+
+  .product-info {
+    padding: 12px;
+  }
+
+  .product-title {
+    font-size: 0.88rem;
+  }
+
+  .product-form-drawer {
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+
+  .drawer-header {
+    padding: 18px 20px;
+  }
+
+  .drawer-body {
+    padding: 20px;
+  }
+
+  .form-grid, .form-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .image-upload-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .products-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .product-image-container {
+    height: 160px;
+  }
+
+  .manager-header h1 {
+    font-size: 1.5rem;
+  }
 }

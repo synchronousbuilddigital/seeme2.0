@@ -63,7 +63,7 @@ const NotificationBell = ({ onSelectOrder }) => {
     }
   }
 
-  const handleNotificationClick = async (notif) => {
+  const handleMarkSingleRead = async (notif) => {
     try {
       if (!notif.isRead) {
         setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, isRead: true } : n))
@@ -75,7 +75,15 @@ const NotificationBell = ({ onSelectOrder }) => {
         })
       }
     } catch (err) {
-      console.error('Error marking notification as read:', err.message)
+      console.error('Error marking notification read:', err.message)
+    }
+  }
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      await handleMarkSingleRead(notif)
+    } catch (err) {
+      console.error('Error handling notification click:', err.message)
     } finally {
       setIsOpen(false)
       const orderTarget = notif.order?._id || notif.order || notif.orderId
@@ -194,8 +202,21 @@ const NotificationBell = ({ onSelectOrder }) => {
                         <div className="notif-item-top">
                           <span className="notif-item-title">{n.title}</span>
                           <div className="notif-item-right">
+                            {!n.isRead && (
+                              <button
+                                type="button"
+                                className="btn-dropdown-mark-read"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleMarkSingleRead(n)
+                                }}
+                                title="Mark as read"
+                                aria-label="Mark as read"
+                              >
+                                ✓
+                              </button>
+                            )}
                             <span className="notif-item-time">{timeAgo(n.createdAt)}</span>
-                            {/* Cross Button to Delete Notification */}
                             <button
                               type="button"
                               className="btn-dropdown-delete"

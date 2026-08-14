@@ -951,3 +951,99 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* ==========================================================================
+   MOBILE RESPONSIVE INVENTORY MANAGER DESIGN (MAX-WIDTH 768px & 480px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .inventory-manager-redesign {
+    padding-bottom: 2rem;
+  }
+
+  .inventory-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .inventory-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .inventory-kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .kpi-card {
+    padding: 14px 16px;
+    gap: 12px;
+    border-radius: 14px;
+  }
+
+  .kpi-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .kpi-value {
+    font-size: 1.4rem;
+  }
+
+  .inventory-content-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .toolbar-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filter-pills {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    width: 100%;
+  }
+
+  .filter-pill {
+    flex-shrink: 0;
+    padding: 6px 14px;
+    font-size: 0.76rem;
+  }
+
+  .inventory-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
+
+  .inventory-table {
+    min-width: 650px;
+  }
+
+  .edit-stock-modal {
+    width: 95vw !important;
+    max-width: 100% !important;
+    padding: 1.2rem !important;
+    border-radius: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .inventory-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .inventory-kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
