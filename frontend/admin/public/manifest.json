@@ -1,28 +1,41 @@
 {
   "short_name": "SeeMee Admin",
-  "name": "See Mee - Admin Panel & Order Control",
+  "name": "SeeMee Admin",
   "description": "Admin management dashboard & real-time order alerts for See Mee ethnic wear.",
   "icons": [
     {
-      "src": "/apple-touch-icon.png",
+      "src": "/images/icon-192.png",
       "type": "image/png",
-      "sizes": "180x180",
+      "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/images/logoSEEMEE1.png",
+      "src": "/images/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "maskable"
     },
     {
       "src": "/images/logoSEEMEE1.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "500x500",
+      "purpose": "any"
     }
   ],
   "start_url": "/dashboard",
+  "id": "/dashboard",
   "background_color": "#FCFCFC",
   "theme_color": "#050505",
   "display": "standalone",

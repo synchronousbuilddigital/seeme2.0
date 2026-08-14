@@ -4,10 +4,12 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/offline.html',
-  '/favicon.ico',
+  '/favicon-32x32.png',
   '/apple-touch-icon.png',
   '/apple-touch-icon-precomposed.png',
-  '/images/logoSEEMEE1.png'
+  '/images/logoSEEMEE1.png',
+  '/images/icon-192.png',
+  '/images/icon-512.png'
 ]
 
 // ─── SERVICE WORKER INSTALLATION ─────────────────────────
