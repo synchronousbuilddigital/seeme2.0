@@ -1,4 +1,32 @@
 import nodemailer from 'nodemailer'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const getLogoAttachment = () => {
+  const possiblePaths = [
+    path.join(__dirname, '..', 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(__dirname, '..', '..', 'frontend', 'client', 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(process.cwd(), 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(process.cwd(), 'backend', 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(process.cwd(), 'frontend', 'client', 'public', 'images', 'logoSEEMEE1.png')
+  ]
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      return [{
+        filename: 'logoSEEMEE1.png',
+        path: p,
+        cid: 'seemee_logo_header@seemee.com',
+        contentDisposition: 'inline'
+      }]
+    }
+  }
+  return []
+}
 
 const createTransporter = () => {
   // In development/test environment without SMTP keys, use a mock logger
@@ -31,11 +59,13 @@ const transporter = createTransporter()
 
 export const sendEmail = async ({ to, subject, html }) => {
   try {
+    const attachments = getLogoAttachment()
     const info = await transporter.sendMail({
       from: `"SEEMEE" <${process.env.SMTP_FROM || 'noreply@seemee.com'}>`,
       to,
       subject,
-      html
+      html,
+      ...(attachments.length > 0 && { attachments })
     })
     return info
   } catch (error) {
@@ -47,8 +77,9 @@ export const sendEmail = async ({ to, subject, html }) => {
 
 // Transactional Email Templates
 export const sendOrderConfirmation = async (order) => {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
-  const logoUrl = `${clientUrl}/images/logoSEEMEE1.png`
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const logoAttachments = getLogoAttachment()
+  const logoUrl = logoAttachments.length > 0 ? 'cid:seemee_logo_header@seemee.com' : `${clientUrl}/images/logoSEEMEE1.png`
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
       <div style="text-align: center; margin-bottom: 20px;">
@@ -82,8 +113,9 @@ export const sendOrderConfirmation = async (order) => {
 }
 
 export const sendStatusUpdate = async (order) => {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
-  const logoUrl = `${clientUrl}/images/logoSEEMEE1.png`
+  const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const logoAttachments = getLogoAttachment()
+  const logoUrl = logoAttachments.length > 0 ? 'cid:seemee_logo_header@seemee.com' : `${clientUrl}/images/logoSEEMEE1.png`
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
       <div style="text-align: center; margin-bottom: 20px;">

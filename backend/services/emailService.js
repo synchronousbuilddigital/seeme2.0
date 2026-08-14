@@ -12,7 +12,10 @@ const __dirname = path.dirname(__filename)
 const getLogoAttachment = () => {
   const possiblePaths = [
     path.join(__dirname, '..', 'public', 'images', 'logoSEEMEE1.png'),
-    path.join(__dirname, '..', '..', 'frontend', 'client', 'public', 'images', 'logoSEEMEE1.png')
+    path.join(__dirname, '..', '..', 'frontend', 'client', 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(process.cwd(), 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(process.cwd(), 'backend', 'public', 'images', 'logoSEEMEE1.png'),
+    path.join(process.cwd(), 'frontend', 'client', 'public', 'images', 'logoSEEMEE1.png')
   ]
 
   for (const p of possiblePaths) {
@@ -118,21 +121,17 @@ export const sendEmail = async ({ to, subject, html }) => {
 const getLogoHeaderHtml = (subtitle = 'Notification') => {
   const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '')
 
-  // 1. Convert local logo file to Base64 Data URI if present
+  // 1. Prefer CID inline attachment (cid:seemee_logo_header@seemee.com) which works reliably across Gmail, Outlook & Apple Mail.
+  // Base64 data URIs are blocked/stripped by Gmail and webmail providers causing broken logo image icons.
+  const logoAttachments = getLogoAttachment()
   let logoSrc = 'cid:seemee_logo_header@seemee.com'
-  const logoPath = path.join(__dirname, '..', 'public', 'images', 'logoSEEMEE1.png')
 
-  if (fs.existsSync(logoPath)) {
-    try {
-      const b64 = fs.readFileSync(logoPath).toString('base64')
-      logoSrc = `data:image/png;base64,${b64}`
-    } catch (e) {
-      console.warn('Base64 logo read warning:', e.message)
+  if (logoAttachments.length === 0) {
+    if (process.env.PUBLIC_LOGO_URL) {
+      logoSrc = process.env.PUBLIC_LOGO_URL
+    } else if (process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost')) {
+      logoSrc = `${clientUrl}/images/logoSEEMEE1.png`
     }
-  } else if (process.env.PUBLIC_LOGO_URL) {
-    logoSrc = process.env.PUBLIC_LOGO_URL
-  } else if (process.env.CLIENT_URL && !process.env.CLIENT_URL.includes('localhost')) {
-    logoSrc = `${clientUrl}/images/logoSEEMEE1.png`
   }
 
   return `
