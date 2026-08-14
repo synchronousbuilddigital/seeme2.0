@@ -133,7 +133,7 @@ async function createApp() {
     const { default: shippingRoutes } = await import('../routes/shipping.js')
     console.log('✅ Shipping routes loaded')
 
-    const { default: notificationRoutes } = await import('../routes/notifications.js')
+    const { default: notificationRoutes } = await import('../routes/notificationRoutes.js')
     console.log('✅ Notification routes loaded')
 
     app.use('/api/auth', authRoutes)
