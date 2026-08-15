@@ -55,6 +55,7 @@ export const orderValidationRules = () => {
     body('customer.address.state').notEmpty().withMessage('State is required'),
     body('customer.address.pincode').notEmpty().withMessage('Pincode is required'),
     body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
-    body('paymentMethod').isIn(['cod', 'online']).withMessage('Invalid payment method'),
+    body('paymentMethod').isIn(['cod', 'online', 'COD', 'ONLINE']).withMessage('Invalid payment method'),
+    body('orderType').optional().isIn(['ONLINE', 'OFFLINE', 'online', 'offline']).withMessage('Invalid order type')
   ]
 }

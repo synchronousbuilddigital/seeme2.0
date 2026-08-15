@@ -31,6 +31,10 @@ router.put('/:id/cancel', protect, orderController.cancelMyOrder)
 // Update order status (admin only)
 router.put('/:id/status', protect, admin, orderController.updateOrderStatus)
 
+// COD Approval/Rejection routes for Offline Store orders (admin only)
+router.put('/:id/approve-cod', protect, admin, orderController.approveCodOrder)
+router.put('/:id/reject-cod', protect, admin, orderController.rejectCodOrder)
+
 // Get single order
 router.get('/:id', orderController.getOrder)
 

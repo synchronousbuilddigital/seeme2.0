@@ -118,6 +118,7 @@ const Checkout = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const { user, token } = useAuth()
+  const [orderType, setOrderType] = useState('ONLINE')
   
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -510,6 +511,7 @@ const Checkout = () => {
     }
 
     const orderData = {
+      orderType: orderType,
       customer: {
         name: formData.name,
         email: formData.email,
@@ -864,7 +866,7 @@ const Checkout = () => {
 
             </motion.section>
 
-            {/* Section 02: Payment Options Selection */}
+            {/* Section 02: Order Type & Payment Method Selection */}
             <motion.section 
               className="form-luxury-section"
               initial={{ opacity: 0, y: 20 }}
@@ -874,19 +876,94 @@ const Checkout = () => {
               <div className="section-header-box">
                 <div className="section-badge-pill">02</div>
                 <div>
-                  <h2 className="section-title-luxury">Payment Method</h2>
-                  <p className="section-desc">Select your preferred payment gateway option</p>
+                  <h2 className="section-title-luxury">Order Type</h2>
+                  <p className="section-desc">Select how you would like to place your order</p>
+                </div>
+              </div>
+
+              <div className="order-type-selector-luxury" style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                <label 
+                  className={`order-type-card ${orderType === 'ONLINE' ? 'active' : ''}`}
+                  onClick={() => {
+                    setOrderType('ONLINE')
+                    setFormData(prev => ({ ...prev, paymentMethod: 'online' }))
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '16px 20px',
+                    border: orderType === 'ONLINE' ? '2px solid #d4af37' : '1px solid #e7e5e4',
+                    borderRadius: '12px',
+                    background: orderType === 'ONLINE' ? 'rgba(212, 175, 55, 0.05)' : '#fff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}
+                >
+                  <input 
+                    type="radio" 
+                    name="orderType" 
+                    value="ONLINE" 
+                    checked={orderType === 'ONLINE'} 
+                    onChange={() => {
+                      setOrderType('ONLINE')
+                      setFormData(prev => ({ ...prev, paymentMethod: 'online' }))
+                    }} 
+                  />
+                  <div>
+                    <strong style={{ display: 'block', color: '#1c1917', fontSize: '15px' }}>Online Store</strong>
+                    <span style={{ fontSize: '12px', color: '#78716c' }}>Online Payment Only (Razorpay)</span>
+                  </div>
+                </label>
+
+                <label 
+                  className={`order-type-card ${orderType === 'OFFLINE' ? 'active' : ''}`}
+                  onClick={() => {
+                    setOrderType('OFFLINE')
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '16px 20px',
+                    border: orderType === 'OFFLINE' ? '2px solid #d4af37' : '1px solid #e7e5e4',
+                    borderRadius: '12px',
+                    background: orderType === 'OFFLINE' ? 'rgba(212, 175, 55, 0.05)' : '#fff',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}
+                >
+                  <input 
+                    type="radio" 
+                    name="orderType" 
+                    value="OFFLINE" 
+                    checked={orderType === 'OFFLINE'} 
+                    onChange={() => setOrderType('OFFLINE')} 
+                  />
+                  <div>
+                    <strong style={{ display: 'block', color: '#1c1917', fontSize: '15px' }}>Offline Store</strong>
+                    <span style={{ fontSize: '12px', color: '#78716c' }}>COD or Online Payment</span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="section-header-box" style={{ marginTop: '16px', marginBottom: '16px' }}>
+                <div>
+                  <h3 className="section-title-luxury" style={{ fontSize: '16px' }}>Payment Method</h3>
+                  <p className="section-desc">
+                    {orderType === 'ONLINE' ? 'Online Payment Only' : 'Select COD or Online Payment'}
+                  </p>
                 </div>
               </div>
 
               <div className="payment-grid-luxury">
                 {/* Razorpay Online Payment Option */}
-                <label className="payment-card-luxury active">
+                <label className={`payment-card-luxury ${formData.paymentMethod === 'online' ? 'active' : ''}`}>
                   <input 
                     type="radio" 
                     name="paymentMethod" 
                     value="online" 
-                    checked={true} 
+                    checked={formData.paymentMethod === 'online'} 
                     onChange={handleChange} 
                   />
                   <div className="payment-card-content">
@@ -909,6 +986,29 @@ const Checkout = () => {
                     </div>
                   </div>
                 </label>
+
+                {/* COD Option — ONLY visible for Offline Store orders */}
+                {orderType === 'OFFLINE' && (
+                  <label className={`payment-card-luxury ${formData.paymentMethod === 'cod' ? 'active' : ''}`} style={{ marginTop: '16px' }}>
+                    <input 
+                      type="radio" 
+                      name="paymentMethod" 
+                      value="cod" 
+                      checked={formData.paymentMethod === 'cod'} 
+                      onChange={handleChange} 
+                    />
+                    <div className="payment-card-content">
+                      <div className="payment-icon-head">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
+                          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        <span className="gold-security-badge">✦ Offline Store Exclusive</span>
+                      </div>
+                      <span className="method-title">Cash on Delivery (COD)</span>
+                      <span className="method-desc">Pay cash upon delivery. Subject to admin approval.</span>
+                    </div>
+                  </label>
+                )}
               </div>
             </motion.section>
 
@@ -927,7 +1027,10 @@ const Checkout = () => {
                 </span>
               ) : (
                 <span>
-                  {`Proceed to Secure Payment — ₹${calculateTotal().toLocaleString('en-IN')}`}
+                  {formData.paymentMethod === 'cod'
+                    ? `Place Offline COD Order — ₹${calculateTotal().toLocaleString('en-IN')}`
+                    : `Proceed to Secure Payment — ₹${calculateTotal().toLocaleString('en-IN')}`
+                  }
                 </span>
               )}
             </motion.button>

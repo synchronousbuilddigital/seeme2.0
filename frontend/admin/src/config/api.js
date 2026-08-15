@@ -10,6 +10,8 @@ export const API_ENDPOINTS = {
   GET_CATEGORIES: `${API_BASE_URL}/api/products/categories/all`,
   COLLECTION_COUNT: `${API_BASE_URL}/api/products/collection/count`,
   ORDERS: `${API_BASE_URL}/api/orders`,
+  APPROVE_COD: (id) => `${API_BASE_URL}/api/orders/${id}/approve-cod`,
+  REJECT_COD: (id) => `${API_BASE_URL}/api/orders/${id}/reject-cod`,
   SHIPPING: {
     RATE: `${API_BASE_URL}/api/shipping/rate`,
     CREATE: `${API_BASE_URL}/api/shipping/create`,

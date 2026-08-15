@@ -47,6 +47,11 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  orderType: {
+    type: String,
+    enum: ['ONLINE', 'OFFLINE', 'online', 'offline'],
+    default: 'ONLINE'
+  },
   status: {
     type: String,
     enum: [
@@ -57,14 +62,22 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['online', 'cod'],
+    enum: ['online', 'cod', 'ONLINE', 'COD'],
     default: 'online'
   },
   paymentStatus: {
     type: String,
-    enum: ['pending', 'paid', 'failed', 'refunded'],
+    enum: [
+      'pending', 'paid', 'failed', 'refunded', 'rejected',
+      'PENDING', 'PAID', 'FAILED', 'REFUNDED', 'REJECTED'
+    ],
     default: 'pending'
   },
+  approvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  approvedAt: Date,
   trackingNumber: String,
   estimatedDelivery: Date,
   designFiles: [String],
@@ -134,17 +147,18 @@ const orderSchema = new mongoose.Schema({
 })
 
 // Generate order number
-orderSchema.pre('save', async function(next) {
+orderSchema.pre('save', async function() {
   if (!this.orderNumber) {
     const count = await mongoose.model('Order').countDocuments()
     this.orderNumber = `SM${Date.now()}${count + 1}`
   }
-  next()
 })
 
 // Add indexes for fast queries
 orderSchema.index({ 'customer.email': 1 })
 orderSchema.index({ status: 1 })
+orderSchema.index({ orderType: 1 })
+orderSchema.index({ paymentStatus: 1 })
 orderSchema.index({ refundStatus: 1 })
 orderSchema.index({ createdAt: -1 })
 orderSchema.index({ 'shipping.ad2shipOrderId': 1 })

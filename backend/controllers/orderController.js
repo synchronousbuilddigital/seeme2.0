@@ -35,11 +35,20 @@ export const getRazorpay = () => {
 // @route   POST /api/orders
 // @access  Public
 export const createOrder = asyncHandler(async (req, res) => {
-  const { customer, items, paymentMethod } = req.body
+  const { customer, items, paymentMethod, orderType } = req.body
 
   if (!customer || !items || items.length === 0) {
     res.status(400)
     throw new Error('Customer info and at least one item are required')
+  }
+
+  const normalizedOrderType = String(orderType || 'ONLINE').toUpperCase()
+  const normalizedPaymentMethod = String(paymentMethod || 'online').toLowerCase()
+
+  // SECURITY RULE: Online Store orders MUST NOT allow COD
+  if (normalizedOrderType === 'ONLINE' && normalizedPaymentMethod === 'cod') {
+    res.status(400)
+    throw new Error('COD payment method is not allowed for Online Store orders. Please use Online Payment.')
   }
 
   let totalAmount = 0
@@ -91,20 +100,24 @@ export const createOrder = asyncHandler(async (req, res) => {
     customer,
     items: orderItems,
     totalAmount,
-    paymentMethod: paymentMethod || 'online'
+    orderType: normalizedOrderType,
+    paymentMethod: normalizedPaymentMethod,
+    paymentStatus: 'pending'
   })
 
-  // Automatically initialize Ad2Ship shipment order directly upon customer placement
-  try {
-    const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
-    if (shipResult?.ad2shipOrderId) {
-      if (!order.shipping) order.shipping = {}
-      order.shipping.provider = 'ad2ship'
-      order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
-      order.shipping.status = 'pending'
+  // Automatically initialize Ad2Ship shipment order directly upon customer placement (ONLINE STORE ONLY)
+  if (normalizedOrderType === 'ONLINE') {
+    try {
+      const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+      if (shipResult?.ad2shipOrderId) {
+        if (!order.shipping) order.shipping = {}
+        order.shipping.provider = 'ad2ship'
+        order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
+        order.shipping.status = 'pending'
+      }
+    } catch (shipErr) {
+      console.warn(`⚠️ Ad2Ship auto-creation notice for #${order.orderNumber}:`, shipErr.message)
     }
-  } catch (shipErr) {
-    console.warn(`⚠️ Ad2Ship auto-creation notice for #${order.orderNumber}:`, shipErr.message)
   }
 
   // Send Order Placed Email via Nodemailer Gmail Service
@@ -120,7 +133,14 @@ export const createOrder = asyncHandler(async (req, res) => {
 // @route   GET /api/orders
 // @access  Admin
 export const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find().populate('items.product').sort({ createdAt: -1 })
+  const query = {}
+  if (req.query.orderType) {
+    query.orderType = String(req.query.orderType).toUpperCase()
+  }
+  const orders = await Order.find(query)
+    .populate('items.product')
+    .populate('approvedBy', 'name email')
+    .sort({ createdAt: -1 })
   res.json({ success: true, data: orders })
 })
 
@@ -351,17 +371,20 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     razorpay_signature,
     customer,
     items,
-    totalAmount
+    totalAmount,
+    orderType
   } = req.body
+
+  const normalizedOrderType = String(orderType || 'ONLINE').toUpperCase()
 
   // For COD (no razorpay_order_id), we should have handled this elsewhere but 
   // keeping it robust for potential direct calls
   if (!razorpay_order_id) {
-    // This part should technically be handled by createOrder, but if called here:
     const order = await Order.create({
       customer,
       items,
       totalAmount,
+      orderType: normalizedOrderType,
       paymentMethod: 'cod',
       paymentStatus: 'pending'
     })
@@ -392,6 +415,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       customer,
       items,
       totalAmount,
+      orderType: normalizedOrderType,
       paymentMethod: 'online',
       paymentStatus: 'paid',
       paymentDetails: {
@@ -406,17 +430,19 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     // Trigger Native Web Push & In-App Admin Notification
     pushNotificationService.sendNewOrderNotification(order).catch(err => console.error('Order push notification error:', err.message))
 
-    // Initialize Ad2Ship shipment order after verified online payment
-    try {
-      const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
-      if (shipResult?.ad2shipOrderId) {
-        if (!order.shipping) order.shipping = {}
-        order.shipping.provider = 'ad2ship'
-        order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
-        order.shipping.status = 'pending'
+    // Initialize Ad2Ship shipment order after verified online payment (ONLINE STORE ONLY)
+    if (normalizedOrderType === 'ONLINE') {
+      try {
+        const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+        if (shipResult?.ad2shipOrderId) {
+          if (!order.shipping) order.shipping = {}
+          order.shipping.provider = 'ad2ship'
+          order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
+          order.shipping.status = 'pending'
+        }
+      } catch (shipErr) {
+        console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
       }
-    } catch (shipErr) {
-      console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
     }
 
     return res.json({ success: true, data: order })
@@ -452,6 +478,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     customer,
     items,
     totalAmount,
+    orderType: normalizedOrderType,
     paymentMethod: 'online',
     paymentStatus: 'paid',
     paymentDetails: {
@@ -466,18 +493,82 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   // Trigger Native Web Push & In-App Admin Notification
   pushNotificationService.sendNewOrderNotification(order).catch(err => console.error('Order push notification error:', err.message))
 
-  // Initialize Ad2Ship shipment order after verified online payment
-  try {
-    const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
-    if (shipResult?.ad2shipOrderId) {
-      if (!order.shipping) order.shipping = {}
-      order.shipping.provider = 'ad2ship'
-      order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
-      order.shipping.status = 'pending'
+  // Initialize Ad2Ship shipment order after verified online payment (ONLINE STORE ONLY)
+  if (normalizedOrderType === 'ONLINE') {
+    try {
+      const shipResult = await shippingService.createAd2ShipOrderForSeemeeOrder(order._id)
+      if (shipResult?.ad2shipOrderId) {
+        if (!order.shipping) order.shipping = {}
+        order.shipping.provider = 'ad2ship'
+        order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
+        order.shipping.status = 'pending'
+      }
+    } catch (shipErr) {
+      console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
     }
-  } catch (shipErr) {
-    console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
   }
+
+  res.json({ success: true, data: order })
+})
+
+// @desc    Approve COD payment for Offline Store order
+// @route   PUT /api/orders/:id/approve-cod
+// @access  Admin
+export const approveCodOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+  if (!order) {
+    res.status(404)
+    throw new Error('Order not found')
+  }
+
+  if (String(order.orderType || '').toUpperCase() !== 'OFFLINE' || String(order.paymentMethod || '').toLowerCase() !== 'cod') {
+    res.status(400)
+    throw new Error('Only Offline Store COD orders can be approved.')
+  }
+
+  order.paymentStatus = 'paid'
+  order.approvedBy = req.user?._id
+  order.approvedAt = new Date()
+
+  if (!order.timeline) order.timeline = []
+  order.timeline.push({
+    status: 'COD Approved',
+    timestamp: new Date(),
+    note: `COD Payment approved by ${req.user?.name || 'Admin'}`
+  })
+
+  await order.save()
+  await order.populate('approvedBy', 'name email')
+
+  res.json({ success: true, data: order })
+})
+
+// @desc    Reject COD payment for Offline Store order
+// @route   PUT /api/orders/:id/reject-cod
+// @access  Admin
+export const rejectCodOrder = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+  if (!order) {
+    res.status(404)
+    throw new Error('Order not found')
+  }
+
+  if (String(order.orderType || '').toUpperCase() !== 'OFFLINE' || String(order.paymentMethod || '').toLowerCase() !== 'cod') {
+    res.status(400)
+    throw new Error('Only Offline Store COD orders can be rejected.')
+  }
+
+  order.paymentStatus = 'rejected'
+
+  if (!order.timeline) order.timeline = []
+  order.timeline.push({
+    status: 'COD Rejected',
+    timestamp: new Date(),
+    note: 'COD Payment rejected by Admin'
+  })
+
+  await order.save()
+  await order.populate('approvedBy', 'name email')
 
   res.json({ success: true, data: order })
 })

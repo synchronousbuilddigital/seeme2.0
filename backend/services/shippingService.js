@@ -220,6 +220,13 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
     throw err
   }
 
+  // OFFLINE STORE ORDER CHECK: Prevent offline orders from sending products to Ad2Ship
+  if (String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE') {
+    const err = new Error('Ad2Ship logistics/shipping creation is disabled for Offline Store orders.')
+    err.statusCode = 400
+    throw err
+  }
+
   // DUPLICATE CREATION CHECK
   if (order.shipping && order.shipping.ad2shipOrderId) {
     console.log(`ℹ️ Ad2Ship order already exists for Order #${order.orderNumber} (ID: ${order.shipping.ad2shipOrderId})`)
