@@ -4,6 +4,7 @@ const STATIC_ASSETS = [
   '/index.html',
   '/manifest.json',
   '/offline.html',
+  '/favicon.ico',
   '/favicon-32x32.png',
   '/apple-touch-icon.png',
   '/apple-touch-icon-precomposed.png',

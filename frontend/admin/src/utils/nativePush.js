@@ -20,8 +20,7 @@ export const urlBase64ToUint8Array = (base64String) => {
  */
 export const registerServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) {
-    console.warn('⚠️ Service Worker is not supported in this browser environment.')
-    return null
+    throw new Error('Service Workers are not supported by this browser.')
   }
 
   try {
@@ -29,31 +28,36 @@ export const registerServiceWorker = async () => {
     console.log('✅ PWA Service Worker registered with scope:', registration.scope)
     return registration
   } catch (err) {
-    console.error('❌ Service Worker registration failed:', err.message)
-    return null
+    console.error('❌ Service Worker registration failed:', err)
+    throw new Error(`Service Worker registration failed (/sw.js): ${err.message}`)
   }
 }
 
 /**
- * Safely get active ServiceWorkerRegistration with a 3s timeout fallback
- * to prevent navigator.serviceWorker.ready from hanging indefinitely.
+ * Safely get active ServiceWorkerRegistration
  */
 export const getActiveServiceWorkerRegistration = async (timeoutMs = 3500) => {
-  if (!('serviceWorker' in navigator)) return null
-
-  // 1. Try to register / get registration
-  let reg = await registerServiceWorker()
-  if (!reg) {
-    try {
-      reg = await navigator.serviceWorker.getRegistration()
-    } catch (e) {
-      console.warn('getRegistration warning:', e.message)
-    }
+  if (!('serviceWorker' in navigator)) {
+    throw new Error('Service Workers are not supported by this browser.')
   }
 
-  if (!reg) return null
+  if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    throw new Error('Web Push Notifications require a Secure Context (HTTPS or http://localhost).')
+  }
 
-  // 2. Race navigator.serviceWorker.ready with a timeout fallback
+  // 1. Try fetching existing registration first
+  let reg = await navigator.serviceWorker.getRegistration('/')
+  
+  // 2. If not registered, attempt new registration
+  if (!reg) {
+    reg = await registerServiceWorker()
+  }
+
+  if (!reg) {
+    throw new Error('Could not obtain Service Worker registration for /sw.js.')
+  }
+
+  // 3. Race navigator.serviceWorker.ready with a fallback timer
   try {
     const readyPromise = navigator.serviceWorker.ready
     const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(reg), timeoutMs))
@@ -97,19 +101,22 @@ export const subscribeToPush = async () => {
   }
 
   if (!window.isSecureContext && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    throw new Error('Web Push requires a Secure Context (HTTPS or localhost).')
+    throw new Error('Web Push Notifications require a Secure Context (HTTPS or http://localhost).')
   }
 
   // 1. Request notification permission explicitly
   const permission = await Notification.requestPermission()
+  if (permission === 'denied') {
+    throw new Error('Notification permission was blocked in browser settings. Please click the lock icon in your address bar and allow Notifications.')
+  }
   if (permission !== 'granted') {
-    throw new Error('Notification permission denied by user or browser.')
+    throw new Error('Notification permission was not granted.')
   }
 
-  // 2. Ensure Service Worker is active without hanging indefinitely
+  // 2. Ensure Service Worker is active
   const registration = await getActiveServiceWorkerRegistration()
   if (!registration || !registration.pushManager) {
-    throw new Error('Service Worker push manager is unavailable.')
+    throw new Error('Browser PushManager is disabled or blocked in this environment (requires HTTPS or Chrome permissions).')
   }
 
   // 3. Get VAPID Public Key
@@ -120,20 +127,25 @@ export const subscribeToPush = async () => {
 
   const convertedKey = urlBase64ToUint8Array(publicKey)
 
-  // 4. Create or reuse existing PushSubscription with a 10s timeout
+  // 4. Create or reuse existing PushSubscription
   let subscription = await registration.pushManager.getSubscription()
 
   if (!subscription) {
-    const subscribePromise = registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: convertedKey
-    })
+    try {
+      const subscribePromise = registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedKey
+      })
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Push subscription timed out. Check browser notification permissions.')), 10000)
-    )
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Push subscription timed out. Check browser notification permissions.')), 10000)
+      )
 
-    subscription = await Promise.race([subscribePromise, timeoutPromise])
+      subscription = await Promise.race([subscribePromise, timeoutPromise])
+    } catch (subErr) {
+      console.error('pushManager.subscribe error:', subErr)
+      throw new Error(`Push subscription failed: ${subErr.message}`)
+    }
   }
 
   const subscriptionJSON = subscription.toJSON()
