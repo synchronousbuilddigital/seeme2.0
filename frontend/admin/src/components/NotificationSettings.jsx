@@ -111,16 +111,8 @@ const NotificationSettings = () => {
         <div className="pwa-header-left">
           <div className="notif-settings-icon">🔔</div>
           <div className="pwa-header-titles">
-            <h3 className="settings-title">Native Order Push Notifications</h3>
-            <p className="settings-subtitle">Browser & Mobile PWA Push Alerts for New Customer Orders (VAPID W3C Standard)</p>
+            <h3 className="settings-title">Notifications Status</h3>
           </div>
-        </div>
-
-        <div className="pwa-header-right">
-          <span className={`pwa-status-pill ${pushStatus.isSubscribed ? 'enabled' : 'disabled'}`}>
-            <span className="pwa-pulse-dot"></span>
-            {pushStatus.isSubscribed ? 'PUSH ENABLED' : 'PUSH DISABLED'}
-          </span>
         </div>
       </div>
 

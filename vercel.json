@@ -19,10 +19,14 @@
       "dest": "backend/api/index.js"
     },
     {
+      "src": "/sw.js",
+      "dest": "/sw.js"
+    },
+    {
       "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
+      "src": "/((?!.*\\.).*)",
       "dest": "/index.html"
     }
   ],

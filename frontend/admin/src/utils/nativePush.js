@@ -29,6 +29,9 @@ export const registerServiceWorker = async () => {
     return registration
   } catch (err) {
     console.error('❌ Service Worker registration failed:', err)
+    if (err.message && (err.message.includes('MIME type') || err.message.includes('text/html'))) {
+      throw new Error(`Service Worker file (/sw.js) returned HTML instead of JavaScript. Please verify sw.js in public/ folder and Vercel route settings.`)
+    }
     throw new Error(`Service Worker registration failed (/sw.js): ${err.message}`)
   }
 }
