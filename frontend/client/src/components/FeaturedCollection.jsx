@@ -5,6 +5,7 @@ import { useInView } from '../hooks/useInView'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import AddToCartButton from './AddToCartButton'
 import './FeaturedCollection.css'
 
 const FeaturedCollection = () => {
@@ -109,9 +110,12 @@ const FeaturedCollection = () => {
                 </div>
 
                 <div className="cf-actions">
-                  <button className="cf-btn-add" onClick={() => addToCart(currentProduct)}>
-                    Add to Bag
-                  </button>
+                  <AddToCartButton
+                    product={currentProduct}
+                    label="Add to Bag"
+                    variant="full"
+                    showIcon={true}
+                  />
                   <button className="cf-btn-view" onClick={() => navigate(`/product/${currentProduct._id}`, { state: { product: currentProduct } })}>
                     View Details
                   </button>

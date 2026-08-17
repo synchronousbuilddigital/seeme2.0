@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import Coupon from '../models/Coupon.js'
 import CouponUsage from '../models/CouponUsage.js'
 import Order from '../models/Order.js'
@@ -37,13 +38,24 @@ export const validateAndCalculateCoupon = async ({
     return { isValid: false, reason: 'USAGE_LIMIT_EXCEEDED', message: 'This coupon limit has been fully redeemed.' }
   }
 
+  // Resolve valid user ObjectId if available
+  let validUserId = null
+  if (userId && mongoose.Types.ObjectId.isValid(String(userId))) {
+    validUserId = userId
+  } else if (userEmail) {
+    const userObj = await User.findOne({ email: String(userEmail).toLowerCase().trim() }).select('_id')
+    if (userObj) {
+      validUserId = userObj._id
+    }
+  }
+
   // Check target user restriction if targeted to selected users
   const isTargeted = coupon.targetAudience === 'selected' || (coupon.allowedUsers && coupon.allowedUsers.length > 0)
   if (isTargeted) {
     const allowedUserIds = (coupon.allowedUsers || []).map(u => String(u._id || u))
     let userMatched = false
 
-    if (userId && allowedUserIds.includes(String(userId))) {
+    if (validUserId && allowedUserIds.includes(String(validUserId))) {
       userMatched = true
     }
 
@@ -63,33 +75,42 @@ export const validateAndCalculateCoupon = async ({
     }
   }
 
-
   // Check per-user limit
-  const userIdentifier = userId || userEmail
-  if (userIdentifier && coupon.perUserLimit) {
-    const userUsageCount = await CouponUsage.countDocuments({
-      coupon: coupon._id,
-      user: String(userIdentifier)
-    })
-    if (userUsageCount >= coupon.perUserLimit) {
-      return {
-        isValid: false,
-        reason: 'USER_LIMIT_EXCEEDED',
-        message: `You have already used this coupon maximum allowed times (${coupon.perUserLimit}).`
+  if (coupon.perUserLimit && (validUserId || userEmail)) {
+    let usageConditions = []
+    if (validUserId) usageConditions.push({ user: validUserId })
+    if (userEmail) usageConditions.push({ userEmail: String(userEmail).toLowerCase().trim() })
+
+    if (usageConditions.length > 0) {
+      const userUsageCount = await CouponUsage.countDocuments({
+        coupon: coupon._id,
+        $or: usageConditions
+      })
+      if (userUsageCount >= coupon.perUserLimit) {
+        return {
+          isValid: false,
+          reason: 'USER_LIMIT_EXCEEDED',
+          message: `You have already used this coupon maximum allowed times (${coupon.perUserLimit}).`
+        }
       }
     }
   }
 
   // Check first-order only
-  if (coupon.firstOrderOnly && userIdentifier) {
-    const userOrdersCount = await Order.countDocuments({
-      $or: [
-        { user: String(userIdentifier) },
-        { 'customer.email': String(userIdentifier) }
-      ]
-    })
-    if (userOrdersCount > 0) {
-      return { isValid: false, reason: 'FIRST_ORDER_ONLY', message: 'This coupon is valid only for your first order.' }
+  if (coupon.firstOrderOnly && (validUserId || userEmail)) {
+    let orderConditions = []
+    if (validUserId) {
+      orderConditions.push({ user: validUserId })
+    }
+    if (userEmail) {
+      orderConditions.push({ 'customer.email': String(userEmail).toLowerCase().trim() })
+    }
+
+    if (orderConditions.length > 0) {
+      const userOrdersCount = await Order.countDocuments({ $or: orderConditions })
+      if (userOrdersCount > 0) {
+        return { isValid: false, reason: 'FIRST_ORDER_ONLY', message: 'This coupon is valid only for your first order.' }
+      }
     }
   }
 

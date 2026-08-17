@@ -66,9 +66,23 @@ export const getAvailableCoupons = asyncHandler(async (req, res) => {
 
   const query = {
     isActive: true,
-    startDate: { $lte: now },
-    expiryDate: { $gte: now },
-    ...audienceFilter
+    $and: [
+      {
+        $or: [
+          { startDate: { $exists: false } },
+          { startDate: null },
+          { startDate: { $lte: now } }
+        ]
+      },
+      {
+        $or: [
+          { expiryDate: { $exists: false } },
+          { expiryDate: null },
+          { expiryDate: { $gte: now } }
+        ]
+      },
+      audienceFilter
+    ]
   }
 
   const coupons = await Coupon.find(query)

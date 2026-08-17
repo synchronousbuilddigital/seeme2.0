@@ -1,0 +1,169 @@
+/* Ultra-Compact & Non-Clipping AddToCartButton styles */
+.add-to-cart-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: #1c1917;
+  color: #ffffff;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 14px;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12);
+  line-height: 1.2;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.add-to-cart-action-btn:hover:not(:disabled) {
+  background: #d4af37;
+  color: #000000;
+  border-color: #d4af37;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.35);
+  transform: translateY(-1px);
+}
+
+.add-to-cart-action-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.add-to-cart-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #2a2725;
+  border-color: #555555;
+}
+
+/* Quantity Control Stepper Container */
+.add-to-cart-qty-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #1c1917;
+  border: 1.2px solid #d4af37;
+  color: #ffffff;
+  padding: 2px 4px;
+  border-radius: 14px;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.2);
+  animation: qtyControlPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
+  box-sizing: border-box;
+  white-space: nowrap;
+  flex-shrink: 0;
+  height: 26px;
+}
+
+@keyframes qtyControlPop {
+  0% { transform: scale(0.94); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.add-to-cart-qty-control .qty-btn {
+  background: rgba(212, 175, 55, 0.18);
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.add-to-cart-qty-control .qty-btn:hover {
+  background: #d4af37;
+  color: #000000;
+  border-color: #d4af37;
+}
+
+.add-to-cart-qty-control .qty-val-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 2px;
+}
+
+.add-to-cart-qty-control .qty-count-val {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #ffffff;
+  min-width: 12px;
+  text-align: center;
+  font-family: inherit;
+}
+
+.add-to-cart-qty-control .qty-in-bag-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #d4af37;
+  font-weight: 600;
+}
+
+/* Variants */
+.add-to-cart-qty-control.variant-mini,
+.add-to-cart-action-btn.variant-mini {
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  letter-spacing: 0.5px;
+  height: 26px;
+  border-radius: 14px;
+}
+
+.add-to-cart-qty-control.variant-mini .qty-btn {
+  width: 18px;
+  height: 18px;
+  font-size: 0.8rem;
+}
+
+.add-to-cart-qty-control.variant-full,
+.add-to-cart-action-btn.variant-full {
+  width: 100%;
+  padding: 0 20px;
+  font-size: 0.82rem;
+  height: 48px;
+  border-radius: 30px;
+  letter-spacing: 0.8px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.add-to-cart-qty-control.variant-full .qty-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 1.1rem;
+}
+
+.add-to-cart-qty-control.variant-pill,
+.add-to-cart-action-btn.variant-pill {
+  border-radius: 20px;
+  padding: 5px 12px;
+  height: 30px;
+  font-size: 0.7rem;
+}
+
+.add-to-cart-qty-control.variant-modal,
+.add-to-cart-action-btn.variant-modal {
+  width: 100%;
+  padding: 12px 18px;
+  font-size: 0.82rem;
+  height: 44px;
+  border-radius: 25px;
+}

@@ -17,7 +17,6 @@ import HeroCarouselManager from '../components/HeroCarouselManager'
 import MagazineManager from '../components/MagazineManager'
 import ReelsManager from '../components/ReelsManager'
 import CouponsManager from '../components/CouponsManager'
-import NotificationSettings from '../components/NotificationSettings'
 import NotificationBell from '../components/NotificationBell'
 import NotificationCenter from '../components/NotificationCenter'
 import { isAdminSessionValid, getStoredAdminUser, clearAdminSession } from '../utils/apiClient'
@@ -306,13 +305,6 @@ const AdminDashboard = () => {
                 if (selection.type === 'customer') setActiveTab('customers')
               }} />
               <NotificationBell onSelectOrder={handleSelectOrderFromNotif} />
-              <div className="admin-profile">
-                <div className="admin-info">
-                  <p className="admin-name">Atelier Admin</p>
-                  <p className="admin-role">Full Access</p>
-                </div>
-                <div className="admin-avatar">A</div>
-              </div>
             </div>
           </div>
         </div>
@@ -321,7 +313,6 @@ const AdminDashboard = () => {
 
         <div style={{ display: activeTab === 'overview' ? 'block' : 'none' }}>
           <div className="overview-section">
-            <NotificationSettings />
             <div className="stats-grid">
               <motion.div className="stat-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="stat-icon blue">

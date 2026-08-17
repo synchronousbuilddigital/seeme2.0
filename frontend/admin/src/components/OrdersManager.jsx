@@ -560,106 +560,49 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
       </div>
 
       <div className="orders-toolbar">
-        <div className="search-box">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input
-            className="orders-search"
-            type="search"
-            placeholder="Search by Order #, Customer name, email, or phone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button className="clear-search-btn" onClick={() => setSearchTerm('')}>✕</button>
-          )}
-        </div>
 
-        <div className="order-type-channel-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px', marginBottom: '8px' }}>
-          <button
-            type="button"
-            className={`channel-tab ${orderTypeFilter === 'all' ? 'active' : ''}`}
-            onClick={() => setOrderTypeFilter('all')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: orderTypeFilter === 'all' ? '1.5px solid #d4af37' : '1px solid #333',
-              background: orderTypeFilter === 'all' ? '#d4af37' : '#1c1917',
-              color: orderTypeFilter === 'all' ? '#000' : '#fff',
-              fontWeight: '700',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            All Orders ({orders.length})
-          </button>
-          <button
-            type="button"
-            className={`channel-tab ${orderTypeFilter === 'ONLINE' ? 'active' : ''}`}
-            onClick={() => setOrderTypeFilter('ONLINE')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: orderTypeFilter === 'ONLINE' ? '1.5px solid #3b82f6' : '1px solid #333',
-              background: orderTypeFilter === 'ONLINE' ? '#2563eb' : '#1c1917',
-              color: '#fff',
-              fontWeight: '700',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <span style={{ fontSize: '0.9rem' }}>🌐</span>
-            <span>Online Orders ({orders.filter(o => String(o.orderType || 'ONLINE').toUpperCase() === 'ONLINE').length})</span>
-          </button>
-          <button
-            type="button"
-            className={`channel-tab ${orderTypeFilter === 'OFFLINE' ? 'active' : ''}`}
-            onClick={() => setOrderTypeFilter('OFFLINE')}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: orderTypeFilter === 'OFFLINE' ? '1.5px solid #10b981' : '1px solid #333',
-              background: orderTypeFilter === 'OFFLINE' ? '#059669' : '#1c1917',
-              color: '#fff',
-              fontWeight: '700',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            <span style={{ fontSize: '0.9rem' }}>🏬</span>
-            <span>Offline Orders ({orders.filter(o => String(o.orderType || '').toUpperCase() === 'OFFLINE').length})</span>
-          </button>
-        </div>
+        {/* 2 Dropdown Filters: Store Filter & Status Filter */}
+        <div className="orders-dropdown-filters-row">
+          {/* 1. Store / Channel Dropdown */}
+          <div className="orders-filter-dropdown-wrapper">
+            <label className="orders-filter-label">Store / Channel</label>
+            <div className="orders-select-box">
+              <span className="select-prefix-icon">🏬</span>
+              <select
+                className="orders-filter-select"
+                value={orderTypeFilter}
+                onChange={(e) => setOrderTypeFilter(e.target.value)}
+              >
+                <option value="all">All Stores ({orders.length})</option>
+                <option value="ONLINE"> Online Store ({orders.filter(o => String(o.orderType || 'ONLINE').toUpperCase() === 'ONLINE').length})</option>
+                <option value="OFFLINE">Offline  Store ({orders.filter(o => String(o.orderType || '').toUpperCase() === 'OFFLINE').length})</option>
+              </select>
+              <span className="select-arrow-icon">▼</span>
+            </div>
+          </div>
 
-        <div className="filters-row">
-          {['all', 'refund_requested', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'].map(status => (
-            <button
-              key={status}
-              className={`filter-tab ${filter === status ? 'active' : ''}`}
-              onClick={() => setFilter(status)}
-            >
-              <span className={`status-dot ${status}`} />
-              <span className="tab-name">{status === 'refund_requested' ? 'Refund Requests' : status}</span>
-              <span className="count">
-                {status === 'all'
-                  ? filteredOrders.length
-                  : status === 'refund_requested'
-                    ? filteredOrders.filter(o => o.refundStatus === 'refund_requested' || o.status === 'refunded').length
-                    : filteredOrders.filter(o => o.status === status).length}
-              </span>
-            </button>
-          ))}
+          {/* 2. Order Status Filter Dropdown */}
+          <div className="orders-filter-dropdown-wrapper">
+            <label className="orders-filter-label">Filter Status</label>
+            <div className="orders-select-box">
+              <span className="select-prefix-icon"></span>
+              <select
+                className="orders-filter-select"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              >
+                <option value="all">All Statuses ({orders.length})</option>
+                <option value="refund_requested">Refund Requests ({orders.filter(o => o.refundStatus === 'refund_requested' || o.status === 'refunded').length})</option>
+                <option value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</option>
+                <option value="confirmed">Confirmed ({orders.filter(o => o.status === 'confirmed').length})</option>
+                <option value="processing"> Processing ({orders.filter(o => o.status === 'processing').length})</option>
+                <option value="shipped"> Shipped ({orders.filter(o => o.status === 'shipped').length})</option>
+                <option value="delivered"> Delivered ({orders.filter(o => o.status === 'delivered').length})</option>
+                <option value="cancelled">Cancelled ({orders.filter(o => o.status === 'cancelled').length})</option>
+              </select>
+              <span className="select-arrow-icon">▼</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -745,46 +688,54 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <span className={`payment-badge ${order.paymentMethod === 'cod' ? 'cod' : 'paid'}`}>
-                        <span className="pay-dot" />
-                        {(order.paymentMethod || 'online').toUpperCase()} ({(order.paymentStatus || 'pending').toUpperCase()})
-                      </span>
-                      {String(order.orderType || '').toUpperCase() === 'OFFLINE' && String(order.paymentMethod || '').toLowerCase() === 'cod' && (
-                        <div>
-                          {String(order.paymentStatus || '').toLowerCase() === 'pending' && (
-                            <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
-                              <button
-                                type="button"
-                                disabled={codActionLoading}
-                                onClick={(e) => { e.stopPropagation(); handleApproveCod(order._id); }}
-                                style={{ padding: '2px 8px', fontSize: '0.72rem', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                              >
-                                Approve COD
-                              </button>
-                              <button
-                                type="button"
-                                disabled={codActionLoading}
-                                onClick={(e) => { e.stopPropagation(); handleRejectCod(order._id); }}
-                                style={{ padding: '2px 8px', fontSize: '0.72rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                              >
-                                Reject COD
-                              </button>
+                    {(() => {
+                      const isPaid = String(order.paymentStatus || '').toLowerCase() === 'paid'
+                      const isRejected = String(order.paymentStatus || '').toLowerCase() === 'rejected'
+                      const badgeClass = isPaid ? 'paid' : isRejected ? 'rejected' : order.paymentMethod === 'cod' ? 'cod' : 'paid'
+
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          <span className={`payment-badge ${badgeClass}`}>
+                            <span className="pay-dot" />
+                            {(order.paymentMethod || 'online').toUpperCase()} ({isPaid ? 'PAID' : isRejected ? 'REJECTED' : 'PENDING'})
+                          </span>
+                          {String(order.orderType || '').toUpperCase() === 'OFFLINE' && String(order.paymentMethod || '').toLowerCase() === 'cod' && (
+                            <div>
+                              {!isPaid && !isRejected && (
+                                <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
+                                  <button
+                                    type="button"
+                                    disabled={codActionLoading}
+                                    onClick={(e) => { e.stopPropagation(); handleApproveCod(order._id); }}
+                                    style={{ padding: '3px 10px', fontSize: '0.72rem', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                  >
+                                    Approve COD
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={codActionLoading}
+                                    onClick={(e) => { e.stopPropagation(); handleRejectCod(order._id); }}
+                                    style={{ padding: '3px 10px', fontSize: '0.72rem', background: '#dc2626', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                  >
+                                    Reject COD
+                                  </button>
+                                </div>
+                              )}
+                              {isPaid && (
+                                <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                  ✓ COD PAID {order.approvedBy?.name ? `(${order.approvedBy.name})` : ''}
+                                </span>
+                              )}
+                              {isRejected && (
+                                <span style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                                  ✕ COD Rejected
+                                </span>
+                              )}
                             </div>
                           )}
-                          {String(order.paymentStatus || '').toLowerCase() === 'paid' && (
-                            <span style={{ fontSize: '0.72rem', color: '#22c55e', fontWeight: 'bold' }}>
-                              ✓ Paid {order.approvedBy?.name ? `(${order.approvedBy.name})` : ''}
-                            </span>
-                          )}
-                          {String(order.paymentStatus || '').toLowerCase() === 'rejected' && (
-                            <span style={{ fontSize: '0.72rem', color: '#ef4444', fontWeight: 'bold' }}>
-                              ✕ COD Rejected
-                            </span>
-                          )}
                         </div>
-                      )}
-                    </div>
+                      )
+                    })()}
                   </td>
                   <td>
                     <span className={`status-pill ${order.status}`}>
@@ -814,7 +765,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
           <div key={order._id} className="mobile-order-card" onClick={() => setSelectedOrder(order)}>
             <div className="mobile-order-card-top">
               <div className="mobile-order-id-group">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span className="mobile-order-num">#{order.orderNumber}</span>
                   <span style={{
                     display: 'inline-flex',
@@ -839,7 +790,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
                   })} • {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
-              <span className={`status-pill ${order.status}`}>
+              <span className={`status-pill ${order.status}`} style={{ flexShrink: 0, margin: 0 }}>
                 {order.status}
               </span>
             </div>
@@ -882,9 +833,21 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
             )}
 
             <div className="mobile-order-card-footer">
-              <span className={`payment-badge ${order.paymentStatus || 'unpaid'}`}>
-                {order.paymentMethod === 'cod' ? 'COD' : 'ONLINE PAID'}
-              </span>
+              {(() => {
+                const isPaid = String(order.paymentStatus || '').toLowerCase() === 'paid'
+                const isRejected = String(order.paymentStatus || '').toLowerCase() === 'rejected'
+                const badgeClass = isPaid ? 'paid' : isRejected ? 'rejected' : order.paymentMethod === 'cod' ? 'cod' : 'paid'
+
+                return (
+                  <span className={`payment-badge ${badgeClass}`}>
+                    <span className="pay-dot" />
+                    {order.paymentMethod === 'cod'
+                      ? `COD (${isPaid ? 'PAID' : isRejected ? 'REJECTED' : 'PENDING'})`
+                      : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
+                    }
+                  </span>
+                )
+              })()}
               <button className="mobile-manage-btn" onClick={(e) => {
                 e.stopPropagation()
                 setSelectedOrder(order)
@@ -1058,108 +1021,110 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
                     </section>
                   )}
 
-                  {/* Refund Control Card */}
-                  <section className="refund-section" style={{ marginTop: '20px' }}>
-                    <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>💳 Payment & Refund Control</h3>
-                    <div style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
-                        <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.orderType || 'ONLINE').toUpperCase()}</strong></div>
-                        <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentMethod || 'online').toUpperCase()}</strong></div>
-                        <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: selectedOrder.paymentStatus === 'paid' ? '#22c55e' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentStatus || 'pending').toUpperCase()}</strong></div>
-                        <div><span style={{ color: '#a3a3a3' }}>Refund Status:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.refundStatus || 'not_refunded').toUpperCase()}</strong></div>
-                      </div>
+                  {/* Refund Control Card (Only for Online Store orders) */}
+                  {String(selectedOrder.orderType || 'ONLINE').toUpperCase() !== 'OFFLINE' && (
+                    <section className="refund-section" style={{ marginTop: '20px' }}>
+                      <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>💳 Payment & Refund Control</h3>
+                      <div style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
+                          <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.orderType || 'ONLINE').toUpperCase()}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentMethod || 'online').toUpperCase()}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: selectedOrder.paymentStatus === 'paid' ? '#22c55e' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentStatus || 'pending').toUpperCase()}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Refund Status:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.refundStatus || 'not_refunded').toUpperCase()}</strong></div>
+                        </div>
 
-                      {/* Active Refund Request Details */}
-                      {(() => {
-                        const matchingRefund = refunds.find(r => (r.order?._id || r.order) === selectedOrder._id) || (selectedOrder.refundStatus === 'refund_requested' ? { status: 'requested', amount: selectedOrder.totalAmount, reason: 'Customer requested refund' } : null)
+                        {/* Active Refund Request Details */}
+                        {(() => {
+                          const matchingRefund = refunds.find(r => (r.order?._id || r.order) === selectedOrder._id) || (selectedOrder.refundStatus === 'refund_requested' ? { status: 'requested', amount: selectedOrder.totalAmount, reason: 'Customer requested refund' } : null)
 
-                        if (!matchingRefund && selectedOrder.refundStatus !== 'refund_requested') {
+                          if (!matchingRefund && selectedOrder.refundStatus !== 'refund_requested') {
+                            return (
+                              <div style={{ fontSize: '0.82rem', color: '#a3a3a3', fontStyle: 'italic', borderTop: '1px solid #333', paddingTop: '10px' }}>
+                                No active refund request submitted for this order.
+                              </div>
+                            )
+                          }
+
+                          const isShippedOrAWB = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes((selectedOrder.status || '').toLowerCase()) || Boolean(selectedOrder.shipping?.awbNumber)
+
                           return (
-                            <div style={{ fontSize: '0.82rem', color: '#a3a3a3', fontStyle: 'italic', borderTop: '1px solid #333', paddingTop: '10px' }}>
-                              No active refund request submitted for this order.
+                            <div style={{ background: '#1c1917', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #d4af37', marginTop: '12px' }}>
+                              <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#d4af37', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                CUSTOMER REFUND REQUEST
+                              </div>
+                              <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
+                                <strong>Refund Amount:</strong> ₹{Number(matchingRefund.amount || selectedOrder.totalAmount).toLocaleString('en-IN')}
+                              </div>
+                              <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
+                                <strong>Reason:</strong> {matchingRefund.reason || 'Ordered by mistake'}
+                              </div>
+                              {matchingRefund.createdAt && (
+                                <div style={{ fontSize: '0.78rem', color: '#a3a3a3', marginBottom: '12px' }}>
+                                  Requested on: {new Date(matchingRefund.createdAt).toLocaleString('en-IN')}
+                                </div>
+                              )}
+
+                              {/* Eligibility Check Badge */}
+                              {isShippedOrAWB ? (
+                                <div style={{ background: 'rgba(220, 38, 38, 0.2)', border: '1px solid #dc2626', color: '#f87171', padding: '10px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '600', marginBottom: '12px' }}>
+                                  ⚠️ CANNOT APPROVE: Order has already shipped from warehouse. Refunds are disabled after shipping.
+                                </div>
+                              ) : (
+                                <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', color: '#4ade80', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', marginBottom: '12px' }}>
+                                  ✓ Eligible for refund approval (Order not shipped from warehouse)
+                                </div>
+                              )}
+
+                              {/* Approval / Rejection Action Buttons */}
+                              {(matchingRefund.status === 'requested' || selectedOrder.refundStatus === 'refund_requested') ? (
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+                                  <button
+                                    type="button"
+                                    disabled={refundProcessingId === (matchingRefund._id || selectedOrder._id) || isShippedOrAWB}
+                                    onClick={() => handleApproveRefund(matchingRefund._id || selectedOrder._id)}
+                                    style={{
+                                      padding: '8px 18px',
+                                      fontSize: '0.82rem',
+                                      background: isShippedOrAWB ? '#444444' : '#16a34a',
+                                      color: '#ffffff',
+                                      border: 'none',
+                                      borderRadius: '6px',
+                                      fontWeight: '700',
+                                      cursor: isShippedOrAWB ? 'not-allowed' : 'pointer',
+                                      boxShadow: isShippedOrAWB ? 'none' : '0 4px 12px rgba(22, 163, 74, 0.3)'
+                                    }}
+                                  >
+                                    {refundProcessingId === (matchingRefund._id || selectedOrder._id) ? 'Processing Gateway Refund...' : 'Approve Refund'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={refundProcessingId === (matchingRefund._id || selectedOrder._id)}
+                                    onClick={() => handleRejectRefund(matchingRefund._id || selectedOrder._id)}
+                                    style={{
+                                      padding: '8px 16px',
+                                      fontSize: '0.82rem',
+                                      background: 'transparent',
+                                      color: '#ef4444',
+                                      border: '1.5px solid #ef4444',
+                                      borderRadius: '6px',
+                                      fontWeight: '700',
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Reject Request
+                                  </button>
+                                </div>
+                              ) : (
+                                <div style={{ fontSize: '0.82rem', color: '#d4af37', marginTop: '8px', fontWeight: '600' }}>
+                                  Status: {(matchingRefund.status || selectedOrder.refundStatus).toUpperCase()}
+                                </div>
+                              )}
                             </div>
                           )
-                        }
-
-                        const isShippedOrAWB = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes((selectedOrder.status || '').toLowerCase()) || Boolean(selectedOrder.shipping?.awbNumber)
-
-                        return (
-                          <div style={{ background: '#1c1917', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #d4af37', marginTop: '12px' }}>
-                            <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#d4af37', marginBottom: '8px', letterSpacing: '0.05em' }}>
-                              CUSTOMER REFUND REQUEST
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
-                              <strong>Refund Amount:</strong> ₹{Number(matchingRefund.amount || selectedOrder.totalAmount).toLocaleString('en-IN')}
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
-                              <strong>Reason:</strong> {matchingRefund.reason || 'Ordered by mistake'}
-                            </div>
-                            {matchingRefund.createdAt && (
-                              <div style={{ fontSize: '0.78rem', color: '#a3a3a3', marginBottom: '12px' }}>
-                                Requested on: {new Date(matchingRefund.createdAt).toLocaleString('en-IN')}
-                              </div>
-                            )}
-
-                            {/* Eligibility Check Badge */}
-                            {isShippedOrAWB ? (
-                              <div style={{ background: 'rgba(220, 38, 38, 0.2)', border: '1px solid #dc2626', color: '#f87171', padding: '10px', borderRadius: '6px', fontSize: '0.82rem', fontWeight: '600', marginBottom: '12px' }}>
-                                ⚠️ CANNOT APPROVE: Order has already shipped from warehouse. Refunds are disabled after shipping.
-                              </div>
-                            ) : (
-                              <div style={{ background: 'rgba(34, 197, 94, 0.15)', border: '1px solid #22c55e', color: '#4ade80', padding: '8px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', marginBottom: '12px' }}>
-                                ✓ Eligible for refund approval (Order not shipped from warehouse)
-                              </div>
-                            )}
-
-                            {/* Approval / Rejection Action Buttons */}
-                            {(matchingRefund.status === 'requested' || selectedOrder.refundStatus === 'refund_requested') ? (
-                              <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-                                <button
-                                  type="button"
-                                  disabled={refundProcessingId === (matchingRefund._id || selectedOrder._id) || isShippedOrAWB}
-                                  onClick={() => handleApproveRefund(matchingRefund._id || selectedOrder._id)}
-                                  style={{
-                                    padding: '8px 18px',
-                                    fontSize: '0.82rem',
-                                    background: isShippedOrAWB ? '#444444' : '#16a34a',
-                                    color: '#ffffff',
-                                    border: 'none',
-                                    borderRadius: '6px',
-                                    fontWeight: '700',
-                                    cursor: isShippedOrAWB ? 'not-allowed' : 'pointer',
-                                    boxShadow: isShippedOrAWB ? 'none' : '0 4px 12px rgba(22, 163, 74, 0.3)'
-                                  }}
-                                >
-                                  {refundProcessingId === (matchingRefund._id || selectedOrder._id) ? 'Processing Gateway Refund...' : 'Approve Refund'}
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={refundProcessingId === (matchingRefund._id || selectedOrder._id)}
-                                  onClick={() => handleRejectRefund(matchingRefund._id || selectedOrder._id)}
-                                  style={{
-                                    padding: '8px 16px',
-                                    fontSize: '0.82rem',
-                                    background: 'transparent',
-                                    color: '#ef4444',
-                                    border: '1.5px solid #ef4444',
-                                    borderRadius: '6px',
-                                    fontWeight: '700',
-                                    cursor: 'pointer'
-                                  }}
-                                >
-                                  Reject Request
-                                </button>
-                              </div>
-                            ) : (
-                              <div style={{ fontSize: '0.82rem', color: '#d4af37', marginTop: '8px', fontWeight: '600' }}>
-                                Status: {(matchingRefund.status || selectedOrder.refundStatus).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })()}
-                    </div>
-                  </section>
+                        })()}
+                      </div>
+                    </section>
+                  )}
 
                   {String(selectedOrder.orderType || 'ONLINE').toUpperCase() === 'ONLINE' ? (
                     <section className="tracking-section">
@@ -1318,29 +1283,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
                         </div>
                       </div>
                     </section>
-                  ) : (
-                    <section className="tracking-section">
-                      <h3>Order Fulfillment & Status</h3>
-                      <div className="status-control-card">
-                        <div className="control-group">
-                          <label>Current Stage</label>
-                          <select
-                            value={selectedOrder.status}
-                            onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="confirmed">Confirmed</option>
-                            <option value="processing">Processing</option>
-                            <option value="delivered">Completed / Handed Over</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
-                        </div>
-                        <div style={{ padding: '14px 16px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid #10b981', borderRadius: '8px', color: '#10b981', fontSize: '0.85rem', marginTop: '14px', fontWeight: '600' }}>
-                          🏬 <strong>Offline Store Order:</strong> Logistics, courier shipping, tracking, and Ad2Ship controls are omitted for offline store orders.
-                        </div>
-                      </div>
-                    </section>
-                  )}
+                  ) : null}
 
                   <section className="timeline-section">
                     <h3>Order Journey</h3>

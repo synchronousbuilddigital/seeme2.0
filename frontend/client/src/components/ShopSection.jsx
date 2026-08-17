@@ -6,6 +6,7 @@ import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
+import AddToCartButton from './AddToCartButton'
 import './ShopSection.css'
 
 const ShopSection = () => {
@@ -153,15 +154,11 @@ const ShopSection = () => {
 
                   {/* Quick Add Overlay */}
                   <div className="quick-add-overlay">
-                    <button
-                      className="quick-add-btn"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        addToCart(product)
-                      }}
-                    >
-                      + ADD TO BAG
-                    </button>
+                    <AddToCartButton
+                      product={product}
+                      variant="full"
+                      label="+ ADD TO BAG"
+                    />
                   </div>
                 </div>
 
@@ -190,20 +187,14 @@ const ShopSection = () => {
                     </div>
                   </div>
 
-                  {/* Dedicated Mobile Add to Bag Option */}
-                  <button
-                    className="mobile-add-cart-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      addToCart(product)
-                    }}
-                    aria-label="Add to Bag"
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />
-                    </svg>
-                    <span>+ ADD TO BAG</span>
-                  </button>
+                  {/* Dedicated Mobile Add to Cart Button */}
+                  <div className="mobile-add-to-cart-wrapper">
+                    <AddToCartButton
+                      product={product}
+                      variant="full"
+                      label="+ ADD TO BAG"
+                    />
+                  </div>
                 </div>
               </motion.div>
             )

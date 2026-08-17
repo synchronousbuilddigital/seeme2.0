@@ -5,6 +5,7 @@ import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
+import AddToCartButton from './AddToCartButton'
 import './NewArrivals.css'
 
 const NewArrivals = () => {
@@ -122,9 +123,11 @@ const NewArrivals = () => {
                           <span className="card-mrp">₹{Number(item.mrp || item.discountPrice || item.originalPrice).toLocaleString('en-IN')}</span>
                         )}
                       </div>
-                      <button className="bag-btn-mini" onClick={(e) => { e.stopPropagation(); addToCart(item); }}>
-                        + Add
-                      </button>
+                      <AddToCartButton
+                        product={item}
+                        variant="mini"
+                        label="+ Add"
+                      />
                     </div>
                   </div>
                 </div>

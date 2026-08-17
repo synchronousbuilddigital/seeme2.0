@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
@@ -138,6 +138,79 @@ const Hero = () => {
   })
 
   const [typedTitle, setTypedTitle] = useState('')
+
+  // Seamless Infinite Loop Drag/Scroll Track Refs & Handlers
+  const marqueeContainerRef = useRef(null)
+  const marqueeTrackRef = useRef(null)
+  const isDraggingRef = useRef(false)
+  const hasDraggedRef = useRef(false)
+  const startXRef = useRef(0)
+  const currentXRef = useRef(0)
+  const animFrameIdRef = useRef(null)
+  const isHoveredRef = useRef(false)
+
+  useEffect(() => {
+    if (!categories.length) return
+
+    const track = marqueeTrackRef.current
+    if (!track) return
+
+    let lastTime = performance.now()
+
+    const animate = (now) => {
+      const delta = Math.min(now - lastTime, 32)
+      lastTime = now
+
+      if (!isDraggingRef.current && !isHoveredRef.current) {
+        currentXRef.current -= 0.04 * delta
+      }
+
+      const halfWidth = track.scrollWidth / 2
+      if (halfWidth > 0) {
+        if (currentXRef.current <= -halfWidth) {
+          currentXRef.current += halfWidth
+        } else if (currentXRef.current > 0) {
+          currentXRef.current -= halfWidth
+        }
+        track.style.transform = `translate3d(${currentXRef.current}px, 0, 0)`
+      }
+
+      animFrameIdRef.current = requestAnimationFrame(animate)
+    }
+
+    animFrameIdRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (animFrameIdRef.current) cancelAnimationFrame(animFrameIdRef.current)
+    }
+  }, [categories])
+
+  const handlePointerDown = (e) => {
+    isDraggingRef.current = true
+    hasDraggedRef.current = false
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    startXRef.current = clientX - currentXRef.current
+  }
+
+  const handlePointerMove = (e) => {
+    if (!isDraggingRef.current) return
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX
+    const newX = clientX - startXRef.current
+    if (Math.abs(newX - currentXRef.current) > 4) {
+      hasDraggedRef.current = true
+    }
+    currentXRef.current = newX
+  }
+
+  const handlePointerUp = () => {
+    isDraggingRef.current = false
+  }
+
+  const handleWheel = (e) => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || Math.abs(e.deltaY) < 50) {
+      currentXRef.current -= (e.deltaX || e.deltaY) * 0.8
+    }
+  }
 
   const getCategoryDisplayImage = (catInput) => {
     if (!catInput) return ''
@@ -731,16 +804,35 @@ const Hero = () => {
 
       {/* Dynamic Looping Category Circles Section */}
       {categories.length > 0 && (
-        <div className="category-marquee-container">
-          <div className="category-marquee-track">
-            {Array(Math.max(12, Math.ceil(40 / (categories.length || 1)))).fill(categories).flat().map((catItem, idx) => {
+        <div
+          className="category-marquee-container"
+          ref={marqueeContainerRef}
+          onMouseDown={handlePointerDown}
+          onMouseMove={handlePointerMove}
+          onMouseUp={handlePointerUp}
+          onMouseLeave={() => {
+            isDraggingRef.current = false
+            isHoveredRef.current = false
+          }}
+          onMouseEnter={() => { isHoveredRef.current = true }}
+          onTouchStart={handlePointerDown}
+          onTouchMove={handlePointerMove}
+          onTouchEnd={handlePointerUp}
+          onWheel={handleWheel}
+        >
+          <div className="category-marquee-track" ref={marqueeTrackRef}>
+            {Array(Math.max(12, Math.ceil(40 / (categories.length || 1))) * 2).fill(categories).flat().map((catItem, idx) => {
               const catTitle = getCategoryTitle(catItem)
               const catSlug = getCategorySlug(catItem)
               return (
                 <div
                   key={`${catSlug || idx}-${idx}`}
                   className="category-circle-item"
-                  onClick={() => navigate(`/category/${catSlug}`)}
+                  onClick={() => {
+                    if (!hasDraggedRef.current) {
+                      navigate(`/category/${catSlug}`)
+                    }
+                  }}
                 >
                   <div className="category-circle-visual">
                     <div className="category-circle-img-wrap">

@@ -148,6 +148,12 @@ const Checkout = () => {
   const [cancellingId, setCancellingId] = useState(null)
 
   useEffect(() => {
+    if (!user || !token) {
+      navigate('/auth', { state: { message: 'Please sign in or create an account to proceed to checkout and buy products.', from: '/checkout' } })
+    }
+  }, [user, token, navigate])
+
+  useEffect(() => {
     if (placedOrder) {
       document.body.style.overflow = 'hidden'
     } else {

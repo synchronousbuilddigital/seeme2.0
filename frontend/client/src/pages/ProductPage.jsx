@@ -6,10 +6,12 @@ import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewItem } from '../utils/gtmEcommerce'
+import AddToCartButton from '../components/AddToCartButton'
 import './ProductPage.css'
 
 const ProductPage = () => {
   const {
+    cart,
     addToCart,
     buyNow,
     clearCart,
@@ -171,10 +173,11 @@ const ProductPage = () => {
     const sizeToUse = selectedSize || (availableSizes && availableSizes.length > 0 ? availableSizes[0] : 'S')
     
     if (buyNow) {
-      buyNow(product, sizeToUse, quantity)
+      const res = buyNow(product, sizeToUse, quantity, navigate)
+      if (res === false) return
     } else {
-      if (clearCart) clearCart()
-      addToCart({ ...product, selectedSize: sizeToUse, quantity })
+      const res = addToCart({ ...product, selectedSize: sizeToUse, quantity }, navigate)
+      if (res === false) return
     }
 
     // Open Checkout page directly
@@ -239,15 +242,47 @@ const ProductPage = () => {
     if (!targetCode) return
     setPdpCouponError(null)
 
-    // Ensure item is added to cart
-    addToCart({
+    // Compute updated cart synchronously for instant coupon calculation
+    const productId = product.id || product._id
+    const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
+    const productSize = selectedSize || product.selectedSize || product.size || defaultSize
+    const normalizedProduct = {
       ...product,
-      selectedSize,
-      quantity
+      id: productId,
+      size: productSize,
+      selectedSize: productSize
+    }
+
+    const existingIndex = (cart || []).findIndex(item => {
+      const itemId = item.id || item._id
+      const itemSize = item.selectedSize || item.size || 'S'
+      return itemId === productId && itemSize === productSize
     })
 
+    const addedQty = Number(quantity) || 1
+    let updatedCart = []
+
+    if (existingIndex > -1) {
+      updatedCart = cart.map((item, idx) => {
+        if (idx === existingIndex) {
+          return { ...item, quantity: (item.quantity || 1) + addedQty }
+        }
+        return item
+      })
+    } else {
+      updatedCart = [...(cart || []), { ...normalizedProduct, quantity: addedQty }]
+    }
+
+    // Ensure item is added to cart
+    const isAdded = addToCart({
+      ...product,
+      selectedSize: productSize,
+      quantity
+    })
+    if (isAdded === false) return
+
     try {
-      const res = await applyCoupon(targetCode)
+      const res = await applyCoupon(targetCode, updatedCart)
       setAddedToast(true)
       setTimeout(() => setAddedToast(false), 3500)
       setPdpCouponCode('')
@@ -455,9 +490,17 @@ const ProductPage = () => {
               </div>
 
               <div className="action-buttons-row">
-                <button className="add-to-cart-pill-btn" onClick={handleAddBag}>
-                  ADD TO CART
-                </button>
+                <AddToCartButton
+                  product={product}
+                  selectedSize={selectedSize}
+                  label="ADD TO CART"
+                  variant="full"
+                  showIcon={true}
+                  onAddCallback={() => {
+                    setAddedToast(true)
+                    setTimeout(() => setAddedToast(false), 2500)
+                  }}
+                />
                 <button className="buy-now-pill-btn" onClick={handleBuyNow}>
                   BUY NOW
                 </button>

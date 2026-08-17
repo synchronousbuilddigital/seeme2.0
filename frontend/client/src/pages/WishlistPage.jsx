@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import AddToCartButton from '../components/AddToCartButton'
 import './WishlistPage.css'
 
 const WishlistPage = () => {
@@ -66,12 +67,11 @@ const WishlistPage = () => {
                   <div className="item-price">
                     ₹{(typeof item.price === 'number' ? item.price : parseInt(item.price.replace(/[₹,]/g, '')) || 0).toLocaleString('en-IN')}
                   </div>
-                  <button 
-                    className="add-to-cart-btn-minimal"
-                    onClick={() => addToCart(item)}
-                  >
-                    ADD TO BAG
-                  </button>
+                  <AddToCartButton
+                    product={item}
+                    variant="full"
+                    label="ADD TO BAG"
+                  />
                 </div>
               </motion.div>
             ))}

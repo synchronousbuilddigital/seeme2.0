@@ -2,6 +2,7 @@ import { useContext } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import AddToCartButton from './AddToCartButton'
 import './Wishlist.css'
 
 const Wishlist = ({ isOpen, onClose }) => {
@@ -98,19 +99,11 @@ const Wishlist = ({ isOpen, onClose }) => {
                               <p className="item-price">{item.price}</p>
 
                               <div className="item-actions">
-                                <motion.button
-                                  className="add-to-cart-btn"
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  onClick={() => handleAddToCart(item)}
-                                >
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                    <circle cx="9" cy="21" r="1" />
-                                    <circle cx="20" cy="21" r="1" />
-                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                                  </svg>
-                                  Add to Cart
-                                </motion.button>
+                                <AddToCartButton
+                                  product={item}
+                                  variant="mini"
+                                  label="Add to Cart"
+                                />
 
                                 <motion.button
                                   className="remove-btn"

@@ -88,8 +88,16 @@
 
 .arrivals-carousel-viewport {
   width: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  touch-action: pan-x;
   padding: 15px 0 25px 0; /* Extra vertical space so card shadow/hover doesn't clip */
+}
+
+.arrivals-carousel-viewport::-webkit-scrollbar {
+  display: none;
 }
 
 /* Seamless Continuous Marquee Ticker Track */
@@ -101,8 +109,10 @@
   align-items: stretch;
 }
 
-/* Pause scroll animation immediately on hover */
-.arrivals-carousel-viewport:hover .arrivals-marquee-track {
+/* Pause scroll animation immediately on hover, touch active, or focus */
+.arrivals-carousel-viewport:hover .arrivals-marquee-track,
+.arrivals-carousel-viewport:active .arrivals-marquee-track,
+.arrivals-carousel-viewport:focus-within .arrivals-marquee-track {
   animation-play-state: paused;
 }
 

@@ -625,17 +625,19 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  align-items: center;
 }
 
 .add-to-cart-pill-btn {
-  padding: 14px 20px;
+  height: 48px;
+  padding: 0 20px;
   border-radius: 30px;
   border: 1px solid #1c1917;
   background: #ffffff;
   color: #1c1917;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   cursor: pointer;
   transition: all 0.25s ease;
   text-align: center;
@@ -647,22 +649,33 @@
 }
 
 .buy-now-pill-btn {
-  padding: 14px 20px;
+  height: 48px;
+  padding: 0 20px;
   border-radius: 30px;
   border: 1px solid #1c1917;
   background: #1c1917;
   color: #ffffff;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   cursor: pointer;
   transition: all 0.25s ease;
   text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  user-select: none;
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .buy-now-pill-btn:hover {
-  background: #292524;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  background: #d4af37;
+  color: #000000;
+  border-color: #d4af37;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  transform: translateY(-1px);
 }
 
 /* Trust Badges Row (3 Cards) */

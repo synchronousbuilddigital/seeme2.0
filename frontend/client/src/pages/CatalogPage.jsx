@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
+import AddToCartButton from '../components/AddToCartButton'
 import './CatalogPage.css'
 
 const CatalogPage = () => {
@@ -325,13 +326,11 @@ const CatalogPage = () => {
                         <span className="prod-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
                       </div>
                       <div className="prod-btn-group">
-                        <button 
-                          onClick={(e) => handleAddToCart(product, e)} 
-                          className="btn-bag"
-                          title="Add to Bag"
-                        >
-                          + Bag
-                        </button>
+                        <AddToCartButton
+                          product={product}
+                          variant="mini"
+                          label="+ Bag"
+                        />
                         <button 
                           onClick={() => navigate(`/product/${product._id || product.id}`)} 
                           className="btn-view"
@@ -365,19 +364,11 @@ const CatalogPage = () => {
                   </button>
 
                   {product && (
-                    <button 
-                      type="button" 
-                      className="action-btn-circle bag-btn"
-                      onClick={(e) => handleAddToCart(product, e)}
-                      title="Add to Shopping Bag"
-                    >
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="9" cy="21" r="1" />
-                        <circle cx="20" cy="21" r="1" />
-                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
-                      </svg>
-                      <span className="action-label">Bag</span>
-                    </button>
+                    <AddToCartButton
+                      product={product}
+                      variant="mini"
+                      label="Bag"
+                    />
                   )}
 
                   <button 

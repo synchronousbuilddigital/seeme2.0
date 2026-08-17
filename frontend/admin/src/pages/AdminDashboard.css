@@ -172,12 +172,12 @@ body {
 
 .admin-content {
   flex-grow: 1;
-  padding: 40px 50px;
-  max-width: 1600px;
+  padding: 30px 40px;
   margin-left: 260px;
   width: calc(100% - 260px);
   box-sizing: border-box;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 100vh;
 }
 
 .admin-sidebar.collapsed + .admin-content {
@@ -189,33 +189,30 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 50px;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F9F9F9 100%);
-  border: 1px solid #F0F0F0;
-  border-radius: 12px;
-  padding: 32px 40px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03);
-  transition: all 0.3s ease;
-}
-
-.content-topbar:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border-color: #E8E8E8;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 25px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
 }
 
 .topbar-left {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .page-title {
   font-family: var(--font-heading);
-  font-size: 1.8rem;
-  font-weight: 600;
+  font-size: 1.6rem;
+  font-weight: 700;
   margin: 0;
   letter-spacing: -0.01em;
   color: #111111;
+  white-space: nowrap;
 }
 
 .sync-indicator {
@@ -265,11 +262,11 @@ body {
 .topbar-actions {
   display: flex;
   align-items: center;
-  gap: 30px;
-  flex: 1;
+  gap: 16px;
+  flex-wrap: wrap;
   justify-content: flex-end;
-  border-left: 1px solid #F0F0F0;
-  padding-left: 30px;
+  border-left: none;
+  padding-left: 0;
 }
 
 .admin-profile {
@@ -1196,35 +1193,63 @@ body {
     color: #D4AF37;
   }
 
-  /* Topbar header hides elements on mobile */
+  /* Topbar header keeps horizontal inline layout on mobile (like laptop) */
   .content-topbar {
-    flex-direction: column;
-    gap: 15px;
-    padding: 18px 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0;
     margin-bottom: 20px;
-    align-items: stretch;
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow: hidden;
   }
 
   .topbar-left {
     align-items: flex-start;
     text-align: left;
+    flex-shrink: 0;
   }
 
   .page-title {
-    font-size: 1.4rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    white-space: nowrap;
   }
 
   .topbar-actions {
-    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex: 1 1 0%;
     border-left: none;
     padding-left: 0;
-    gap: 12px;
-    flex-direction: column;
-    align-items: stretch;
+    min-width: 0;
+  }
+
+  .topbar-actions .global-search-container {
+    flex: 1 1 0%;
+    min-width: 0;
+    width: auto;
+  }
+
+  .topbar-actions .search-input-wrapper {
+    height: 36px;
+    font-size: 0.8rem;
+  }
+
+  .topbar-actions .bell-trigger-btn {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
   }
 
   .admin-profile {
-    display: none; /* Already present in mobile header bar */
+    display: none;
   }
 
   /* Redesigned Overview Section for Mobile Phones */

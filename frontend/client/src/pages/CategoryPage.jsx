@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { isProductInCategory, getCategoryProducts } from '../utils/categoryHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
+import AddToCartButton from '../components/AddToCartButton'
 import './CategoryPage.css'
 
 const CategoryPage = () => {
@@ -555,15 +556,16 @@ const CategoryPage = () => {
                           </div>
                         </div>
 
-                        <button
-                          className="card-add-cart-btn-full"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleQuickAdd(e, product, product.sizes?.[0] || 'M')
+                        <AddToCartButton
+                          product={product}
+                          selectedSize={product.sizes?.[0] || 'M'}
+                          variant="full"
+                          label="+ ADD TO BAG"
+                          onAddCallback={() => {
+                            setAddedToast(true)
+                            setTimeout(() => setAddedToast(false), 2500)
                           }}
-                        >
-                          + ADD TO BAG
-                        </button>
+                        />
                       </div>
                     </motion.div>
                   </div>
@@ -651,17 +653,16 @@ const CategoryPage = () => {
                   </div>
 
                   <div className="modal-action-buttons">
-                    <button
-                      className="add-bag-modal-btn"
-                      onClick={() => {
-                        addToCart({ ...quickViewProduct, selectedSize })
-                        setQuickViewProduct(null)
+                    <AddToCartButton
+                      product={quickViewProduct}
+                      selectedSize={selectedSize}
+                      variant="modal"
+                      label="+ ADD TO SHOPPING BAG"
+                      onAddCallback={() => {
                         setAddedToast(true)
                         setTimeout(() => setAddedToast(false), 2500)
                       }}
-                    >
-                      + ADD TO SHOPPING BAG
-                    </button>
+                    />
 
                     <button
                       className="buy-now-modal-btn"

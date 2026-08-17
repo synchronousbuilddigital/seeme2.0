@@ -138,11 +138,12 @@ export const CartProvider = ({ children }) => {
   }, [cart, user, token])
 
   // Apply Coupon Method (Backend Validated)
-  const applyCoupon = async (code) => {
+  const applyCoupon = async (code, customCart = null) => {
     if (!code || !code.trim()) {
       throw new Error('Please enter a coupon code.')
     }
     const cleanCode = code.trim().toUpperCase()
+    const activeCart = (Array.isArray(customCart) && customCart.length > 0) ? customCart : cart
     setCouponLoading(true)
 
     try {
@@ -154,7 +155,7 @@ export const CartProvider = ({ children }) => {
         headers,
         body: JSON.stringify({
           code: cleanCode,
-          cartItems: cart,
+          cartItems: activeCart,
           userId: user?._id || user?.email,
           userEmail: user?.email
         })
@@ -270,7 +271,23 @@ export const CartProvider = ({ children }) => {
     }
   }, [cart, user, token])
 
-  const addToCart = (product) => {
+  const requireAuthCheck = (customNavigate) => {
+    if (!user || !token) {
+      const msg = 'Please sign in or create an account to add items to your cart and buy products.'
+      if (typeof customNavigate === 'function') {
+        customNavigate('/auth', { state: { message: msg, from: window.location.pathname } })
+      } else if (typeof window !== 'undefined') {
+        window.location.href = `/auth`
+      }
+      return false
+    }
+    return true
+  }
+
+  const addToCart = (product, customNavigate) => {
+    if (!requireAuthCheck(customNavigate)) {
+      return false
+    }
     console.log('Adding product to cart:', product)
     try {
       const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
@@ -310,6 +327,7 @@ export const CartProvider = ({ children }) => {
 
       return [...prevCart, { ...normalizedProduct, quantity: addedQty }]
     })
+    return true
   }
 
   const removeFromCart = (productId, size) => {
@@ -352,8 +370,10 @@ export const CartProvider = ({ children }) => {
     )
   }
 
-  const buyNow = (product, selectedSize, quantity = 1) => {
-    if (!product) return
+  const buyNow = (product, selectedSize, quantity = 1, customNavigate) => {
+    if (!product) return false
+    if (!requireAuthCheck(customNavigate)) return false
+
     const productId = product.id || product._id
     const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
     const productSize = selectedSize || product.size || product.selectedSize || defaultSize
@@ -375,6 +395,7 @@ export const CartProvider = ({ children }) => {
 
     setCart([normalizedProduct])
     removeCoupon(true)
+    return true
   }
 
   const clearCart = () => {
@@ -455,6 +476,73 @@ export const CartProvider = ({ children }) => {
     return wishlist.length
   }
 
+  const getItemQuantity = (productId, size) => {
+    if (!productId) return 0
+    const matches = cart.filter(item => {
+      const itemId = item.id || item._id
+      if (size) {
+        const itemSize = item.selectedSize || item.size
+        return String(itemId) === String(productId) && itemSize === size
+      }
+      return String(itemId) === String(productId)
+    })
+    return matches.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0)
+  }
+
+  const increaseQuantity = (product, size, customNavigate) => {
+    if (!product) return false
+    if (!requireAuthCheck(customNavigate)) return false
+
+    const productId = product.id || product._id
+    const targetSize = size || product.selectedSize || product.size || (product.sizes && product.sizes[0]) || 'S'
+    
+    const existing = cart.find(item => {
+      const itemId = item.id || item._id
+      const itemSize = item.selectedSize || item.size || 'S'
+      return String(itemId) === String(productId) && itemSize === targetSize
+    })
+
+    if (existing) {
+      updateQuantity(productId, (existing.quantity || 1) + 1, targetSize)
+    } else {
+      addToCart({ ...product, selectedSize: targetSize }, customNavigate)
+    }
+    return true
+  }
+
+  const decreaseQuantity = (productId, size) => {
+    if (!productId) return
+    const items = cart.filter(item => String(item.id || item._id) === String(productId))
+    if (items.length === 0) return
+
+    if (size) {
+      const targetItem = items.find(item => (item.selectedSize || item.size || 'S') === size)
+      if (targetItem) {
+        if ((targetItem.quantity || 1) > 1) {
+          updateQuantity(productId, targetItem.quantity - 1, size)
+        } else {
+          removeFromCart(productId, size)
+        }
+      } else {
+        const first = items[0]
+        const firstSize = first.selectedSize || first.size || 'S'
+        if ((first.quantity || 1) > 1) {
+          updateQuantity(productId, first.quantity - 1, firstSize)
+        } else {
+          removeFromCart(productId, firstSize)
+        }
+      }
+    } else {
+      const first = items[0]
+      const firstSize = first.selectedSize || first.size || 'S'
+      if ((first.quantity || 1) > 1) {
+        updateQuantity(productId, first.quantity - 1, firstSize)
+      } else {
+        removeFromCart(productId, firstSize)
+      }
+    }
+  }
+
   return (
     <CartContext.Provider
       value={{
@@ -463,6 +551,9 @@ export const CartProvider = ({ children }) => {
         buyNow,
         removeFromCart,
         updateQuantity,
+        getItemQuantity,
+        increaseQuantity,
+        decreaseQuantity,
         clearCart,
         getCartTotal,
         getCartCount,

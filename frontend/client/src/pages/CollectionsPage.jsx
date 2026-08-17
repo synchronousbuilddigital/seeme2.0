@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { isProductInCategory, getCategoryProducts } from '../utils/categoryHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
+import AddToCartButton from '../components/AddToCartButton'
 import './CollectionsPage.css'
 
 const CollectionsPage = () => {
@@ -526,15 +527,11 @@ const CollectionsPage = () => {
                           )}
                         </div>
 
-                        <motion.button
-                          className="add-to-cart-btn"
-                          onClick={() => handleAddToCart(product)}
-                          disabled={product.stock === 0}
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                        >
-                          {product.stock === 0 ? 'Sold Out' : '+ Add to Bag'}
-                        </motion.button>
+                        <AddToCartButton
+                          product={product}
+                          variant="mini"
+                          label="+ Add"
+                        />
                       </div>
                     </div>
                   </motion.div>
@@ -622,18 +619,12 @@ const CollectionsPage = () => {
                   )}
 
                   <div className="modal-actions">
-                    <motion.button
-                      className="modal-add-to-cart"
-                      onClick={() => {
-                        handleAddToCart(selectedProduct, selectedSize)
-                        closeProductModal()
-                      }}
-                      disabled={selectedProduct.stock === 0}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      {selectedProduct.stock === 0 ? 'Sold Out' : 'ADD TO BAG'}
-                    </motion.button>
+                    <AddToCartButton
+                      product={selectedProduct}
+                      selectedSize={selectedSize}
+                      variant="modal"
+                      label="ADD TO BAG"
+                    />
 
                     <button
                       className="modal-full-details-btn"
