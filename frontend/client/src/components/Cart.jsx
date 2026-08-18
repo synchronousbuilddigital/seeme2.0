@@ -1,16 +1,30 @@
-import { useContext, useEffect } from 'react'
+import { useState, useContext, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import { API_ENDPOINTS } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
 import './Cart.css'
 
 const Cart = ({ isOpen, onClose }) => {
-  const { cart, removeFromCart, updateQuantity, getCartTotal } = useContext(CartContext)
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    getCartTotal,
+    appliedCoupon,
+    couponDiscount,
+    couponLoading,
+    applyCoupon,
+    removeCoupon,
+    availableCoupons
+  } = useContext(CartContext)
   const { user, token } = useAuth()
   const navigate = useNavigate()
+  const [cartCouponInput, setCartCouponInput] = useState('')
+  const [couponError, setCouponError] = useState('')
 
   useEffect(() => {
     if (isOpen && cart.length > 0) {
@@ -21,6 +35,19 @@ const Cart = ({ isOpen, onClose }) => {
       }
     }
   }, [isOpen, cart.length])
+
+  const handleApplyCoupon = async (e, codeOverride) => {
+    if (e) e.preventDefault()
+    const targetCode = codeOverride || cartCouponInput
+    if (!targetCode || !targetCode.trim()) return
+    setCouponError('')
+    try {
+      await applyCoupon(targetCode)
+      setCartCouponInput('')
+    } catch (err) {
+      setCouponError(err.message || 'Invalid coupon code')
+    }
+  }
 
   const handleCheckout = () => {
     try {
@@ -148,6 +175,63 @@ const Cart = ({ isOpen, onClose }) => {
 
             {cart.length > 0 && (
               <div className="cart-footer">
+                {/* Side Cart Coupon Section */}
+                <div className="side-cart-coupon-wrap">
+                  {appliedCoupon ? (
+                    <div className="side-cart-applied-coupon">
+                      <div className="applied-info">
+                        <span className="gold-code">✦ {appliedCoupon.code}</span>
+                        <span className="sub-savings">-₹{couponDiscount.toLocaleString('en-IN')}</span>
+                      </div>
+                      <button type="button" className="btn-remove-side-coupon" onClick={() => removeCoupon()} title="Remove Coupon">
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="side-cart-coupon-controls">
+                      {availableCoupons.length > 0 && (
+                        <div className="side-cart-custom-coupons">
+                          <span className="side-cart-coupon-title">AVAILABLE OFFERS</span>
+                          <div className="side-cart-chips-grid">
+                            {availableCoupons.map(c => {
+                              const isSelected = cartCouponInput === c.code
+                              return (
+                                <button
+                                  type="button"
+                                  key={c._id || c.code}
+                                  className={`side-cart-chip ${isSelected ? 'active' : ''}`}
+                                  onClick={() => {
+                                    setCartCouponInput(c.code)
+                                    handleApplyCoupon(null, c.code)
+                                  }}
+                                  disabled={couponLoading}
+                                >
+                                  <span className="chip-code">✦ {c.code}</span>
+                                  <span className="chip-tag">{c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      <form onSubmit={handleApplyCoupon} className="side-cart-coupon-form">
+                        <input
+                          type="text"
+                          placeholder="Or enter promo code"
+                          value={cartCouponInput}
+                          onChange={(e) => setCartCouponInput(e.target.value.toUpperCase())}
+                          disabled={couponLoading}
+                        />
+                        <button type="submit" disabled={couponLoading || !cartCouponInput.trim()}>
+                          {couponLoading ? '...' : 'Apply'}
+                        </button>
+                      </form>
+                    </div>
+                  )}
+                  {couponError && <span className="side-cart-coupon-err">⚠️ {couponError}</span>}
+                </div>
+
                 <div className="cart-total">
                   <span>Total</span>
                   <span className="total-amount">₹{getCartTotal()}</span>

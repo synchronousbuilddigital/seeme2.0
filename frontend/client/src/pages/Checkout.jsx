@@ -112,28 +112,111 @@ const Checkout = () => {
     clearCart,
     appliedCoupon,
     couponDiscount,
-    isFreeShippingFromCoupon,
-    removeCoupon
+    couponLoading,
+    applyCoupon,
+    removeCoupon,
+    availableCoupons
   } = useContext(CartContext)
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const { user, token } = useAuth()
   const [orderType, setOrderType] = useState('ONLINE')
   
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    street: '',
-    city: '',
-    state: '',
-    pincode: '',
-    paymentMethod: 'online'
+  const [formData, setFormData] = useState(() => {
+    let savedLocal = null
+    try {
+      const item = localStorage.getItem('seemee-last-shipping-address')
+      if (item) savedLocal = JSON.parse(item)
+    } catch (e) {
+      console.error('Error parsing local shipping address:', e)
+    }
+    return {
+      name: savedLocal?.name || user?.name || '',
+      email: savedLocal?.email || user?.email || '',
+      phone: savedLocal?.phone || user?.phone || '',
+      street: savedLocal?.street || '',
+      city: savedLocal?.city || '',
+      state: savedLocal?.state || '',
+      pincode: savedLocal?.pincode || '',
+      paymentMethod: savedLocal?.paymentMethod || 'online'
+    }
   })
   
   const [addresses, setAddresses] = useState([])
   const [selectedAddressId, setSelectedAddressId] = useState(null)
+  const [saveAddress, setSaveAddress] = useState(true)
+  const [savingAddress, setSavingAddress] = useState(false)
+  const [addressSaveSuccess, setAddressSaveSuccess] = useState('')
   const [showMobileSummary, setShowMobileSummary] = useState(false)
+
+  const [checkoutCouponCode, setCheckoutCouponCode] = useState('')
+  const [checkoutCouponError, setCheckoutCouponError] = useState('')
+
+  // Mirror form data to local storage for quick fallback
+  useEffect(() => {
+    if (formData.street || formData.pincode || formData.city || formData.phone) {
+      try {
+        localStorage.setItem('seemee-last-shipping-address', JSON.stringify(formData))
+      } catch (e) {
+        console.error('Error storing local shipping address:', e)
+      }
+    }
+  }, [formData])
+
+  const saveAddressToBackend = async (customAddr) => {
+    if (!user || !token) return null
+    const addrToSave = customAddr || {
+      name: formData.name,
+      phone: formData.phone,
+      street: formData.street,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode,
+      isDefault: addresses.length === 0
+    }
+    if (!addrToSave.street || !addrToSave.city || !addrToSave.state || !addrToSave.pincode) return null
+
+    try {
+      setSavingAddress(true)
+      const res = await fetch(API_ENDPOINTS.USERS_ADDRESSES, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(addrToSave)
+      })
+      const data = await res.json()
+      if (data.success && Array.isArray(data.data)) {
+        setAddresses(data.data)
+        const newest = data.data[data.data.length - 1]
+        if (newest) {
+          setSelectedAddressId(newest._id)
+        }
+        setAddressSaveSuccess('Address saved to your profile!')
+        setTimeout(() => setAddressSaveSuccess(''), 3000)
+        return newest
+      }
+    } catch (err) {
+      console.error('Error saving address to profile:', err)
+    } finally {
+      setSavingAddress(false)
+    }
+    return null
+  }
+
+  const handleApplyCheckoutCoupon = async (e, codeOverride) => {
+    if (e) e.preventDefault()
+    const targetCode = codeOverride || checkoutCouponCode
+    if (!targetCode || !targetCode.trim()) return
+    setCheckoutCouponError('')
+    try {
+      await applyCoupon(targetCode)
+      setCheckoutCouponCode('')
+    } catch (err) {
+      setCheckoutCouponError(err.message || 'Invalid coupon code.')
+    }
+  }
 
   const [pincodeLoading, setPincodeLoading] = useState(false)
   const [pincodeError, setPincodeError] = useState('')
@@ -516,6 +599,14 @@ const Checkout = () => {
       console.error('GTM checkout tracking error:', e)
     }
 
+    if (user && token && saveAddress && !selectedAddressId) {
+      try {
+        await saveAddressToBackend()
+      } catch (err) {
+        console.error('Auto save address error:', err)
+      }
+    }
+
     const orderData = {
       orderType: orderType,
       customer: {
@@ -662,6 +753,63 @@ const Checkout = () => {
               </div>
 
               <div className="mobile-summary-breakdown">
+                {/* Mobile Coupon Application Block */}
+                <div className="checkout-coupon-box mobile-checkout-coupon">
+                  <span className="checkout-coupon-title">🎁 PROMO / COUPON CODE</span>
+                  {appliedCoupon ? (
+                    <div className="checkout-applied-coupon">
+                      <div className="applied-info">
+                        <span className="gold-code">✦ {appliedCoupon.code} APPLIED</span>
+                        <span className="savings-tag">Savings: ₹{couponDiscount.toLocaleString('en-IN')}</span>
+                      </div>
+                      <button type="button" className="btn-remove-checkout-coupon" onClick={() => removeCoupon()} title="Remove Coupon">
+                        Remove ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {availableCoupons.length > 0 && (
+                        <div className="checkout-select-wrap">
+                          <select
+                            className="checkout-coupon-select"
+                            value={checkoutCouponCode}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              setCheckoutCouponCode(val)
+                              if (val) {
+                                handleApplyCheckoutCoupon(null, val)
+                              }
+                            }}
+                            disabled={couponLoading}
+                          >
+                            <option value="">-- Select Available Coupon ({availableCoupons.length}) --</option>
+                            {availableCoupons.map(c => (
+                              <option key={c._id || c.code} value={c.code}>
+                                ✦ {c.code} ({c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      <form onSubmit={handleApplyCheckoutCoupon} className="checkout-coupon-form">
+                        <input
+                          type="text"
+                          placeholder="Or enter coupon code"
+                          value={checkoutCouponCode}
+                          onChange={(e) => setCheckoutCouponCode(e.target.value.toUpperCase())}
+                          disabled={couponLoading}
+                        />
+                        <button type="submit" disabled={couponLoading || !checkoutCouponCode.trim()}>
+                          {couponLoading ? '...' : 'Apply'}
+                        </button>
+                      </form>
+                      {checkoutCouponError && (
+                        <span className="checkout-coupon-error">⚠️ {checkoutCouponError}</span>
+                      )}
+                    </>
+                  )}
+                </div>
+
                 <div className="calc-line">
                   <span>Subtotal</span>
                   <span>₹{calculateSubtotal().toLocaleString('en-IN')}</span>
@@ -862,6 +1010,38 @@ const Checkout = () => {
                   />
                 </div>
               </div>
+
+              {user && (
+                <div className="save-address-checkbox-row">
+                  <label htmlFor="save-address-toggle" className="save-address-label">
+                    <input
+                      id="save-address-toggle"
+                      type="checkbox"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      className="save-address-checkbox"
+                    />
+                    <span>Save this address to my profile for future orders</span>
+                  </label>
+
+                  {formData.street && formData.city && formData.pincode && (
+                    <button
+                      type="button"
+                      className="btn-manual-save-addr"
+                      onClick={() => saveAddressToBackend()}
+                      disabled={savingAddress}
+                    >
+                      {savingAddress ? 'Saving...' : '💾 Save Address Now'}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {addressSaveSuccess && (
+                <div className="pincode-alert-box success">
+                  <span>✓ {addressSaveSuccess}</span>
+                </div>
+              )}
 
               {pincodeError && (
                 <div className="pincode-alert-box error">
@@ -1074,6 +1254,62 @@ const Checkout = () => {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Desktop Coupon Application Box */}
+            <div className="checkout-coupon-box desktop-checkout-coupon">
+              <span className="checkout-coupon-title">🎁 PROMO / COUPON CODE</span>
+              {appliedCoupon ? (
+                <div className="checkout-applied-coupon">
+                  <div className="applied-info">
+                    <span className="gold-code">✦ {appliedCoupon.code} APPLIED</span>
+                    <span className="savings-tag">Savings: ₹{couponDiscount.toLocaleString('en-IN')}</span>
+                  </div>
+                  <button type="button" className="btn-remove-checkout-coupon" onClick={() => removeCoupon()} title="Remove Coupon">
+                    Remove ✕
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {availableCoupons.length > 0 && (
+                    <select
+                      className="checkout-coupon-select-dropdown"
+                      value={checkoutCouponCode}
+                      onChange={(e) => {
+                        const code = e.target.value
+                        setCheckoutCouponCode(code)
+                        if (code) {
+                          handleApplyCheckoutCoupon(null, code)
+                        }
+                      }}
+                      disabled={couponLoading}
+                    >
+                      <option value="">-- Select an Available Coupon ({availableCoupons.length}) --</option>
+                      {availableCoupons.map(c => (
+                        <option key={c._id || c.code} value={c.code}>
+                          ✦ {c.code} ({c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}{c.minimumOrder > 0 ? ` - Min. ₹${c.minimumOrder}` : ''})
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  <form onSubmit={handleApplyCheckoutCoupon} className="checkout-coupon-form">
+                    <input
+                      type="text"
+                      placeholder="Or enter custom code"
+                      value={checkoutCouponCode}
+                      onChange={(e) => setCheckoutCouponCode(e.target.value.toUpperCase())}
+                      disabled={couponLoading}
+                    />
+                    <button type="submit" disabled={couponLoading || !checkoutCouponCode.trim()}>
+                      {couponLoading ? '...' : 'Apply'}
+                    </button>
+                  </form>
+                  {checkoutCouponError && (
+                    <span className="checkout-coupon-error">⚠️ {checkoutCouponError}</span>
+                  )}
+                </>
+              )}
             </div>
 
             <div className="summary-calculations">

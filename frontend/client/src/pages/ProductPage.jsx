@@ -21,7 +21,8 @@ const ProductPage = () => {
     couponDiscount,
     applyCoupon,
     removeCoupon,
-    couponLoading
+    couponLoading,
+    availableCoupons
   } = useContext(CartContext)
 
   const { id } = useParams()
@@ -41,10 +42,8 @@ const ProductPage = () => {
   const [selectedColor, setSelectedColor] = useState('Royal Gold')
   const [offersOpen, setOffersOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
-  const [availableCoupons, setAvailableCoupons] = useState([])
-  const [pdpCouponCode, setPdpCouponCode] = useState('')
-  const [pdpCouponError, setPdpCouponError] = useState(null)
   const [showCouponModal, setShowCouponModal] = useState(false)
+  const [copiedCode, setCopiedCode] = useState(null)
   const [showSizeGuide, setShowSizeGuide] = useState(false)
   const [sizeUnit, setSizeUnit] = useState('in')
   const [addedToast, setAddedToast] = useState(false)
@@ -63,11 +62,7 @@ const ProductPage = () => {
   })
 
   useEffect(() => {
-    fetchAvailableCoupons()
-  }, [])
-
-  useEffect(() => {
-    if (showCouponModal || showSizeGuide || isZoomOpen) {
+    if (showSizeGuide || isZoomOpen || showCouponModal) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -75,21 +70,7 @@ const ProductPage = () => {
     return () => {
       document.body.style.overflow = ''
     }
-  }, [showCouponModal, showSizeGuide, isZoomOpen])
-
-  const fetchAvailableCoupons = async () => {
-    try {
-      const res = await fetch(API_ENDPOINTS.COUPON_AVAILABLE)
-      const contentType = res.headers.get('content-type') || ''
-      if (!res.ok || !contentType.includes('application/json')) return
-      const data = await res.json()
-      if (data.success && Array.isArray(data.data)) {
-        setAvailableCoupons(data.data)
-      }
-    } catch (err) {
-      console.error('Error fetching available coupons:', err)
-    }
-  }
+  }, [showSizeGuide, isZoomOpen, showCouponModal])
 
   useEffect(() => {
     fetchProduct()
@@ -413,34 +394,21 @@ const ProductPage = () => {
               )}
             </div>
 
-            {/* Available Atelier Offers & Coupon Trigger Box */}
-            <div className="pdp-coupon-widget">
-              {appliedCoupon ? (
-                <div className="pdp-applied-coupon-card">
-                  <div className="pdp-applied-info">
-                    <span className="pdp-applied-code">✦ {appliedCoupon.code} APPLIED</span>
-                    <span className="pdp-applied-sub">Savings: ₹{couponDiscount.toLocaleString('en-IN')} off your order</span>
+            {/* Available Atelier Offers & Coupons Option Card */}
+            {availableCoupons.length > 0 && (
+              <div className="pdp-coupons-trigger-card" onClick={() => setShowCouponModal(true)}>
+                <div className="trigger-left-block">
+                  <span className="gift-emoji-icon">🎁</span>
+                  <div className="trigger-text-block">
+                    <span className="trigger-main-heading">APPLY COUPON & OFFERS</span>
+                    <span className="trigger-sub-heading">View all {availableCoupons.length} Atelier promotional discounts</span>
                   </div>
-                  <button className="btn-pdp-remove-coupon" onClick={() => removeCoupon()}>
-                    Remove ✕
-                  </button>
                 </div>
-              ) : (
-                <button 
-                  className="btn-open-coupon-modal-trigger"
-                  onClick={() => setShowCouponModal(true)}
-                >
-                  <div className="trigger-left">
-                    <span className="sparkle-icon">🎁</span>
-                    <div className="trigger-text">
-                      <span className="trigger-title">APPLY COUPON & OFFERS</span>
-                      <span className="trigger-sub">View all {availableCoupons.length || 'available'} Atelier promotional discounts</span>
-                    </div>
-                  </div>
-                  <span className="trigger-arrow">View All Offers ❯</span>
+                <button type="button" className="trigger-view-link">
+                  View All Offers ›
                 </button>
-              )}
-            </div>
+              </div>
+            )}
 
 
 
@@ -467,22 +435,9 @@ const ProductPage = () => {
               </div>
             </div>
 
-            {/* Quantity & Action Box */}
+            {/* Action Box */}
             <div className="quantity-action-card">
               <div className="quantity-header-row">
-                <div className="quantity-stepper-box">
-                  <span className="qty-label">QUANTITY</span>
-                  <div className="stepper-controls">
-                    <button
-                      onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                      disabled={quantity <= 1}
-                    >
-                      &minus;
-                    </button>
-                    <span className="qty-number">{quantity}</span>
-                    <button onClick={() => setQuantity(prev => prev + 1)}>+</button>
-                  </div>
-                </div>
                 <div className="stock-status-pill">
                   <span className="stock-dot"></span>
                   <span>In Stock</span>
@@ -811,88 +766,70 @@ const ProductPage = () => {
         )}
       </AnimatePresence>
 
-      {/* ALL AVAILABLE COUPONS MODAL POPUP */}
+      {/* FLOATING ALL AVAILABLE COUPONS MODAL POPUP OVER WINDOW */}
       <AnimatePresence>
         {showCouponModal && (
-          <div className="pdp-modal-overlay" onClick={() => setShowCouponModal(false)}>
+          <div className="pdp-coupon-window-overlay" onClick={() => setShowCouponModal(false)}>
             <motion.div
-              className="pdp-modal-card"
+              className="pdp-coupon-window-card"
               onClick={(e) => e.stopPropagation()}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ duration: 0.25 }}
             >
-              <div className="pdp-modal-header">
-                <div>
-                  <span className="pdp-modal-sparkle">🎁 ATELIER PROMOTIONS</span>
-                  <h3>All Available Coupons & Offers</h3>
+              <div className="pdp-window-header">
+                <div className="pdp-window-header-titles">
+                  <span className="window-sparkle-tag">🎁 ATELIER PROMOTIONAL OFFERS</span>
+                  <h3 className="window-title">All Available Coupons</h3>
                 </div>
-                <button className="btn-modal-close" onClick={() => setShowCouponModal(false)}>✕</button>
+                <button 
+                  type="button" 
+                  className="btn-window-close-x" 
+                  onClick={() => setShowCouponModal(false)}
+                >
+                  ✕
+                </button>
               </div>
 
-              <div className="pdp-modal-body">
-                {/* Enter Custom Promo Code Box */}
-                <form onSubmit={handleApplyPdpCoupon} className="pdp-modal-coupon-form">
-                  <input
-                    type="text"
-                    placeholder="Enter Coupon Code (e.g. WELCOME10)"
-                    value={pdpCouponCode}
-                    onChange={(e) => setPdpCouponCode(e.target.value.toUpperCase())}
-                    disabled={couponLoading}
-                  />
-                  <button
-                    type="submit"
-                    className="btn-modal-apply-submit"
-                    disabled={couponLoading || !pdpCouponCode.trim()}
-                  >
-                    {couponLoading ? 'Validating...' : 'Apply Code'}
-                  </button>
-                </form>
+              <div className="pdp-window-body">
+                <p className="pdp-window-sub">Click "Copy Code" to copy promo code and enter it at Cart or Checkout page.</p>
 
-                {pdpCouponError && (
-                  <div className="pdp-modal-error">
-                    ⚠️ {pdpCouponError}
-                  </div>
-                )}
-
-                {/* List of ALL Available Coupons */}
-                <div className="pdp-coupons-all-list">
-                  <h4 className="list-section-title">SELECT A COUPON TO APPLY ({availableCoupons.length})</h4>
-
-                  {availableCoupons.length === 0 ? (
-                    <div className="pdp-no-coupons">
-                      <p>No special promotions available at this moment.</p>
-                    </div>
-                  ) : (
-                    availableCoupons.map(c => {
-                      const isApplied = appliedCoupon?.code === c.code
-                      return (
-                        <div key={c._id || c.code} className={`pdp-full-coupon-item ${isApplied ? 'applied' : ''}`}>
-                          <div className="item-left-info">
-                            <span className="coupon-code-badge">✦ {c.code}</span>
-                            <p className="coupon-desc-text">{c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`}</p>
+                <div className="pdp-window-coupons-list">
+                  {availableCoupons.map(c => {
+                    const isCopied = copiedCode === c.code
+                    return (
+                      <div key={c._id || c.code} className="window-coupon-item-card">
+                        <div className="item-info-left">
+                          <div className="badge-min-row">
+                            <span className="window-code-badge">✦ {c.code}</span>
                             {c.minimumOrder > 0 && (
-                              <span className="coupon-min-tag">Min. Order: ₹{c.minimumOrder.toLocaleString('en-IN')}</span>
+                              <span className="window-min-tag">Min. Order: ₹{c.minimumOrder.toLocaleString('en-IN')}</span>
                             )}
                           </div>
-                          <button
-                            type="button"
-                            className={`btn-coupon-list-apply ${isApplied ? 'btn-applied' : ''}`}
-                            onClick={(e) => handleApplyPdpCoupon(e, c.code)}
-                            disabled={couponLoading || isApplied}
-                          >
-                            {isApplied ? 'Applied ✓' : 'Apply'}
-                          </button>
+                          <p className="window-coupon-desc">{c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`}</p>
                         </div>
-                      )
-                    })
-                  )}
+                        <button
+                          type="button"
+                          className={`btn-window-copy-code ${isCopied ? 'copied' : ''}`}
+                          onClick={() => {
+                            navigator.clipboard.writeText(c.code)
+                            setCopiedCode(c.code)
+                            setTimeout(() => setCopiedCode(null), 2500)
+                          }}
+                        >
+                          {isCopied ? 'Copied ✓' : 'Copy Code'}
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
     </div>
   )
 }

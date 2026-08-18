@@ -2,6 +2,7 @@ import Coupon from '../models/Coupon.js'
 import CouponUsage from '../models/CouponUsage.js'
 import Order from '../models/Order.js'
 import asyncHandler from '../utils/asyncHandler.js'
+import { invalidateCouponCache } from './couponController.js'
 
 // @desc    Get all coupons for admin panel with filters, search, & pagination
 // @route   GET /api/admin/coupons
@@ -101,6 +102,8 @@ export const createCoupon = asyncHandler(async (req, res) => {
     code: cleanCode
   })
 
+  invalidateCouponCache()
+
   res.status(201).json({
     success: true,
     data: newCoupon,
@@ -129,6 +132,8 @@ export const updateCoupon = asyncHandler(async (req, res) => {
 
   const updated = await Coupon.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
 
+  invalidateCouponCache()
+
   res.json({
     success: true,
     data: updated,
@@ -147,6 +152,9 @@ export const deleteCoupon = asyncHandler(async (req, res) => {
   }
 
   await Coupon.findByIdAndDelete(req.params.id)
+
+  invalidateCouponCache()
+
   res.json({
     success: true,
     message: `Coupon "${coupon.code}" deleted successfully.`
@@ -165,6 +173,8 @@ export const toggleCouponStatus = asyncHandler(async (req, res) => {
 
   coupon.isActive = req.body.isActive !== undefined ? req.body.isActive : !coupon.isActive
   await coupon.save()
+
+  invalidateCouponCache()
 
   res.json({
     success: true,
@@ -200,6 +210,8 @@ export const duplicateCoupon = asyncHandler(async (req, res) => {
     usedCount: 0,
     isActive: false // Default duplicated coupon to disabled for safety
   })
+
+  invalidateCouponCache()
 
   res.status(201).json({
     success: true,

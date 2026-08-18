@@ -348,3 +348,281 @@
     opacity: 0.9;
   }
 }
+
+/* ─── Web App Installation Banner Styles ─────────────────────── */
+.footer-app-install-section {
+  margin-bottom: 60px;
+}
+
+.app-install-banner-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(212, 175, 55, 0.4);
+  border-radius: 20px;
+  padding: 30px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.app-install-banner-card:hover {
+  border-color: #d4af37;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 30px rgba(212, 175, 55, 0.08);
+}
+
+.app-install-text-side {
+  max-width: 520px;
+}
+
+.app-gold-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #d4af37;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.app-install-title {
+  font-family: var(--font-heading, serif);
+  font-size: 1.4rem;
+  color: #ffffff;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+.app-install-subtitle {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.6;
+}
+
+.app-install-buttons-grid {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.btn-install-os {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1c1917;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 14px;
+  padding: 10px 18px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.btn-install-os:hover {
+  border-color: #d4af37;
+  background: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.2);
+}
+
+.os-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d4af37;
+}
+
+.os-text-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.os-tag {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.os-action {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+/* ─── iOS Installation Modal ───────────────────────────────── */
+.ios-install-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.ios-install-modal-card {
+  background: #1c1917;
+  border: 1px solid #d4af37;
+  border-radius: 24px;
+  max-width: 440px;
+  width: 100%;
+  padding: 32px 28px;
+  color: #ffffff;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+  animation: modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.btn-close-modal-x {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-close-modal-x:hover {
+  color: #d4af37;
+}
+
+.ios-modal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.ios-apple-icon {
+  font-size: 2.2rem;
+  color: #d4af37;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.ios-modal-header h3 {
+  font-family: var(--font-heading, serif);
+  font-size: 1.3rem;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.ios-modal-header p {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ios-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.ios-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 16px;
+}
+
+.step-num {
+  width: 26px;
+  height: 26px;
+  background: #d4af37;
+  color: #1c1917;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.step-text {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
+}
+
+.step-icon-badge {
+  display: inline-block;
+  background: rgba(212, 175, 55, 0.2);
+  color: #d4af37;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+.btn-ios-got-it {
+  width: 100%;
+  height: 44px;
+  background: #d4af37;
+  color: #1c1917;
+  border: none;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-ios-got-it:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.pwa-installed-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #15803d;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  z-index: 999999;
+}
+
+@media (max-width: 768px) {
+  .app-install-banner-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+
+  .app-install-buttons-grid {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-install-os {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -6,6 +6,7 @@ import Hero from './components/Hero'
 import Footer from './components/Footer'
 import NewArrivals from './components/NewArrivals'
 import ScrollToTop from './components/ScrollToTop'
+import InstallAppWidget from './components/InstallAppWidget'
 import Cart from './components/Cart'
 import Wishlist from './components/Wishlist'
 import ProductPage from './pages/ProductPage'
@@ -123,6 +124,7 @@ function App() {
           }}
         >
           <ScrollToTop />
+          <InstallAppWidget />
           <div className="app">
             <Suspense fallback={
               <div style={{

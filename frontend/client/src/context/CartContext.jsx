@@ -57,6 +57,39 @@ export const CartProvider = ({ children }) => {
   const [isFreeShippingFromCoupon, setIsFreeShippingFromCoupon] = useState(false)
   const [couponLoading, setCouponLoading] = useState(false)
 
+  // Global cached available coupons state
+  const [availableCoupons, setAvailableCoupons] = useState(() => {
+    try {
+      const saved = localStorage.getItem('seemee-available-coupons')
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
+
+  const fetchAvailableCoupons = async () => {
+    try {
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {}
+      const res = await fetch(API_ENDPOINTS.COUPON_AVAILABLE, { headers })
+      const contentType = res.headers.get('content-type') || ''
+      if (res.ok && contentType.includes('application/json')) {
+        const data = await res.json()
+        if (data.success && Array.isArray(data.data)) {
+          setAvailableCoupons(data.data)
+          try {
+            localStorage.setItem('seemee-available-coupons', JSON.stringify(data.data))
+          } catch (e) {}
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching available coupons globally:', err)
+    }
+  }
+
+  useEffect(() => {
+    fetchAvailableCoupons()
+  }, [user, token])
+
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     try {
@@ -566,7 +599,9 @@ export const CartProvider = ({ children }) => {
         isFreeShippingFromCoupon,
         couponLoading,
         applyCoupon,
-        removeCoupon
+        removeCoupon,
+        availableCoupons,
+        fetchAvailableCoupons
       }}
     >
       {children}

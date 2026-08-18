@@ -43,10 +43,30 @@ export const removeCoupon = asyncHandler(async (req, res) => {
   })
 })
 
+let couponCache = {
+  data: null,
+  timestamp: 0,
+  userKey: null
+}
+
+export const invalidateCouponCache = () => {
+  couponCache = { data: null, timestamp: 0, userKey: null }
+}
+
 // @desc    Get available public and user-targeted coupons
 // @route   GET /api/coupon/available
 // @access  Public (with optionalAuth)
 export const getAvailableCoupons = asyncHandler(async (req, res) => {
+  const userKey = req.user ? String(req.user._id) : 'guest'
+  const nowTime = Date.now()
+
+  if (couponCache.data && couponCache.userKey === userKey && (nowTime - couponCache.timestamp < 20000)) {
+    return res.json({
+      success: true,
+      data: couponCache.data
+    })
+  }
+
   const now = new Date()
 
   const audienceFilter = req.user ? {
@@ -99,6 +119,12 @@ export const getAvailableCoupons = asyncHandler(async (req, res) => {
       isExclusiveForUser
     }
   })
+
+  couponCache = {
+    data: formattedCoupons,
+    timestamp: nowTime,
+    userKey
+  }
 
   res.json({
     success: true,

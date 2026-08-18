@@ -22,7 +22,8 @@ const CartPage = () => {
     isFreeShippingFromCoupon,
     couponLoading,
     applyCoupon,
-    removeCoupon
+    removeCoupon,
+    availableCoupons
   } = useContext(CartContext)
 
   const navigate = useNavigate()
@@ -30,7 +31,6 @@ const CartPage = () => {
   const { user, token } = useAuth()
 
   const [promoCode, setPromoCode] = useState('')
-  const [availableCoupons, setAvailableCoupons] = useState([])
   const [adminCategories, setAdminCategories] = useState([])
   const [toastMessage, setToastMessage] = useState(null)
   const [couponError, setCouponError] = useState(null)
@@ -38,7 +38,6 @@ const CartPage = () => {
   const FREE_SHIPPING_THRESHOLD = 5000
 
   useEffect(() => {
-    fetchAvailableCoupons()
     fetchAdminCategories()
   }, [token])
 
@@ -62,23 +61,6 @@ const CartPage = () => {
         }
       }
     } catch (e) {}
-  }
-
-  const fetchAvailableCoupons = async () => {
-    try {
-      const headers = {}
-      if (token) headers['Authorization'] = `Bearer ${token}`
-
-      const res = await fetch(API_ENDPOINTS.COUPON_AVAILABLE, { headers })
-      const contentType = res.headers.get('content-type') || ''
-      if (!res.ok || !contentType.includes('application/json')) return
-      const data = await res.json()
-      if (data.success && Array.isArray(data.data)) {
-        setAvailableCoupons(data.data)
-      }
-    } catch (err) {
-      console.error('Error fetching available coupons:', err)
-    }
   }
 
   const calculateSubtotal = () => {
@@ -383,40 +365,7 @@ const CartPage = () => {
             </AnimatePresence>
           </div>
 
-          {/* Available Coupon Suggestions Widget */}
-          {availableCoupons.length > 0 && (
-            <div className="coupon-suggestions-widget">
-              <div className="suggestions-header">
-                <span className="sparkle-icon">🎁</span>
-                <h4>AVAILABLE ATELIER COUPONS</h4>
-              </div>
-              <div className="suggestions-list">
-                {availableCoupons.map(c => {
-                  const isApplied = appliedCoupon?.code === c.code
-                  return (
-                    <div key={c._id || c.code} className={`coupon-suggestion-card ${isApplied ? 'applied' : ''} ${c.isExclusiveForUser ? 'exclusive' : ''}`}>
-                      <div className="coupon-card-left">
-                        <div className="coupon-code-badge-wrap">
-                          <span className="coupon-code-badge">✦ {c.code}</span>
-                          {c.isExclusiveForUser && (
-                            <span className="exclusive-user-badge">⭐ Exclusive For You</span>
-                          )}
-                        </div>
-                        <p className="coupon-card-desc">{c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`}</p>
-                      </div>
-                      <button 
-                        className={`btn-apply-suggestion ${isApplied ? 'btn-applied' : ''}`}
-                        onClick={() => handleApplyCouponCode(null, c.code)}
-                        disabled={couponLoading || isApplied}
-                      >
-                        {isApplied ? 'Applied ✓' : 'Apply'}
-                      </button>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+
 
           {/* Bottom Actions Row */}
           <div className="cart-bottom-actions-row">
@@ -464,22 +413,49 @@ const CartPage = () => {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleApplyCouponCode} className="promo-input-row">
-                    <input
-                      type="text"
-                      placeholder="Enter Coupon Code (e.g. WELCOME10)"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
-                      disabled={couponLoading}
-                    />
-                    <button 
-                      type="submit" 
-                      className="btn-apply-promo"
-                      disabled={couponLoading || !promoCode.trim()}
-                    >
-                      {couponLoading ? 'Validating...' : 'Apply'}
-                    </button>
-                  </form>
+                  <div className="coupon-select-form-wrap">
+                    {availableCoupons.length > 0 && (
+                      <div className="custom-luxury-coupon-box">
+                        <span className="coupon-box-title">AVAILABLE OFFERS & COUPONS</span>
+                        <select
+                          className="cart-coupon-select-dropdown"
+                          value={promoCode}
+                          onChange={(e) => {
+                            const code = e.target.value
+                            setPromoCode(code)
+                            if (code) {
+                              handleApplyCouponCode(null, code)
+                            }
+                          }}
+                          disabled={couponLoading}
+                        >
+                          <option value="">-- Select an Available Coupon ({availableCoupons.length}) --</option>
+                          {availableCoupons.map(c => (
+                            <option key={c._id || c.code} value={c.code}>
+                              ✦ {c.code} ({c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}{c.minimumOrder > 0 ? ` - Min. ₹${c.minimumOrder}` : ''})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleApplyCouponCode} className="promo-input-row">
+                      <input
+                        type="text"
+                        placeholder="Or enter custom promo code"
+                        value={promoCode}
+                        onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                        disabled={couponLoading}
+                      />
+                      <button 
+                        type="submit" 
+                        className="btn-apply-promo"
+                        disabled={couponLoading || !promoCode.trim()}
+                      >
+                        {couponLoading ? 'Validating...' : 'Apply'}
+                      </button>
+                    </form>
+                  </div>
                 )}
 
                 {couponError && (

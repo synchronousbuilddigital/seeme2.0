@@ -562,6 +562,108 @@
   margin: 8px 0;
 }
 
+.coupon-select-form-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.custom-luxury-coupon-box {
+  background: #faf8f5;
+  border: 1px dashed #d4af37;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coupon-box-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #854d0e;
+}
+
+.cart-coupon-select-dropdown {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px dashed #d4af37;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1c1917;
+  font-size: 0.8rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.cart-coupon-select-dropdown:focus,
+.cart-coupon-select-dropdown:hover {
+  border-color: #854d0e;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+}
+
+.cart-selected-coupon-preview-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid #e7e5e4;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.chip-left-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chip-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip-code-tag {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: 0.5px;
+}
+
+.chip-min-tag {
+  font-size: 0.7rem;
+  color: #854d0e;
+  font-weight: 600;
+}
+
+.chip-desc {
+  font-size: 0.74rem;
+  color: #78716c;
+}
+
+.chip-apply-btn {
+  background: #1c1917;
+  color: #d4af37;
+  padding: 5px 12px;
+  border-radius: 16px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.custom-coupon-chip:hover .chip-apply-btn {
+  background: #000000;
+  color: #ffffff;
+}
+
 .promo-input-row {
   display: flex;
   gap: 8px;
