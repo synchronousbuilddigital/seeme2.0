@@ -7,8 +7,6 @@ const InstallAppWidget = () => {
   const [isStandalone, setIsStandalone] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [showIosGuide, setShowIosGuide] = useState(false)
-  const [showManualGuide, setShowManualGuide] = useState(false)
-  const [manualGuideOS, setManualGuideOS] = useState('Desktop')
   const [installToast, setInstallToast] = useState(false)
 
   useEffect(() => {
@@ -36,13 +34,17 @@ const InstallAppWidget = () => {
       window.deferredInstallPrompt = null
       setIsOpen(false)
       setShowIosGuide(false)
-      setShowManualGuide(false)
       setInstallToast(true)
       setTimeout(() => setInstallToast(false), 5000)
     }
 
     const handleTriggerInstallEvent = () => {
-      setIsOpen(true)
+      const promptObj = window.deferredInstallPrompt || deferredPrompt
+      if (promptObj) {
+        promptObj.prompt().catch(() => {})
+      } else {
+        setIsOpen(true)
+      }
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
@@ -56,7 +58,7 @@ const InstallAppWidget = () => {
       window.removeEventListener('appinstalled', handleAppInstalled)
       window.removeEventListener('trigger-app-install', handleTriggerInstallEvent)
     }
-  }, [])
+  }, [deferredPrompt])
 
   const detectDeviceOS = () => {
     const ua = navigator.userAgent || ''
@@ -65,7 +67,7 @@ const InstallAppWidget = () => {
     return 'Desktop'
   }
 
-  // DIRECT INSTALLATION TRIGGER FUNCTION
+  // DIRECT NATIVE INSTALLATION TRIGGER FUNCTION
   const executeDirectInstall = async (preferredOS) => {
     const os = preferredOS || detectDeviceOS()
 
@@ -75,14 +77,12 @@ const InstallAppWidget = () => {
       return
     }
 
-    // Grab latest prompt reference synchronously on click
     const promptObj = window.deferredInstallPrompt || deferredPrompt
 
     if (promptObj) {
       try {
-        // Trigger browser native install prompt directly!
-        promptObj.prompt()
         setIsOpen(false)
+        await promptObj.prompt()
 
         const choiceResult = await promptObj.userChoice
         if (choiceResult && choiceResult.outcome === 'accepted') {
@@ -97,12 +97,19 @@ const InstallAppWidget = () => {
         setIsOpen(false)
       }
     } else {
+      console.warn('Native PWA prompt not ready yet')
       setIsOpen(false)
     }
   }
 
   const handleMainButtonClick = () => {
-    setIsOpen(prev => !prev)
+    const os = detectDeviceOS()
+    if (os === 'iOS') {
+      setShowIosGuide(true)
+      setIsOpen(false)
+      return
+    }
+    executeDirectInstall()
   }
 
   const handleInstallClick = (targetOS) => {
@@ -244,7 +251,7 @@ const InstallAppWidget = () => {
               <div className="ios-step-item">
                 <div className="step-num">2</div>
                 <div className="step-text">
-                  Scroll down the options list and tap <strong>'Add to Home Screen'</strong>.
+                  Scroll down options and tap <strong>'Add to Home Screen'</strong>.
                   <span className="step-icon-badge">➕</span>
                 </div>
               </div>
@@ -252,7 +259,7 @@ const InstallAppWidget = () => {
               <div className="ios-step-item">
                 <div className="step-num">3</div>
                 <div className="step-text">
-                  Tap <strong>'Add'</strong> in top right. The See Mee App icon will appear on your screen!
+                  Tap <strong>'Add'</strong> in top right. See Mee App will appear on your Home Screen!
                 </div>
               </div>
             </div>

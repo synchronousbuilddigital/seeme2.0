@@ -1,4 +1,4 @@
-const CACHE_NAME = 'seemee-client-pwa-v1.0.1787249534838'
+const CACHE_NAME = 'seemee-client-pwa-v1.0.1787250237185'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
