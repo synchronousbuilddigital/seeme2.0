@@ -1,4 +1,4 @@
-const CACHE_NAME = 'seemee-client-pwa-v1.0.1787248299448'
+const CACHE_NAME = 'seemee-client-pwa-v1.0.1787249534838'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -19,8 +19,14 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('📦 Client PWA Service Worker caching shell assets')
-      return Promise.all(
-        STATIC_ASSETS.map(asset => cache.add(asset).catch(err => console.warn('PWA caching notice:', asset, err.message)))
+      return Promise.allSettled(
+        STATIC_ASSETS.map(asset => 
+          fetch(asset)
+            .then(res => {
+              if (res.ok) return cache.put(asset, res)
+            })
+            .catch(err => console.warn('PWA asset cache notice:', asset, err.message))
+        )
       )
     })
   )
@@ -42,7 +48,7 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-// ─── FETCH INTERCEPTION & OFFLINE STRATEGY ────────────────
+// ─── FETCH INTERCEPTION & OFFLINE / PRODUCTION STRATEGY ──
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
 
@@ -51,23 +57,38 @@ self.addEventListener('fetch', (event) => {
     return
   }
 
-  // 2. Stale-while-revalidate for static assets
+  // 2. Handle HTML navigation requests (Network-first with index.html fallback for SPA)
+  if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
+          }
+          return networkResponse
+        })
+        .catch(() => {
+          return caches.match(event.request)
+            .then((cached) => cached || caches.match('/index.html') || caches.match('/offline.html'))
+        })
+    )
+    return
+  }
+
+  // 3. Stale-while-revalidate for static assets & images
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        fetch(event.request).then((networkResponse) => {
+      const fetchPromise = fetch(event.request)
+        .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse))
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()))
           }
-        }).catch(() => {})
-        return cachedResponse
-      }
+          return networkResponse
+        })
+        .catch(() => {})
 
-      return fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
-          return caches.match('/offline.html')
-        }
-      })
+      return cachedResponse || fetchPromise
     })
   )
 })
