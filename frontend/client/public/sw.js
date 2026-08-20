@@ -1,4 +1,4 @@
-const CACHE_NAME = 'seemee-client-pwa-v1'
+const CACHE_NAME = 'seemee-client-pwa-v1.0.1787248299448'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -19,7 +19,9 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('📦 Client PWA Service Worker caching shell assets')
-      return cache.addAll(STATIC_ASSETS).catch(err => console.warn('PWA caching warning:', err.message))
+      return Promise.all(
+        STATIC_ASSETS.map(asset => cache.add(asset).catch(err => console.warn('PWA caching notice:', asset, err.message)))
+      )
     })
   )
 })

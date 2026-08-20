@@ -528,24 +528,16 @@ const CategoryPage = () => {
                             </svg>
                           </button>
 
-                          <button
-                            className="action-btn-eye"
-                            onClick={(e) => openQuickView(e, product)}
-                            title="Quick Lookbook Preview"
-                          >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                          </button>
                         </div>
                       </div>
 
-                      {/* Clean Card Info Content: Title, Price (Selling & MRP), Add to Cart */}
+                      {/* Clean Card Info Content: Title, Divider Line, Price & + ADD Button */}
                       <div className="card-info-content">
                         <h3 className="card-editorial-title">{product.name}</h3>
 
-                        <div className="card-price-row">
+                        <div className="card-divider-line"></div>
+
+                        <div className="card-footer-row">
                           <div className="card-price-group">
                             <span className="card-price-main">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
                             {(product.mrp || product.originalPrice || product.discountPrice) && Number(product.mrp || product.originalPrice || product.discountPrice) > Number(product.price) && (
@@ -554,18 +546,18 @@ const CategoryPage = () => {
                               </span>
                             )}
                           </div>
-                        </div>
 
-                        <AddToCartButton
-                          product={product}
-                          selectedSize={product.sizes?.[0] || 'M'}
-                          variant="full"
-                          label="+ ADD TO BAG"
-                          onAddCallback={() => {
-                            setAddedToast(true)
-                            setTimeout(() => setAddedToast(false), 2500)
-                          }}
-                        />
+                          <AddToCartButton
+                            product={product}
+                            selectedSize={product.sizes?.[0] || 'M'}
+                            variant="mini"
+                            label="+ ADD"
+                            onAddCallback={() => {
+                              setAddedToast(true)
+                              setTimeout(() => setAddedToast(false), 2500)
+                            }}
+                          />
+                        </div>
                       </div>
                     </motion.div>
                   </div>

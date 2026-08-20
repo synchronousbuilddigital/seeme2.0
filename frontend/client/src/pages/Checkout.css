@@ -335,6 +335,56 @@
   padding: 12px;
 }
 
+.selected-address-summary-banner {
+  background: #fdfbf7;
+  border: 1px solid #e6dec9;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-top: 14px;
+  margin-bottom: 20px;
+}
+
+.summary-banner-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.summary-check-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #d4af37;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.summary-address-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-address-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #8c6d23;
+}
+
+.summary-address-text {
+  font-size: 0.9rem;
+  color: #1c1917;
+  line-height: 1.45;
+  margin: 0;
+}
+
 /* ─── Form Inputs ─────────────────────────────────────────────── */
 .input-group-luxury {
   display: flex;

@@ -70,7 +70,7 @@
   position: absolute;
   bottom: 56px;
   right: 0;
-  width: 310px;
+  width: 340px;
   background: #1c1917;
   border: 1px solid #d4af37;
   border-radius: 20px;
@@ -173,6 +173,42 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
+.os-action-btn {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.os-action-btn.gold-btn {
+  background: linear-gradient(135deg, #d4af37, #b8860b);
+  color: #1c1917;
+  border: none;
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+}
+
+.os-action-btn.gold-btn:hover {
+  background: linear-gradient(135deg, #f59e0b, #d4af37);
+  color: #000000;
+  transform: scale(1.04);
+}
+
+.os-action-btn.outline-btn {
+  background: transparent;
+  color: #d4af37;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.os-action-btn.outline-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+}
+
 /* ─── Install Confirmation Modal Card Styles ───────────────── */
 .install-confirm-modal-card {
   background: #1c1917;
@@ -259,21 +295,35 @@
 /* ─── Mobile Adjustments ────────────────────────────────────── */
 @media (max-width: 768px) {
   .install-app-floating-wrap {
-    right: 16px;
-    bottom: 85px;
+    right: 12px;
+    bottom: 72px;
   }
 
   .install-btn-text {
-    display: none;
+    display: inline-block;
+    font-size: 0.74rem;
   }
 
   .btn-floating-install {
-    padding: 6px;
-    border-radius: 50%;
+    padding: 7px 12px 7px 8px;
+    border-radius: 25px;
+    gap: 8px;
+  }
+
+  .install-icon-badge {
+    width: 26px;
+    height: 26px;
+  }
+
+  .install-icon-badge svg {
+    width: 16px;
+    height: 16px;
   }
 
   .install-side-popover {
-    right: -10px;
+    right: 0;
     width: 290px;
+    bottom: 48px;
   }
 }
+

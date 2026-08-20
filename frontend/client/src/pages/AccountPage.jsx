@@ -465,170 +465,169 @@ const AccountPage = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <div className="account-section-view">
-            {/* Header Hero */}
-            <section className="profile-hero-panel">
-              <div className="profile-hero-copy">
-                <div className="hero-kicker-row">
-                  <span className="greeting-label">Welcome Back</span>
-                  <span className="hero-member-badge">✦ SEEMEE Atelier Member</span>
+          <div className="account-section-view ux-overview-container">
+            {/* UX Hero Profile Banner */}
+            <section className="ux-profile-hero">
+              <div className="ux-hero-left">
+                <div className="ux-avatar-wrapper">
+                  <div className="ux-hero-avatar">
+                    {user?.name?.charAt(0).toUpperCase() || 'U'}
+                  </div>
+                  <span className="ux-status-online" title="Account Active"></span>
                 </div>
-                <h2 className="greeting-title">{user?.name || 'Valued Client'}</h2>
-                <p className="greeting-subtitle">
-                  Manage your recent orders, saved pieces in your wishlist, and shipping details seamlessly.
-                </p>
-                <div className="profile-hero-actions">
-                  {user?.role === 'admin' && (
-                    <button
-                      type="button"
-                      className="btn-editorial gold"
-                      onClick={() => {
-                        const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
-                        const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || '';
-                        window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
-                      }}
-                    >
-                      ✦ Admin Dashboard
-                    </button>
-                  )}
-                  <button type="button" className="btn-editorial outline" onClick={() => setActiveTab('orders')}>
-                    View Orders ({orders.length})
-                  </button>
-                  <button type="button" className="btn-editorial outline hero-ghost" onClick={() => setActiveTab('wishlist')}>
-                    Saved Wishlist ({wishlist.length})
-                  </button>
+                <div className="ux-hero-details">
+                  <div className="ux-tier-badge-row">
+                    <span className="ux-greeting">Welcome Back,</span>
+                    <span className="ux-tier-badge">SEEMEE MEMBER</span>
+                  </div>
+                  <h1 className="ux-hero-name">{user?.name || 'Valued Client'}</h1>
+                  <div className="ux-meta-pills-row">
+                    <span className="ux-meta-pill">✉️ {user?.email}</span>
+                    {profileData.phone && <span className="ux-meta-pill">📞 {profileData.phone}</span>}
+                  
+                  </div>
                 </div>
               </div>
 
-              <div className="profile-hero-card">
-                <div className="hero-avatar-ring">
-                  <div className="profile-hero-avatar">
-                    {user?.name?.charAt(0).toUpperCase() || 'U'}
-                  </div>
-                </div>
-                <div className="profile-hero-info">
-                  <div className="profile-hero-meta">
-                    <span className="profile-hero-label">Email Address</span>
-                    <strong>{user?.email}</strong>
-                  </div>
-                  <div className="profile-hero-meta">
-                    <span className="profile-hero-label">Phone Number</span>
-                    <strong>{profileData.phone || 'Not added yet'}</strong>
-                  </div>
-                </div>
+              <div className="ux-hero-actions">
+                {user?.role === 'admin' && (
+                  <button
+                    type="button"
+                    className="ux-btn-gold"
+                    onClick={() => {
+                      const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
+                      const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || '';
+                      window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
+                    }}
+                  >
+                     Admin Portal
+                  </button>
+                )}
+                <button type="button" className="ux-btn-secondary" onClick={() => setActiveTab('profile')}>
+                  ⚙️ Account Settings
+                </button>
               </div>
             </section>
 
-            {/* Quick Metrics Bar */}
-            <div className="profile-insights-grid">
-              <button type="button" className="profile-insight-card" onClick={() => setActiveTab('orders')}>
-                <div className="insight-card-header">
-                  <span className="profile-insight-label">My Orders</span>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
-                  </svg>
+            {/* UX Quick Access Navigation Hub (4 Interactive Cards) */}
+            <div className="ux-hub-grid">
+              <div className="ux-hub-card" onClick={() => setActiveTab('orders')}>
+                <div className="ux-card-top">
+                  <div className="ux-card-icon-wrap orders">
+                    🛍️
+                  </div>
+                  <span className="ux-chip-badge">{orders.length} Orders</span>
                 </div>
-                <strong className="profile-insight-value">{orders.length}</strong>
-                <p>Track delivery status and order history →</p>
-              </button>
-
-              <button type="button" className="profile-insight-card" onClick={() => setActiveTab('wishlist')}>
-                <div className="insight-card-header">
-                  <span className="profile-insight-label">Saved Wishlist</span>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                  </svg>
+                <h3 className="ux-card-title">Order History & Tracking</h3>
+                <p className="ux-card-desc">Track active shipments, view past purchases, and download invoice summaries.</p>
+                <div className="ux-card-footer">
+                  <span className="ux-action-link">Manage Orders</span>
+                  <span className="ux-arrow">→</span>
                 </div>
-                <strong className="profile-insight-value">{wishlist.length}</strong>
-                <p>Items saved for quick shopping →</p>
-              </button>
-
-              <button type="button" className="profile-insight-card profile-status-card" onClick={() => { setActiveTab('profile'); setShowAddressModal(true); }}>
-                <div className="insight-card-header">
-                  <span className="profile-insight-label">Default Address</span>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-                  </svg>
-                </div>
-                <strong className="profile-insight-value status">{primaryAddress ? 'Configured' : 'Add Now'}</strong>
-                <p>{primaryAddress ? `${primaryAddress.city}, ${primaryAddress.state}` : 'Save address to speed up checkout →'}</p>
-              </button>
-            </div>
-
-            {/* DIRECT VISIBILITY SECTION: RECENT ORDERS PREVIEW */}
-            <div className="account-overview-section">
-              <div className="section-header-row">
-                <div>
-                  <span className="section-subtitle-tag">Recent Activity</span>
-                  <h3 className="overview-section-title">Recent Orders</h3>
-                </div>
-                {orders.length > 0 && (
-                  <button type="button" className="view-all-link" onClick={() => setActiveTab('orders')}>
-                    View All Orders ({orders.length})
-                  </button>
-                )}
               </div>
 
-              {loading ? (
-                <div className="editorial-empty">
-                  <div className="spinner"></div>
-                  <p>Loading your recent orders...</p>
+              <div className="ux-hub-card" onClick={() => setActiveTab('wishlist')}>
+                <div className="ux-card-top">
+                  <div className="ux-card-icon-wrap wishlist">
+                    ❤️
+                  </div>
+                  <span className="ux-chip-badge">{wishlist.length} Saved</span>
                 </div>
-              ) : orders.length === 0 ? (
-                <div className="editorial-empty-card">
-                  <div className="empty-icon-circle">🛍️</div>
-                  <h4>No Orders Placed Yet</h4>
-                  <p>Explore our latest haute couture collections and elevate your wardrobe.</p>
-                  <button type="button" className="btn-editorial gold" onClick={() => navigate('/collections')}>
-                    Explore Collection
-                  </button>
+                <h3 className="ux-card-title">Saved Wishlist</h3>
+                <p className="ux-card-desc">Your curated collection of haute couture pieces saved for fast checkout.</p>
+                <div className="ux-card-footer">
+                  <span className="ux-action-link">View Wishlist</span>
+                  <span className="ux-arrow">→</span>
                 </div>
-              ) : (
-                <div className="recent-orders-grid">
-                  {orders.map((order) => {
-                    const statusStyle = getStatusColor(order.status)
-                    return (
-                      <div key={order._id} className="recent-order-card" onClick={() => { setActiveTab('orders'); setSelectedOrder(order); }}>
-                        <div className="recent-order-header">
-                          <div>
-                            <span className="recent-order-id">Order #{order.orderNumber || order._id?.slice(-8)}</span>
-                            <span className="recent-order-date">
-                              {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </span>
-                          </div>
-                          <span className="order-status-pill" style={{ background: statusStyle.bg, color: statusStyle.text, border: `1px solid ${statusStyle.border}` }}>
-                            {order.status || 'Pending'}
-                          </span>
-                        </div>
+              </div>
 
-                        <div className="recent-order-items-preview">
-                          {(order.items || []).slice(0, 3).map((item, idx) => (
-                            <div key={idx} className="preview-thumb-box">
-                              <img src={getOptimizedImageUrl(item.image)} alt={item.name} className="preview-thumb-img" />
-                              <span className="preview-thumb-qty">x{item.quantity}</span>
-                            </div>
-                          ))}
-                          {(order.items || []).length > 3 && (
-                            <div className="preview-thumb-more">
-                              +{order.items.length - 3} more
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="recent-order-footer">
-                          <div>
-                            <span className="order-total-label">Total Amount</span>
-                            <strong className="order-total-val">₹{Number(order.totalAmount || 0).toLocaleString('en-IN')}</strong>
-                          </div>
-                          <button type="button" className="btn-detail-arrow">
-                            Order Details
-                          </button>
-                        </div>
-                      </div>
-                    )
-                  })}
+              <div className="ux-hub-card" onClick={() => { setActiveTab('profile'); setShowAddressModal(true); }}>
+                <div className="ux-card-top">
+                  <div className="ux-card-icon-wrap address">
+                    📍
+                  </div>
+                  <span className={`ux-chip-badge ${primaryAddress ? 'success' : 'warning'}`}>
+                    {primaryAddress ? 'Configured' : 'Add Now'}
+                  </span>
                 </div>
-              )}
+                <h3 className="ux-card-title">Shipping Addresses</h3>
+                <p className="ux-card-desc">
+                  {primaryAddress ? `${primaryAddress.street || ''}, ${primaryAddress.city}, ${primaryAddress.state}` : 'Save your delivery address for 1-click checkout.'}
+                </p>
+                <div className="ux-card-footer">
+                  <span className="ux-action-link">Manage Addresses</span>
+                  <span className="ux-arrow">→</span>
+                </div>
+              </div>
+
+              <div className="ux-hub-card" onClick={() => setActiveTab('profile')}>
+                <div className="ux-card-top">
+                  <div className="ux-card-icon-wrap security">
+                    🔐
+                  </div>
+                  <span className="ux-chip-badge success">Active</span>
+                </div>
+                <h3 className="ux-card-title">Profile & Security</h3>
+                <p className="ux-card-desc">Update your personal account information, phone number, and change account password.</p>
+                <div className="ux-card-footer">
+                  <span className="ux-action-link">Update Profile</span>
+                  <span className="ux-arrow">→</span>
+                </div>
+              </div>
+            </div>
+
+            {/* UX Account Dossier & Address Summary Card */}
+            <div className="ux-dossier-card">
+              <div className="ux-dossier-header">
+                <div>
+                  <span className="ux-dossier-tag">Account Dossier</span>
+                  <h2>Profile & Delivery Overview</h2>
+                </div>
+                <button type="button" className="ux-text-btn" onClick={() => setActiveTab('profile')}>
+                  Edit Details ✏️
+                </button>
+              </div>
+
+              <div className="ux-dossier-grid">
+                <div className="ux-dossier-tile">
+                  <span className="ux-tile-label">Client Name</span>
+                  <span className="ux-tile-value">{user?.name || 'Not specified'}</span>
+                </div>
+                <div className="ux-dossier-tile">
+                  <span className="ux-tile-label">Email Address</span>
+                  <span className="ux-tile-value">{user?.email}</span>
+                </div>
+                <div className="ux-dossier-tile">
+                  <span className="ux-tile-label">Contact Number</span>
+                  <span className="ux-tile-value">{profileData.phone || 'Not added yet'}</span>
+                </div>
+                <div className="ux-dossier-tile">
+                  <span className="ux-tile-label">Primary Shipping Address</span>
+                  <span className="ux-tile-value">
+                    {primaryAddress ? (
+                      `${primaryAddress.street || ''}, ${primaryAddress.city}, ${primaryAddress.state} - ${primaryAddress.pincode}`
+                    ) : (
+                      'No default delivery address configured.'
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* UX Shopping Quick Shortcuts Footer */}
+            <div className="ux-shortcuts-banner">
+              {/* <span className="ux-banner-title">✦ ATELIE SHORTCUTS:</span> */}
+              <div className="ux-shortcuts-row">
+                <button type="button" className="ux-shortcut-chip" onClick={() => navigate('/collections')}>
+                  ✨ Explore Collections
+                </button>
+                <button type="button" className="ux-shortcut-chip" onClick={() => navigate('/new-arrivals')}>
+                  🔥 New Arrivals
+                </button>
+                <button type="button" className="ux-shortcut-chip" onClick={() => navigate('/cart')}>
+                  🛍️ View Shopping Bag
+                </button>
+              </div>
             </div>
           </div>
         )
@@ -783,16 +782,36 @@ const AccountPage = () => {
                             <div className="order-side-info-col">
                               <section className="order-section delivery-section">
                                 <h4 className="order-section-title">📍 Delivery Address</h4>
-                                {order.deliveryAddress ? (
-                                  <div className="address-info-box">
-                                    <strong>{order.deliveryAddress.name || user?.name}</strong>
-                                    <p>{order.deliveryAddress.street}</p>
-                                    <p>{order.deliveryAddress.city}, {order.deliveryAddress.state} - {order.deliveryAddress.pincode}</p>
-                                    {order.deliveryAddress.phone && <p>Phone: {order.deliveryAddress.phone}</p>}
-                                  </div>
-                                ) : (
-                                  <p className="no-info">Standard Delivery Address</p>
-                                )}
+                                {(() => {
+                                  const addr = order.deliveryAddress || order.shippingAddress || order.customer?.address || order.billingAddress || (user?.addresses?.find(a => a.isDefault) || user?.addresses?.[0])
+                                  const addrName = addr?.name || order.customer?.name || user?.name || 'Valued Client'
+                                  const streetStr = addr?.street || addr?.address || addr?.line1
+                                  const cityStr = addr?.city
+                                  const stateStr = addr?.state
+                                  const pincodeStr = addr?.pincode || addr?.zip || addr?.zipcode
+                                  const phoneStr = addr?.phone || order.customer?.phone || user?.phone
+
+                                  if (streetStr || cityStr || pincodeStr) {
+                                    return (
+                                      <div className="address-info-box">
+                                        <strong>{addrName}</strong>
+                                        {streetStr && <p>{streetStr}</p>}
+                                        {(cityStr || stateStr || pincodeStr) && (
+                                          <p>{[cityStr, stateStr].filter(Boolean).join(', ')}{pincodeStr ? ` - ${pincodeStr}` : ''}</p>
+                                        )}
+                                        {phoneStr && <p style={{ marginTop: '4px', fontSize: '0.78rem', color: '#6B7280' }}>📞 {phoneStr}</p>}
+                                      </div>
+                                    )
+                                  }
+
+                                  return (
+                                    <div className="address-info-box">
+                                      <strong>{order.customer?.name || user?.name || 'Valued Client'}</strong>
+                                      <p>{user?.email || order.customer?.email}</p>
+                                      <p className="no-info" style={{ marginTop: '2px' }}>Primary Delivery Address</p>
+                                    </div>
+                                  )
+                                })()}
                               </section>
 
                               <section className="order-section payment-section">
@@ -831,15 +850,15 @@ const AccountPage = () => {
                                    onClick={() => handleCancelOrder(order._id)}
                                    disabled={cancellingOrderId === order._id}
                                  >
-                                   {cancellingOrderId === order._id ? 'Cancelling...' : '🚫 Cancel Order'}
+                                   {cancellingOrderId === order._id ? 'Cancelling...' : '🚫 Cancel'}
                                  </button>
                                )
                              })()}
                             <button type="button" className="btn-editorial gold" onClick={() => handlePrint(order)}>
-                              🖨 Print Invoice Receipt
+                              🖨 Print Invoice
                             </button>
-                            <button type="button" className="btn-editorial outline" onClick={() => window.location.href='mailto:bizseemee@gmail.com'}>
-                              ✉ Contact Customer Support
+                            <button type="button" className="btn-editorial outline" onClick={() => window.location.href='mailto:bizseemee@gmail.com?subject=SEEMEE%20Customer%20Support%20Inquiry'}>
+                              ✉ Contact Support
                             </button>
                           </div>
                         </motion.div>
@@ -928,14 +947,16 @@ const AccountPage = () => {
 
       case 'profile':
         return (
-          <div className="account-section-view">
-            <div className="section-intro">
+          <div className="account-section-view ux-settings-container">
+            {/* UX Settings Header */}
+            <div className="section-intro ux-settings-intro">
               <div>
-                <h2>Account Settings & Delivery Book</h2>
-                <p>Update your personal contact information, security credentials, and shipping destinations.</p>
+                <h2>Account Settings & Security</h2>
+                <p>Manage your personal profile details, account password, and saved delivery destinations.</p>
               </div>
             </div>
 
+            {/* Notification Banner */}
             <AnimatePresence>
               {message.text && (
                 <motion.div 
@@ -952,12 +973,12 @@ const AccountPage = () => {
 
             <div className="profile-management-layout">
               {/* Profile & Security Form Card */}
-              <form className="editorial-form profile-settings-form" onSubmit={handleProfileUpdate}>
+              <form className="editorial-form profile-settings-form ux-settings-card" onSubmit={handleProfileUpdate}>
                 <div className="form-heading-strip">
                   <div className="profile-heading-avatar">{profileData.name?.charAt(0).toUpperCase() || 'U'}</div>
                   <div>
-                    <h3>Personal Profile & Security</h3>
-                    <p>Update your account details and password</p>
+                    <h3>Personal Profile & Credentials</h3>
+                    <p>Update your personal information and account security password</p>
                   </div>
                 </div>
 
@@ -973,9 +994,9 @@ const AccountPage = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Email Address</label>
+                    <label>Email Address </label>
                     <input type="email" value={user?.email || ''} disabled className="disabled-input" />
-                    <span className="input-hint">Verified Account Email</span>
+                    <span className="input-hint">Verified Primary Account Email</span>
                   </div>
                   <div className="form-group">
                     <label>Phone Number</label>
@@ -987,11 +1008,11 @@ const AccountPage = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>New Password</label>
+                    <label>New Password (Optional)</label>
                     <div className="password-input-wrapper">
                       <input 
                         type={showAccountPassword ? "text" : "password"} 
-                        placeholder="Enter new password (min 6 chars)" 
+                        placeholder="Min 6 characters to update password" 
                         value={profileData.password} 
                         onChange={(e) => setProfileData({...profileData, password: e.target.value})} 
                       />
@@ -1012,17 +1033,19 @@ const AccountPage = () => {
                   </div>
                 </div>
 
-                <button type="submit" className="btn-editorial gold">
-                  Save Profile Changes
-                </button>
+                <div className="form-action-row" style={{ marginTop: '16px' }}>
+                  <button type="submit" className="btn-editorial gold">
+                    Save Profile Changes
+                  </button>
+                </div>
               </form>
 
               {/* Delivery Addresses Management Panel */}
-              <section className="contact-address-panel">
+              <section className="contact-address-panel ux-settings-card">
                 <div className="form-heading-strip-row">
                   <div>
                     <h3>Saved Shipping Addresses</h3>
-                    <p>{addresses.length} delivery destinations saved</p>
+                    <p>{addresses.length} delivery destinations configured</p>
                   </div>
                   <button 
                     type="button" 
@@ -1204,7 +1227,7 @@ const AccountPage = () => {
           </div>
           <div className="mobile-header-info">
             <span className="mobile-user-name">{user?.name || 'Valued Client'}</span>
-            <span className="mobile-user-badge">✦ SEEMEE Atelier Member</span>
+            <span className="mobile-user-badge">✦ SEEMEE Member</span>
           </div>
         </div>
         <button className="mobile-logout-btn" onClick={() => { logout(); navigate('/'); }} title="Sign Out" aria-label="Sign Out">
@@ -1244,7 +1267,7 @@ const AccountPage = () => {
             <div className="nav-avatar">{user?.name?.charAt(0).toUpperCase() || 'U'}</div>
             <div className="nav-user-info">
               <h3>{user?.name || 'Valued Client'}</h3>
-              <p>✦ ATELIER MEMBER</p>
+              <p>✦ SEEMEE MEMBER</p>
             </div>
           </div>
 

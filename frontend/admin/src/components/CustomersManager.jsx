@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
+import { getImageUrl } from '../utils/imageHelper'
 import './CustomersManager.css'
 
 const CustomersManager = () => {
@@ -12,6 +13,7 @@ const CustomersManager = () => {
   const [customerOrders, setCustomerOrders] = useState([])
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
+  const [drawerTab, setDrawerTab] = useState('profile') // 'profile' | 'cart' | 'history'
 
   const [segmentFilter, setSegmentFilter] = useState('all')
 
@@ -34,6 +36,7 @@ const CustomersManager = () => {
 
   const handleViewHistory = async (customer) => {
     setSelectedCustomer(customer)
+    setDrawerTab('profile')
     setIsHistoryModalOpen(true)
     setHistoryLoading(true)
     try {
@@ -49,6 +52,26 @@ const CustomersManager = () => {
     } finally {
       setHistoryLoading(false)
     }
+  }
+
+  // Format Last Login relative/exact timestamp
+  const formatLastLogin = (dateString) => {
+    if (!dateString) return 'Never'
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Never'
+
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / (1000 * 60))
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+    if (diffMins < 2) return 'Just Now'
+    if (diffMins < 60) return `${diffMins} mins ago`
+    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hr' : 'hrs'} ago`
+    if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`
+
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
   // Compute stats for history drawer
@@ -203,20 +226,6 @@ const CustomersManager = () => {
             <span>✦ VIP SHOPPERS</span>
             <span className="count">{vipClientsCount}</span>
           </button>
-          <button 
-            className={`filter-tab ${segmentFilter === 'active' ? 'active' : ''}`}
-            onClick={() => setSegmentFilter('active')}
-          >
-            <span>ACTIVE</span>
-            <span className="count">{customers.filter(c => !c.isBlocked).length}</span>
-          </button>
-          <button 
-            className={`filter-tab ${segmentFilter === 'blocked' ? 'active' : ''}`}
-            onClick={() => setSegmentFilter('blocked')}
-          >
-            <span>BLOCKED</span>
-            <span className="count">{customers.filter(c => c.isBlocked).length}</span>
-          </button>
         </div>
       </div>
 
@@ -226,7 +235,6 @@ const CustomersManager = () => {
             <tr>
               <th>Client Profile</th>
               <th>Phone Number</th>
-              <th>Status</th>
               <th>Orders</th>
               <th>Lifetime Spend</th>
               <th>Member Since</th>
@@ -236,7 +244,7 @@ const CustomersManager = () => {
           <tbody>
             {filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '60px 20px', color: '#777' }}>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '60px 20px', color: '#777' }}>
                   <div className="empty-search-state">
                     <span className="empty-search-icon">🔍</span>
                     <h3>No matching clients found</h3>
@@ -270,12 +278,6 @@ const CustomersManager = () => {
                       ) : (
                         <span style={{ color: '#a8a29e', fontStyle: 'italic' }}>Not Provided</span>
                       )}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status-pill ${customer.isBlocked ? 'blocked' : 'active'}`}>
-                      <span className="status-dot" />
-                      {customer.isBlocked ? 'Blocked' : 'Active'}
                     </span>
                   </td>
                   <td>
@@ -319,12 +321,13 @@ const CustomersManager = () => {
           }}>
             <motion.div 
               className="customer-history-drawer"
-              initial={{ opacity: 0, x: 120 }}
+              initial={{ opacity: 0, x: 180 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 120 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              exit={{ opacity: 0, x: 180 }}
+              transition={{ type: 'spring', damping: 26, stiffness: 240 }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Header Hero Bar */}
               <div className="drawer-header-luxury">
                 <div className="header-profile">
                   <div className="avatar-large">
@@ -340,7 +343,7 @@ const CustomersManager = () => {
                         <span className="vip-tag-gold">✦ VIP CLIENT</span>
                       )}
                     </div>
-                    <span className="email">{selectedCustomer.email}</span>
+                    <span className="email">✉️ {selectedCustomer.email}</span>
                   </div>
                 </div>
                 <button className="close-drawer" onClick={() => {
@@ -350,126 +353,233 @@ const CustomersManager = () => {
                 }}>&times;</button>
               </div>
 
-              {/* Key Metrics Dashboard Bar */}
-              <div className="drawer-stats">
-                <div className="stat-box">
-                  <span className="label">LIFETIME SPENT</span>
-                  <span className="value">₹{(customerOrders.length > 0 ? historyTotalSpent : (selectedCustomer.totalSpending || 0)).toLocaleString('en-IN')}</span>
+              {/* Executive 4-Metric Dashboard Grid */}
+              <div className="drawer-stats-grid">
+                <div className="stat-card">
+                  <span className="label">LIFETIME SPEND</span>
+                  <span className="value gold-text">₹{(customerOrders.length > 0 ? historyTotalSpent : (selectedCustomer.totalSpending || 0)).toLocaleString('en-IN')}</span>
+                  <span className="sub-label">Total Completed</span>
                 </div>
-                <div className="stat-box">
+                <div className="stat-card">
                   <span className="label">ORDERS PLACED</span>
                   <span className="value">{customerOrders.length > 0 ? historyOrderCount : (selectedCustomer.orderCount || 0)}</span>
+                  <span className="sub-label">Checkouts Done</span>
                 </div>
-                <div className="stat-box">
+                <div className="stat-card">
                   <span className="label">MEMBER SINCE</span>
                   <span className="value">
                     {new Date(selectedCustomer.createdAt).toLocaleDateString('en-IN', {
                       month: 'short', year: 'numeric'
                     })}
                   </span>
+                  <span className="sub-label">Joined Atelier</span>
+                </div>
+                <div className="stat-card">
+                  <span className="label">LAST LOGGED IN</span>
+                  <span className="value green-text">
+                    <span className="pulse-dot"></span>
+                    {formatLastLogin(selectedCustomer.lastLogin || selectedCustomer.updatedAt || selectedCustomer.createdAt)}
+                  </span>
+                  <span className="sub-label">Active Session</span>
                 </div>
               </div>
 
+              {/* Tab Navigation Row */}
+              <div className="dossier-tab-row">
+                <button 
+                  className={`dossier-tab-btn ${drawerTab === 'profile' ? 'active' : ''}`}
+                  onClick={() => setDrawerTab('profile')}
+                >
+                  👤 Client Profile & Addresses
+                </button>
+                <button 
+                  className={`dossier-tab-btn ${drawerTab === 'cart' ? 'active' : ''}`}
+                  onClick={() => setDrawerTab('cart')}
+                >
+                  🛒 Active Cart ({Array.isArray(selectedCustomer.cart) ? selectedCustomer.cart.length : 0})
+                </button>
+                <button 
+                  className={`dossier-tab-btn ${drawerTab === 'history' ? 'active' : ''}`}
+                  onClick={() => setDrawerTab('history')}
+                >
+                  📜 Order History ({customerOrders.length})
+                </button>
+              </div>
+
               <div className="drawer-body">
-                {/* Customer Contact & Saved Address Card */}
-                <div className="customer-info-card">
-                  <h4 className="info-card-title">✦ CLIENT CONTACT & DELIVERY PROFILE</h4>
-                  
-                  <div className="info-grid">
-                    <div className="info-tile">
-                      <span className="tile-label">Phone Number</span>
-                      <span className="tile-val">
-                        {getCustomerPhone(selectedCustomer) ? (
-                          <a href={`tel:${getCustomerPhone(selectedCustomer)}`} className="contact-link">
-                            📞 {getCustomerPhone(selectedCustomer)}
-                          </a>
-                        ) : 'Not Provided'}
-                      </span>
-                    </div>
-
-                    <div className="info-tile">
-                      <span className="tile-label">Email Address</span>
-                      <span className="tile-val">
-                        <a href={`mailto:${selectedCustomer.email}`} className="contact-link">
-                          ✉️ {selectedCustomer.email}
-                        </a>
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="address-section">
-                    <span className="info-label">📍 SAVED SHIPPING ADDRESSES</span>
-                    {getCustomerAddresses(selectedCustomer).length === 0 ? (
-                      <p className="no-addr-text">No delivery addresses recorded yet.</p>
-                    ) : (
-                      getCustomerAddresses(selectedCustomer).map((addr, idx) => (
-                        <div key={idx} className="customer-addr-box">
-                          {addr.isDefault && <span className="default-tag">Default Address</span>}
-                          <p className="street-line">{addr.street || addr.addressLine1}</p>
-                          <p className="city-line">{[addr.city, addr.state, addr.pincode || addr.zipCode].filter(Boolean).join(', ')}</p>
-                          <p className="country-line">{addr.country || 'India'}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* Purchase Ledger Section */}
-                <div className="history-section-header">
-                  <h3>✦ TRANSACTION & PURCHASE HISTORY</h3>
-                  <span className="order-count-chip">{customerOrders.length} {customerOrders.length === 1 ? 'Order' : 'Orders'}</span>
-                </div>
-                
-                {historyLoading ? (
-                  <div className="history-loading">
-                    <div className="mini-spinner" />
-                    <p>Retrieving transaction ledger...</p>
-                  </div>
-                ) : customerOrders.length === 0 ? (
-                  <div className="empty-history">
-                    <span className="icon">🛍️</span>
-                    <h4>No purchases recorded</h4>
-                    <p>This client hasn't completed any checkouts yet.</p>
-                  </div>
-                ) : (
-                  <div className="history-list">
-                    {customerOrders.map(order => (
-                      <div key={order._id} className="history-order-card">
-                        <div className="card-top">
-                          <div className="order-num-group">
-                            <span className="order-num">#{order.orderNumber}</span>
-                            <span className="date">
-                              {new Date(order.createdAt).toLocaleDateString('en-IN', {
-                                day: 'numeric', month: 'short', year: 'numeric'
-                              })}
-                            </span>
-                          </div>
-                          <span className={`status-pill ${order.status}`}>{order.status}</span>
+                {drawerTab === 'profile' && (
+                  <>
+                    {/* Customer Contact & Saved Address Card */}
+                    <div className="customer-info-card">
+                      <h4 className="info-card-title">✦ CLIENT CONTACT & AUTHENTICATION PROFILE</h4>
+                      
+                      <div className="info-grid">
+                        <div className="info-tile">
+                          <span className="tile-label">Phone Number</span>
+                          <span className="tile-val">
+                            {getCustomerPhone(selectedCustomer) ? (
+                              <a href={`tel:${getCustomerPhone(selectedCustomer)}`} className="contact-link">
+                                📞 {getCustomerPhone(selectedCustomer)}
+                              </a>
+                            ) : 'Not Provided'}
+                          </span>
                         </div>
 
-                        <div className="card-middle">
-                          <span className="items-count-label">Items ({order.items?.length || 0})</span>
-                          <span className="amount">₹{order.totalAmount?.toLocaleString('en-IN')}</span>
+                        <div className="info-tile">
+                          <span className="tile-label">Email Address</span>
+                          <span className="tile-val">
+                            <a href={`mailto:${selectedCustomer.email}`} className="contact-link">
+                              ✉️ {selectedCustomer.email}
+                            </a>
+                          </span>
                         </div>
 
-                        <div className="card-items">
-                          {order.items?.map((item, idx) => (
-                            <div key={idx} className="item-row">
-                              <span className="item-name">{item.name}</span>
-                              <span className="item-details">Size: {item.size || 'N/A'} • Qty: {item.quantity}</span>
+                        <div className="info-tile">
+                          <span className="tile-label">Exact Last Login Timestamp</span>
+                          <span className="tile-val" style={{ color: '#0F172A', fontWeight: 600, fontSize: '0.82rem' }}>
+                            {selectedCustomer.lastLogin ? (
+                              new Date(selectedCustomer.lastLogin).toLocaleString('en-IN', {
+                                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+                              })
+                            ) : (
+                              new Date(selectedCustomer.updatedAt || selectedCustomer.createdAt).toLocaleString('en-IN', {
+                                day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+                              })
+                            )}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="address-section">
+                        <span className="info-label">📍 SAVED SHIPPING ADDRESSES</span>
+                        {getCustomerAddresses(selectedCustomer).length === 0 ? (
+                          <p className="no-addr-text">No delivery addresses recorded yet.</p>
+                        ) : (
+                          getCustomerAddresses(selectedCustomer).map((addr, idx) => (
+                            <div key={idx} className="customer-addr-box">
+                              {addr.isDefault && <span className="default-tag">Default Address</span>}
+                              <p className="street-line">{addr.street || addr.addressLine1}</p>
+                              <p className="city-line">{[addr.city, addr.state, addr.pincode || addr.zipCode].filter(Boolean).join(', ')}</p>
+                              <p className="country-line">{addr.country || 'India'}</p>
                             </div>
-                          ))}
-                        </div>
-
-                        {order.customer?.address && (
-                          <div className="order-shipping-addr">
-                            <span>Ship To: </span>
-                            {[order.customer.address.street, order.customer.address.city, order.customer.address.state, order.customer.address.pincode].filter(Boolean).join(', ')}
-                          </div>
+                          ))
                         )}
                       </div>
-                    ))}
+                    </div>
+                  </>
+                )}
+
+                {drawerTab === 'cart' && (
+                  <div className="customer-info-card active-cart-section">
+                    <div className="history-section-header" style={{ marginBottom: '12px' }}>
+                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>🛒</span> CURRENT ACTIVE SHOPPING CART
+                      </h3>
+                      {Array.isArray(selectedCustomer.cart) && selectedCustomer.cart.length > 0 && (
+                        <span className="order-count-chip" style={{ background: '#0F172A', color: '#D4AF37', border: '1px solid #D4AF37' }}>
+                          {selectedCustomer.cart.reduce((total, item) => total + (Number(item.quantity) || 1), 0)} Items (₹{selectedCustomer.cart.reduce((sum, item) => sum + ((Number(item.product?.price) || Number(item.price) || 0) * (Number(item.quantity) || 1)), 0).toLocaleString('en-IN')})
+                        </span>
+                      )}
+                    </div>
+
+                    {!Array.isArray(selectedCustomer.cart) || selectedCustomer.cart.length === 0 ? (
+                      <div className="empty-history" style={{ padding: '30px 10px' }}>
+                        <span className="icon">🛍️</span>
+                        <h4>No active items in cart</h4>
+                        <p>This client currently has an empty shopping bag.</p>
+                      </div>
+                    ) : (
+                      <div className="active-cart-items-grid">
+                        {selectedCustomer.cart.map((item, idx) => {
+                          const prod = item.product || item
+                          const itemPrice = Number(prod.price) || Number(item.price) || 0
+                          const itemQty = Number(item.quantity) || 1
+                          const itemTotal = itemPrice * itemQty
+                          const prodImg = prod.images?.[0] || prod.image
+
+                          return (
+                            <div key={idx} className="cart-item-luxury-card">
+                              <img src={getImageUrl(prodImg)} alt={prod.name || 'Cart Item'} className="cart-item-thumb" />
+                              <div className="cart-item-details">
+                                <span className="cart-prod-title">{prod.name || 'Product Item'}</span>
+                                <div className="cart-meta-tags">
+                                  {item.size && <span className="cart-chip-tag">Size: {item.size}</span>}
+                                  {item.color && <span className="cart-chip-tag">Color: {item.color}</span>}
+                                  <span className="cart-chip-tag qty">Qty: {itemQty}</span>
+                                </div>
+                                <div className="cart-price-line">
+                                  <span className="unit-price">₹{itemPrice.toLocaleString('en-IN')} × {itemQty}</span>
+                                  <span className="subtotal-price">₹{itemTotal.toLocaleString('en-IN')}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
                   </div>
+                )}
+
+                {drawerTab === 'history' && (
+                  <>
+                    {/* Purchase Ledger Section */}
+                    <div className="history-section-header">
+                      <h3>✦ TRANSACTION & PURCHASE HISTORY</h3>
+                      <span className="order-count-chip">{customerOrders.length} {customerOrders.length === 1 ? 'Order' : 'Orders'}</span>
+                    </div>
+                    
+                    {historyLoading ? (
+                      <div className="history-loading">
+                        <div className="mini-spinner" />
+                        <p>Retrieving transaction ledger...</p>
+                      </div>
+                    ) : customerOrders.length === 0 ? (
+                      <div className="empty-history">
+                        <span className="icon">🛍️</span>
+                        <h4>No purchases recorded</h4>
+                        <p>This client hasn't completed any checkouts yet.</p>
+                      </div>
+                    ) : (
+                      <div className="history-list">
+                        {customerOrders.map(order => (
+                          <div key={order._id} className="history-order-card">
+                            <div className="card-top">
+                              <div className="order-num-group">
+                                <span className="order-num">#{order.orderNumber}</span>
+                                <span className="date">
+                                  {new Date(order.createdAt).toLocaleDateString('en-IN', {
+                                    day: 'numeric', month: 'short', year: 'numeric'
+                                  })}
+                                </span>
+                              </div>
+                              <span className={`status-pill ${order.status}`}>{order.status}</span>
+                            </div>
+
+                            <div className="card-middle">
+                              <span className="items-count-label">Items ({order.items?.length || 0})</span>
+                              <span className="amount">₹{order.totalAmount?.toLocaleString('en-IN')}</span>
+                            </div>
+
+                            <div className="card-items">
+                              {order.items?.map((item, idx) => (
+                                <div key={idx} className="item-row">
+                                  <span className="item-name">{item.name}</span>
+                                  <span className="item-details">Size: {item.size || 'N/A'} • Qty: {item.quantity}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {order.customer?.address && (
+                              <div className="order-shipping-addr">
+                                <span>Ship To: </span>
+                                {[order.customer.address.street, order.customer.address.city, order.customer.address.state, order.customer.address.pincode].filter(Boolean).join(', ')}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </motion.div>

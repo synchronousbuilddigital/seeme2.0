@@ -1,5 +1,14 @@
 import SiteSettings from '../models/SiteSettings.js'
 
+let memorySettingsCache = null
+let memorySettingsTimestamp = 0
+const CACHE_TTL_MS = 10 * 60 * 1000 // 10 minutes memory cache
+
+export const clearSettingsCache = () => {
+  memorySettingsCache = null
+  memorySettingsTimestamp = 0
+}
+
 const defaultMagazineStories = [
   {
     title: 'Silk and the River City',
@@ -104,7 +113,11 @@ const defaultMagazineStories = [
 ]
 
 export const getSettings = async () => {
-  let settings = await SiteSettings.findOne()
+  if (memorySettingsCache && (Date.now() - memorySettingsTimestamp < CACHE_TTL_MS)) {
+    return memorySettingsCache
+  }
+
+  let settings = await SiteSettings.findOne().lean()
   if (!settings) {
     settings = await SiteSettings.create({
       logo: '/images/logoSEEMEE1.png',
@@ -171,10 +184,13 @@ export const getSettings = async () => {
       { _id: settings._id },
       { $set: { magazineStories: defaultMagazineStories } },
       { new: true }
-    )
+    ).lean()
   }
 
-  return settings.toObject ? settings.toObject() : settings
+  const result = settings.toObject ? settings.toObject() : settings
+  memorySettingsCache = result
+  memorySettingsTimestamp = Date.now()
+  return result
 }
 
 export const updateSettings = async (settingsData) => {
@@ -182,6 +198,7 @@ export const updateSettings = async (settingsData) => {
     {},
     { $set: settingsData },
     { new: true, upsert: true, runValidators: true }
-  )
+  ).lean()
+  clearSettingsCache()
   return settings
 }

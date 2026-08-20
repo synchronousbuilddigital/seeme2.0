@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "bump-version": "node scripts/update-version.js",
+    "build": "npm run bump-version && vite build",
     "preview": "vite preview"
   },
   "dependencies": {

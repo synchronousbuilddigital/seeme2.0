@@ -162,29 +162,29 @@ const ShopSection = () => {
                   </div>
                 </div>
 
-                {/* Compact Details Content (Category Tag, Title & Price + Mobile Add to Bag) */}
+                {/* Compact Details Content (Title, 1-Line Description & Price Below) */}
                 <div className="product-details-content">
-                  <span className="product-category-tag">
-                    {formatCategoryName(product.category)}
-                  </span>
+                  <h3
+                    className="product-card-title"
+                    onClick={() => {
+                      try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) {}
+                      navigate(`/product/${product._id}`, { state: { product } })
+                    }}
+                  >
+                    {product.name}
+                  </h3>
 
-                  <div className="title-price-row">
-                    <h3
-                      className="product-card-title"
-                      onClick={() => {
-                        try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) {}
-                        navigate(`/product/${product._id}`, { state: { product } })
-                      }}
-                    >
-                      {product.name}
-                    </h3>
+                  {(product.description || product.shortDescription) && (
+                    <p className="product-card-desc">
+                      {product.description || product.shortDescription}
+                    </p>
+                  )}
 
-                    <div className="card-price-group">
-                      <span className="price-val">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                      {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
-                        <span className="mrp-val">₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}</span>
-                      )}
-                    </div>
+                  <div className="card-price-group">
+                    <span className="price-val">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                    {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
+                      <span className="mrp-val">₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}</span>
+                    )}
                   </div>
 
                   {/* Dedicated Mobile Add to Cart Button */}

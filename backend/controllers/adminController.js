@@ -254,6 +254,7 @@ export const bulkUpdateProducts = asyncHandler(async (req, res) => {
 export const getCustomers = asyncHandler(async (req, res) => {
   const customers = await User.find({ role: 'customer' })
     .select('-password')
+    .populate('cart.product', 'name price images sku category')
     .sort({ createdAt: -1 })
     .lean()
 

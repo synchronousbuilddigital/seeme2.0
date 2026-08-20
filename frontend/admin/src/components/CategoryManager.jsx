@@ -25,6 +25,14 @@ const CategoryManager = () => {
   }
 
   useEffect(() => {
+    // Load local cache immediately for 0ms render
+    const cached = localStorage.getItem('seemee_admin_site_settings')
+    if (cached) {
+      try {
+        setSettings(JSON.parse(cached))
+        setLoading(false)
+      } catch (e) {}
+    }
     fetchSettings()
   }, [])
 
@@ -33,6 +41,7 @@ const CategoryManager = () => {
       const data = await apiRequest(API_ENDPOINTS.SITE_SETTINGS)
       if (data.success) {
         setSettings(data.data)
+        localStorage.setItem('seemee_admin_site_settings', JSON.stringify(data.data))
       }
     } catch (error) {
       console.error('Error fetching settings:', error)
@@ -155,6 +164,7 @@ const CategoryManager = () => {
 
       if (data.success) {
         setSettings(data.data)
+        localStorage.setItem('seemee_admin_site_settings', JSON.stringify(data.data))
         setEditingSlide(null)
         showNotification(isAdding ? 'Category added successfully' : 'Category updated successfully')
       }

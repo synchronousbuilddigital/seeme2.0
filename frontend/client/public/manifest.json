@@ -4,25 +4,25 @@
   "description": "Discover handcrafted ethnic wear, Anarkali suits, Sharara sets, and royal bridal couture.",
   "icons": [
     {
-      "src": "/images/logoSEEMEE1.png",
+      "src": "/images/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/images/logoSEEMEE1.png",
+      "src": "/images/icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "/images/logoSEEMEE1.png",
+      "src": "/images/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "/images/logoSEEMEE1.png",
+      "src": "/images/icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
@@ -35,10 +35,36 @@
     }
   ],
   "start_url": "/",
+  "scope": "/",
   "id": "/",
   "background_color": "#FAF9F6",
   "theme_color": "#FAF9F6",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "categories": ["shopping", "lifestyle"]
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "categories": ["shopping", "lifestyle"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "New Arrivals",
+      "short_name": "New",
+      "description": "Explore latest ethnic arrivals",
+      "url": "/collections",
+      "icons": [{ "src": "/images/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Categories",
+      "short_name": "Categories",
+      "description": "Browse by style and category",
+      "url": "/categories",
+      "icons": [{ "src": "/images/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Wishlist",
+      "short_name": "Wishlist",
+      "description": "View saved favorites",
+      "url": "/wishlist",
+      "icons": [{ "src": "/images/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

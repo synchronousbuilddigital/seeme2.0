@@ -121,7 +121,20 @@ export const getTopThreeProducts = async () => {
   return products
 }
 
+let memoryCategoryCache = null
+let memoryCategoryTimestamp = 0
+const CAT_CACHE_TTL_MS = 10 * 60 * 1000
+
+export const clearCategoryCache = () => {
+  memoryCategoryCache = null
+  memoryCategoryTimestamp = 0
+}
+
 export const getUniqueCategories = async () => {
+  if (memoryCategoryCache && (Date.now() - memoryCategoryTimestamp < CAT_CACHE_TTL_MS)) {
+    return memoryCategoryCache
+  }
+
   const productCats = await Product.distinct('category', { isActive: true })
   const SiteSettings = (await import('../models/SiteSettings.js')).default
   const settings = await SiteSettings.findOne().lean()
@@ -139,6 +152,8 @@ export const getUniqueCategories = async () => {
     }
   }
 
+  memoryCategoryCache = uniqueCats
+  memoryCategoryTimestamp = Date.now()
   return uniqueCats
 }
 
@@ -157,6 +172,7 @@ export const createProduct = async (productData) => {
       throw new Error('Collection is full. Maximum 15 products allowed in collection.')
     }
   }
+  clearCategoryCache()
   return await Product.create(productData)
 }
 
@@ -170,17 +186,16 @@ export const updateProduct = async (id, productData) => {
     }
   }
 
-  return await Product.findByIdAndUpdate(
-    id,
-    productData,
-    { new: true, runValidators: true }
-  )
+  clearCategoryCache()
+  return await Product.findByIdAndUpdate(id, productData, { new: true, runValidators: true }).lean()
 }
 
 export const deleteProduct = async (id) => {
-  const product = await Product.findByIdAndDelete(id)
+  const product = await Product.findById(id)
   if (!product) {
     throw new Error('Product not found')
   }
-  return product
+  clearCategoryCache()
+  await Product.findByIdAndDelete(id)
+  return true
 }

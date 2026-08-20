@@ -39,6 +39,11 @@ export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body
   try {
     const user = await authService.loginUser({ email, password })
+    
+    // Update lastLogin timestamp
+    user.lastLogin = new Date()
+    await user.save()
+
     const accessToken = authService.generateToken(user._id)
     const refreshToken = authService.generateRefreshToken(user._id)
 
@@ -305,6 +310,9 @@ export const googleAuthCallback = asyncHandler(async (req, res) => {
     if (user.isBlocked) {
       return res.redirect(`${clientUrl}/auth?error=${encodeURIComponent('Your account has been suspended. Please contact support.')}`)
     }
+
+    user.lastLogin = new Date()
+    await user.save()
 
     // Generate JWT access token & refresh token
     const accessToken = authService.generateToken(user._id)

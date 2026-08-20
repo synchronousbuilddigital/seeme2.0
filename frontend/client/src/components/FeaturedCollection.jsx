@@ -78,7 +78,6 @@ const FeaturedCollection = () => {
                   alt={currentProduct.name}
                   className="cf-image"
                 />
-                <div className="cf-badge">{currentProduct.category}</div>
               </div>
 
               {/* Product Info */}

@@ -476,17 +476,7 @@ const CollectionsPage = () => {
                         onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                       />
 
-                      <div className="product-overlay">
-                        <button
-                          className="quick-view-btn"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openProductModal(product)
-                          }}
-                        >
-                          Quick View
-                        </button>
-                      </div>
+
 
                       <button
                         className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}

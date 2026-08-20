@@ -288,6 +288,11 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
     </div>
   `
 
+  // Send Admin Notification Email if an order was placed
+  if (statusStr === 'PLACED') {
+    sendAdminNewOrderAlertEmail(order).catch(err => console.error('Admin order alert email error:', err))
+  }
+
   return await sendEmail({
     to: order.customer.email,
     subject: `Order #${orderId} - ${statusStr}`,
@@ -295,8 +300,96 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
   })
 }
 
+/**
+ * 3. Send Admin Notification Email for New Orders
+ */
+export const sendAdminNewOrderAlertEmail = async (order) => {
+  try {
+    const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'bizseemee@gmail.com'
+    const orderId = order.orderNumber || order._id || order.id || 'ORDER'
+    const customerName = order.customer?.name || 'Valued Customer'
+    const customerEmail = order.customer?.email || 'N/A'
+    const customerPhone = order.customer?.phone || order.customer?.address?.phone || 'N/A'
+    const paymentMethod = (order.paymentMethod === 'online' || order.paymentMethod === 'prepaid') ? 'Online (Prepaid)' : 'Cash on Delivery (COD)'
+
+    const address = order.customer?.address || {}
+    const addressStr = [
+      address.street || address.address,
+      address.city,
+      address.state,
+      address.pincode,
+      address.country || 'India'
+    ].filter(Boolean).join(', ')
+
+    const itemsListHtml = (order.items || []).map(item => `
+      <tr>
+        <td style="padding: 10px; border-bottom: 1px solid #E2E8F0; font-size: 13px;">
+          <strong style="color: #0F172A;">${item.name || 'Item'}</strong><br/>
+          <span style="color: #64748B; font-size: 11px;">Size: ${item.size || 'N/A'} | Qty: ${item.quantity}</span>
+        </td>
+        <td style="padding: 10px; border-bottom: 1px solid #E2E8F0; font-size: 13px; text-align: right; font-weight: bold; color: #0F172A;">
+          ₹${Number((item.price || 0) * item.quantity).toLocaleString('en-IN')}
+        </td>
+      </tr>
+    `).join('')
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #FAF8F5; padding: 25px; border-radius: 12px; border: 1px solid #D4AF37; color: #0F172A;">
+        <div style="background: #0F172A; padding: 20px; border-radius: 10px 10px 0 0; text-align: center; color: #FFFFFF;">
+          <h2 style="margin: 0; font-family: Georgia, serif; color: #D4AF37; font-size: 20px;">✦ NEW ORDER RECEIVED ALERT</h2>
+          <p style="margin: 5px 0 0; font-size: 13px; color: #94A3B8;">Order #${orderId} • Total: ₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</p>
+        </div>
+
+        <div style="background: #FFFFFF; padding: 25px; border-radius: 0 0 10px 10px; border: 1px solid #E2E8F0; border-top: none;">
+          <div style="background: #FEF3C7; border: 1px solid #FCD34D; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; color: #92400E; font-size: 14px;">
+            <strong>🛍️ New Customer Checkout Completed!</strong> An order has just been placed on your store.
+          </div>
+
+          <h3 style="color: #0F172A; font-size: 15px; border-bottom: 2px solid #D4AF37; padding-bottom: 6px; margin-top: 0;">Client Information</h3>
+          <table style="width: 100%; font-size: 13px; margin-bottom: 20px; color: #334155;">
+            <tr><td style="padding: 4px 0; font-weight: bold; width: 130px;">Name:</td><td>${customerName}</td></tr>
+            <tr><td style="padding: 4px 0; font-weight: bold;">Email:</td><td><a href="mailto:${customerEmail}" style="color: #0284C7;">${customerEmail}</a></td></tr>
+            <tr><td style="padding: 4px 0; font-weight: bold;">Phone:</td><td><a href="tel:${customerPhone}" style="color: #0284C7;">${customerPhone}</a></td></tr>
+            <tr><td style="padding: 4px 0; font-weight: bold;">Payment Method:</td><td><strong>${paymentMethod}</strong></td></tr>
+            <tr><td style="padding: 4px 0; font-weight: bold;">Shipping Address:</td><td>${addressStr || 'N/A'}</td></tr>
+          </table>
+
+          <h3 style="color: #0F172A; font-size: 15px; border-bottom: 2px solid #D4AF37; padding-bottom: 6px;">Ordered Items Breakdown</h3>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+              <tr style="background: #F8FAFC; color: #64748B; font-size: 12px; text-transform: uppercase;">
+                <th style="padding: 8px; text-align: left;">Product</th>
+                <th style="padding: 8px; text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsListHtml}
+              <tr>
+                <td style="padding: 12px 10px; font-weight: bold; font-size: 14px; color: #0F172A;">Total Amount:</td>
+                <td style="padding: 12px 10px; font-weight: bold; font-size: 16px; color: #B8860B; text-align: right;">
+                  ₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `
+
+    console.log(`📧 Sending Admin Order Alert for Order #${orderId} to ${adminEmail}...`)
+    return await sendEmail({
+      to: adminEmail,
+      subject: `🚨 NEW ORDER #${orderId} Placed - ₹${Number(order.totalAmount || 0).toLocaleString('en-IN')} (${customerName})`,
+      html
+    })
+  } catch (err) {
+    console.error('❌ Error sending admin order notification email:', err)
+  }
+}
+
 export default {
   sendEmail,
   sendOtpEmail,
-  sendOrderEmail
+  sendOrderEmail,
+  sendAdminNewOrderAlertEmail
 }

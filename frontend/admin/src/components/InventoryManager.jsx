@@ -5,6 +5,8 @@ import { apiRequest } from '../utils/apiClient'
 import { getImageUrl } from '../utils/imageHelper'
 import './InventoryManager.css'
 
+const ALL_AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size', 'Custom']
+
 const InventoryManager = () => {
   const [inventory, setInventory] = useState({
     allProducts: [],
@@ -23,6 +25,8 @@ const InventoryManager = () => {
 
   const [restockProduct, setRestockProduct] = useState(null)
   const [customQty, setCustomQty] = useState('')
+  const [restockTab, setRestockTab] = useState('sizes') // 'sizes' | 'total'
+  const [sizeStockState, setSizeStockState] = useState([])
   const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
@@ -44,11 +48,21 @@ const InventoryManager = () => {
     }
   }
 
-  const updateProductStockOptimistically = (productId, newStockVal) => {
+  const updateProductStockOptimistically = (productId, newStockVal, newSizeStock) => {
     const updatedStock = Math.max(0, parseInt(newStockVal) || 0)
 
     setInventory(prev => {
-      const updateList = (list) => (list || []).map(p => p._id === productId ? { ...p, stock: updatedStock } : p)
+      const updateList = (list) => (list || []).map(p => {
+        if (p._id === productId) {
+          const updatedProd = { ...p, stock: updatedStock }
+          if (newSizeStock) {
+            updatedProd.sizeStock = newSizeStock
+            updatedProd.sizes = newSizeStock.filter(s => Number(s.quantity) > 0).map(s => s.size)
+          }
+          return updatedProd
+        }
+        return p
+      })
 
       const all = updateList(prev.allProducts)
       const low = all.filter(p => p.stock > 0 && p.stock <= 10)
@@ -69,34 +83,94 @@ const InventoryManager = () => {
     })
   }
 
-  const handleUpdateStock = async (productId, newStock) => {
+  const handleUpdateStock = async (productId, newStock, newSizeStock) => {
     const targetStock = Math.max(0, parseInt(newStock) || 0)
     const currentProd = inventory.allProducts?.find(p => p._id === productId)
     const prevStock = currentProd ? currentProd.stock : 0
+    const prevSizeStock = currentProd ? currentProd.sizeStock : []
 
     // ⚡ Instant Optimistic Local Update (0ms delay)
-    updateProductStockOptimistically(productId, targetStock)
+    updateProductStockOptimistically(productId, targetStock, newSizeStock)
 
     // ⚡ Background Async API Sync (Non-blocking)
     try {
+      const bodyPayload = { stock: targetStock }
+      if (newSizeStock) {
+        bodyPayload.sizeStock = newSizeStock
+        bodyPayload.sizes = newSizeStock.filter(s => Number(s.quantity) > 0).map(s => s.size)
+      }
+
       const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}/${productId}`, {
         method: 'PUT',
         auth: true,
-        body: { stock: targetStock }
+        body: bodyPayload
       })
       if (!data.success) {
         // Rollback if request fails
-        updateProductStockOptimistically(productId, prevStock)
+        updateProductStockOptimistically(productId, prevStock, prevSizeStock)
       }
     } catch (error) {
       console.error('Failed to update stock:', error)
-      updateProductStockOptimistically(productId, prevStock)
+      updateProductStockOptimistically(productId, prevStock, prevSizeStock)
     }
   }
 
   const openRestockModal = (product) => {
     setRestockProduct(product)
-    setCustomQty(product.stock.toString())
+    setCustomQty(product.stock ? product.stock.toString() : '0')
+    setRestockTab('sizes')
+
+    const sizeMap = {}
+    if (Array.isArray(product.sizeStock)) {
+      product.sizeStock.forEach(item => {
+        if (item && item.size) {
+          sizeMap[item.size] = Number(item.quantity) || 0
+        }
+      })
+    }
+
+    const currentSizes = Array.isArray(product.sizes) ? product.sizes : []
+    const isSizeStockEmpty = Object.keys(sizeMap).length === 0
+
+    // Initialize all standard sizes
+    const initialSizes = ALL_AVAILABLE_SIZES.map(sz => {
+      let qty = 0
+      if (sizeMap[sz] !== undefined) {
+        qty = sizeMap[sz]
+      } else if (isSizeStockEmpty && currentSizes.includes(sz)) {
+        qty = Math.max(1, Math.floor((product.stock || 0) / (currentSizes.length || 1)))
+      }
+      return { size: sz, quantity: qty }
+    })
+
+    setSizeStockState(initialSizes)
+  }
+
+  const handleSizeQtyChange = (sizeName, newQty) => {
+    const parsedQty = Math.max(0, parseInt(newQty) || 0)
+    setSizeStockState(prev => prev.map(s => s.size === sizeName ? { ...s, quantity: parsedQty } : s))
+  }
+
+  const handleBulkAddAllSizes = (increment) => {
+    setSizeStockState(prev => prev.map(s => ({ ...s, quantity: Math.max(0, (Number(s.quantity) || 0) + increment) })))
+  }
+
+  const handleSetAllSizesTo = (targetVal) => {
+    setSizeStockState(prev => prev.map(s => ({ ...s, quantity: Math.max(0, targetVal) })))
+  }
+
+  const totalCalculatedFromSizes = useMemo(() => {
+    return sizeStockState.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)
+  }, [sizeStockState])
+
+  const submitSizeRestock = () => {
+    if (!restockProduct) return
+    const activeSizeStock = sizeStockState.map(s => ({
+      size: s.size,
+      quantity: Math.max(0, parseInt(s.quantity) || 0)
+    }))
+    handleUpdateStock(restockProduct._id, totalCalculatedFromSizes, activeSizeStock)
+    setRestockProduct(null)
   }
 
   const submitRestock = (newStock) => {
@@ -319,6 +393,15 @@ const InventoryManager = () => {
                           <div>
                             <span className="product-title">{product.name}</span>
                             <span className="product-cat">{product.category || 'Luxury Collection'}</span>
+                            {Array.isArray(product.sizeStock) && product.sizeStock.length > 0 && (
+                              <div className="table-size-pills-row">
+                                {product.sizeStock.map((st, idx) => (
+                                  <span key={idx} className={`size-pill-tag ${st.quantity > 0 ? 'in' : 'out'}`}>
+                                    {st.size}: {st.quantity}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -406,6 +489,15 @@ const InventoryManager = () => {
                       </div>
                       <h4>{product.name}</h4>
                       <span className="cat-tag">{product.category || 'Luxury'}</span>
+                      {Array.isArray(product.sizeStock) && product.sizeStock.length > 0 && (
+                        <div className="table-size-pills-row" style={{ marginTop: '6px' }}>
+                          {product.sizeStock.map((st, idx) => (
+                            <span key={idx} className={`size-pill-tag ${st.quantity > 0 ? 'in' : 'out'}`}>
+                              {st.size}: {st.quantity}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -446,6 +538,7 @@ const InventoryManager = () => {
           <div className="lux-modal-overlay" onClick={() => setRestockProduct(null)}>
             <motion.div 
               className="lux-restock-modal"
+              style={{ maxWidth: '650px' }}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -453,8 +546,8 @@ const InventoryManager = () => {
             >
               <div className="modal-top-bar">
                 <div>
-                  <h3>Update Inventory Stock</h3>
-                  <span className="modal-sub">Set target units or quick add bulk stock</span>
+                  <h3>Update Product Inventory</h3>
+                  <span className="modal-sub">Restock individual sizes (S, M, L, XL...) or total units</span>
                 </div>
                 <button className="modal-close-icon" onClick={() => setRestockProduct(null)}>&times;</button>
               </div>
@@ -466,45 +559,128 @@ const InventoryManager = () => {
                     <h4>{restockProduct.name}</h4>
                     <span className="summary-sku">SKU: {restockProduct.sku || 'N/A'}</span>
                     <div className="summary-current-stock">
-                      Current Stock: <strong>{restockProduct.stock} Units</strong>
+                      Current Total Stock: <strong>{restockProduct.stock} Units</strong>
                     </div>
                   </div>
                 </div>
 
-                <div className="preset-section">
-                  <label className="section-label">Quick Add Units to Current Stock:</label>
-                  <div className="preset-grid">
-                    <button type="button" onClick={() => submitRestock(restockProduct.stock + 5)}>+5 Units</button>
-                    <button type="button" onClick={() => submitRestock(restockProduct.stock + 10)}>+10 Units</button>
-                    <button type="button" onClick={() => submitRestock(restockProduct.stock + 25)}>+25 Units</button>
-                    <button type="button" onClick={() => submitRestock(restockProduct.stock + 50)}>+50 Units</button>
-                    <button type="button" onClick={() => submitRestock(restockProduct.stock + 100)}>+100 Units</button>
-                  </div>
-                </div>
-
-                <div className="exact-input-section">
-                  <label className="section-label">Or Enter Exact New Quantity:</label>
-                  <div className="exact-input-wrapper">
-                    <input 
-                      type="number" 
-                      min="0" 
-                      className="exact-qty-input"
-                      value={customQty} 
-                      onChange={(e) => setCustomQty(e.target.value)}
-                      placeholder="Enter new stock count"
-                    />
-                    <span className="input-unit">Units</span>
-                  </div>
-                </div>
-
-                <div className="modal-footer-actions">
-                  <button className="confirm-save-btn" onClick={() => submitRestock(customQty)}>
-                    Save Stock Quantity
+                {/* Restock Mode Switcher Tabs */}
+                <div className="restock-tab-header">
+                  <button 
+                    type="button" 
+                    className={`restock-tab-btn ${restockTab === 'sizes' ? 'active' : ''}`}
+                    onClick={() => setRestockTab('sizes')}
+                  >
+                    📏 Restock By Size (XS, S, M, L, XL...)
                   </button>
-                  <button className="cancel-btn" onClick={() => setRestockProduct(null)}>
-                    Cancel
+                  <button 
+                    type="button" 
+                    className={`restock-tab-btn ${restockTab === 'total' ? 'active' : ''}`}
+                    onClick={() => setRestockTab('total')}
+                  >
+                    📦 Total Units Quick Add
                   </button>
                 </div>
+
+                {restockTab === 'sizes' ? (
+                  <div className="size-restock-section">
+                    <label className="section-label">Quick Add To All Sizes:</label>
+                    <div className="size-stock-bulk-actions">
+                      <button type="button" className="bulk-btn-chip" onClick={() => handleBulkAddAllSizes(5)}>+5 To All</button>
+                      <button type="button" className="bulk-btn-chip" onClick={() => handleBulkAddAllSizes(10)}>+10 To All</button>
+                      <button type="button" className="bulk-btn-chip" onClick={() => handleBulkAddAllSizes(25)}>+25 To All</button>
+                      <button type="button" className="bulk-btn-chip" onClick={() => handleSetAllSizesTo(10)}>Set All = 10</button>
+                      <button type="button" className="bulk-btn-chip" onClick={() => handleSetAllSizesTo(20)}>Set All = 20</button>
+                      <button type="button" className="bulk-btn-chip clear" onClick={() => handleSetAllSizesTo(0)}>Clear All (0)</button>
+                    </div>
+
+                    <label className="section-label">Individual Size Stock Quantities:</label>
+                    <div className="size-stock-grid-container">
+                      {sizeStockState.map((stItem) => {
+                        const qty = Number(stItem.quantity) || 0
+                        return (
+                          <div key={stItem.size} className={`size-stock-card ${qty > 0 ? 'active-stock' : ''}`}>
+                            <div className="size-card-top">
+                              <span className="size-name-badge">{stItem.size}</span>
+                              <span className={`status-tag ${qty > 0 ? '' : 'out'}`}>
+                                {qty > 0 ? `${qty} in stock` : 'OUT'}
+                              </span>
+                            </div>
+
+                            <div className="size-stepper-box">
+                              <button 
+                                type="button" 
+                                disabled={qty <= 0}
+                                onClick={() => handleSizeQtyChange(stItem.size, qty - 1)}
+                              >-</button>
+                              <input 
+                                type="number" 
+                                min="0" 
+                                value={stItem.quantity}
+                                onChange={(e) => handleSizeQtyChange(stItem.size, e.target.value)}
+                              />
+                              <button 
+                                type="button" 
+                                onClick={() => handleSizeQtyChange(stItem.size, qty + 1)}
+                              >+</button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    <div className="total-calculated-summary">
+                      <span>Total Calculated Inventory:</span>
+                      <strong>{totalCalculatedFromSizes} Units Total</strong>
+                    </div>
+
+                    <div className="modal-footer-actions">
+                      <button className="confirm-save-btn" onClick={submitSizeRestock}>
+                        💾 Save Size Stock Breakdown ({totalCalculatedFromSizes} Units)
+                      </button>
+                      <button className="cancel-btn" onClick={() => setRestockProduct(null)}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="total-restock-section">
+                    <div className="preset-section">
+                      <label className="section-label">Quick Add Units to Current Stock ({restockProduct.stock}):</label>
+                      <div className="preset-grid">
+                        <button type="button" onClick={() => submitRestock(restockProduct.stock + 5)}>+5 Units</button>
+                        <button type="button" onClick={() => submitRestock(restockProduct.stock + 10)}>+10 Units</button>
+                        <button type="button" onClick={() => submitRestock(restockProduct.stock + 25)}>+25 Units</button>
+                        <button type="button" onClick={() => submitRestock(restockProduct.stock + 50)}>+50 Units</button>
+                        <button type="button" onClick={() => submitRestock(restockProduct.stock + 100)}>+100 Units</button>
+                      </div>
+                    </div>
+
+                    <div className="exact-input-section" style={{ marginTop: '16px' }}>
+                      <label className="section-label">Or Enter Exact Total Quantity:</label>
+                      <div className="exact-input-wrapper">
+                        <input 
+                          type="number" 
+                          min="0" 
+                          className="exact-qty-input"
+                          value={customQty} 
+                          onChange={(e) => setCustomQty(e.target.value)}
+                          placeholder="Enter new stock count"
+                        />
+                        <span className="input-unit">Units</span>
+                      </div>
+                    </div>
+
+                    <div className="modal-footer-actions" style={{ marginTop: '18px' }}>
+                      <button className="confirm-save-btn" onClick={() => submitRestock(customQty)}>
+                        Save Total Stock Quantity
+                      </button>
+                      <button className="cancel-btn" onClick={() => setRestockProduct(null)}>
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

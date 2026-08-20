@@ -56,7 +56,7 @@ const NewArrivals = () => {
     <section className="new-arrivals-premium small-size-section" id="new-arrivals">
       {/* Header Container - Centered and Padded */}
       <div className="premium-container">
-        <motion.div 
+        <motion.div
           className="arrivals-header compact-header"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -78,8 +78,8 @@ const NewArrivals = () => {
           <div className="arrivals-marquee-track">
             {extendedArrivals.map((item, index) => (
               <div key={index} className="carousel-card-wrapper">
-                <div 
-                  className="arrival-card-modern compact-card" 
+                <div
+                  className="arrival-card-modern compact-card"
                   onClick={() => {
                     const prodId = item._id || item.id
                     if (prodId) {
@@ -92,16 +92,14 @@ const NewArrivals = () => {
                 >
                   <div className="card-media">
                     <div className="image-zoom-container">
-                      <img 
-                        src={getOptimizedImageUrl(item.image || item.images?.[0], 'product')} 
-                        alt={item.title || item.name} 
+                      <img
+                        src={getOptimizedImageUrl(item.image || item.images?.[0], 'product')}
+                        alt={item.title || item.name}
                         loading="lazy"
                       />
                     </div>
-                    <div className="card-media-overlay">
-                       <div className="quick-view">Quick View</div>
-                    </div>
-                    <button 
+
+                    <button
                       className={`heart-btn ${isInWishlist(item._id || item.id) ? 'active' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation()
@@ -109,7 +107,7 @@ const NewArrivals = () => {
                       }}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill={isInWishlist(item._id || item.id) ? "currentColor" : "none"} stroke="currentColor">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                       </svg>
                     </button>
                   </div>
@@ -136,11 +134,11 @@ const NewArrivals = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Footer Container - Centered and Padded */}
       <div className="premium-container">
         <div className="arrivals-action compact-action">
-          <motion.button 
+          <motion.button
             className="explore-btn-modern"
             whileHover={{ letterSpacing: '0.2em' }}
             onClick={() => navigate('/collections')}

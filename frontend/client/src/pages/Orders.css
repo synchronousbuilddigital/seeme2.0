@@ -974,7 +974,11 @@
 
 @media (max-width: 640px) {
   .orders-kpi-summary { grid-template-columns: 1fr; }
-  .order-card-header { flex-direction: column; align-items: flex-start; }
-  .order-status-group { flex-wrap: wrap; justify-content: space-between; width: 100%; }
+  .order-card-header { flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; box-sizing: border-box; }
+  .order-status-group { flex-wrap: wrap; justify-content: space-between; width: 100%; box-sizing: border-box; }
   .hero-content h1 { font-size: 2.2rem; }
+  .order-id-badge strong, .order-number-title { word-break: break-all !important; overflow-wrap: anywhere !important; }
+  .order-card-container, .order-card { width: 100% !important; box-sizing: border-box !important; overflow: hidden !important; }
+  .order-footer-actions { flex-direction: column !important; width: 100% !important; padding: 14px !important; }
+  .order-footer-actions button { width: 100% !important; justify-content: center !important; }
 }

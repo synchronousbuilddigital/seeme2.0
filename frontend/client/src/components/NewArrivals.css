@@ -190,51 +190,13 @@
   height: 100%;
   object-fit: contain;
   object-position: center;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   padding: 4px;
 }
 
-.arrival-card-modern.compact-card:hover .card-media img {
-  transform: scale(1.06);
-}
-
-.card-media-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(43, 43, 43, 0.25);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: all 0.35s ease;
-}
-
-.arrival-card-modern.compact-card:hover .card-media-overlay {
-  opacity: 1;
-}
-
-.quick-view {
-  color: var(--cream, #f9f6f0);
-  font-family: var(--font-body);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  border: 1px solid rgba(254, 253, 251, 0.35);
-  padding: 8px 16px;
-  background: rgba(43, 43, 43, 0.5);
-  border-radius: 20px;
-  backdrop-filter: blur(4px);
-  transition: all 0.3s ease;
-}
-
-.arrival-card-modern.compact-card:hover .quick-view {
-  border-color: var(--primary-gold, #d4af37);
-  color: var(--primary-gold, #d4af37);
-  background: rgba(43, 43, 43, 0.8);
+.arrival-card-modern.compact-card:hover .card-media img,
+.card-media:hover img {
+  transform: scale(1.15);
 }
 
 .heart-btn {

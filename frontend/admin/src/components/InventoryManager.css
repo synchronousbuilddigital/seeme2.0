@@ -953,6 +953,219 @@
 }
 
 /* ==========================================================================
+   RESTOCK BY SIZE MODAL & TABLE STYLES
+   ========================================================================== */
+
+.restock-tab-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.restock-tab-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.restock-tab-btn.active {
+  background: #FFFFFF;
+  color: #0F172A;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.size-stock-bulk-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.bulk-btn-chip {
+  padding: 6px 12px;
+  background: #F8FAFC;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 20px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bulk-btn-chip:hover {
+  background: #0F172A;
+  color: #FFFFFF;
+  border-color: #0F172A;
+}
+
+.bulk-btn-chip.clear {
+  color: #EF4444;
+  border-color: #FECACA;
+  background: #FEF2F2;
+}
+
+.bulk-btn-chip.clear:hover {
+  background: #EF4444;
+  color: #FFFFFF;
+}
+
+.size-stock-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 18px;
+}
+
+.size-stock-card {
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.size-stock-card.active-stock {
+  border-color: #D4AF37;
+  background: #FFFDF5;
+}
+
+.size-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.size-name-badge {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0F172A;
+  background: #E2E8F0;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.size-card-top .status-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #10B981;
+}
+
+.size-card-top .status-tag.out {
+  color: #EF4444;
+}
+
+.size-stepper-box {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #FFFFFF;
+}
+
+.size-stepper-box button {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #F1F5F9;
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #0F172A;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.size-stepper-box button:hover:not(:disabled) {
+  background: #0F172A;
+  color: #FFFFFF;
+}
+
+.size-stepper-box button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.size-stepper-box input {
+  width: 100%;
+  text-align: center;
+  border: none !important;
+  outline: none !important;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: #0F172A !important;
+  padding: 2px;
+  background: transparent !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+
+.total-calculated-summary {
+  background: #0F172A;
+  color: #FFFFFF;
+  padding: 10px 16px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.total-calculated-summary strong {
+  color: #D4AF37;
+  font-size: 1.05rem;
+}
+
+.table-size-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.size-pill-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #E2E8F0;
+}
+
+.size-pill-tag.out {
+  background: #FEF2F2;
+  color: #EF4444;
+  border-color: #FECACA;
+}
+
+.size-pill-tag.in {
+  background: #F0FDF4;
+  color: #166534;
+  border-color: #BBF7D0;
+}
+
+/* ==========================================================================
    MOBILE RESPONSIVE INVENTORY MANAGER DESIGN (MAX-WIDTH 768px & 480px)
    ========================================================================== */
 

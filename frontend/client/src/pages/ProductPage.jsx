@@ -14,6 +14,7 @@ const ProductPage = () => {
     cart,
     addToCart,
     buyNow,
+    getItemQuantity,
     clearCart,
     toggleWishlist,
     isInWishlist,
@@ -142,9 +143,7 @@ const ProductPage = () => {
       alert('Please select a size to proceed')
       return
     }
-    for (let i = 0; i < quantity; i++) {
-      addToCart({ ...product, selectedSize })
-    }
+    addToCart({ ...product, selectedSize, quantity }, navigate)
     setAddedToast(true)
     setTimeout(() => setAddedToast(false), 2500)
   }
@@ -152,12 +151,15 @@ const ProductPage = () => {
   const handleBuyNow = () => {
     if (!product) return
     const sizeToUse = selectedSize || (availableSizes && availableSizes.length > 0 ? availableSizes[0] : 'S')
-    
+    const prodId = product._id || product.id
+    const inCartQty = getItemQuantity ? getItemQuantity(prodId, sizeToUse) : 0
+    const qtyToUse = Math.max(Number(quantity) || 1, inCartQty || 1)
+
     if (buyNow) {
-      const res = buyNow(product, sizeToUse, quantity, navigate)
+      const res = buyNow(product, sizeToUse, qtyToUse, navigate)
       if (res === false) return
     } else {
-      const res = addToCart({ ...product, selectedSize: sizeToUse, quantity }, navigate)
+      const res = addToCart({ ...product, selectedSize: sizeToUse, quantity: qtyToUse }, navigate)
       if (res === false) return
     }
 

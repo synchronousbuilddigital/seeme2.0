@@ -382,14 +382,41 @@ const Checkout = () => {
 
   const fetchAddresses = async () => {
     try {
+      let loadedAddrs = []
       const response = await fetch(API_ENDPOINTS.USERS_ADDRESSES, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       const data = await response.json()
-      if (data.success) {
-        setAddresses(data.data)
-        const defaultAddr = data.data.find(a => a.isDefault)
-        if (defaultAddr) {
+      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        loadedAddrs = data.data
+      } else {
+        // Fallback to user profile address or local storage
+        let savedLocal = null
+        try {
+          const item = localStorage.getItem('seemee-last-shipping-address')
+          if (item) savedLocal = JSON.parse(item)
+        } catch (e) {}
+
+        const profileAddr = {
+          _id: 'profile-default-addr',
+          name: user?.name || savedLocal?.name || '',
+          phone: user?.phone || savedLocal?.phone || '',
+          street: user?.street || user?.address || savedLocal?.street || '',
+          city: user?.city || savedLocal?.city || '',
+          state: user?.state || savedLocal?.state || '',
+          pincode: user?.pincode || savedLocal?.pincode || '',
+          isDefault: true
+        }
+
+        if (profileAddr.street || profileAddr.pincode || profileAddr.city) {
+          loadedAddrs = [profileAddr]
+        }
+      }
+
+      setAddresses(loadedAddrs)
+      if (loadedAddrs.length > 0) {
+        const defaultAddr = loadedAddrs.find(a => a.isDefault) || loadedAddrs[0]
+        if (defaultAddr && defaultAddr.street) {
           handleAddressSelect(defaultAddr)
         }
       }
@@ -864,9 +891,12 @@ const Checkout = () => {
                 </div>
               </div>
               
-              {user && addresses.length > 0 && (
+              {user && (
                 <div className="saved-addresses-luxury">
-                  <span className="mini-title">Saved Address Book</span>
+                  <div className="saved-addresses-header">
+                    <span className="mini-title">📍 Select Shipping Address</span>
+                  </div>
+
                   <div className="address-pills">
                     {addresses.map(addr => (
                       <div 
@@ -875,164 +905,176 @@ const Checkout = () => {
                         onClick={() => handleAddressSelect(addr)}
                       >
                         <div className="pill-top">
-                          <span className="pill-text">{addr.name || user.name}</span>
-                          {addr.isDefault && <span className="pill-badge">Default</span>}
+                          <span className="pill-text">{addr.name || user.name || 'Saved Address'}</span>
                         </div>
-                        <span className="pill-sub">{addr.street}, {addr.city}, {addr.state} - {addr.pincode}</span>
+                        <span className="pill-sub">
+                          {addr.street ? `${addr.street}, ${addr.city || ''}, ${addr.state || ''} ${addr.pincode ? `- ${addr.pincode}` : ''}` : 'Saved Address'}
+                        </span>
                       </div>
                     ))}
+
                     <div 
                       className={`address-pill new ${!selectedAddressId ? 'active' : ''}`} 
                       onClick={() => {
                         setSelectedAddressId(null)
-                        setFormData(prev => ({ ...prev, street: '', city: '', state: '', pincode: '' }))
+                        setFormData(prev => ({
+                          ...prev,
+                          street: '',
+                          city: '',
+                          state: '',
+                          pincode: ''
+                        }))
                       }}
                     >
-                      <span>+ Enter New Address</span>
+                      <span>➕ Add New Address</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              <div className="input-group-luxury">
-                <label htmlFor="checkout-name">Recipient Full Name *</label>
-                <div className="input-with-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  <input 
-                    id="checkout-name"
-                    type="text" 
-                    name="name" 
-                    value={formData.name} 
-                    onChange={handleChange} 
-                    placeholder="Enter full name of recipient" 
-                    required 
-                  />
-                </div>
-              </div>
-
-              <div className="input-row-luxury">
-                <div className="input-group-luxury">
-                  <label htmlFor="checkout-email">Email Address (Order Confirmation) *</label>
-                  <div className="input-with-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
-                      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                      <polyline points="22,6 12,13 2,6"></polyline>
-                    </svg>
-                    <input 
-                      id="checkout-email"
-                      type="email" 
-                      name="email" 
-                      value={formData.email} 
-                      onChange={handleChange} 
-                      placeholder="client@domain.com" 
-                      required 
-                    />
+              {/* Recipient Details & Address Form - ONLY shown when adding new address or no saved address selected */}
+              {(!selectedAddressId || addresses.length === 0) && (
+                <div className="new-address-form-box">
+                  <div className="input-group-luxury">
+                    <label htmlFor="checkout-name">Recipient Full Name *</label>
+                    <div className="input-with-icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                      <input 
+                        id="checkout-name"
+                        type="text" 
+                        name="name" 
+                        value={formData.name} 
+                        onChange={handleChange} 
+                        placeholder="Enter full name of recipient" 
+                        required={!selectedAddressId}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="input-group-luxury">
-                  <label htmlFor="checkout-phone">Phone Number (Delivery Updates) *</label>
-                  <div className="input-with-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
-                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                    </svg>
-                    <input 
-                      id="checkout-phone"
-                      type="tel" 
-                      name="phone" 
-                      value={formData.phone} 
-                      onChange={handleChange} 
-                      placeholder="+91 98765 43210" 
-                      required 
-                    />
+                  <div className="input-row-luxury">
+                    <div className="input-group-luxury">
+                      <label htmlFor="checkout-email">Email Address (Order Confirmation) *</label>
+                      <div className="input-with-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                          <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <input 
+                          id="checkout-email"
+                          type="email" 
+                          name="email" 
+                          value={formData.email} 
+                          onChange={handleChange} 
+                          placeholder="client@domain.com" 
+                          required={!selectedAddressId}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="input-group-luxury">
+                      <label htmlFor="checkout-phone">Phone Number (Delivery Updates) *</label>
+                      <div className="input-with-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                        <input 
+                          id="checkout-phone"
+                          type="tel" 
+                          name="phone" 
+                          value={formData.phone} 
+                          onChange={handleChange} 
+                          placeholder="+91 98765 43210" 
+                          required={!selectedAddressId}
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                  <div className="input-group-luxury">
+                    <label htmlFor="checkout-street">Street Address / House / Flat / Locality *</label>
+                    <div className="input-with-icon">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                      </svg>
+                      <input 
+                        id="checkout-street"
+                        type="text" 
+                        name="street" 
+                        value={formData.street} 
+                        onChange={handleChange} 
+                        placeholder="Flat 402, Building / House Name, Street, Landmark" 
+                        required={!selectedAddressId}
+                      />
+                    </div>
+                  </div>
 
-              <div className="input-group-luxury">
-                <label htmlFor="checkout-street">Street Address / House / Flat / Locality *</label>
-                <div className="input-with-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a8a29e" strokeWidth="2">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                  </svg>
-                  <input 
-                    id="checkout-street"
-                    type="text" 
-                    name="street" 
-                    value={formData.street} 
-                    onChange={handleChange} 
-                    placeholder="Flat 402, Building / House Name, Street, Landmark" 
-                    required 
-                  />
-                </div>
-              </div>
+                  <div className="input-row-luxury tri">
+                    <div className="input-group-luxury">
+                      <label htmlFor="checkout-city">City / District *</label>
+                      <input 
+                        id="checkout-city"
+                        type="text" 
+                        name="city" 
+                        value={formData.city} 
+                        onChange={handleChange} 
+                        placeholder="City / District" 
+                        required={!selectedAddressId}
+                      />
+                    </div>
 
-              <div className="input-row-luxury tri">
-                <div className="input-group-luxury">
-                  <label htmlFor="checkout-city">City / District *</label>
-                  <input 
-                    id="checkout-city"
-                    type="text" 
-                    name="city" 
-                    value={formData.city} 
-                    onChange={handleChange} 
-                    placeholder="City / District" 
-                    required 
-                  />
-                </div>
+                    <div className="input-group-luxury">
+                      <label htmlFor="checkout-state">State *</label>
+                      <CustomStateSelect 
+                        value={formData.state} 
+                        onChange={handleChange} 
+                      />
+                    </div>
 
-                <div className="input-group-luxury">
-                  <label htmlFor="checkout-state">State *</label>
-                  <CustomStateSelect 
-                    value={formData.state} 
-                    onChange={handleChange} 
-                  />
-                </div>
+                    <div className="input-group-luxury">
+                      <label htmlFor="checkout-pincode">
+                        Pincode *
+                        {pincodeLoading && <span className="pincode-status-text">🔍 Verifying...</span>}
+                      </label>
+                      <input 
+                        id="checkout-pincode"
+                        type="text" 
+                        name="pincode" 
+                        value={formData.pincode} 
+                        onChange={handleChange} 
+                        placeholder="6-Digit PIN" 
+                        maxLength={6}
+                        required={!selectedAddressId}
+                      />
+                    </div>
+                  </div>
 
-                <div className="input-group-luxury">
-                  <label htmlFor="checkout-pincode">
-                    Pincode *
-                    {pincodeLoading && <span className="pincode-status-text">🔍 Verifying...</span>}
-                  </label>
-                  <input 
-                    id="checkout-pincode"
-                    type="text" 
-                    name="pincode" 
-                    value={formData.pincode} 
-                    onChange={handleChange} 
-                    placeholder="6-Digit PIN" 
-                    maxLength={6}
-                    required 
-                  />
-                </div>
-              </div>
+                  {user && (
+                    <div className="save-address-checkbox-row">
+                      <label htmlFor="save-address-toggle" className="save-address-label">
+                        <input
+                          id="save-address-toggle"
+                          type="checkbox"
+                          checked={saveAddress}
+                          onChange={(e) => setSaveAddress(e.target.checked)}
+                          className="save-address-checkbox"
+                        />
+                        <span>Save this address to my profile for future orders</span>
+                      </label>
 
-              {user && (
-                <div className="save-address-checkbox-row">
-                  <label htmlFor="save-address-toggle" className="save-address-label">
-                    <input
-                      id="save-address-toggle"
-                      type="checkbox"
-                      checked={saveAddress}
-                      onChange={(e) => setSaveAddress(e.target.checked)}
-                      className="save-address-checkbox"
-                    />
-                    <span>Save this address to my profile for future orders</span>
-                  </label>
-
-                  {formData.street && formData.city && formData.pincode && (
-                    <button
-                      type="button"
-                      className="btn-manual-save-addr"
-                      onClick={() => saveAddressToBackend()}
-                      disabled={savingAddress}
-                    >
-                      {savingAddress ? 'Saving...' : '💾 Save Address Now'}
-                    </button>
+                      {formData.street && formData.city && formData.pincode && (
+                        <button
+                          type="button"
+                          className="btn-manual-save-addr"
+                          onClick={() => saveAddressToBackend()}
+                          disabled={savingAddress}
+                        >
+                          {savingAddress ? 'Saving...' : '💾 Save Address Now'}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
