@@ -446,8 +446,8 @@ const Hero = () => {
                 image: (p.images && p.images[0]) || p.image,
                 title: p.name || 'SeeMee Haute Couture',
                 subtitle: p.category ? `Premium Edit • ${p.category}` : 'Premium Edit',
-                description: p.description && p.description.length > 20 
-                  ? p.description.replace(/<[^>]*>/g, '').slice(0, 160) 
+                description: p.description && p.description.length > 20
+                  ? p.description.replace(/<[^>]*>/g, '').slice(0, 160)
                   : EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
                 category: p.category || 'Featured',
                 productId: p._id || p.id

@@ -716,9 +716,9 @@
 
 /* Full Width Bottom Tabbed Content Area */
 .product-tabbed-section {
-  margin-top: 50px;
+  margin-top: 20px;
   border-top: 1px solid #f0eee9;
-  padding-top: 40px;
+  padding-top: 16px;
   width: 100%;
 }
 
@@ -1122,11 +1122,47 @@
 @media (max-width: 1024px) {
   .product-main-grid {
     grid-template-columns: 1fr;
-    gap: 30px;
+    gap: 10px !important;
+    row-gap: 10px !important;
   }
 
   .trust-badges-row {
-    grid-template-columns: 1fr;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    margin-bottom: 0px !important;
+    width: 100% !important;
+  }
+
+  .trust-badge-card {
+    padding: 8px 4px !important;
+    border-radius: 10px !important;
+    gap: 4px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .trust-badge-card .badge-icon {
+    font-size: 1.1rem !important;
+  }
+
+  .trust-badge-card strong {
+    font-size: 0.66rem !important;
+    line-height: 1.15 !important;
+    white-space: nowrap !important;
+  }
+
+  .trust-badge-card p {
+    font-size: 0.58rem !important;
+    line-height: 1.15 !important;
+    margin-top: 1px !important;
+    white-space: nowrap !important;
+  }
+
+  .product-tabbed-section {
+    margin-top: 0px !important;
+    padding-top: 4px !important;
   }
 
   .related-products-grid {
