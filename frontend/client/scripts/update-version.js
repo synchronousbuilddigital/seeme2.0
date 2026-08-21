@@ -12,18 +12,27 @@ const swPath = path.join(publicDir, 'sw.js')
 const buildTime = Date.now()
 const version = `v1.0.${buildTime}`
 
+const iconsDir = path.join(publicDir, 'icons')
+if (!fs.existsSync(iconsDir)) {
+  fs.mkdirSync(iconsDir, { recursive: true })
+}
+
 const logoPath = path.join(publicDir, 'images/logoSEEMEE1.png')
 const icon192Path = path.join(publicDir, 'images/icon-192.png')
 const icon512Path = path.join(publicDir, 'images/icon-512.png')
+const icon192IconsPath = path.join(publicDir, 'icons/icon-192.png')
+const icon512IconsPath = path.join(publicDir, 'icons/icon-512.png')
 const appleIconPath = path.join(publicDir, 'apple-touch-icon.png')
 const applePrePath = path.join(publicDir, 'apple-touch-icon-precomposed.png')
 
 if (fs.existsSync(logoPath)) {
   fs.copyFileSync(logoPath, icon192Path)
   fs.copyFileSync(logoPath, icon512Path)
+  fs.copyFileSync(logoPath, icon192IconsPath)
+  fs.copyFileSync(logoPath, icon512IconsPath)
   fs.copyFileSync(logoPath, appleIconPath)
   fs.copyFileSync(logoPath, applePrePath)
-  console.log('🖼️ [LOGO-SYNC] Synced logoSEEMEE1.png to PWA icons (192, 512, apple-touch)')
+  console.log('🖼️ [LOGO-SYNC] Synced logoSEEMEE1.png to PWA icons (/icons and /images)')
 }
 
 // 1. Write version.json
