@@ -128,9 +128,9 @@
 .reel-slide {
   position: relative;
   width: 100%;
-  max-width: 420px;
-  height: calc(100vh - 195px);
-  max-height: 800px;
+  max-width: 385px;
+  height: calc(100vh - 190px);
+  max-height: 720px;
   margin-bottom: 24px;
   scroll-snap-align: center;
   scroll-snap-stop: always;
@@ -139,9 +139,9 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 28px;
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+  border-radius: 26px;
+  border: 1.5px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85);
   flex-shrink: 0;
 }
 
@@ -440,7 +440,7 @@
 .grid-media-box {
   position: relative;
   width: 100%;
-  height: 360px;
+  height: 330px;
   background: #000000;
   overflow: hidden;
 }
@@ -602,22 +602,27 @@
 
 @media (max-width: 600px) {
   .reels-feed-container {
-    padding-top: 0;
-    padding-bottom: 0;
+    padding-top: 60px;
+    padding-bottom: 64px;
   }
   .reel-slide {
+    width: 100%;
     max-width: 100%;
-    height: 100vh;
-    max-height: none;
-    margin-bottom: 0;
+    height: calc(100vh - 124px);
+    max-height: calc(100vh - 124px);
+    margin: 0 0 16px 0;
     border-radius: 0;
-    border: none;
+    border-left: none;
+    border-right: none;
+    border-top: 1px solid rgba(212, 175, 55, 0.25);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
     box-shadow: none;
     scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
   .catalog-top-bar {
-    top: 70px;
-    padding: 10px 16px;
+    top: 64px;
+    padding: 8px 16px;
   }
   .reel-details-box {
     bottom: 24px;
@@ -631,8 +636,8 @@
     padding: 6px 10px;
   }
   .prod-thumb {
-    width: 38px;
-    height: 46px;
+    width: 40px;
+    height: 48px;
   }
   .reel-right-actions {
     right: 14px;
@@ -640,7 +645,7 @@
     gap: 14px;
   }
   .action-btn-circle {
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
   }
 }

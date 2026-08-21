@@ -207,8 +207,8 @@ const InventoryManager = () => {
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase()
-      list = list.filter(p => 
-        (p.name && p.name.toLowerCase().includes(q)) || 
+      list = list.filter(p =>
+        (p.name && p.name.toLowerCase().includes(q)) ||
         (p.sku && p.sku.toLowerCase().includes(q)) ||
         (p.category && p.category.toLowerCase().includes(q))
       )
@@ -235,15 +235,33 @@ const InventoryManager = () => {
       return `"${str}"`
     }
 
+    const getSizeQty = (sizeStockArr, targetSize) => {
+      if (!Array.isArray(sizeStockArr)) return 0
+      const item = sizeStockArr.find(s => s && s.size === targetSize)
+      return item ? Number(item.quantity || 0) : 0
+    }
+
     const headers = [
       'Product Name',
       'SKU',
       'Category',
+      'Brand',
       'Stock Status',
-      'Total Units Available',
-      'Price (INR)',
-      'MRP / Discount Price (INR)',
-      'Size Stock Breakdown'
+      'Total Stock Units',
+      'XS Stock',
+      'S Stock',
+      'M Stock',
+      'L Stock',
+      'XL Stock',
+      'XXL Stock',
+      '3XL Stock',
+      'Free Size Stock',
+      'Selling Price (INR)',
+      'MRP (INR)',
+      'Weight (kg)',
+      'Length (cm)',
+      'Breadth/Width (cm)',
+      'Height (cm)'
     ]
 
     const rows = productsToExport.map(p => {
@@ -251,25 +269,27 @@ const InventoryManager = () => {
       const isLow = p.stock > 0 && p.stock <= 10
       const status = isOut ? 'Out of Stock' : isLow ? 'Low Stock' : 'In Stock'
 
-      let sizeBreakdownStr = 'N/A'
-      if (Array.isArray(p.sizeStock) && p.sizeStock.length > 0) {
-        const activeSizes = p.sizeStock
-          .filter(s => s && s.size && Number(s.quantity) > 0)
-          .map(s => `${s.size}: ${s.quantity}`)
-        sizeBreakdownStr = activeSizes.length > 0 ? activeSizes.join(' | ') : 'All sizes out of stock'
-      } else if (Array.isArray(p.sizes) && p.sizes.length > 0) {
-        sizeBreakdownStr = p.sizes.join(', ')
-      }
-
       return [
         escapeCsv(p.name),
         escapeCsv(p.sku || 'N/A'),
         escapeCsv(p.category || 'General'),
+        escapeCsv(p.brand || 'SeeMee'),
         escapeCsv(status),
         escapeCsv(p.stock ?? 0),
+        escapeCsv(getSizeQty(p.sizeStock, 'XS')),
+        escapeCsv(getSizeQty(p.sizeStock, 'S')),
+        escapeCsv(getSizeQty(p.sizeStock, 'M')),
+        escapeCsv(getSizeQty(p.sizeStock, 'L')),
+        escapeCsv(getSizeQty(p.sizeStock, 'XL')),
+        escapeCsv(getSizeQty(p.sizeStock, 'XXL')),
+        escapeCsv(getSizeQty(p.sizeStock, '3XL')),
+        escapeCsv(getSizeQty(p.sizeStock, 'Free Size')),
         escapeCsv(p.price || 0),
-        escapeCsv(p.mrp || p.discountPrice || ''),
-        escapeCsv(sizeBreakdownStr)
+        escapeCsv(p.mrp || p.price || 0),
+        escapeCsv(p.weightKg || p.weight || 0.5),
+        escapeCsv(p.lengthCm || p.dimensions?.lengthCm || p.dimensions?.length || 20),
+        escapeCsv(p.widthCm || p.breadth || p.dimensions?.widthCm || p.dimensions?.breadth || 15),
+        escapeCsv(p.heightCm || p.height || p.dimensions?.heightCm || p.dimensions?.height || 5)
       ]
     })
 
@@ -446,16 +466,8 @@ const InventoryManager = () => {
           Live Inventory Sync
         </div>
         <div className="header-action-buttons">
-          <button 
-            className="export-excel-btn import-btn" 
-            onClick={() => setShowImportModal(true)}
-            title="Bulk import products from Excel spreadsheet (.xlsx / .xls)"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-            📥 Import Excel
-          </button>
-          <button 
-            className="export-excel-btn" 
+          <button
+            className="export-excel-btn"
             onClick={exportInventoryToExcel}
             title="Download complete inventory Excel/CSV report"
           >
@@ -467,7 +479,7 @@ const InventoryManager = () => {
 
       {/* KPI Cards */}
       <div className="inventory-kpi-grid">
-        <motion.div 
+        <motion.div
           className={`kpi-card out-of-stock ${activeFilter === 'out' ? 'active' : ''}`}
           whileHover={{ y: -4 }}
           onClick={() => setActiveFilter(activeFilter === 'out' ? 'all' : 'out')}
@@ -482,7 +494,7 @@ const InventoryManager = () => {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className={`kpi-card low-stock ${activeFilter === 'low' ? 'active' : ''}`}
           whileHover={{ y: -4 }}
           onClick={() => setActiveFilter(activeFilter === 'low' ? 'all' : 'low')}
@@ -497,7 +509,7 @@ const InventoryManager = () => {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className={`kpi-card healthy ${activeFilter === 'healthy' ? 'active' : ''}`}
           whileHover={{ y: -4 }}
           onClick={() => setActiveFilter(activeFilter === 'healthy' ? 'all' : 'healthy')}
@@ -512,7 +524,7 @@ const InventoryManager = () => {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className={`kpi-card total ${activeFilter === 'all' ? 'active' : ''}`}
           whileHover={{ y: -4 }}
           onClick={() => setActiveFilter('all')}
@@ -534,8 +546,8 @@ const InventoryManager = () => {
         <div className="inventory-toolbar">
           <div className="search-box-wrapper">
             <svg className="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="inventory-search-input"
               placeholder="Search by product name, SKU, or category..."
               value={searchQuery}
@@ -548,25 +560,25 @@ const InventoryManager = () => {
 
           <div className="toolbar-controls">
             <div className="filter-pills">
-              <button 
+              <button
                 className={`filter-pill ${activeFilter === 'all' ? 'active' : ''}`}
                 onClick={() => setActiveFilter('all')}
               >
                 All ({inventory.totalProducts || 0})
               </button>
-              <button 
+              <button
                 className={`filter-pill red ${activeFilter === 'out' ? 'active' : ''}`}
                 onClick={() => setActiveFilter('out')}
               >
                 Out of Stock ({inventory.totalOutOfStock})
               </button>
-              <button 
+              <button
                 className={`filter-pill gold ${activeFilter === 'low' ? 'active' : ''}`}
                 onClick={() => setActiveFilter('low')}
               >
                 Low Stock ({inventory.totalLowStock})
               </button>
-              <button 
+              <button
                 className={`filter-pill green ${activeFilter === 'healthy' ? 'active' : ''}`}
                 onClick={() => setActiveFilter('healthy')}
               >
@@ -576,7 +588,7 @@ const InventoryManager = () => {
 
             <div className="sort-wrapper">
               <label>Sort:</label>
-              <select 
+              <select
                 className="inventory-sort-select"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -651,7 +663,7 @@ const InventoryManager = () => {
                             {!isOut && !isLow && <span className="status-badge green">In Stock</span>}
                           </div>
                           <div className="stock-progress-track">
-                            <div 
+                            <div
                               className={`stock-progress-bar ${isOut ? 'red' : isLow ? 'gold' : 'green'}`}
                               style={{ width: `${meterPct}%` }}
                             ></div>
@@ -668,7 +680,7 @@ const InventoryManager = () => {
                       </td>
 
                       <td className="text-right">
-                        <button 
+                        <button
                           className="restock-action-btn"
                           onClick={() => openRestockModal(product)}
                         >
@@ -726,7 +738,7 @@ const InventoryManager = () => {
                       <span className="box-label">Stock:</span> <strong>{product.stock} Units</strong>
                     </div>
 
-                    <button 
+                    <button
                       className={`mobile-restock-trigger ${isOut ? 'red-btn' : ''}`}
                       onClick={() => openRestockModal(product)}
                     >
@@ -744,7 +756,7 @@ const InventoryManager = () => {
       <AnimatePresence>
         {restockProduct && (
           <div className="lux-modal-overlay" onClick={() => setRestockProduct(null)}>
-            <motion.div 
+            <motion.div
               className="lux-restock-modal"
               style={{ maxWidth: '650px' }}
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -774,15 +786,15 @@ const InventoryManager = () => {
 
                 {/* Restock Mode Switcher Tabs */}
                 <div className="restock-tab-header">
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className={`restock-tab-btn ${restockTab === 'sizes' ? 'active' : ''}`}
                     onClick={() => setRestockTab('sizes')}
                   >
                     📏 Restock By Size (XS, S, M, L, XL...)
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className={`restock-tab-btn ${restockTab === 'total' ? 'active' : ''}`}
                     onClick={() => setRestockTab('total')}
                   >
@@ -816,19 +828,19 @@ const InventoryManager = () => {
                             </div>
 
                             <div className="size-stepper-box">
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 disabled={qty <= 0}
                                 onClick={() => handleSizeQtyChange(stItem.size, qty - 1)}
                               >-</button>
-                              <input 
-                                type="number" 
-                                min="0" 
+                              <input
+                                type="number"
+                                min="0"
                                 value={stItem.quantity}
                                 onChange={(e) => handleSizeQtyChange(stItem.size, e.target.value)}
                               />
-                              <button 
-                                type="button" 
+                              <button
+                                type="button"
                                 onClick={() => handleSizeQtyChange(stItem.size, qty + 1)}
                               >+</button>
                             </div>
@@ -867,11 +879,11 @@ const InventoryManager = () => {
                     <div className="exact-input-section" style={{ marginTop: '16px' }}>
                       <label className="section-label">Or Enter Exact Total Quantity:</label>
                       <div className="exact-input-wrapper">
-                        <input 
-                          type="number" 
-                          min="0" 
+                        <input
+                          type="number"
+                          min="0"
                           className="exact-qty-input"
-                          value={customQty} 
+                          value={customQty}
                           onChange={(e) => setCustomQty(e.target.value)}
                           placeholder="Enter new stock count"
                         />
@@ -895,318 +907,6 @@ const InventoryManager = () => {
         )}
       </AnimatePresence>
 
-      {/* Excel Bulk Import Modal */}
-      <AnimatePresence>
-        {showImportModal && (
-          <div className="lux-modal-overlay" onClick={closeImportModal}>
-            <motion.div 
-              className="lux-restock-modal import-modal-wide"
-              style={{ maxWidth: '880px', width: '94%' }}
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="modal-top-bar">
-                <div>
-                  <h3>Bulk Product Excel Import</h3>
-                  <span className="modal-sub">Upload product catalog via Excel spreadsheet (.xlsx / .xls)</span>
-                </div>
-                <button className="modal-close-icon" onClick={closeImportModal}>&times;</button>
-              </div>
-
-              <div className="modal-body-content">
-                {importError && (
-                  <div className="import-error-banner">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    <span>{importError}</span>
-                  </div>
-                )}
-
-                {/* STEP 1: FILE UPLOAD */}
-                {importStep === 'upload' && (
-                  <div className="import-upload-step">
-                    <div className="template-download-box">
-                      <div className="template-info">
-                        <div className="excel-icon-chip">📊</div>
-                        <div>
-                          <h4>Need the Catalog Excel Format?</h4>
-                          <p>Download our official pre-formatted Excel template with sample row & instructions.</p>
-                        </div>
-                      </div>
-                      <button type="button" className="download-template-btn" onClick={handleDownloadTemplate}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Download Excel Template
-                      </button>
-                    </div>
-
-                    <div className="drag-drop-zone">
-                      <input 
-                        type="file" 
-                        accept=".xlsx, .xls"
-                        id="excelFileInput"
-                        style={{ display: 'none' }}
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            setImportFile(e.target.files[0])
-                            setImportError('')
-                          }
-                        }}
-                      />
-                      <label htmlFor="excelFileInput" className="dropzone-label">
-                        <div className="dropzone-icon">📁</div>
-                        <h4>{importFile ? importFile.name : 'Click or Drag & Drop Excel File (.xlsx / .xls)'}</h4>
-                        <p>{importFile ? `${(importFile.size / 1024).toFixed(1)} KB — Ready to Parse` : 'Maximum file size: 10MB'}</p>
-                        <span className="browse-file-btn">{importFile ? 'Change Selected File' : 'Browse Computer'}</span>
-                      </label>
-                    </div>
-
-                    <div className="modal-footer-actions" style={{ marginTop: '20px' }}>
-                      <button 
-                        type="button"
-                        className="confirm-save-btn"
-                        disabled={!importFile || isUploading}
-                        onClick={handleValidateExcel}
-                      >
-                        {isUploading ? '⏳ Parsing & Validating Excel...' : '🔍 Validate & Preview Excel'}
-                      </button>
-                      <button type="button" className="cancel-btn" onClick={closeImportModal}>
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 2: PREVIEW & VALIDATION */}
-                {importStep === 'preview' && previewData && (
-                  <div className="import-preview-step">
-                    {/* KPI Summary Grid */}
-                    <div className="import-preview-kpi-grid">
-                      <div className="preview-kpi-card total">
-                        <span className="kpi-num">{previewData.totalRows}</span>
-                        <span className="kpi-lbl">Total Rows</span>
-                      </div>
-                      <div className="preview-kpi-card valid">
-                        <span className="kpi-num text-green">{previewData.validCount}</span>
-                        <span className="kpi-lbl">Valid Items</span>
-                      </div>
-                      <div className="preview-kpi-card new">
-                        <span className="kpi-num text-blue">{previewData.newCount}</span>
-                        <span className="kpi-lbl">New Products</span>
-                      </div>
-                      <div className="preview-kpi-card updates">
-                        <span className="kpi-num text-gold">{previewData.updateCount}</span>
-                        <span className="kpi-lbl">Updates to Existing</span>
-                      </div>
-                      <div className="preview-kpi-card invalid">
-                        <span className="kpi-num text-red">{previewData.invalidCount}</span>
-                        <span className="kpi-lbl">Errors / Skipped</span>
-                      </div>
-                    </div>
-
-                    {/* Mode Selector */}
-                    <div className="import-mode-selector">
-                      <label className="section-label">Import Mode:</label>
-                      <div className="mode-options-row">
-                        <label className={`mode-option-chip ${importMode === 'add_and_update' ? 'selected' : ''}`}>
-                          <input 
-                            type="radio" 
-                            name="importMode" 
-                            value="add_and_update" 
-                            checked={importMode === 'add_and_update'} 
-                            onChange={(e) => setImportMode(e.target.value)}
-                          />
-                          <span>✨ Add New & Update Existing</span>
-                        </label>
-                        <label className={`mode-option-chip ${importMode === 'add_only' ? 'selected' : ''}`}>
-                          <input 
-                            type="radio" 
-                            name="importMode" 
-                            value="add_only" 
-                            checked={importMode === 'add_only'} 
-                            onChange={(e) => setImportMode(e.target.value)}
-                          />
-                          <span>➕ Add New Products Only</span>
-                        </label>
-                        <label className={`mode-option-chip ${importMode === 'update_only' ? 'selected' : ''}`}>
-                          <input 
-                            type="radio" 
-                            name="importMode" 
-                            value="update_only" 
-                            checked={importMode === 'update_only'} 
-                            onChange={(e) => setImportMode(e.target.value)}
-                          />
-                          <span>🔄 Update Existing Products Only</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Preview Tabs Header */}
-                    <div className="preview-tab-header">
-                      <button 
-                        type="button" 
-                        className={`tab-btn ${previewTab === 'valid' ? 'active' : ''}`}
-                        onClick={() => setPreviewTab('valid')}
-                      >
-                        ✅ Valid Items ({previewData.validCount})
-                      </button>
-                      <button 
-                        type="button" 
-                        className={`tab-btn ${previewTab === 'errors' ? 'active' : ''}`}
-                        onClick={() => setPreviewTab('errors')}
-                      >
-                        ❌ Errors & Skipped Rows ({previewData.invalidCount})
-                      </button>
-                    </div>
-
-                    {/* Valid Products List Table */}
-                    {previewTab === 'valid' && (
-                      <div className="preview-table-wrapper">
-                        {previewData.validCount === 0 ? (
-                          <div className="empty-preview-msg">
-                            <p>No valid items found in this Excel sheet.</p>
-                          </div>
-                        ) : (
-                          <table className="preview-data-table">
-                            <thead>
-                              <tr>
-                                <th>Row #</th>
-                                <th>Action</th>
-                                <th>SKU</th>
-                                <th>Product Name</th>
-                                <th>Category</th>
-                                <th>Price</th>
-                                <th>Stock</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {previewData.rows.filter(r => r.isValid).map((row) => (
-                                <tr key={row.rowNum}>
-                                  <td>#{row.rowNum}</td>
-                                  <td>
-                                    <span className={`action-badge ${row.actionType === 'UPDATE' ? 'gold' : 'blue'}`}>
-                                      {row.actionType === 'UPDATE' ? 'UPDATE' : 'CREATE'}
-                                    </span>
-                                  </td>
-                                  <td><code>{row.sku}</code></td>
-                                  <td><strong>{row.name}</strong></td>
-                                  <td>{row.category}</td>
-                                  <td>₹{Number(row.price).toLocaleString()}</td>
-                                  <td>{row.stock} Units</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Errors List Table */}
-                    {previewTab === 'errors' && (
-                      <div className="preview-table-wrapper">
-                        {previewData.invalidCount === 0 ? (
-                          <div className="empty-preview-msg">
-                            <p>🎉 Excellent! No error rows found in your Excel file.</p>
-                          </div>
-                        ) : (
-                          <table className="preview-data-table error-table">
-                            <thead>
-                              <tr>
-                                <th>Row #</th>
-                                <th>SKU / Name</th>
-                                <th>Column</th>
-                                <th>Value</th>
-                                <th>Error Reason</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {previewData.rows.filter(r => !r.isValid).map((row) => (
-                                (row.errors || []).map((err, errIdx) => (
-                                  <tr key={`${row.rowNum}-${errIdx}`}>
-                                    <td>#{row.rowNum}</td>
-                                    <td>{row.name !== 'Unnamed Product' ? row.name : row.sku}</td>
-                                    <td><strong>{err.column}</strong></td>
-                                    <td><code>{String(err.value || 'Empty')}</code></td>
-                                    <td><span className="error-reason-tag">{err.reason}</span></td>
-                                  </tr>
-                                ))
-                              ))}
-                            </tbody>
-                          </table>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="modal-footer-actions" style={{ marginTop: '18px' }}>
-                      <button 
-                        type="button" 
-                        className="confirm-save-btn"
-                        disabled={previewData.validCount === 0 || isExecutingImport}
-                        onClick={handleConfirmImport}
-                      >
-                        {isExecutingImport ? '⏳ Importing Products...' : `🚀 Confirm & Import (${previewData.validCount} Valid Items)`}
-                      </button>
-
-                      {previewData.invalidCount > 0 && (
-                        <button type="button" className="bulk-btn-chip error-log-btn" onClick={handleDownloadErrorReport}>
-                          📥 Download Error Report (CSV)
-                        </button>
-                      )}
-
-                      <button type="button" className="cancel-btn" onClick={() => setImportStep('upload')}>
-                        ⬅ Back / Re-select File
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 3: RESULT SUMMARY */}
-                {importStep === 'result' && importResult && (
-                  <div className="import-result-step">
-                    <div className="result-success-banner">
-                      <div className="success-icon">🎉</div>
-                      <div>
-                        <h3>Bulk Inventory Import Completed!</h3>
-                        <p>Your database has been safely updated with the validated Excel catalog data.</p>
-                      </div>
-                    </div>
-
-                    <div className="import-result-grid">
-                      <div className="result-card">
-                        <span className="result-num">{importResult.totalProcessed}</span>
-                        <span className="result-lbl">Items Processed</span>
-                      </div>
-                      <div className="result-card green">
-                        <span className="result-num">{importResult.importedCount}</span>
-                        <span className="result-lbl">New Products Added</span>
-                      </div>
-                      <div className="result-card gold">
-                        <span className="result-num">{importResult.updatedCount}</span>
-                        <span className="result-lbl">Existing Products Updated</span>
-                      </div>
-                      <div className="result-card red">
-                        <span className="result-num">{importResult.failedCount}</span>
-                        <span className="result-lbl">Failed Write Operations</span>
-                      </div>
-                    </div>
-
-                    <div className="modal-footer-actions" style={{ marginTop: '24px' }}>
-                      {importResult.failedCount > 0 && (
-                        <button type="button" className="bulk-btn-chip error-log-btn" onClick={handleDownloadErrorReport}>
-                          📥 Download Failed Write Log
-                        </button>
-                      )}
-                      <button type="button" className="confirm-save-btn" onClick={closeImportModal}>
-                        ✓ Done & Refresh Inventory
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   )
 }

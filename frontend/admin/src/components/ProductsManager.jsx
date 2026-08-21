@@ -1117,47 +1117,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
                 {formTab === 'advanced' && (
                   <div className="form-tab-content">
-                    <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #cbd5e1', marginBottom: '18px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
-                        <div className="form-group">
-                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Weight (kg)</label>
-                          <input 
-                            type="number" 
-                            step="0.01"
-                            placeholder="0.5" 
-                            value={formData.weightKg !== undefined ? formData.weightKg : (typeof formData.weight === 'string' ? formData.weight : (formData.weight?.value || ''))} 
-                            onChange={(e) => setFormData({ ...formData, weightKg: e.target.value, weight: e.target.value })} 
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Length (cm)</label>
-                          <input 
-                            type="number" 
-                            placeholder="20" 
-                            value={formData.dimensions?.length !== undefined ? formData.dimensions.length : ''} 
-                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })} 
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Breadth (cm)</label>
-                          <input 
-                            type="number" 
-                            placeholder="15" 
-                            value={formData.dimensions?.width !== undefined ? formData.dimensions.width : ''} 
-                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })} 
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Height (cm)</label>
-                          <input 
-                            type="number" 
-                            placeholder="5" 
-                            value={formData.dimensions?.height !== undefined ? formData.dimensions.height : ''} 
-                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} 
-                          />
-                        </div>
-                      </div>
-                    </div>
                     <div className="form-group">
                       <label>Materials (e.g. Silk, Cotton)</label>
                       <input type="text" value={Array.isArray(formData.materials) ? formData.materials.join(', ') : ''} onChange={(e) => setFormData({ ...formData, materials: e.target.value.split(',').map(m => m.trim()) })} placeholder="Comma separated" />

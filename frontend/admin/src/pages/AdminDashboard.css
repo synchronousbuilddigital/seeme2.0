@@ -1200,23 +1200,27 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    padding: 0;
-    margin-bottom: 20px;
+    padding: 0 2px;
+    margin-bottom: 16px;
     width: 100%;
-    flex-wrap: nowrap;
-    overflow: hidden;
+    box-sizing: border-box;
+    overflow: visible !important;
   }
 
   .topbar-left {
-    align-items: flex-start;
-    text-align: left;
+    display: flex;
+    align-items: center;
     flex-shrink: 0;
+    max-width: 45%;
+    min-width: 0;
   }
 
   .page-title {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     font-weight: 700;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .topbar-actions {
@@ -1225,27 +1229,29 @@ body {
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     border-left: none;
     padding-left: 0;
     min-width: 0;
   }
 
   .topbar-actions .global-search-container {
-    flex: 1 1 0%;
-    min-width: 0;
+    flex: 1 1 auto;
+    min-width: 80px;
+    max-width: 180px;
     width: auto;
   }
 
   .topbar-actions .search-input-wrapper {
-    height: 36px;
+    height: 38px;
     font-size: 0.8rem;
   }
 
   .topbar-actions .bell-trigger-btn {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     flex-shrink: 0;
+    margin-right: 6px;
   }
 
   .admin-profile {

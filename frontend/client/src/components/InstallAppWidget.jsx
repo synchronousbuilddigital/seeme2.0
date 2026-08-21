@@ -45,13 +45,7 @@ const InstallAppWidget = () => {
     }
 
     const handleTriggerInstallEvent = () => {
-      const os = detectDeviceOS()
-      if (os === 'iOS') {
-        setShowIosGuide(true)
-        setIsOpen(false)
-        return
-      }
-      executeDirectInstall()
+      setIsOpen(true)
     }
 
     window.addEventListener('appinstalled', handleAppInstalled)
@@ -66,7 +60,7 @@ const InstallAppWidget = () => {
 
   // DIRECT NATIVE INSTALLATION TRIGGER FUNCTION
   const executeDirectInstall = async (preferredOS) => {
-    console.log('PWA: Install Now clicked')
+    console.log('PWA: Install Now clicked for', preferredOS)
     const os = preferredOS || detectDeviceOS()
 
     if (os === 'iOS') {
@@ -79,6 +73,8 @@ const InstallAppWidget = () => {
 
     if (!promptEvent) {
       console.warn('Native PWA installation is currently unavailable')
+      alert('PWA installation ready! You can also click the Install (+) icon in your browser address bar.')
+      setIsOpen(false)
       return
     }
 
@@ -105,17 +101,16 @@ const InstallAppWidget = () => {
   }
 
   const handleMainButtonClick = () => {
-    const os = detectDeviceOS()
-    if (os === 'iOS') {
-      setShowIosGuide(true)
-      setIsOpen(false)
-      return
-    }
-    executeDirectInstall()
+    setIsOpen((prev) => !prev)
   }
 
   const handleInstallClick = (targetOS) => {
-    executeDirectInstall(targetOS === 'android' ? 'Android' : targetOS === 'ios' ? 'iOS' : 'Desktop')
+    if (targetOS === 'ios') {
+      setShowIosGuide(true)
+      setIsOpen(false)
+    } else {
+      executeDirectInstall(targetOS === 'android' ? 'Android' : 'Desktop')
+    }
   }
 
   // Hide if already running inside standalone installed app mode
@@ -133,13 +128,12 @@ const InstallAppWidget = () => {
           aria-label="Install See Mee App"
         >
           <div className="install-icon-badge">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </div>
-          <span className="install-btn-text">Install App</span>
           <span className="install-pulse-dot"></span>
         </button>
 
@@ -161,13 +155,13 @@ const InstallAppWidget = () => {
                 <button type="button" className="popover-close-btn" onClick={() => setIsOpen(false)}>✕</button>
               </div>
 
-              <p className="popover-sub">1-Click access from home screen for Mobile & Desktop:</p>
+              <p className="popover-sub">Select your device type to install:</p>
 
               <div className="popover-os-list">
                 {/* Android Option */}
                 <div 
-                  className={`popover-os-item android ${!canInstall ? 'disabled-item' : ''}`}
-                  onClick={() => canInstall && handleInstallClick('android')}
+                  className="popover-os-item android"
+                  onClick={() => handleInstallClick('android')}
                 >
                   <div className="popover-os-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -177,17 +171,17 @@ const InstallAppWidget = () => {
                   </div>
                   <div className="popover-os-meta">
                     <span className="os-name font-bold">Android Phone</span>
-                    <span className="os-desc">Chrome & Edge</span>
+                    <span className="os-desc">Direct 1-Click Install</span>
                   </div>
-                  <button type="button" className="os-action-btn gold-btn" disabled={!canInstall}>
-                    {canInstall ? 'Install Now' : 'Unavailable'}
+                  <button type="button" className="os-action-btn gold-btn">
+                    Install Now
                   </button>
                 </div>
 
                 {/* Desktop Option */}
                 <div 
-                  className={`popover-os-item desktop ${!canInstall ? 'disabled-item' : ''}`}
-                  onClick={() => canInstall && handleInstallClick('desktop')}
+                  className="popover-os-item desktop"
+                  onClick={() => handleInstallClick('desktop')}
                 >
                   <div className="popover-os-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -198,10 +192,10 @@ const InstallAppWidget = () => {
                   </div>
                   <div className="popover-os-meta">
                     <span className="os-name font-bold">Desktop PC / Mac</span>
-                    <span className="os-desc">Standalone Web App</span>
+                    <span className="os-desc">Direct 1-Click Install</span>
                   </div>
-                  <button type="button" className="os-action-btn gold-btn" disabled={!canInstall}>
-                    {canInstall ? 'Install Now' : 'Unavailable'}
+                  <button type="button" className="os-action-btn gold-btn">
+                    Install Now
                   </button>
                 </div>
 
@@ -217,7 +211,7 @@ const InstallAppWidget = () => {
                   </div>
                   <div className="popover-os-meta">
                     <span className="os-name font-bold">iPhone / iPad (iOS)</span>
-                    <span className="os-desc">Safari Web App</span>
+                    <span className="os-desc">3-Step Safari Guide</span>
                   </div>
                   <button type="button" className="os-action-btn outline-btn">
                     View Guide

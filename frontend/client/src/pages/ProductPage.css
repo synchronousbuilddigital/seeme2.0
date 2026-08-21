@@ -1576,6 +1576,32 @@
     display: inline-block;
     vertical-align: bottom;
   }
+
+  /* Compact Product Image on Mobile */
+  .main-image-card {
+    min-height: auto !important;
+    height: 380px !important;
+    max-height: 380px !important;
+    border-radius: 14px !important;
+  }
+
+  .main-product-img {
+    height: 380px !important;
+    max-height: 380px !important;
+    object-fit: contain !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-image-card {
+    height: 330px !important;
+    max-height: 330px !important;
+  }
+
+  .main-product-img {
+    height: 330px !important;
+    max-height: 330px !important;
+  }
 }
 
 /* ─── PDP Coupon Trigger Card ─── */
