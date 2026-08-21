@@ -71,6 +71,38 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
 }
 
+.export-excel-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #107c41 0%, #1f4e38 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(16, 124, 65, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.export-excel-btn:hover {
+  background: linear-gradient(135deg, #128a49 0%, #153b2b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 124, 65, 0.35);
+}
+
+.export-excel-btn:active {
+  transform: translateY(0);
+}
+
+.export-excel-btn.toolbar-export {
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+
 .pulse-dot {
   width: 8px;
   height: 8px;
@@ -1259,4 +1291,361 @@
   .inventory-kpi-grid {
     grid-template-columns: 1fr 1fr !important;
   }
+}
+
+/* Excel Bulk Import Modal Styles */
+.header-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.export-excel-btn.import-btn {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
+  box-shadow: 0 4px 14px rgba(29, 78, 216, 0.25);
+}
+
+.export-excel-btn.import-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  box-shadow: 0 6px 18px rgba(29, 78, 216, 0.35);
+}
+
+.import-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+
+/* Step 1: Upload Box */
+.template-download-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.template-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.excel-icon-chip {
+  font-size: 1.8rem;
+}
+
+.template-info h4 {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.template-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.download-template-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.download-template-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.drag-drop-zone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 32px 20px;
+  text-align: center;
+  background: #fafafa;
+  transition: all 0.2s ease;
+}
+
+.drag-drop-zone:hover {
+  border-color: #3b82f6;
+  background: #f0f7ff;
+}
+
+.dropzone-label {
+  cursor: pointer;
+  display: block;
+}
+
+.dropzone-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.dropzone-label h4 {
+  margin: 0 0 6px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dropzone-label p {
+  margin: 0 0 12px 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.browse-file-btn {
+  display: inline-block;
+  background: #3b82f6;
+  color: #ffffff;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Step 2: Preview KPI Grid */
+.import-preview-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.preview-kpi-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.preview-kpi-card .kpi-num {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.preview-kpi-card .kpi-lbl {
+  font-size: 0.76rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.import-mode-selector {
+  margin-bottom: 18px;
+  background: #f1f5f9;
+  padding: 12px 16px;
+  border-radius: 10px;
+}
+
+.mode-options-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.mode-option-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mode-option-chip.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.preview-tab-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+.preview-tab-header .tab-btn {
+  background: none;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.preview-tab-header .tab-btn.active {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.preview-table-wrapper {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.preview-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.preview-data-table th {
+  background: #f8fafc;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.preview-data-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.action-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.action-badge.blue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.action-badge.gold {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.error-reason-tag {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.empty-preview-msg {
+  padding: 30px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.bulk-btn-chip.error-log-btn {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  font-weight: 600;
+}
+
+.import-result-step {
+  padding: 10px 0;
+}
+
+.result-success-banner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.result-success-banner .success-icon {
+  font-size: 2.2rem;
+}
+
+.result-success-banner h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  color: #166534;
+}
+
+.result-success-banner p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #15803d;
+}
+
+.import-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.result-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.result-card .result-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.result-card.green .result-num { color: #16a34a; }
+.result-card.gold .result-num { color: #d97706; }
+.result-card.red .result-num { color: #dc2626; }
+
+.result-card .result-lbl {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 4px;
 }

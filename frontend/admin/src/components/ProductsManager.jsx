@@ -46,8 +46,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       { size: 'XL', quantity: 0 },
       { size: 'XXL', quantity: 0 },
       { size: '3XL', quantity: 0 },
-      { size: 'Free Size', quantity: 0 },
-      { size: 'Custom', quantity: 0 }
+      { size: 'Free Size', quantity: 0 }
     ],
     sizes: [],
     colors: [],
