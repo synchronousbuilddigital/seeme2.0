@@ -30,7 +30,7 @@ const AtelierHighlights = () => {
       description: 'Specialist embellishers spend up to 40 hours on a single garment, executing intricate Zardozi, Aari, and Kantha embroideries. The metallic tilla threads catch the light beautifully, adding a subtle, sophisticated sparkle.',
       quote: '"Our needles carry the weight of a thousand-year artistic lineage."',
       highlight: 'Genuine Gota Patti & Intricate Hand Tilla Embroidery',
-      image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200'
+      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1200'
     },
     {
       title: 'Ethically Sourced',

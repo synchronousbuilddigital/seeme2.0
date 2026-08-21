@@ -9,7 +9,7 @@ import './About.css'
 
 const About = () => {
   const navigate = useNavigate()
-  const [aboutImage, setAboutImage] = useState('https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200')
+  const [aboutImage, setAboutImage] = useState('/images/about.jpg')
 
   const [ref, inView] = useInView({ once: true, threshold: 0.02 })
 

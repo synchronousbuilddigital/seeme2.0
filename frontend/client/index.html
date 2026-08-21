@@ -53,7 +53,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="See Mee" />
-  <!-- Early PWA Install Prompt Listener & Service Worker Registration -->
+  <!-- Early PWA Install Prompt Listener -->
   <script>
     window.deferredInstallPrompt = window.deferredInstallPrompt || null;
     window.addEventListener('beforeinstallprompt', function(e) {
@@ -62,17 +62,7 @@
       window.dispatchEvent(new CustomEvent('pwa-prompt-ready'));
       console.log('✅ PWA beforeinstallprompt captured!');
     });
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(function(reg) {
-        console.log('✅ PWA Service Worker registered early:', reg.scope);
-      }).catch(function(err) {
-        console.warn('PWA SW notice:', err);
-      });
-    }
   </script>
-
-  <link rel="manifest" href="/manifest.json" />
 
   <!-- Preconnect to critical origins for instant font & image delivery -->
   <link rel="dns-prefetch" href="https://fonts.googleapis.com" />

@@ -226,7 +226,7 @@ export const HERO_IMAGES = [
 // ============================================
 
 export const CATEGORY_IMAGES = {
-  anarkali: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=800',
+  anarkali: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800',
   palazzo: 'https://images.unsplash.com/photo-1610173826014-9336df76906a?auto=format&fit=crop&q=80&w=800',
   straightCut: 'https://images.unsplash.com/photo-1589156206699-bc21e38c8a7d?auto=format&fit=crop&q=80&w=800',
   sharara: 'https://images.unsplash.com/photo-1617627143750-d86bc21e44bb?auto=format&fit=crop&q=80&w=800',

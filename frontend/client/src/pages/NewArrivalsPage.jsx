@@ -100,7 +100,7 @@ const NewArrivalsPage = () => {
     <div className="new-arrivals-page">
       <section className="arrivals-hero">
         <div className="hero-copy">
-          <span className="eyebrow">Fresh from the atelier</span>
+          <span className="eyebrow">Fresh from the seemee</span>
           <h1>New Arrivals</h1>
           <p>
             A cleaner, more editorial view of the latest pieces, with a spotlight on the season's standout silhouette.
@@ -141,7 +141,7 @@ const NewArrivalsPage = () => {
             src={featuredArrival ? getOptimizedImageUrl(featuredArrival.image, 'hero') : 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1200'}
             alt={featuredArrival?.title || 'Featured arrival'}
             onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&q=80&w=1200'
+              e.target.src = 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=1200'
             }}
           />
           <div className="spotlight-card">

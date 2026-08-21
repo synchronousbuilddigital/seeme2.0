@@ -26,13 +26,9 @@ const appleIconPath = path.join(publicDir, 'apple-touch-icon.png')
 const applePrePath = path.join(publicDir, 'apple-touch-icon-precomposed.png')
 
 if (fs.existsSync(logoPath)) {
-  fs.copyFileSync(logoPath, icon192Path)
-  fs.copyFileSync(logoPath, icon512Path)
-  fs.copyFileSync(logoPath, icon192IconsPath)
-  fs.copyFileSync(logoPath, icon512IconsPath)
   fs.copyFileSync(logoPath, appleIconPath)
   fs.copyFileSync(logoPath, applePrePath)
-  console.log('🖼️ [LOGO-SYNC] Synced logoSEEMEE1.png to PWA icons (/icons and /images)')
+  console.log('🖼️ [LOGO-SYNC] Synced apple-touch icons from logoSEEMEE1.png')
 }
 
 // 1. Write version.json
@@ -44,11 +40,3 @@ const versionData = {
 
 fs.writeFileSync(versionPath, JSON.stringify(versionData, null, 2))
 console.log(`✅ [AUTO-CACHE-BUMP] Updated public/version.json -> ${version}`)
-
-// 2. Bump CACHE_NAME in sw.js
-if (fs.existsSync(swPath)) {
-  let swContent = fs.readFileSync(swPath, 'utf8')
-  swContent = swContent.replace(/const CACHE_NAME = 'seemee-client-pwa-[^']+'/, `const CACHE_NAME = 'seemee-client-pwa-${version}'`)
-  fs.writeFileSync(swPath, swContent)
-  console.log(`✅ [AUTO-CACHE-BUMP] Updated public/sw.js CACHE_NAME -> seemee-client-pwa-${version}`)
-}

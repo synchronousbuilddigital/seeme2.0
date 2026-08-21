@@ -1,64 +1,19 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import './InstallAppWidget.css'
+import {
+  getDeferredInstallPrompt,
+  canInstallPWA,
+  subscribeToPWAInstall,
+  clearDeferredInstallPrompt
+} from '../utils/pwaInstallManager'
 
 const InstallAppWidget = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState(window.deferredInstallPrompt || null)
+  const [canInstall, setCanInstall] = useState(canInstallPWA())
   const [isStandalone, setIsStandalone] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const [showIosGuide, setShowIosGuide] = useState(false)
   const [installToast, setInstallToast] = useState(false)
-
-  useEffect(() => {
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-      setIsStandalone(true)
-    }
-
-    const checkPrompt = () => {
-      if (window.deferredInstallPrompt) {
-        setDeferredPrompt(window.deferredInstallPrompt)
-      }
-    }
-
-    checkPrompt()
-
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault()
-      window.deferredInstallPrompt = e
-      setDeferredPrompt(e)
-    }
-
-    const handleAppInstalled = () => {
-      setIsStandalone(true)
-      setDeferredPrompt(null)
-      window.deferredInstallPrompt = null
-      setIsOpen(false)
-      setShowIosGuide(false)
-      setInstallToast(true)
-      setTimeout(() => setInstallToast(false), 5000)
-    }
-
-    const handleTriggerInstallEvent = () => {
-      const promptObj = window.deferredInstallPrompt || deferredPrompt
-      if (promptObj) {
-        promptObj.prompt().catch(() => {})
-      } else {
-        setIsOpen(true)
-      }
-    }
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-    window.addEventListener('pwa-prompt-ready', checkPrompt)
-    window.addEventListener('appinstalled', handleAppInstalled)
-    window.addEventListener('trigger-app-install', handleTriggerInstallEvent)
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
-      window.removeEventListener('pwa-prompt-ready', checkPrompt)
-      window.removeEventListener('appinstalled', handleAppInstalled)
-      window.removeEventListener('trigger-app-install', handleTriggerInstallEvent)
-    }
-  }, [deferredPrompt])
 
   const detectDeviceOS = () => {
     const ua = navigator.userAgent || ''
@@ -67,8 +22,51 @@ const InstallAppWidget = () => {
     return 'Desktop'
   }
 
+  useEffect(() => {
+    console.log('PWA: InstallAppWidget mounted')
+
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+      setIsStandalone(true)
+    }
+
+    const unsubscribe = subscribeToPWAInstall((installable) => {
+      setCanInstall(installable)
+    })
+
+    const handleAppInstalled = () => {
+      console.log('PWA: appinstalled fired')
+      setIsStandalone(true)
+      setIsOpen(false)
+      setShowIosGuide(false)
+      setInstallToast(true)
+      setTimeout(() => {
+        setInstallToast(false)
+      }, 5000)
+    }
+
+    const handleTriggerInstallEvent = () => {
+      const os = detectDeviceOS()
+      if (os === 'iOS') {
+        setShowIosGuide(true)
+        setIsOpen(false)
+        return
+      }
+      executeDirectInstall()
+    }
+
+    window.addEventListener('appinstalled', handleAppInstalled)
+    window.addEventListener('trigger-app-install', handleTriggerInstallEvent)
+
+    return () => {
+      unsubscribe()
+      window.removeEventListener('appinstalled', handleAppInstalled)
+      window.removeEventListener('trigger-app-install', handleTriggerInstallEvent)
+    }
+  }, [])
+
   // DIRECT NATIVE INSTALLATION TRIGGER FUNCTION
   const executeDirectInstall = async (preferredOS) => {
+    console.log('PWA: Install Now clicked')
     const os = preferredOS || detectDeviceOS()
 
     if (os === 'iOS') {
@@ -77,28 +75,32 @@ const InstallAppWidget = () => {
       return
     }
 
-    const promptObj = window.deferredInstallPrompt || deferredPrompt
+    const promptEvent = getDeferredInstallPrompt()
 
-    if (promptObj) {
-      try {
-        setIsOpen(false)
-        await promptObj.prompt()
+    if (!promptEvent) {
+      console.warn('Native PWA installation is currently unavailable')
+      return
+    }
 
-        const choiceResult = await promptObj.userChoice
-        if (choiceResult && choiceResult.outcome === 'accepted') {
-          setIsStandalone(true)
-          setDeferredPrompt(null)
-          window.deferredInstallPrompt = null
-          setInstallToast(true)
-          setTimeout(() => setInstallToast(false), 5000)
-        }
-      } catch (err) {
-        console.error('PWA direct install error:', err)
-        setIsOpen(false)
-      }
-    } else {
-      console.warn('Native PWA prompt not ready yet')
+    try {
       setIsOpen(false)
+      console.log('PWA: opening native installation dialog')
+
+      promptEvent.prompt()
+
+      const choiceResult = await promptEvent.userChoice
+
+      console.log('PWA installation result:', choiceResult?.outcome)
+
+      clearDeferredInstallPrompt()
+
+      if (choiceResult?.outcome === 'accepted') {
+        console.log('PWA: installation accepted')
+      } else {
+        console.log('PWA: installation dismissed')
+      }
+    } catch (error) {
+      console.error('PWA installation failed:', error)
     }
   }
 
@@ -164,8 +166,8 @@ const InstallAppWidget = () => {
               <div className="popover-os-list">
                 {/* Android Option */}
                 <div 
-                  className="popover-os-item android"
-                  onClick={() => handleInstallClick('android')}
+                  className={`popover-os-item android ${!canInstall ? 'disabled-item' : ''}`}
+                  onClick={() => canInstall && handleInstallClick('android')}
                 >
                   <div className="popover-os-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -177,15 +179,15 @@ const InstallAppWidget = () => {
                     <span className="os-name font-bold">Android Phone</span>
                     <span className="os-desc">Chrome & Edge</span>
                   </div>
-                  <button type="button" className="os-action-btn gold-btn">
-                    Install Now
+                  <button type="button" className="os-action-btn gold-btn" disabled={!canInstall}>
+                    {canInstall ? 'Install Now' : 'Unavailable'}
                   </button>
                 </div>
 
                 {/* Desktop Option */}
                 <div 
-                  className="popover-os-item desktop"
-                  onClick={() => handleInstallClick('desktop')}
+                  className={`popover-os-item desktop ${!canInstall ? 'disabled-item' : ''}`}
+                  onClick={() => canInstall && handleInstallClick('desktop')}
                 >
                   <div className="popover-os-icon">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -198,8 +200,8 @@ const InstallAppWidget = () => {
                     <span className="os-name font-bold">Desktop PC / Mac</span>
                     <span className="os-desc">Standalone Web App</span>
                   </div>
-                  <button type="button" className="os-action-btn gold-btn">
-                    Install Now
+                  <button type="button" className="os-action-btn gold-btn" disabled={!canInstall}>
+                    {canInstall ? 'Install Now' : 'Unavailable'}
                   </button>
                 </div>
 

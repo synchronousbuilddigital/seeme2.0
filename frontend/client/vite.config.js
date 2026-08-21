@@ -10,12 +10,18 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
+      devOptions: {
+        enabled: true,
+        type: 'module'
+      },
       includeAssets: [
         'favicon.ico',
         'favicon-32x32.png',
         'apple-touch-icon.png',
         'apple-touch-icon-precomposed.png',
         'images/logoSEEMEE1.png',
+        'images/icon-192.png',
+        'images/icon-512.png',
         'icons/icon-192.png',
         'icons/icon-512.png',
         'offline.html'
@@ -23,47 +29,56 @@ export default defineConfig({
       manifest: {
         name: "See Mee - Premium Ethnic Wear",
         short_name: "See Mee",
-        description: "Shop premium ethnic wear and women's suits",
+        description: "Discover handcrafted ethnic wear, Anarkali suits, Sharara sets, and royal bridal couture.",
         start_url: "/",
         scope: "/",
+        id: "/",
         display: "standalone",
-        display_override: ["standalone", "minimal-ui"],
+        orientation: "any",
         background_color: "#FAF9F6",
         theme_color: "#FAF9F6",
+        prefer_related_applications: false,
         icons: [
           {
-            src: "/icons/icon-192.png",
+            src: "/images/icon-192.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "any"
           },
           {
-            src: "/icons/icon-192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable"
-          },
-          {
-            src: "/icons/icon-512.png",
+            src: "/images/icon-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "any"
+          }
+        ],
+        shortcuts: [
+          {
+            name: "New Arrivals",
+            short_name: "New",
+            description: "Explore latest ethnic arrivals",
+            url: "/collections",
+            icons: [{ src: "/images/icon-192.png", sizes: "192x192" }]
           },
           {
-            src: "/icons/icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable"
+            name: "Categories",
+            short_name: "Categories",
+            description: "Browse by style and category",
+            url: "/categories",
+            icons: [{ src: "/images/icon-192.png", sizes: "192x192" }]
           },
           {
-            src: "/images/logoSEEMEE1.png",
-            sizes: "500x500",
-            type: "image/png",
-            purpose: "any"
+            name: "Wishlist",
+            short_name: "Wishlist",
+            description: "View saved favorites",
+            url: "/wishlist",
+            icons: [{ src: "/images/icon-192.png", sizes: "192x192" }]
           }
         ]
       },
       workbox: {
+        clientsClaim: true,
+        skipWaiting: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/, /^\/admin/],
