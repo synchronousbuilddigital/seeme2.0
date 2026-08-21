@@ -1,3 +1,5 @@
+import { registerSW } from 'virtual:pwa-register'
+
 let deferredPrompt = null
 let listeners = []
 let isInitialized = false
@@ -12,6 +14,26 @@ export function initPWAInstallPrompt() {
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       console.log('PWA controller updated:', navigator.serviceWorker.controller)
     })
+
+    try {
+      registerSW({
+        immediate: true,
+        onNeedRefresh() {
+          console.log('PWA: new content available')
+        },
+        onOfflineReady() {
+          console.log('PWA: app ready to work offline')
+        },
+        onRegistered(r) {
+          console.log('PWA: SW registered successfully', r?.scope)
+        },
+        onRegisterError(error) {
+          console.warn('PWA: SW registration notice', error)
+        }
+      })
+    } catch (err) {
+      console.warn('PWA: registerSW initialization notice', err)
+    }
   }
 
   // Check if early inline script in index.html captured beforeinstallprompt

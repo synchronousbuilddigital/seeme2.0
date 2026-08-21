@@ -7,6 +7,8 @@ node_modules/
 /dist
 frontend/client/dist
 frontend/admin/dist
+frontend/client/dev-dist
+*.timestamp-*.mjs
 
 # Environment variables
 .env
