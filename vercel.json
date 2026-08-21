@@ -23,6 +23,18 @@
       "dest": "/sw.js"
     },
     {
+      "src": "/manifest.webmanifest",
+      "dest": "/manifest.webmanifest"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.webmanifest"
+    },
+    {
+      "src": "/workbox-(.*)\\.js",
+      "dest": "/workbox-$1.js"
+    },
+    {
       "handle": "filesystem"
     },
     {

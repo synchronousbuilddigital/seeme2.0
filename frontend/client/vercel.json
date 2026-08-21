@@ -6,6 +6,26 @@
   "framework": "vite",
   "routes": [
     {
+      "src": "/sw.js",
+      "dest": "/sw.js"
+    },
+    {
+      "src": "/manifest.webmanifest",
+      "dest": "/manifest.webmanifest"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.webmanifest"
+    },
+    {
+      "src": "/version.json",
+      "dest": "/version.json"
+    },
+    {
+      "src": "/offline.html",
+      "dest": "/offline.html"
+    },
+    {
       "src": "/assets/(.*)",
       "dest": "/assets/$1"
     },
@@ -14,12 +34,65 @@
       "dest": "/images/$1"
     },
     {
+      "src": "/icons/(.*)",
+      "dest": "/icons/$1"
+    },
+    {
       "src": "/favicon.ico",
       "dest": "/favicon.ico"
     },
     {
-      "src": "/(.*)",
+      "src": "/favicon-32x32.png",
+      "dest": "/favicon-32x32.png"
+    },
+    {
+      "src": "/apple-touch-icon(.*)",
+      "dest": "/apple-touch-icon$1"
+    },
+    {
+      "src": "/workbox-(.*)\\.js",
+      "dest": "/workbox-$1.js"
+    },
+    {
+      "src": "/((?!.*\\.).*)",
       "dest": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json; charset=utf-8"
+        }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/manifest+json; charset=utf-8"
+        }
+      ]
     }
   ]
 }
