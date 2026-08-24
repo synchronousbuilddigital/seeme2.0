@@ -343,7 +343,7 @@
   margin: 0 auto 60px;
   padding: 0 30px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
   gap: 20px;
 }
 
@@ -1006,15 +1006,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 6px;
   padding-top: 8px;
   border-top: 1px solid #f5f5f4;
+  box-sizing: border-box;
+  width: 100%;
+  padding-right: 2px;
 }
 
 .collection-price-group {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 5px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .product-price {

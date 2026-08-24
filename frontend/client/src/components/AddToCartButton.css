@@ -61,6 +61,8 @@
   white-space: nowrap;
   flex-shrink: 0;
   height: 26px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 @keyframes qtyControlPop {
@@ -96,8 +98,11 @@
 .add-to-cart-qty-control .qty-val-badge {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   padding: 0 2px;
+  flex: 1;
+  min-width: 0;
 }
 
 .add-to-cart-qty-control .qty-count-val {
@@ -120,35 +125,59 @@
 /* Variants */
 .add-to-cart-qty-control.variant-mini,
 .add-to-cart-action-btn.variant-mini {
-  padding: 3px 8px;
-  font-size: 0.65rem;
-  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  letter-spacing: 0.3px;
   height: 26px;
   border-radius: 14px;
+  gap: 3px;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  margin-right: 2px;
 }
 
 .add-to-cart-qty-control.variant-mini .qty-btn {
   width: 18px;
   height: 18px;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.add-to-cart-qty-control.variant-mini .qty-val-badge {
+  padding: 0 4px;
+  min-width: 14px;
+  justify-content: center;
+}
+
+/* Ensure stepper in card footers never touches clipped edges */
+.card-footer-row .add-to-cart-qty-control,
+.product-footer .add-to-cart-qty-control,
+.card-price-group + .add-to-cart-qty-control,
+.mobile-add-to-cart-wrapper .add-to-cart-qty-control {
+  margin-right: 3px !important;
+  max-width: calc(100% - 3px);
 }
 
 .add-to-cart-qty-control.variant-full,
 .add-to-cart-action-btn.variant-full {
   width: 100%;
-  padding: 0 20px;
+  max-width: 100%;
+  padding: 0 8px;
   font-size: 0.82rem;
   height: 48px;
   border-radius: 30px;
   letter-spacing: 0.8px;
   font-weight: 700;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .add-to-cart-qty-control.variant-full .qty-btn {
-  width: 32px;
-  height: 32px;
-  font-size: 1.1rem;
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 .add-to-cart-qty-control.variant-pill,

@@ -456,11 +456,11 @@
   cursor: pointer;
 }
 
-/* Product Grid - Compact 4-Col Grid */
+/* Product Grid - Spacious Luxury Grid */
 .unique-product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  gap: 20px;
 }
 
 .grid-item-wrapper {
@@ -695,6 +695,9 @@
   gap: 6px;
   width: 100%;
   flex-wrap: nowrap;
+  box-sizing: border-box;
+  overflow: visible;
+  padding-right: 2px;
 }
 
 .card-footer-row > div:last-child {
@@ -706,10 +709,9 @@
   flex-direction: row !important;
   align-items: baseline;
   flex-wrap: nowrap !important;
-  gap: 4px;
+  gap: 5px;
   white-space: nowrap;
-  flex-shrink: 1;
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 .card-price-main {
