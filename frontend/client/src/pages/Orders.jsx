@@ -297,6 +297,9 @@ const Orders = () => {
               const statusLower = (order.status || 'pending').toLowerCase()
               const isCancelled = statusLower === 'cancelled'
               const isExpanded = expandedOrder === order._id
+              const isCodOrder = String(order.paymentMethod || '').toLowerCase() === 'cod'
+              const isOfflineStore = String(order.orderType || '').toUpperCase() === 'OFFLINE'
+              const isCodApproved = (order.paymentStatus || '').toLowerCase() === 'paid' || statusLower === 'confirmed' || statusLower === 'approved' || statusLower === 'processing' || statusLower === 'cod approved'
 
               return (
                 <div key={order._id} className={`order-card-luxury ${isCancelled ? 'cancelled-card' : ''}`}>
@@ -331,10 +334,10 @@ const Orders = () => {
                       <div className="status-badges">
                         <span className={`status-pill ${statusLower}`}>
                           <span className="status-dot" />
-                          {statusLower.toUpperCase()}
+                          {(isCodOrder || isOfflineStore) && isCodApproved ? 'ORDER HANDOVER' : (isCodOrder || isOfflineStore) ? 'COD PENDING APPROVAL' : statusLower.toUpperCase()}
                         </span>
                         <span className={`payment-pill ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}`}>
-                          {(order.paymentMethod || 'online').toUpperCase()} • {(order.paymentStatus || 'pending').toUpperCase()}
+                          {(order.paymentMethod || 'online').toUpperCase()} • {isCodApproved ? 'PAID / APPROVED' : (order.paymentStatus || 'pending').toUpperCase()}
                         </span>
                       </div>
 
@@ -359,7 +362,7 @@ const Orders = () => {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.3 }}
                       >
-                        {/* Horizontal Tracking Timeline */}
+                        {/* Horizontal Tracking Timeline or COD Handover Banner */}
                         {isCancelled ? (
                           <div className="timeline-cancelled-banner">
                             <span className="cancelled-icon-badge">🚫</span>
@@ -367,6 +370,28 @@ const Orders = () => {
                               <strong>This Order Has Been Cancelled</strong>
                               <p>Cancelled prior to warehouse dispatch & pickup.</p>
                             </div>
+                          </div>
+                        ) : (isCodOrder || isOfflineStore) ? (
+                          <div className="cod-handover-banner-box">
+                            {isCodApproved ? (
+                              <div className="cod-approved-handover">
+                                <div className="handover-icon-circle green">🛍️</div>
+                                <div className="handover-text">
+                                  <span className="handover-mini-tag">✦ ADMIN APPROVED</span>
+                                  <strong className="handover-main-title">ORDER HANDOVER</strong>
+                                  <p className="handover-sub">COD Payment verified & approved by Admin. Item handed over to customer.</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="cod-pending-approval">
+                                <div className="handover-icon-circle amber">⏳</div>
+                                <div className="handover-text">
+                                  <span className="handover-mini-tag amber">⏳ PENDING VERIFICATION</span>
+                                  <strong className="handover-main-title amber">AWAITING ADMIN COD APPROVAL</strong>
+                                  <p className="handover-sub">Your Cash on Delivery order is currently awaiting Admin approval. Order Handover will be confirmed upon Admin verification.</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="tracking-timeline-horizontal">

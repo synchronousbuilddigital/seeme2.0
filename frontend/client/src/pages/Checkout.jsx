@@ -1447,18 +1447,46 @@ const Checkout = () => {
               exit={{ scale: 0.9, opacity: 0, y: 30 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              <div className="placed-header">
-                <div className="placed-icon-circle">
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </div>
-                <span className="editorial-mini-label">✦ ORDER CONFIRMED</span>
-                <h2 className="placed-title">Order Placed Successfully</h2>
-                <p className="placed-subtitle">
-                  Thank you for choosing SEEMEE Haute Couture. We have received your order and sent a confirmation email to <strong>{placedOrder.customer?.email}</strong>.
-                </p>
-              </div>
+              {(() => {
+                const isCodOrder = String(placedOrder.paymentMethod || '').toLowerCase() === 'cod'
+                const isPendingCod = isCodOrder && (
+                  String(placedOrder.paymentStatus || '').toLowerCase().includes('pending') ||
+                  String(placedOrder.status || '').toLowerCase().includes('pending')
+                )
+
+                if (isPendingCod) {
+                  return (
+                    <div className="placed-header cod-pending-header">
+                      <div className="placed-icon-circle pending-circle">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                      </div>
+                      <span className="editorial-mini-label pending-label">⏳ COD ORDER — AWAITING ADMIN APPROVAL</span>
+                      <h2 className="placed-title">Order Received (Pending Admin Verification)</h2>
+                      <p className="placed-subtitle">
+                        Thank you for choosing SEEMEE. Your Cash on Delivery order has been received and is currently <strong>awaiting Admin verification & approval</strong>. Once approved by Admin, your payment status will be marked as Completed and you will receive email confirmation at <strong>{placedOrder.customer?.email}</strong>.
+                      </p>
+                    </div>
+                  )
+                }
+
+                return (
+                  <div className="placed-header">
+                    <div className="placed-icon-circle">
+                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                    </div>
+                    <span className="editorial-mini-label">✦ ORDER CONFIRMED</span>
+                    <h2 className="placed-title">Order Placed Successfully</h2>
+                    <p className="placed-subtitle">
+                      Thank you for choosing SEEMEE Haute Couture. We have received your order and sent a confirmation email to <strong>{placedOrder.customer?.email}</strong>.
+                    </p>
+                  </div>
+                )
+              })()}
 
               <div className="placed-details-box">
                 <div className="detail-row">
@@ -1466,14 +1494,20 @@ const Checkout = () => {
                   <strong>#{placedOrder._id ? String(placedOrder._id).slice(-8).toUpperCase() : 'SEEMEE'}</strong>
                 </div>
                 <div className="detail-row">
-                  <span>Status:</span>
-                  <span className={`placed-status-pill ${(placedOrder.status || 'placed').toLowerCase()}`}>
-                    {placedOrder.status || 'Placed'}
+                  <span>Order Status:</span>
+                  <span className={`placed-status-pill ${String(placedOrder.status || 'placed').toLowerCase().replace(/\s+/g, '-')}`}>
+                    {String(placedOrder.status || '').toLowerCase().includes('pending') ? '⏳ Pending Admin Approval' : (placedOrder.status || 'Placed')}
                   </span>
                 </div>
                 <div className="detail-row">
                   <span>Payment Method:</span>
                   <strong>{placedOrder.paymentMethod === 'online' ? 'Online Payment (Razorpay)' : 'Cash on Delivery'}</strong>
+                </div>
+                <div className="detail-row">
+                  <span>Payment Status:</span>
+                  <strong style={{ color: String(placedOrder.paymentStatus || '').toLowerCase() === 'paid' ? '#16a34a' : '#d97706' }}>
+                    {String(placedOrder.paymentStatus || '').toLowerCase() === 'paid' ? '✅ Payment Completed' : '⏳ Pending Admin Approval'}
+                  </strong>
                 </div>
                 <div className="detail-row">
                   <span>Total Amount:</span>

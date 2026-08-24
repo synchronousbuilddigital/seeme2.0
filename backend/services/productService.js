@@ -187,7 +187,16 @@ export const updateProduct = async (id, productData) => {
   }
 
   clearCategoryCache()
-  return await Product.findByIdAndUpdate(id, productData, { new: true, runValidators: true }).lean()
+  const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true, runValidators: true }).lean()
+
+  try {
+    const { notifyRestockedSubscribers } = await import('./restockService.js')
+    notifyRestockedSubscribers(id, updatedProduct).catch(err => console.error('Restock notification trigger error:', err))
+  } catch (e) {
+    console.error('Error checking restock trigger:', e)
+  }
+
+  return updatedProduct
 }
 
 export const deleteProduct = async (id) => {

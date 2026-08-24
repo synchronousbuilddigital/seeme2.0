@@ -22,12 +22,17 @@ router.get('/collection/count', productController.getCollectionCount)
 // Get unique categories
 router.get('/categories/all', productController.getCategories)
 
+// Restock Notification Subscription
+router.post('/:id/notify-restock', productController.requestRestockNotification)
+
 // Get single product
 router.get('/:id', productController.getProduct)
 
 // Reviews
 router.get('/:id/reviews', getProductReviews)
 router.post('/:id/reviews', protect, createProductReview)
+
+
 
 // Create product (admin only)
 router.post('/', protect, admin, productValidationRules(), validate, productController.createProduct)

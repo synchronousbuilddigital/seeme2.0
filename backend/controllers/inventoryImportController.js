@@ -456,7 +456,13 @@ export const confirmImport = asyncHandler(async (req, res) => {
         if (featured !== undefined) updatePayload.featured = featured
         if (isNewArrival !== undefined) updatePayload.isNewArrival = isNewArrival
 
-        await Product.findOneAndUpdate(filter, { $set: updatePayload }, { new: true, runValidators: true })
+        const updatedDoc = await Product.findOneAndUpdate(filter, { $set: updatePayload }, { new: true, runValidators: true })
+        if (updatedDoc) {
+          try {
+            const { notifyRestockedSubscribers } = await import('../services/restockService.js')
+            notifyRestockedSubscribers(updatedDoc._id, updatedDoc).catch(err => console.error('Excel import restock notify error:', err))
+          } catch (e) {}
+        }
         updatedCount++
       } else {
         // CREATE NEW PRODUCT

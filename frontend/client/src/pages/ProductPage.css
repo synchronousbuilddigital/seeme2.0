@@ -510,17 +510,22 @@
 }
 
 .size-chip-btn {
-  min-width: 44px;
-  height: 40px;
+  min-width: 46px;
+  height: 42px;
   padding: 0 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #e7e5e4;
   background: #ffffff;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #1c1917;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
 }
 
 .size-chip-btn:hover {
@@ -531,6 +536,44 @@
   background: #1c1917;
   color: #ffffff;
   border-color: #1c1917;
+}
+
+.size-chip-btn.out-of-stock-chip {
+  opacity: 0.75;
+  border-style: dashed;
+  border-color: #d6d3d1;
+  background: #faf8f5;
+  color: #78716c;
+}
+
+.size-chip-btn.out-of-stock-chip:hover {
+  border-color: #dc2626;
+  opacity: 0.95;
+}
+
+.size-chip-btn.out-of-stock-chip.active {
+  background: #1c1917;
+  color: #ffffff;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #dc2626;
+  opacity: 1;
+}
+
+.size-strike-line {
+  position: absolute;
+  top: 50%;
+  left: 12%;
+  width: 76%;
+  height: 2px;
+  background: #dc2626;
+  transform: translateY(-50%) rotate(-20deg);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.size-chip-btn.out-of-stock-chip.active .size-strike-line {
+  background: #fef08a;
 }
 
 /* Quantity & Action Container Card (Reference Image White Card) */
@@ -1866,3 +1909,211 @@
   background: #16a34a;
   color: #ffffff;
 }
+
+/* ─── Out of Stock & Restock Alert Styles ─── */
+.stock-status-pill.out-of-stock {
+  color: #dc2626 !important; /* Crimson Red */
+}
+
+.stock-dot.out-of-stock-dot {
+  background: #dc2626 !important;
+}
+
+.action-buttons-row.out-of-stock-row {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 10px;
+}
+
+.btn-not-available {
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 30px;
+  border: 1px solid #d6d3d1;
+  background: #f5f5f4;
+  color: #78716c;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: not-allowed;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.btn-notify-restock {
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 30px;
+  border: 1.5px solid #d4af37;
+  background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
+  color: #fef08a;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.2);
+}
+
+.btn-notify-restock:hover {
+  background: linear-gradient(135deg, #854d0e 0%, #d4af37 100%);
+  color: #1c1917;
+  border-color: #854d0e;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Restock Notification Modal */
+.notify-modal-card {
+  max-width: 480px !important;
+}
+
+.notify-form-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notify-sub-text {
+  font-size: 0.85rem;
+  color: #57534e;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.notify-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+  font-size: 0.8rem;
+  padding: 10px 14px;
+  border-radius: 10px;
+}
+
+.notify-input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notify-input-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #78716c;
+}
+
+.notify-email-input-field {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  color: #1c1917;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.notify-email-input-field:focus {
+  border-color: #d4af37;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+}
+
+.btn-submit-restock-alert {
+  height: 50px;
+  width: 100%;
+  background: #1c1917;
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  margin-top: 4px;
+}
+
+.btn-submit-restock-alert:hover {
+  background: #d4af37;
+  color: #1c1917;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.notify-success-box {
+  text-align: center;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.notify-success-icon {
+  font-size: 2.5rem;
+}
+
+.notify-success-heading {
+  font-family: var(--font-serif, serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1c1917;
+  margin: 0;
+}
+
+.notify-success-msg {
+  font-size: 0.85rem;
+  color: #57534e;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.btn-notify-done {
+  height: 44px;
+  padding: 0 28px;
+  background: #1c1917;
+  color: #ffffff;
+  border: none;
+  border-radius: 25px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-notify-done:hover {
+  background: #d4af37;
+  color: #1c1917;
+}
+
+.logged-in-user-badge {
+  background: #fdf6b2;
+  border: 1px solid #facc15;
+  border-radius: 10px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #713f12;
+}
+
+.logged-in-user-badge strong {
+  color: #1c1917;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .action-buttons-row.out-of-stock-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+

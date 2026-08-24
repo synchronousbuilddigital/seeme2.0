@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
+import { AuthContext } from '../context/AuthContext'
 import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
@@ -26,6 +27,9 @@ const ProductPage = () => {
     availableCoupons
   } = useContext(CartContext)
 
+  const authContext = useContext(AuthContext)
+  const currentUser = authContext?.user
+
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -49,13 +53,24 @@ const ProductPage = () => {
   const [sizeUnit, setSizeUnit] = useState('in')
   const [addedToast, setAddedToast] = useState(false)
   const [isZoomOpen, setIsZoomOpen] = useState(false)
+  const [showNotifyModal, setShowNotifyModal] = useState(false)
+  const [notifyEmail, setNotifyEmail] = useState(() => currentUser?.email || '')
+  const [notifyLoading, setNotifyLoading] = useState(false)
+  const [notifySuccess, setNotifySuccess] = useState(null)
+  const [notifyError, setNotifyError] = useState(null)
+
+  useEffect(() => {
+    if (currentUser?.email && !notifyEmail) {
+      setNotifyEmail(currentUser.email)
+    }
+  }, [currentUser?.email])
 
   const [selectedSize, setSelectedSize] = useState(() => {
     if (passedProduct) {
       const sizesList = (passedProduct.sizes && passedProduct.sizes.length > 0)
         ? passedProduct.sizes
         : (passedProduct.sizeStock && passedProduct.sizeStock.length > 0)
-          ? passedProduct.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
+          ? passedProduct.sizeStock.map(s => s.size)
           : []
       return (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
     }
@@ -63,7 +78,7 @@ const ProductPage = () => {
   })
 
   useEffect(() => {
-    if (showSizeGuide || isZoomOpen || showCouponModal) {
+    if (showSizeGuide || isZoomOpen || showCouponModal || showNotifyModal) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = ''
@@ -71,7 +86,49 @@ const ProductPage = () => {
     return () => {
       document.body.style.overflow = ''
     }
-  }, [showSizeGuide, isZoomOpen, showCouponModal])
+  }, [showSizeGuide, isZoomOpen, showCouponModal, showNotifyModal])
+
+  const handleNotifySubmit = async (e) => {
+    e.preventDefault()
+    if (!notifyEmail || !/\S+@\S+\.\S+/.test(notifyEmail)) {
+      setNotifyError('Please enter a valid email address.')
+      return
+    }
+    setNotifyLoading(true)
+    setNotifyError(null)
+    setNotifySuccess(null)
+    try {
+      const response = await fetch(`${API_ENDPOINTS.PRODUCTS}/${id}/notify-restock`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: notifyEmail, size: selectedSize })
+      })
+      const data = await response.json()
+      if (data && data.success) {
+        setNotifySuccess(data.message || 'Restock alert registered! We will email you as soon as this item is back in stock.')
+      } else {
+        setNotifyError(data?.message || 'Failed to register restock alert.')
+      }
+    } catch (err) {
+      console.error('Notify restock error:', err)
+      setNotifyError('Failed to register restock alert. Please try again.')
+    } finally {
+      setNotifyLoading(false)
+    }
+  }
+
+  const getSelectedSizeStock = () => {
+    if (!product) return 0
+    if (product.sizeStock && Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
+      if (!selectedSize) return product.sizeStock.reduce((acc, item) => acc + Number(item.quantity || item.stock || 0), 0)
+      const found = product.sizeStock.find(s => String(s.size).toUpperCase() === String(selectedSize).toUpperCase())
+      return found ? Number(found.quantity || found.stock || 0) : 0
+    }
+    return product.stock !== undefined && product.stock !== null ? Number(product.stock) : 10
+  }
+
+  const currentStock = getSelectedSizeStock()
+  const isOutOfStock = currentStock <= 0 || product?.status === 'Out of Stock'
 
   useEffect(() => {
     fetchProduct()
@@ -99,7 +156,7 @@ const ProductPage = () => {
         const sizesList = (data.data.sizes && data.data.sizes.length > 0)
           ? data.data.sizes
           : (data.data.sizeStock && data.data.sizeStock.length > 0)
-            ? data.data.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
+            ? data.data.sizeStock.map(s => s.size)
             : []
         const initialSize = (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
         setSelectedSize(prev => prev || initialSize)
@@ -425,43 +482,106 @@ const ProductPage = () => {
                 </button>
               </div>
               <div className="size-pills-row">
-                {availableSizes.map(sz => (
-                  <button
-                    key={sz}
-                    className={`size-chip-btn ${selectedSize === sz ? 'active' : ''}`}
-                    onClick={() => setSelectedSize(sz)}
-                  >
-                    {sz}
-                  </button>
-                ))}
+                {(() => {
+                  const defaultOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size']
+                  const sizeSet = new Set()
+
+                  if (product?.sizes && Array.isArray(product.sizes) && product.sizes.length > 0) {
+                    product.sizes.forEach(s => s && sizeSet.add(String(s).trim().toUpperCase()))
+                  }
+                  if (product?.sizeStock && Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
+                    product.sizeStock.forEach(s => s?.size && sizeSet.add(String(s.size).trim().toUpperCase()))
+                  }
+                  if (selectedSize) {
+                    sizeSet.add(String(selectedSize).trim().toUpperCase())
+                  }
+
+                  if (sizeSet.size === 0) {
+                    defaultOrder.forEach(s => sizeSet.add(s))
+                  }
+
+                  const allSizesList = Array.from(sizeSet).sort((a, b) => {
+                    const idxA = defaultOrder.indexOf(a)
+                    const idxB = defaultOrder.indexOf(b)
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB
+                    if (idxA !== -1) return -1
+                    if (idxB !== -1) return 1
+                    return a.localeCompare(b)
+                  })
+
+                  return allSizesList.map(sz => {
+                    const sizeQty = (() => {
+                      if (!product?.sizeStock || !Array.isArray(product.sizeStock)) {
+                        return product?.stock !== undefined ? Number(product.stock) : 10
+                      }
+                      const item = product.sizeStock.find(s => String(s.size).toUpperCase() === String(sz).toUpperCase())
+                      return item ? Number(item.quantity || item.stock || 0) : 0
+                    })()
+
+                    const isSizeOutOfStock = sizeQty <= 0
+                    const isSelected = selectedSize === sz
+
+                    return (
+                      <button
+                        key={sz}
+                        type="button"
+                        className={`size-chip-btn ${isSelected ? 'active' : ''} ${isSizeOutOfStock ? 'out-of-stock-chip' : ''}`}
+                        onClick={() => setSelectedSize(sz)}
+                        title={isSizeOutOfStock ? `${sz} - Not Available (Click to subscribe for restock alert)` : `${sz} - In Stock`}
+                      >
+                        <span className="size-label-text">{sz}</span>
+                        {isSizeOutOfStock && <span className="size-strike-line" aria-hidden="true" />}
+                      </button>
+                    )
+                  })
+                })()}
               </div>
             </div>
 
             {/* Action Box */}
             <div className="quantity-action-card">
               <div className="quantity-header-row">
-                <div className="stock-status-pill">
-                  <span className="stock-dot"></span>
-                  <span>In Stock</span>
+                <div className={`stock-status-pill ${isOutOfStock ? 'out-of-stock' : ''}`}>
+                  <span className={`stock-dot ${isOutOfStock ? 'out-of-stock-dot' : ''}`}></span>
+                  <span>{isOutOfStock ? `Not Available (Out of Stock) — Size ${selectedSize}` : 'In Stock'}</span>
                 </div>
               </div>
 
-              <div className="action-buttons-row">
-                <AddToCartButton
-                  product={product}
-                  selectedSize={selectedSize}
-                  label="ADD TO CART"
-                  variant="full"
-                  showIcon={true}
-                  onAddCallback={() => {
-                    setAddedToast(true)
-                    setTimeout(() => setAddedToast(false), 2500)
-                  }}
-                />
-                <button className="buy-now-pill-btn" onClick={handleBuyNow}>
-                  BUY NOW
-                </button>
-              </div>
+              {isOutOfStock ? (
+                <div className="action-buttons-row out-of-stock-row">
+                  <button type="button" className="btn-not-available" disabled>
+                    NOT AVAILABLE
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-notify-restock"
+                    onClick={() => {
+                      setShowNotifyModal(true)
+                      setNotifySuccess(null)
+                      setNotifyError(null)
+                    }}
+                  >
+                    🔔 NOTIFY ME WHEN AVAILABLE
+                  </button>
+                </div>
+              ) : (
+                <div className="action-buttons-row">
+                  <AddToCartButton
+                    product={product}
+                    selectedSize={selectedSize}
+                    label="ADD TO CART"
+                    variant="full"
+                    showIcon={true}
+                    onAddCallback={() => {
+                      setAddedToast(true)
+                      setTimeout(() => setAddedToast(false), 2500)
+                    }}
+                  />
+                  <button className="buy-now-pill-btn" onClick={handleBuyNow}>
+                    BUY NOW
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Trust Badges Strip (3 Cards) */}
@@ -826,6 +946,93 @@ const ProductPage = () => {
                     )
                   })}
                 </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* FLOATING RESTOCK ALERT NOTIFICATION MODAL */}
+      <AnimatePresence>
+        {showNotifyModal && (
+          <div className="pdp-coupon-window-overlay" onClick={() => setShowNotifyModal(false)}>
+            <motion.div
+              className="pdp-coupon-window-card notify-modal-card"
+              onClick={(e) => e.stopPropagation()}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ duration: 0.25 }}
+            >
+              <div className="pdp-window-header">
+                <div className="pdp-window-header-titles">
+                  <span className="window-sparkle-tag">🔔 RESTOCK NOTIFICATION</span>
+                  <h3 className="window-title">Notify Me When Available</h3>
+                </div>
+                <button
+                  type="button"
+                  className="btn-window-close-x"
+                  onClick={() => setShowNotifyModal(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="pdp-window-body">
+                {notifySuccess ? (
+                  <div className="notify-success-box">
+                    <span className="notify-success-icon">🎉</span>
+                    <h4 className="notify-success-heading">Alert Subscribed Successfully!</h4>
+                    <p className="notify-success-msg">{notifySuccess}</p>
+                    <button
+                      type="button"
+                      className="btn-notify-done"
+                      onClick={() => setShowNotifyModal(false)}
+                    >
+                      Got It!
+                    </button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleNotifySubmit} className="notify-form-wrap">
+                    <p className="pdp-window-sub">
+                      Receive an automated notification as soon as <strong>{product?.name}</strong> {selectedSize ? `(Size: ${selectedSize})` : ''} is restocked!
+                    </p>
+
+                    {currentUser?.email && (
+                      <div className="logged-in-user-badge">
+                        <span>👤 Logged in as:</span>
+                        <strong>{currentUser.email}</strong>
+                      </div>
+                    )}
+
+                    {notifyError && (
+                      <div className="notify-error-banner">
+                        ⚠️ {notifyError}
+                      </div>
+                    )}
+
+                    <div className="notify-input-block">
+                      <label htmlFor="notify-email-input" className="notify-input-label">YOUR EMAIL ADDRESS</label>
+                      <input
+                        id="notify-email-input"
+                        type="email"
+                        placeholder="e.g. name@example.com"
+                        value={notifyEmail}
+                        onChange={(e) => setNotifyEmail(e.target.value)}
+                        required
+                        className="notify-email-input-field"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="btn-submit-restock-alert"
+                      disabled={notifyLoading}
+                    >
+                      {notifyLoading ? 'Submitting Request...' : '🔔 Notify Me When Available'}
+                    </button>
+                  </form>
+                )}
               </div>
             </motion.div>
           </div>

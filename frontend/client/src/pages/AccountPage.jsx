@@ -681,6 +681,9 @@ const AccountPage = () => {
                   const steps = ['placed', 'confirmed', 'shipped', 'delivered']
                   const currentStatus = (order.status || 'placed').toLowerCase()
                   const currentStepIdx = steps.indexOf(currentStatus) === -1 ? 0 : steps.indexOf(currentStatus)
+                  const isCodOrder = String(order.paymentMethod || '').toLowerCase() === 'cod'
+                  const isOfflineStore = String(order.orderType || '').toUpperCase() === 'OFFLINE'
+                  const isCodApproved = (order.paymentStatus || '').toLowerCase() === 'paid' || currentStatus === 'confirmed' || currentStatus === 'approved' || currentStatus === 'processing' || currentStatus === 'cod approved'
 
                   return (
                     <motion.div key={order._id} className={`order-card-container ${isSelected ? 'expanded' : ''}`}>
@@ -731,13 +734,35 @@ const AccountPage = () => {
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
                         >
-                          {/* Delivery Progress Bar */}
+                          {/* Delivery Progress Bar or COD Handover Banner */}
                           <div className="order-progress-wrapper">
                             <h4 className="progress-title">Order Status Timeline</h4>
                             {currentStatus === 'cancelled' ? (
                               <div className="timeline-cancelled-banner">
                                 <span className="cancelled-icon-badge">🚫</span>
                                 <span className="cancelled-text">This order is cancelled</span>
+                              </div>
+                            ) : (isCodOrder || isOfflineStore) ? (
+                              <div className="cod-handover-banner-box">
+                                {isCodApproved ? (
+                                  <div className="cod-approved-handover">
+                                    <div className="handover-icon-circle green">🛍️</div>
+                                    <div className="handover-text">
+                                      <span className="handover-mini-tag">✦ ADMIN APPROVED</span>
+                                      <strong className="handover-main-title">ORDER HANDOVER</strong>
+                                      <p className="handover-sub">COD Payment verified & approved by Admin. Item handed over to customer.</p>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="cod-pending-approval">
+                                    <div className="handover-icon-circle amber">⏳</div>
+                                    <div className="handover-text">
+                                      <span className="handover-mini-tag amber">⏳ PENDING VERIFICATION</span>
+                                      <strong className="handover-main-title amber">AWAITING ADMIN COD APPROVAL</strong>
+                                      <p className="handover-sub">Your Cash on Delivery order is currently awaiting Admin approval. Order Handover will be confirmed upon Admin verification.</p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ) : (
                               <div className="progress-bar-steps">

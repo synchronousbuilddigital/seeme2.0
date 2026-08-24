@@ -216,6 +216,8 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
 
   const statusColors = {
     PLACED: '#2563EB',
+    COD_PENDING: '#D97706',
+    COD_APPROVED: '#16A34A',
     CONFIRMED: '#16A34A',
     SHIPPED: '#0284C7',
     DELIVERED: '#059669',
@@ -226,23 +228,25 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
 
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #FAF9F6; padding: 30px; border-radius: 12px; border: 1px solid #E7E5E4; color: #1C1917;">
-      ${getLogoHeaderHtml(statusStr === 'PLACED' ? 'Order Confirmation' : statusStr === 'CANCELLED' ? 'Order Cancellation' : 'Order Update')}
+      ${getLogoHeaderHtml(statusStr === 'COD_PENDING' ? 'COD Order Received' : statusStr === 'COD_APPROVED' ? 'COD Order Approved' : statusStr === 'PLACED' ? 'Order Confirmation' : statusStr === 'CANCELLED' ? 'Order Cancellation' : 'Order Update')}
 
       <div style="background: #FFFFFF; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F5F5F4; padding-bottom: 15px; margin-bottom: 20px;">
           <div>
             <h3 style="margin: 0; color: #1C1917; font-size: 18px;">Order #${orderId}</h3>
-            <span style="font-size: 12px; color: #78716C;">Status: <strong style="color: ${badgeColor};">${statusStr}</strong></span>
+            <span style="font-size: 12px; color: #78716C;">Status: <strong style="color: ${badgeColor};">${statusStr === 'COD_PENDING' ? 'Awaiting Admin COD Approval' : statusStr === 'COD_APPROVED' ? 'COD Approved & Payment Completed' : statusStr}</strong></span>
           </div>
         </div>
 
         <p style="color: #57534E; font-size: 14px; line-height: 1.6;">Hello <strong>${customerName}</strong>,</p>
         <p style="color: #57534E; font-size: 14px; line-height: 1.6;">
+          ${statusStr === 'COD_PENDING' ? 'Thank you for your Cash on Delivery order! Your order has been received and is currently <strong>awaiting Admin verification</strong>. You will receive a payment confirmation email as soon as Admin approves your order.' : ''}
+          ${statusStr === 'COD_APPROVED' ? '🎉 Great news! Your Cash on Delivery order has been <strong>verified and approved by Admin</strong>. Your payment status is now <strong>Payment Completed / Verified</strong>!' : ''}
           ${statusStr === 'PLACED' ? 'Thank you for your order! Your selection has been placed successfully.' : ''}
           ${statusStr === 'CONFIRMED' ? 'Great news! Your order has been confirmed.' : ''}
           ${statusStr === 'SHIPPED' ? 'Your order has been shipped and is on its way to your location.' : ''}
           ${statusStr === 'DELIVERED' ? 'Your order has been delivered successfully. Thank you for shopping with SEEMEE!' : ''}
-          ${statusStr === 'CANCELLED' ? 'Your order has been cancelled as requested before shipping.' : ''}
+          ${statusStr === 'CANCELLED' ? 'Your order has been cancelled.' : ''}
           ${statusStr === 'REFUNDED' ? 'Your order refund has been processed successfully.' : ''}
         </p>
 

@@ -982,3 +982,74 @@
   .order-footer-actions { flex-direction: column !important; width: 100% !important; padding: 14px !important; }
   .order-footer-actions button { width: 100% !important; justify-content: center !important; }
 }
+
+/* COD Handover Banner Styling */
+.cod-handover-banner-box {
+  margin: 16px 0 20px;
+  padding: 18px 22px;
+  background: #fdfbf7;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.cod-approved-handover,
+.cod-pending-approval {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.handover-icon-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.handover-icon-circle.green {
+  background: #dcfce7;
+  border: 1.5px solid #86efac;
+}
+
+.handover-icon-circle.amber {
+  background: #fef3c7;
+  border: 1.5px solid #fde68a;
+}
+
+.handover-mini-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #15803d;
+  text-transform: uppercase;
+  display: block;
+}
+
+.handover-mini-tag.amber {
+  color: #b45309;
+}
+
+.handover-main-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #166534;
+  display: block;
+  margin: 3px 0;
+}
+
+.handover-main-title.amber {
+  color: #92400e;
+}
+
+.handover-sub {
+  font-size: 0.84rem;
+  color: #57534e;
+  margin: 0;
+  line-height: 1.45;
+}

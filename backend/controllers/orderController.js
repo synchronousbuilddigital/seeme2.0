@@ -96,13 +96,16 @@ export const createOrder = asyncHandler(async (req, res) => {
     await product.save()
   }
 
+  const isCodOrder = normalizedPaymentMethod === 'cod'
+
   const order = await Order.create({
     customer,
     items: orderItems,
     totalAmount,
     orderType: normalizedOrderType,
     paymentMethod: normalizedPaymentMethod,
-    paymentStatus: 'pending'
+    status: isCodOrder ? 'pending_approval' : 'pending',
+    paymentStatus: isCodOrder ? 'pending_approval' : 'pending'
   })
 
   // Automatically initialize Ad2Ship shipment order directly upon customer placement (ONLINE STORE ONLY)
@@ -121,7 +124,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   // Send Order Placed Email via Nodemailer Gmail Service
-  sendOrderEmail(order, 'Placed').catch(err => console.error('Order email error:', err.message))
+  sendOrderEmail(order, isCodOrder ? 'COD_PENDING' : 'Placed').catch(err => console.error('Order email error:', err.message))
 
   // Trigger Native Web Push & In-App Admin Notification
   pushNotificationService.sendNewOrderNotification(order).catch(err => console.error('Order push notification error:', err.message))
@@ -527,6 +530,7 @@ export const approveCodOrder = asyncHandler(async (req, res) => {
   }
 
   order.paymentStatus = 'paid'
+  order.status = 'confirmed'
   order.approvedBy = req.user?._id
   order.approvedAt = new Date()
 
@@ -539,6 +543,9 @@ export const approveCodOrder = asyncHandler(async (req, res) => {
 
   await order.save()
   await order.populate('approvedBy', 'name email')
+
+  // Send COD Approval Email to Customer!
+  sendOrderEmail(order, 'COD_APPROVED').catch(err => console.error('COD approval email error:', err.message))
 
   res.json({ success: true, data: order })
 })
@@ -559,6 +566,7 @@ export const rejectCodOrder = asyncHandler(async (req, res) => {
   }
 
   order.paymentStatus = 'rejected'
+  order.status = 'cancelled'
 
   if (!order.timeline) order.timeline = []
   order.timeline.push({
@@ -569,6 +577,9 @@ export const rejectCodOrder = asyncHandler(async (req, res) => {
 
   await order.save()
   await order.populate('approvedBy', 'name email')
+
+  // Send COD Rejection Email to Customer!
+  sendOrderEmail(order, 'CANCELLED').catch(err => console.error('COD rejection email error:', err.message))
 
   res.json({ success: true, data: order })
 })

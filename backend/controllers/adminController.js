@@ -245,6 +245,18 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 export const bulkUpdateProducts = asyncHandler(async (req, res) => {
   const { ids, update } = req.body
   await Product.updateMany({ _id: { $in: ids } }, { $set: update })
+
+  if (ids && Array.isArray(ids)) {
+    try {
+      const { notifyRestockedSubscribers } = await import('../services/restockService.js')
+      for (const id of ids) {
+        notifyRestockedSubscribers(id).catch(err => console.error('Bulk restock email error:', err))
+      }
+    } catch (e) {
+      console.error('Error in bulk restock trigger:', e)
+    }
+  }
+
   res.json({ success: true, message: 'Products updated' })
 })
 

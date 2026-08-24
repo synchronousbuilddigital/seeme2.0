@@ -52,3 +52,15 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   await productService.deleteProduct(req.params.id)
   res.json({ success: true, message: 'Product deleted' })
 })
+
+export const requestRestockNotification = asyncHandler(async (req, res) => {
+  const { subscribeRestockNotification } = await import('../services/restockService.js')
+  const { email, size } = req.body
+  const result = await subscribeRestockNotification({
+    productId: req.params.id,
+    email,
+    size
+  })
+  res.json(result)
+})
+
