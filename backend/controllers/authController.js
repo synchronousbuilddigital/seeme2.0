@@ -120,20 +120,21 @@ export const forgotPassword = asyncHandler(async (req, res) => {
   // Generate secure 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
-  // Store OTP and set expiration to 2 minutes from now
+  // Store OTP and set expiration to 10 minutes from now
   user.otpCode = otp
-  user.otpExpires = new Date(Date.now() + 2 * 60 * 1000) // Expiration reduced to 2 mins
+  user.otpExpires = new Date(Date.now() + 10 * 60 * 1000) // Expiration set to 10 mins
+  user.otpAttempts = 0
 
   await user.save()
 
-  console.log(`🔑 [OTP GENERATED] To: ${user.email} | OTP Code: ${otp} | Expires in: 2 mins`)
+  console.log(`🔑 [OTP SENT] Verification email dispatched to: ${user.email} | Expires in: 10 mins`)
 
   // Send OTP Email via Nodemailer Gmail Service
   await sendOtpEmail(user.email, user.name, otp)
 
   res.json({
     success: true,
-    message: 'A 6-digit verification OTP has been sent to your email address (Valid for 2 minutes).'
+    message: 'A 6-digit verification OTP has been sent to your email address (Valid for 10 minutes).'
   })
 })
 
@@ -157,19 +158,43 @@ export const verifyOtp = asyncHandler(async (req, res) => {
     throw new Error('No active OTP request found. Please request a new code.')
   }
 
+  const MAX_OTP_ATTEMPTS = 5
+
   // Check if OTP is expired (10 minutes)
   if (new Date(user.otpExpires).getTime() < Date.now()) {
     user.otpCode = undefined
     user.otpExpires = undefined
+    user.otpAttempts = 0
     await user.save()
     res.status(400)
     throw new Error('OTP has expired. Please request a new OTP code.')
   }
 
+  // Check max failed attempts threshold
+  if ((user.otpAttempts || 0) >= MAX_OTP_ATTEMPTS) {
+    user.otpCode = undefined
+    user.otpExpires = undefined
+    user.otpAttempts = 0
+    await user.save()
+    res.status(400)
+    throw new Error('Too many failed OTP attempts. This OTP has been invalidated for security. Please request a new code.')
+  }
+
   // Verify OTP match
   if (String(user.otpCode).trim() !== String(otp).trim()) {
+    user.otpAttempts = (user.otpAttempts || 0) + 1
+    if (user.otpAttempts >= MAX_OTP_ATTEMPTS) {
+      user.otpCode = undefined
+      user.otpExpires = undefined
+      user.otpAttempts = 0
+      await user.save()
+      res.status(400)
+      throw new Error(`Too many failed OTP attempts (${MAX_OTP_ATTEMPTS}/${MAX_OTP_ATTEMPTS}). This OTP has been invalidated for security. Please request a new code.`)
+    }
+    await user.save()
+    const remaining = MAX_OTP_ATTEMPTS - user.otpAttempts
     res.status(400)
-    throw new Error('Invalid OTP code. Please check your email and try again.')
+    throw new Error(`Invalid OTP code. ${remaining} attempt(s) remaining.`)
   }
 
   res.json({
@@ -203,22 +228,49 @@ export const resetPassword = asyncHandler(async (req, res) => {
     throw new Error('Invalid or expired password reset session.')
   }
 
+  const MAX_OTP_ATTEMPTS = 5
+
   if (new Date(user.otpExpires).getTime() < Date.now()) {
+    user.otpCode = undefined
+    user.otpExpires = undefined
+    user.otpAttempts = 0
+    await user.save()
     res.status(400)
     throw new Error('OTP has expired. Please request a new code.')
   }
 
-  if (String(user.otpCode).trim() !== String(otp).trim()) {
+  if ((user.otpAttempts || 0) >= MAX_OTP_ATTEMPTS) {
+    user.otpCode = undefined
+    user.otpExpires = undefined
+    user.otpAttempts = 0
+    await user.save()
     res.status(400)
-    throw new Error('Invalid OTP code.')
+    throw new Error('Too many failed OTP attempts. This OTP has been invalidated for security. Please request a new code.')
+  }
+
+  if (String(user.otpCode).trim() !== String(otp).trim()) {
+    user.otpAttempts = (user.otpAttempts || 0) + 1
+    if (user.otpAttempts >= MAX_OTP_ATTEMPTS) {
+      user.otpCode = undefined
+      user.otpExpires = undefined
+      user.otpAttempts = 0
+      await user.save()
+      res.status(400)
+      throw new Error(`Too many failed OTP attempts (${MAX_OTP_ATTEMPTS}/${MAX_OTP_ATTEMPTS}). This OTP has been invalidated for security. Please request a new code.`)
+    }
+    await user.save()
+    const remaining = MAX_OTP_ATTEMPTS - user.otpAttempts
+    res.status(400)
+    throw new Error(`Invalid OTP code. ${remaining} attempt(s) remaining.`)
   }
 
   // Update password (pre-save hook in User model will hash it with bcrypt)
   user.password = password
 
-  // Clear OTP fields
+  // Clear OTP fields upon successful reset
   user.otpCode = undefined
   user.otpExpires = undefined
+  user.otpAttempts = 0
 
   await user.save()
 

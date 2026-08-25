@@ -105,3 +105,4 @@ export const deleteCarousel = asyncHandler(async (req, res) => {
   }
   res.json({ success: true, message: 'Carousel image deleted' })
 })
+

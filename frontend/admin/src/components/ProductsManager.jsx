@@ -445,17 +445,9 @@ const ProductsManager = ({ onPromoteToHero }) => {
         dimensions: {
           length: parseFloat(formData.dimensions?.length) || 20,
           width: parseFloat(formData.dimensions?.width) || 15,
-          height: parseFloat(formData.dimensions?.height) || 5,
-          lengthCm: parseFloat(formData.dimensions?.length) || 20,
-          widthCm: parseFloat(formData.dimensions?.width) || 15,
-          heightCm: parseFloat(formData.dimensions?.height) || 5
+          height: parseFloat(formData.dimensions?.height) || 5
         },
-        weight: parseFloat(formData.weightKg || formData.weight?.value || formData.weight) || 0.5,
         weightKg: parseFloat(formData.weightKg || formData.weight?.value || formData.weight) || 0.5,
-        lengthCm: parseFloat(formData.dimensions?.length) || 20,
-        breadth: parseFloat(formData.dimensions?.width) || 15,
-        heightCm: parseFloat(formData.dimensions?.height) || 5,
-        height: parseFloat(formData.dimensions?.height) || 5,
         materials: formData.materials,
         fabric: formData.fabric,
         fit: formData.fit,

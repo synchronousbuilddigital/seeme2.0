@@ -127,12 +127,10 @@
   color: var(--dark-gold, #B8941E);
 }
 
-/* 2-Column Layout on Desktop / 1-Column on Mobile */
+/* Centered 1-Column Layout */
 .simple-content-layout {
-  display: grid;
-  grid-template-columns: 1.3fr 0.7fr;
-  gap: clamp(2rem, 4vw, 3.5rem);
-  align-items: start;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 /* Form Wrapper */

@@ -14,7 +14,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
   const [uploading, setUploading] = useState(false)
   const [viewMode, setViewMode] = useState('storyboard') // 'storyboard' or 'list'
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
-  
+
   const [selectedProductId, setSelectedProductId] = useState('')
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [customImage, setCustomImage] = useState('')
@@ -36,14 +36,14 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
       setCustomImage('')
       setTitle(preSelectedProduct.name)
       setSubtitle(preSelectedProduct.category)
-      
-      const maxOrder = heroSlides.length > 0 
-        ? Math.max(...heroSlides.map(s => s.order || 0)) 
+
+      const maxOrder = heroSlides.length > 0
+        ? Math.max(...heroSlides.map(s => s.order || 0))
         : 0
       setOrder(maxOrder + 1)
       setIsActive(true)
       setShowForm(true)
-      
+
       if (typeof onClearPreSelected === 'function') {
         onClearPreSelected()
       }
@@ -57,7 +57,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
       setTitle(editingSlide.title || editingSlide.productName || '')
       setSubtitle(editingSlide.subtitle || editingSlide.productCategory || '')
       setSelectedProductId(editingSlide.productId || '')
-      
+
       const product = products.find(p => p._id === editingSlide.productId)
       if (product && product.images && product.images.includes(editingSlide.image)) {
         const idx = product.images.indexOf(editingSlide.image)
@@ -68,8 +68,8 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
         setSelectedImageIndex(-1)
       }
     } else if (!preSelectedProduct) {
-      const maxOrder = heroSlides.length > 0 
-        ? Math.max(...heroSlides.map(s => s.order || 0)) 
+      const maxOrder = heroSlides.length > 0
+        ? Math.max(...heroSlides.map(s => s.order || 0))
         : 0
       setOrder(maxOrder + 1)
       setTitle('')
@@ -160,7 +160,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
     try {
       setLoading(true)
       const selectedProduct = products.find(p => p._id === selectedProductId)
-      
+
       const slideData = {
         image: imageUrl,
         productId: selectedProductId || null,
@@ -173,7 +173,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
       }
 
       const method = editingSlide ? 'PUT' : 'POST'
-      const url = editingSlide 
+      const url = editingSlide
         ? `${API_ENDPOINTS.HERO_CAROUSEL}/${editingSlide._id}`
         : API_ENDPOINTS.HERO_CAROUSEL
 
@@ -249,14 +249,14 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
       <div className="manager-header-lux">
         <div className="header-actions">
           <div className="view-switcher">
-            <button 
-              className={viewMode === 'storyboard' ? 'active' : ''} 
+            <button
+              className={viewMode === 'storyboard' ? 'active' : ''}
               onClick={() => setViewMode('storyboard')}
             >
               Storyboard
             </button>
-            <button 
-              className={viewMode === 'list' ? 'active' : ''} 
+            <button
+              className={viewMode === 'list' ? 'active' : ''}
               onClick={() => setViewMode('list')}
             >
               Detailed List
@@ -306,7 +306,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
                 <div className="lux-form-left">
                   <div className="form-section">
                     <label>🖼️ Visual Asset</label>
-                    <div 
+                    <div
                       className={`lux-upload-zone ${uploading ? 'uploading' : ''} ${customImage || (selectedImages[selectedImageIndex]) ? 'active' : ''}`}
                       onClick={() => !uploading && document.getElementById('hero-file').click()}
                     >
@@ -359,9 +359,9 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
                   <div className="story-preview-container">
                     <label>Storyboard Preview</label>
                     <div className="story-preview">
-                      <img 
-                        src={getImageUrl(customImage || selectedImages[selectedImageIndex])} 
-                        alt="Hero Preview" 
+                      <img
+                        src={getImageUrl(customImage || selectedImages[selectedImageIndex])}
+                        alt="Hero Preview"
                         onError={(e) => e.target.src = '/images/placeholder.png'}
                       />
                       <div className="story-overlay">
@@ -426,8 +426,8 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
         ) : viewMode === 'storyboard' ? (
           <div className="storyboard-grid">
             {heroSlides.map((slide, index) => (
-              <motion.div 
-                key={slide._id} 
+              <motion.div
+                key={slide._id}
                 className={`story-card ${!slide.isActive ? 'inactive' : ''}`}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}

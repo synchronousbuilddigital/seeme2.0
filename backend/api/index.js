@@ -19,7 +19,7 @@ async function connectToDatabase() {
 
   try {
     mongoose.set('strictQuery', false)
-    
+
     // IMPORTANT: Set bufferCommands to true for serverless
     const opts = {
       bufferCommands: true, // Enable buffering to prevent "before initial connection" errors
@@ -29,12 +29,12 @@ async function connectToDatabase() {
     }
 
     cachedDb = await mongoose.connect(process.env.MONGODB_URI, opts)
-    
+
     // Wait for connection to be fully ready
     if (mongoose.connection.readyState !== 1) {
       throw new Error('MongoDB connection not ready')
     }
-    
+
     console.log('✅ MongoDB connected')
     return cachedDb
   } catch (error) {
@@ -62,10 +62,10 @@ async function createApp() {
 
   // Health check - MUST be before other routes
   app.get('/api/health', (_, res) => {
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       status: 'online',
-      message: 'See Mee API is fully functional', 
+      message: 'See Mee API is fully functional',
       mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
       timestamp: new Date().toISOString(),
       env: {
@@ -93,16 +93,16 @@ async function createApp() {
   // Dynamically import routes - paths relative to backend/api/
   try {
     console.log('📦 Loading routes...')
-    
+
     const { default: authRoutes } = await import('../routes/auth.js')
     console.log('✅ Auth routes loaded')
-    
+
     const { default: productRoutes } = await import('../routes/products.js')
     console.log('✅ Product routes loaded')
-    
+
     const { default: orderRoutes } = await import('../routes/orders.js')
     console.log('✅ Order routes loaded')
-    
+
     const { default: newArrivalRoutes } = await import('../routes/newArrivals.js')
     console.log('✅ New arrival routes loaded')
 
@@ -160,7 +160,7 @@ async function createApp() {
     } else {
       console.warn('⚠️ Cloudinary not configured; upload routes are mounted but uploads will fail until env vars are set')
     }
-    
+
     console.log('✅ All routes loaded successfully')
   } catch (error) {
     console.error('❌ Route import error:', error)
@@ -182,8 +182,8 @@ async function createApp() {
     if (res.headersSent) {
       return next(err)
     }
-    res.status(err.status || 500).json({ 
-      success: false, 
+    res.status(err.status || 500).json({
+      success: false,
       message: err.message || 'Internal server error',
       error: process.env.NODE_ENV === 'development' ? err.stack : undefined
     })
@@ -208,7 +208,7 @@ export default async function handler(req, res) {
 
   try {
     console.log(`📨 ${req.method} ${req.url}`);
-    
+
     // Normalize URL: Ensure it starts with /api if it doesn't
     // This fixes issues where Vercel might strip the /api prefix
     if (!req.url.startsWith('/api')) {
@@ -217,15 +217,15 @@ export default async function handler(req, res) {
 
     // Connect to database first
     await connectToDatabase();
-    
+
     // Create/get Express app
     const expressApp = await createApp();
-    
+
     // Handle request
     return expressApp(req, res);
   } catch (error) {
     console.error('❌ Handler error:', error);
-    
+
     // Make sure we haven't sent headers yet
     if (!res.headersSent) {
       return res.status(500).json({

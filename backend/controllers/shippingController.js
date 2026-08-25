@@ -1,5 +1,6 @@
 import asyncHandler from '../utils/asyncHandler.js'
 import shippingService from '../services/shippingService.js'
+import Order from '../models/Order.js'
 
 // Helper error wrapper for shipping actions
 const handleShippingAction = async (res, actionFn) => {
@@ -200,14 +201,29 @@ export const trackOrderById = asyncHandler(async (req, res) => {
 // @route   POST /api/shipping/cancel
 // @access  Protected (User or Admin)
 export const cancelOrder = asyncHandler(async (req, res) => {
-  const { orderId } = req.body
+  const targetOrderId = req.body.orderId || req.body._id || req.body.id
 
-  if (!orderId) {
+  if (!targetOrderId) {
     return res.status(400).json({ success: false, message: 'Order ID is required' })
   }
 
+  // Authorization Guard: Verify order exists and requesting user is owner or admin
+  const order = await Order.findById(targetOrderId)
+  if (!order) {
+    return res.status(404).json({ success: false, message: 'Order not found' })
+  }
+
+  const isAdmin = req.user && req.user.role === 'admin'
+  const userEmail = (req.user?.email || '').trim().toLowerCase()
+  const orderEmail = (order.customer?.email || '').trim().toLowerCase()
+  const isOwner = (orderEmail && orderEmail === userEmail) || (order.user && String(order.user) === String(req.user?._id))
+
+  if (!isAdmin && !isOwner) {
+    return res.status(403).json({ success: false, message: 'Not authorized to cancel shipment for this order' })
+  }
+
   await handleShippingAction(res, async () => {
-    const result = await shippingService.cancelShipment(orderId)
+    const result = await shippingService.cancelShipment(targetOrderId)
 
     res.json({
       success: true,

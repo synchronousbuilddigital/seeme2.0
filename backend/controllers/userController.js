@@ -6,29 +6,43 @@ export const updateProfile = asyncHandler(async (req, res) => {
   const { name, email, phone, password } = req.body
   const user = await User.findById(req.user._id)
 
-  if (user) {
-    if (name) user.name = name
-    if (email) user.email = email
-    if (phone !== undefined) user.phone = phone
-    if (password && password.trim().length >= 6) {
-      user.password = password
-    }
-    
-    const updatedUser = await user.save()
-    res.json({
-      success: true,
-      data: {
-        id: updatedUser._id,
-        name: updatedUser.name,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        role: updatedUser.role
-      }
-    })
-  } else {
+  if (!user) {
     res.status(404)
     throw new Error('User not found')
   }
+
+  // Security Check: Prevent unverified email modification
+  if (email && email.trim().toLowerCase() !== user.email.toLowerCase()) {
+    const cleanEmail = email.trim().toLowerCase()
+    
+    // Check if requested email belongs to another registered account
+    const existingUser = await User.findOne({ email: cleanEmail })
+    if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+      res.status(400)
+      throw new Error('Email address is already in use by another account')
+    }
+
+    res.status(400)
+    throw new Error('Email address cannot be changed directly without verification. Please verify your new email address.')
+  }
+
+  if (name) user.name = name.trim()
+  if (phone !== undefined) user.phone = phone
+  if (password && password.trim().length >= 6) {
+    user.password = password
+  }
+
+  const updatedUser = await user.save()
+  res.json({
+    success: true,
+    data: {
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      role: updatedUser.role
+    }
+  })
 })
 
 // Addresses

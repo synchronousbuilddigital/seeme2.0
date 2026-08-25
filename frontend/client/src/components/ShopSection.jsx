@@ -53,7 +53,7 @@ const ShopSection = () => {
     if (products.length > 0) {
       try {
         trackViewItemList(products, 'Homepage Atelier Shop', 'homepage_shop')
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [products.length])
 
@@ -126,7 +126,7 @@ const ShopSection = () => {
                 <div
                   className="product-media-wrapper"
                   onClick={() => {
-                    try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) {}
+                    try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) { }
                     navigate(`/product/${product._id}`, { state: { product } })
                   }}
                 >
@@ -167,7 +167,7 @@ const ShopSection = () => {
                   <h3
                     className="product-card-title"
                     onClick={() => {
-                      try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) {}
+                      try { trackSelectItem(product, 'Homepage Atelier Shop', 'homepage_shop', idx) } catch (e) { }
                       navigate(`/product/${product._id}`, { state: { product } })
                     }}
                   >

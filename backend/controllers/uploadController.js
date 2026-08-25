@@ -184,24 +184,164 @@ export const uploadVideo = asyncHandler(async (req, res) => {
 // @route   POST /api/upload/image-from-url
 // @access  Admin
 export const uploadImageFromUrl = asyncHandler(async (req, res) => {
-  const { url } = req.body
-  if (!url) {
+  const { url, folder = 'seemee/images' } = req.body
+
+  if (!url || typeof url !== 'string' || !url.trim()) {
     res.status(400)
-    throw new Error('No url provided')
+    throw new Error('Image URL is required for upload.')
+  }
+
+  const cleanUrl = url.trim()
+
+  // Validate URL format
+  try {
+    const parsedUrl = new URL(cleanUrl)
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      res.status(400)
+      throw new Error('Invalid URL protocol. Only HTTP and HTTPS URLs are supported.')
+    }
+  } catch (err) {
+    res.status(400)
+    throw new Error(`Invalid URL format: ${err.message}`)
+  }
+
+  // 1. Cloudinary Direct URL Upload
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    try {
+      console.log(`[Upload] Uploading external image URL to Cloudinary: ${cleanUrl}`)
+
+      const result = await cloudinary.uploader.upload(cleanUrl, {
+        folder,
+        resource_type: 'image',
+        format: 'webp',
+        quality: 'auto',
+        fetch_format: 'webp'
+      })
+
+      console.log(`[Upload] Image from URL saved to Cloudinary: ${result.secure_url}`)
+
+      return res.json({
+        success: true,
+        data: {
+          url: result.secure_url,
+          public_id: result.public_id,
+          source: 'cloudinary'
+        }
+      })
+    } catch (error) {
+      console.error('[Upload] Cloudinary URL upload error:', error)
+      res.status(500)
+      throw new Error(`Failed to upload image from URL to Cloudinary: ${error.message}`)
+    }
+  }
+
+  // 2. Local Disk Storage Fallback
+  try {
+    console.log(`[Upload] Fetching external image URL for local saving: ${cleanUrl}`)
+    const response = await fetch(cleanUrl)
+    if (!response.ok) {
+      res.status(400)
+      throw new Error(`Failed to fetch image from URL. Server responded with status ${response.status}`)
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true })
+    }
+
+    const filename = `url_img_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.webp`
+    const filePath = path.join(uploadsDir, filename)
+
+    fs.writeFileSync(filePath, buffer)
+
+    return res.json({
+      success: true,
+      data: {
+        url: `/uploads/${filename}`,
+        public_id: filename,
+        source: 'local'
+      }
+    })
+  } catch (err) {
+    console.error('[Upload] Local URL download error:', err)
+    res.status(500)
+    throw new Error(`Failed to download and save image locally from URL: ${err.message}`)
+  }
+})
+
+// @desc    Delete media from Cloudinary or Local Storage
+// @route   DELETE /api/upload/delete/:public_id or POST /api/upload/delete
+// @access  Admin
+export const deleteMedia = asyncHandler(async (req, res) => {
+  const rawPublicId = req.params.public_id || req.params[0] || req.body.public_id
+
+  if (!rawPublicId) {
+    res.status(400)
+    throw new Error('Public ID or filename is required for media deletion.')
+  }
+
+  // Clean public_id: decode URI components and strip leading slash / 'uploads/' prefix
+  const decodedId = decodeURIComponent(rawPublicId)
+  const cleanPublicId = decodedId.replace(/^\//, '').replace(/^uploads\//, '')
+
+  // 1. Cloudinary Deletion
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    try {
+      const resourceType = req.body.resource_type || req.query.resource_type || 'image'
+
+      // Attempt deletion with specified or default resource_type
+      let result = await cloudinary.uploader.destroy(cleanPublicId, { resource_type: resourceType })
+
+      // Fallback: If not found as image, attempt video resource_type
+      if (result && result.result === 'not_found' && resourceType === 'image') {
+        result = await cloudinary.uploader.destroy(cleanPublicId, { resource_type: 'video' })
+      }
+
+      if (result && (result.result === 'ok' || result.result === 'not_found')) {
+        console.log(`[Upload] Cloudinary media deleted: ${cleanPublicId} (status: ${result.result})`)
+        return res.json({
+          success: true,
+          message: 'Media deleted successfully',
+          data: { public_id: cleanPublicId, result: result.result }
+        })
+      }
+
+      res.status(400)
+      throw new Error(`Cloudinary deletion failed: ${result?.result || 'Deletion error'}`)
+    } catch (err) {
+      console.error('[Upload] Cloudinary delete error:', err)
+      res.status(500)
+      throw new Error(`Cloudinary deletion failed: ${err.message}`)
+    }
+  }
+
+  // 2. Local Disk Storage Deletion Fallback
+  const filename = path.basename(cleanPublicId)
+  const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+  const filePath = path.join(uploadsDir, filename)
+
+  if (fs.existsSync(filePath)) {
+    try {
+      fs.unlinkSync(filePath)
+      console.log(`[Upload] Local media file deleted: ${filename}`)
+      return res.json({
+        success: true,
+        message: 'Local media file deleted successfully',
+        data: { filename }
+      })
+    } catch (err) {
+      console.error('[Upload] Local file delete error:', err)
+      res.status(500)
+      throw new Error(`Failed to delete local media file: ${err.message}`)
+    }
   }
 
   return res.json({
     success: true,
-    data: {
-      url,
-      source: 'external'
-    }
+    message: 'Media file removed or not found on disk',
+    data: { filename }
   })
-})
-
-// @desc    Delete media
-// @route   DELETE /api/upload/delete/:public_id
-// @access  Admin
-export const deleteMedia = asyncHandler(async (req, res) => {
-  res.json({ success: true, message: 'Deleted successfully' })
 })

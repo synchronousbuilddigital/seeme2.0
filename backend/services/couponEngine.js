@@ -225,3 +225,88 @@ export const validateAndCalculateCoupon = async ({
     message: `✦ Coupon "${coupon.code}" applied! You saved ₹${discountAmount.toLocaleString('en-IN')}`
   }
 }
+
+/**
+ * Record coupon usage atomically after an order is successfully created or paid
+ */
+export const recordCouponUsage = async ({
+  couponCode,
+  userId = null,
+  userEmail = null,
+  orderId = null,
+  discountAmount = 0
+}) => {
+  if (!couponCode || typeof couponCode !== 'string' || !couponCode.trim()) return null
+
+  const cleanCode = couponCode.trim().toUpperCase()
+
+  // Prevent duplicate CouponUsage creation for the same order
+  if (orderId) {
+    const existingUsage = await CouponUsage.findOne({ order: orderId })
+    if (existingUsage) {
+      return { usageRecord: existingUsage }
+    }
+  }
+
+  // Find coupon
+  const couponDoc = await Coupon.findOne({ code: cleanCode })
+  if (!couponDoc) {
+    console.warn(`⚠️ Coupon "${cleanCode}" not found in database.`)
+    return null
+  }
+
+  if (!couponDoc.isActive) {
+    console.warn(`⚠️ Coupon "${cleanCode}" is inactive. Usage count not incremented.`)
+    return null
+  }
+
+  if (couponDoc.usageLimit !== null && couponDoc.usageLimit !== undefined && (couponDoc.usedCount || 0) >= couponDoc.usageLimit) {
+    console.warn(`⚠️ Coupon "${cleanCode}" usage limit (${couponDoc.usageLimit}) reached.`)
+    return null
+  }
+
+  // Increment usedCount
+  const updatedCoupon = await Coupon.findByIdAndUpdate(
+    couponDoc._id,
+    { $inc: { usedCount: 1 } },
+    { new: true }
+  )
+
+  const userIdentifier = userId ? String(userId) : (userEmail ? String(userEmail).toLowerCase().trim() : 'anonymous')
+
+  const usageRecord = await CouponUsage.create({
+    coupon: couponDoc._id,
+    user: userIdentifier,
+    order: orderId || null,
+    discountAmount: Number(discountAmount) || 0
+  })
+
+  console.log(`✅ [COUPON USED] Code: "${cleanCode}" | New usedCount: ${updatedCoupon?.usedCount} | Order: ${orderId || 'N/A'}`)
+
+  return { coupon: updatedCoupon || couponDoc, usageRecord }
+}
+
+/**
+ * Revert coupon usage when an order is cancelled or refunded
+ */
+export const revertCouponUsage = async (orderId) => {
+  if (!orderId) return null
+  try {
+    const usages = await CouponUsage.find({ order: orderId })
+    for (const usage of usages) {
+      const updatedCoupon = await Coupon.findByIdAndUpdate(
+        usage.coupon,
+        { $inc: { usedCount: -1 } },
+        { new: true }
+      )
+      if (updatedCoupon && updatedCoupon.usedCount < 0) {
+        updatedCoupon.usedCount = 0
+        await updatedCoupon.save()
+      }
+      await CouponUsage.findByIdAndDelete(usage._id)
+      console.log(`↩️ [COUPON REVERTED] Order: ${orderId} | New usedCount: ${updatedCoupon?.usedCount || 0}`)
+    }
+  } catch (err) {
+    console.error('Error reverting coupon usage:', err.message)
+  }
+}

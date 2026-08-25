@@ -7,8 +7,8 @@ import { orderValidationRules, validate } from '../middleware/validator.js'
 
 const router = express.Router()
 
-// Create order (public — customers can place orders)
-router.post('/', orderValidationRules(), validate, orderController.createOrder)
+// Create order (protected — authenticated customers can place orders)
+router.post('/', protect, orderValidationRules(), validate, orderController.createOrder)
 
 // Get all orders (admin only)
 router.get('/', protect, admin, orderController.getOrders)
@@ -17,8 +17,8 @@ router.get('/', protect, admin, orderController.getOrders)
 router.get('/myorders', protect, orderController.getMyOrders)
 
 // Razorpay & Webhook routes
-router.post('/create-razorpay-order', orderController.createRazorpayOrder)
-router.post('/verify-payment', orderController.verifyPayment)
+router.post('/create-razorpay-order', protect, orderController.createRazorpayOrder)
+router.post('/verify-payment', protect, orderController.verifyPayment)
 router.post('/razorpay-webhook', refundController.handleRazorpayWebhook)
 
 // Refund routes (Customer)
@@ -35,8 +35,8 @@ router.put('/:id/status', protect, admin, orderController.updateOrderStatus)
 router.put('/:id/approve-cod', protect, admin, orderController.approveCodOrder)
 router.put('/:id/reject-cod', protect, admin, orderController.rejectCodOrder)
 
-// Get single order
-router.get('/:id', orderController.getOrder)
+// Get single order (private — owner or admin)
+router.get('/:id', protect, orderController.getOrder)
 
 export default router
 

@@ -19,8 +19,8 @@ const ForgotPassword = () => {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
 
-  // 2-Minute Countdown Timer (120 seconds)
-  const [timerSeconds, setTimerSeconds] = useState(120)
+  // 10-Minute Countdown Timer (600 seconds)
+  const [timerSeconds, setTimerSeconds] = useState(600)
   const [isTimerActive, setIsTimerActive] = useState(false)
 
   const otpInputRefs = useRef([])
@@ -70,7 +70,7 @@ const ForgotPassword = () => {
       if (res.ok && data.success) {
         setSuccess(data.message || 'A 6-digit OTP code has been sent to your Gmail.')
         setStep(2)
-        setTimerSeconds(120) // 2 minutes timer
+        setTimerSeconds(600) // 10 minutes timer
         setIsTimerActive(true)
         setTimeout(() => {
           if (otpInputRefs.current[0]) otpInputRefs.current[0].focus()

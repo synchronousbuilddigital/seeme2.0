@@ -407,6 +407,20 @@ export const CartProvider = ({ children }) => {
     if (!product) return false
     if (!requireAuthCheck(customNavigate)) return false
 
+    // Confirm with user before replacing existing cart items
+    if (cart && cart.length > 0) {
+      const isSingleItemMatch = cart.length === 1 &&
+        (cart[0].id || cart[0]._id) === (product.id || product._id) &&
+        (cart[0].selectedSize || cart[0].size) === (selectedSize || product.size || product.selectedSize)
+
+      if (!isSingleItemMatch) {
+        const confirmReplace = window.confirm(
+          'Your cart currently contains items. Proceeding with "Buy Now" will clear your existing cart items. Do you want to continue?'
+        )
+        if (!confirmReplace) return false
+      }
+    }
+
     const productId = product.id || product._id
     const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
     const productSize = selectedSize || product.size || product.selectedSize || defaultSize

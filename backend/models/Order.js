@@ -49,35 +49,46 @@ const orderSchema = new mongoose.Schema({
   },
   orderType: {
     type: String,
-    enum: ['ONLINE', 'OFFLINE', 'online', 'offline'],
-    default: 'ONLINE'
+    enum: ['ONLINE', 'OFFLINE'],
+    default: 'ONLINE',
+    set: v => (v ? String(v).toUpperCase().trim() : 'ONLINE')
   },
   status: {
     type: String,
     enum: [
-      'pending', 'confirmed', 'processing', 'printing', 'packaging', 'shipped', 'delivered', 'cancelled', 'refunded',
-      'Pending', 'Confirmed', 'Processing', 'Printing', 'Packaging', 'Shipped', 'Delivered', 'Cancelled', 'Refunded'
+      'pending', 'pending_approval', 'confirmed', 'processing', 'printing', 'packaging', 'shipped', 'delivered', 'cancelled', 'refunded'
     ],
-    default: 'pending'
+    default: 'pending',
+    set: v => (v ? String(v).toLowerCase().trim() : 'pending')
   },
   paymentMethod: {
     type: String,
-    enum: ['online', 'cod', 'ONLINE', 'COD'],
-    default: 'online'
+    enum: ['online', 'cod'],
+    default: 'online',
+    set: v => (v ? String(v).toLowerCase().trim() : 'online')
   },
   paymentStatus: {
     type: String,
     enum: [
-      'pending', 'paid', 'failed', 'refunded', 'rejected',
-      'PENDING', 'PAID', 'FAILED', 'REFUNDED', 'REJECTED'
+      'pending', 'pending_approval', 'paid', 'failed', 'refunded', 'rejected'
     ],
-    default: 'pending'
+    default: 'pending',
+    set: v => (v ? String(v).toLowerCase().trim() : 'pending')
   },
   approvedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
   approvedAt: Date,
+  couponCode: {
+    type: String,
+    trim: true,
+    uppercase: true
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0
+  },
   trackingNumber: String,
   estimatedDelivery: Date,
   designFiles: [String],

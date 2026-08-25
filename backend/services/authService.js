@@ -1,18 +1,21 @@
 import User from '../models/User.js'
 import jwt from 'jsonwebtoken'
+import { getJwtSecret, getJwtRefreshSecret } from '../config/jwt.js'
 
 export const generateToken = (id) => {
-  const secret = process.env.JWT_SECRET || 'seemee_jwt_secret_key_2026'
+  const secret = getJwtSecret()
   return jwt.sign({ id }, secret, { expiresIn: '30d' })
 }
 
 export const generateRefreshToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_REFRESH_SECRET || 'refresh_secret_fallback', { expiresIn: '7d' })
+  const refreshSecret = getJwtRefreshSecret()
+  return jwt.sign({ id }, refreshSecret, { expiresIn: '7d' })
 }
 
 export const verifyRefreshToken = (token) => {
   try {
-    return jwt.verify(token, process.env.JWT_REFRESH_SECRET || 'refresh_secret_fallback')
+    const refreshSecret = getJwtRefreshSecret()
+    return jwt.verify(token, refreshSecret)
   } catch (error) {
     return null
   }
@@ -20,7 +23,7 @@ export const verifyRefreshToken = (token) => {
 
 export const registerUser = async (userData) => {
   const { email, password, name, phone } = userData
-  
+
   const userExists = await User.findOne({ email })
   if (userExists) {
     throw new Error('User already exists')
@@ -32,12 +35,12 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (credentials) => {
   const { email, password } = credentials
-  
+
   const user = await User.findOne({ email })
   if (!user || !(await user.comparePassword(password))) {
     throw new Error('Invalid credentials')
   }
-  
+
   return user
 }
 

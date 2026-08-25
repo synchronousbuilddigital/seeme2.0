@@ -31,7 +31,7 @@ const CategoryManager = () => {
       try {
         setSettings(JSON.parse(cached))
         setLoading(false)
-      } catch (e) {}
+      } catch (e) { }
     }
     fetchSettings()
   }, [])
@@ -100,7 +100,7 @@ const CategoryManager = () => {
       showNotification('Image must be smaller than 10MB', 'error')
       return
     }
-    
+
     setUploading(true)
     try {
       const formData = new FormData()
@@ -119,7 +119,7 @@ const CategoryManager = () => {
         // The plural endpoint returns an array
         const uploadedImage = data.data[0]
         const imageUrl = uploadedImage.url || uploadedImage.secure_url || getImageUrl(uploadedImage)
-        
+
         setEditingSlide(prev => ({ ...prev, image: imageUrl }))
         showNotification('Image uploaded successfully')
       } else if (data.success && !Array.isArray(data.data)) {
@@ -151,7 +151,7 @@ const CategoryManager = () => {
       if (isAdding) {
         updatedSlides = [...(settings.categorySlides || []), editingSlide]
       } else {
-        updatedSlides = settings.categorySlides.map(s => 
+        updatedSlides = settings.categorySlides.map(s =>
           s._id === editingSlide._id ? editingSlide : s
         )
       }
@@ -195,17 +195,17 @@ const CategoryManager = () => {
       <div className="slides-grid">
         {settings?.categorySlides?.length > 0 ? (
           settings.categorySlides.map((slide, index) => (
-            <motion.div 
-              key={slide._id || index} 
+            <motion.div
+              key={slide._id || index}
               className="slide-card"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
               <div className="slide-image">
-                <img 
-                  src={getImageUrl(slide.image)} 
-                  alt={slide.title} 
+                <img
+                  src={getImageUrl(slide.image)}
+                  alt={slide.title}
                   onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
                 />
                 <div className="slide-actions">
@@ -244,7 +244,7 @@ const CategoryManager = () => {
       <AnimatePresence>
         {editingSlide && (
           <div className="modal-overlay" onClick={() => setEditingSlide(null)}>
-            <motion.div 
+            <motion.div
               className="slide-modal"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -260,52 +260,52 @@ const CategoryManager = () => {
                 <div className="form-grid">
                   <div className="form-group">
                     <label>Main Title *</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="e.g. Anarkali Suits"
                       value={editingSlide.title}
-                      onChange={(e) => setEditingSlide({...editingSlide, title: e.target.value})}
+                      onChange={(e) => setEditingSlide({ ...editingSlide, title: e.target.value })}
                     />
                   </div>
                   <div className="form-group">
                     <label>Subtitle / Mood</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="e.g. Timeless Elegance"
                       value={editingSlide.subtitle}
-                      onChange={(e) => setEditingSlide({...editingSlide, subtitle: e.target.value})}
+                      onChange={(e) => setEditingSlide({ ...editingSlide, subtitle: e.target.value })}
                     />
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label>URL Slug * (Unique Identifier)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="e.g. anarkali"
                     value={editingSlide.slug}
-                    onChange={(e) => setEditingSlide({...editingSlide, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})}
+                    onChange={(e) => setEditingSlide({ ...editingSlide, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                   />
                   <small>This will be used in the URL: /category/{"{slug}"}</small>
                 </div>
 
                 <div className="form-group">
                   <label>Description</label>
-                  <textarea 
+                  <textarea
                     rows="3"
                     placeholder="Enter a compelling description..."
                     value={editingSlide.description}
-                    onChange={(e) => setEditingSlide({...editingSlide, description: e.target.value})}
+                    onChange={(e) => setEditingSlide({ ...editingSlide, description: e.target.value })}
                   ></textarea>
                 </div>
 
                 <div className="form-group">
                   <label>Features (One per line)</label>
-                  <textarea 
+                  <textarea
                     rows="3"
                     placeholder="Premium Fabrics&#10;Handmade Details"
                     value={editingSlide.features.join('\n')}
-                    onChange={(e) => setEditingSlide({...editingSlide, features: e.target.value.split('\n').filter(line => line.trim() !== '')})}
+                    onChange={(e) => setEditingSlide({ ...editingSlide, features: e.target.value.split('\n').filter(line => line.trim() !== '') })}
                   ></textarea>
                 </div>
 
@@ -313,16 +313,16 @@ const CategoryManager = () => {
                   <label>Category Visual (Image)</label>
                   <div className="image-upload-wrapper">
                     <div className="image-preview-large">
-                      <img 
-                        src={getImageUrl(editingSlide.image)} 
-                        alt="Preview" 
+                      <img
+                        src={getImageUrl(editingSlide.image)}
+                        alt="Preview"
                         onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
                       />
                     </div>
                     <div className="upload-controls">
-                      <input 
-                        type="file" 
-                        id="cat-img-input" 
+                      <input
+                        type="file"
+                        id="cat-img-input"
                         accept="image/*"
                         onChange={(e) => handleImageUpload(e.target.files[0])}
                         style={{ display: 'none' }}
@@ -338,9 +338,9 @@ const CategoryManager = () => {
 
               <div className="modal-footer">
                 <button className="btn-cancel" onClick={() => setEditingSlide(null)}>Cancel</button>
-                <button 
-                  className="btn-save" 
-                  onClick={handleSave} 
+                <button
+                  className="btn-save"
+                  onClick={handleSave}
                   disabled={isSaving || uploading}
                 >
                   {isSaving ? 'Saving...' : isAdding ? 'Add Category' : 'Save Changes'}
@@ -354,7 +354,7 @@ const CategoryManager = () => {
       {/* Notification Toast */}
       <AnimatePresence>
         {notification.show && (
-          <motion.div 
+          <motion.div
             className={`toast ${notification.type}`}
             initial={{ x: 100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}

@@ -1,3 +1,4 @@
+import crypto from 'crypto'
 import mongoose from 'mongoose'
 import Refund from '../models/Refund.js'
 import Order from '../models/Order.js'
@@ -406,6 +407,31 @@ export const rejectRefund = asyncHandler(async (req, res) => {
 // @route   POST /api/orders/razorpay-webhook
 // @access  Public (Signature Verified)
 export const handleRazorpayWebhook = asyncHandler(async (req, res) => {
+  const webhookSecret = (process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || '').trim()
+
+  if (!webhookSecret) {
+    res.status(500)
+    throw new Error('Razorpay webhook secret is not configured on the server')
+  }
+
+  const signature = req.headers['x-razorpay-signature']
+  if (!signature) {
+    res.status(400)
+    throw new Error('Missing X-Razorpay-Signature header')
+  }
+
+  // Calculate HMAC SHA256 signature over request body
+  const bodyString = typeof req.body === 'string' ? req.body : JSON.stringify(req.body)
+  const expectedSignature = crypto
+    .createHmac('sha256', webhookSecret)
+    .update(bodyString)
+    .digest('hex')
+
+  if (expectedSignature !== signature) {
+    res.status(400)
+    throw new Error('Invalid Razorpay webhook signature')
+  }
+
   const event = req.body?.event
   const payload = req.body?.payload
 

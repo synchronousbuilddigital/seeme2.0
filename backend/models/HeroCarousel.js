@@ -42,3 +42,4 @@ const heroCarouselSchema = new mongoose.Schema({
 // heroCarouselSchema.index({ order: 1 })
 
 export default mongoose.model('HeroCarousel', heroCarouselSchema)
+

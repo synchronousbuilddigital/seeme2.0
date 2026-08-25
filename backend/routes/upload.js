@@ -39,7 +39,9 @@ router.post('/video', protect, admin, videoUpload.any(), uploadController.upload
 // Upload image by providing external URL in JSON body: { url: 'https://...' }
 router.post('/image-from-url', protect, admin, uploadController.uploadImageFromUrl)
 
-// Delete media (admin)
+// Delete media (admin — supports /delete/:public_id, /delete/*, and POST /delete)
+router.delete('/delete/*', protect, admin, uploadController.deleteMedia)
 router.delete('/delete/:public_id', protect, admin, uploadController.deleteMedia)
+router.post('/delete', protect, admin, uploadController.deleteMedia)
 
 export default router

@@ -67,6 +67,7 @@ const userSchema = new mongoose.Schema({
   // OTP Password Reset Fields
   otpCode: { type: String },
   otpExpires: { type: Date },
+  otpAttempts: { type: Number, default: 0 },
   isBlocked: {
     type: Boolean,
     default: false

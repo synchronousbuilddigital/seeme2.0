@@ -197,6 +197,12 @@ const AccountPage = () => {
       return
     }
 
+    const pincodeRegex = /^\d{6}$/
+    if (!pincodeRegex.test(String(newAddress.pincode).trim())) {
+      setMessage({ type: 'error', text: 'Please enter a valid 6-digit PIN code.' })
+      return
+    }
+
     try {
       const method = editingAddressId ? 'PUT' : 'POST'
       const url = editingAddressId ? `${API_ENDPOINTS.USERS_ADDRESSES}/${editingAddressId}` : API_ENDPOINTS.USERS_ADDRESSES

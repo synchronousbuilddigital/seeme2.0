@@ -52,7 +52,7 @@ const ContactPage = () => {
       {/* Hero Banner */}
       <section className="simple-hero">
         <div className="simple-hero-content">
-          <motion.span 
+          <motion.span
             className="simple-kicker"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -60,7 +60,7 @@ const ContactPage = () => {
           >
             GET IN TOUCH
           </motion.span>
-          <motion.h1 
+          <motion.h1
             className="simple-title"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -68,7 +68,7 @@ const ContactPage = () => {
           >
             Contact <span className="italic-accent">Us</span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="simple-subtitle"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,8 +101,8 @@ const ContactPage = () => {
               </svg>
             </div>
             <h3 className="simple-card-title">Call Us</h3>
-            <p className="simple-card-desc">Mon - Sat from 10am to 7pm</p>
-            <a href="tel:+919876543210" className="simple-card-link">+91 (800) SEE-MEE</a>
+            <p className="simple-card-desc">10am to 7pm</p>
+            <a href="tel:+919876543210" className="simple-card-link">+91 9079776280</a>
           </div>
 
           <div className="simple-card">
@@ -113,11 +113,11 @@ const ContactPage = () => {
             </div>
             <h3 className="simple-card-title">WhatsApp</h3>
             <p className="simple-card-desc">Chat for instant assistance</p>
-            <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="simple-card-link">Chat on WhatsApp</a>
+            <a href="https://wa.me/9079776280" target="_blank" rel="noopener noreferrer" className="simple-card-link">Chat on WhatsApp</a>
           </div>
         </div>
 
-        {/* 2-Column Desktop / 1-Column Mobile Layout */}
+        {/* 1-Column Centered Contact Form */}
         <div className="simple-content-layout">
           {/* Contact Form */}
           <div className="simple-form-wrapper">
@@ -127,48 +127,48 @@ const ContactPage = () => {
               <form onSubmit={handleSubmit} className="simple-form">
                 <div className="simple-form-group">
                   <label htmlFor="name">Full Name *</label>
-                  <input 
-                    type="text" 
-                    id="name" 
-                    name="name" 
-                    placeholder="Enter your full name" 
-                    value={formData.name} 
-                    onChange={handleInputChange} 
-                    required 
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    placeholder="Enter your full name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    required
                   />
                 </div>
 
                 <div className="simple-form-group">
                   <label htmlFor="email">Email Address *</label>
-                  <input 
-                    type="email" 
-                    id="email" 
-                    name="email" 
-                    placeholder="Enter your email address" 
-                    value={formData.email} 
-                    onChange={handleInputChange} 
-                    required 
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="Enter your email address"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
                   />
                 </div>
 
                 <div className="simple-form-group">
                   <label htmlFor="phone">Phone Number</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    name="phone" 
-                    placeholder="Enter your phone number" 
-                    value={formData.phone} 
-                    onChange={handleInputChange} 
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="Enter your phone number"
+                    value={formData.phone}
+                    onChange={handleInputChange}
                   />
                 </div>
 
                 <div className="simple-form-group">
                   <label htmlFor="subject">Subject</label>
-                  <select 
-                    id="subject" 
-                    name="subject" 
-                    value={formData.subject} 
+                  <select
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
                     onChange={handleInputChange}
                   >
                     <option value="General Inquiry">General Inquiry</option>
@@ -180,14 +180,14 @@ const ContactPage = () => {
 
                 <div className="simple-form-group">
                   <label htmlFor="message">Message *</label>
-                  <textarea 
-                    id="message" 
-                    name="message" 
-                    rows="5" 
-                    placeholder="How can we help you?" 
-                    value={formData.message} 
-                    onChange={handleInputChange} 
-                    required 
+                  <textarea
+                    id="message"
+                    name="message"
+                    rows="5"
+                    placeholder="How can we help you?"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    required
                   />
                 </div>
 
@@ -203,8 +203,8 @@ const ContactPage = () => {
                 </svg>
                 <h3>Thank You!</h3>
                 <p>Your message has been sent successfully. We will get back to you shortly.</p>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="simple-reset-btn"
                   onClick={() => { setSubmitted(false); setFormData({ name: '', email: '', phone: '', subject: 'General Inquiry', message: '' }) }}
                 >
@@ -212,35 +212,6 @@ const ContactPage = () => {
                 </button>
               </div>
             )}
-          </div>
-
-          {/* Studio Info Sidebar */}
-          <div className="simple-info-sidebar">
-            <h2 className="sidebar-title">Our Studio</h2>
-            
-            <div className="sidebar-item">
-              <span className="sidebar-label">Address</span>
-              <p className="sidebar-val">
-                See Mee Heritage House,<br />
-                Old City Heritage Quarter,<br />
-                Varanasi / New Delhi, India
-              </p>
-            </div>
-
-            <div className="sidebar-item">
-              <span className="sidebar-label">Business Hours</span>
-              <p className="sidebar-val">
-                Monday – Saturday: 10:00 AM – 7:00 PM IST<br />
-                Sunday: Closed
-              </p>
-            </div>
-
-            <div className="sidebar-item">
-              <span className="sidebar-label">Custom Appointments</span>
-              <p className="sidebar-val">
-                For custom bridal trousseaus or tailor fittings, please reach out directly via phone or WhatsApp.
-              </p>
-            </div>
           </div>
         </div>
       </div>

@@ -162,7 +162,7 @@ export const sendOtpEmail = async (email, name, otp) => {
           <span style="font-family: monospace; font-size: 36px; font-weight: bold; color: #D4AF37; letter-spacing: 8px;">${otp}</span>
         </div>
 
-        <p style="font-size: 13px; color: #78716C; margin-bottom: 0;">⏰ This OTP is valid for <strong>2 minutes</strong>. Do not share this OTP code with anyone.</p>
+        <p style="font-size: 13px; color: #78716C; margin-bottom: 0;">⏰ This OTP is valid for <strong>10 minutes</strong>. Do not share this OTP code with anyone.</p>
       </div>
 
       <div style="text-align: center; margin-top: 25px; font-size: 12px; color: #A8A29E;">

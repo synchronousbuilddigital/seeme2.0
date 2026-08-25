@@ -214,4 +214,3 @@ const CategoriesSlider = () => {
 }
 
 export default CategoriesSlider
-

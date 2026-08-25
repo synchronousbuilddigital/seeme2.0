@@ -74,9 +74,8 @@ app.use(cors({
       return callback(null, true)
     }
 
-    // In production, check against whitelist
-    const isAllowed = allowedOrigins.includes(origin) ||
-      origin.endsWith('.vercel.app')
+    // In production, check strictly against allowedOrigins whitelist
+    const isAllowed = allowedOrigins.includes(origin)
 
     if (isAllowed) {
       return callback(null, true)
@@ -115,9 +114,26 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Too many login attempts, please try again after 15 minutes.' }
 })
 
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 5 : 20,
+  message: { success: false, message: 'Too many OTP requests or verification attempts. Please try again after 15 minutes.' }
+})
+
+const paymentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === 'production' ? 15 : 100,
+  message: { success: false, message: 'Too many payment creation requests. Please try again after a few minutes.' }
+})
+
 app.use('/api/', globalLimiter)
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
+app.use('/api/auth/forgot-password', otpLimiter)
+app.use('/api/auth/verify-otp', otpLimiter)
+app.use('/api/auth/reset-password', otpLimiter)
+app.use('/api/orders/create-razorpay-order', paymentLimiter)
+app.use('/api/orders/verify-payment', paymentLimiter)
 
 // ─── BODY PARSING ──────────────────────────────────────
 app.use(express.json({ limit: '50mb' }))

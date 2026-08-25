@@ -55,7 +55,7 @@
 .view-switcher button.active {
   background: white;
   color: #1a1a1a;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .btn-add-hero {
@@ -74,7 +74,7 @@
 
 .btn-add-hero:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 /* Storyboard Grid */
@@ -88,7 +88,7 @@
   background: white;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   border: 1px solid #f0f0f0;
   transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
   display: flex;
@@ -97,7 +97,7 @@
 
 .story-card:hover {
   transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
 .story-card.inactive {
@@ -120,7 +120,7 @@
   position: absolute;
   top: 15px;
   left: 15px;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 4px 12px;
   border-radius: 20px;
@@ -214,7 +214,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(15px);
   z-index: 2000;
   display: flex;
@@ -232,7 +232,7 @@
   overflow-y: auto;
   padding: 50px;
   position: relative;
-  box-shadow: 0 50px 100px rgba(0,0,0,0.3);
+  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.3);
 }
 
 .modal-top {
@@ -343,7 +343,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.4);
   color: white;
   display: flex;
   align-items: center;
@@ -391,7 +391,7 @@
   overflow: hidden;
   position: relative;
   background: #222;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
 .story-preview img {
@@ -426,7 +426,7 @@
   font-weight: 800;
   letter-spacing: 4px;
   text-transform: uppercase;
-  text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .story-sub {
@@ -498,11 +498,11 @@
   transition: all 0.3s;
 }
 
-.toggle-lux input:checked + .slider-lux {
+.toggle-lux input:checked+.slider-lux {
   background: #1a1a1a;
 }
 
-.toggle-lux input:checked + .slider-lux:before {
+.toggle-lux input:checked+.slider-lux:before {
   left: 27px;
 }
 
@@ -536,7 +536,7 @@
 
 .btn-lux-primary:hover {
   transform: scale(1.02);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .btn-lux-primary:disabled {
@@ -553,19 +553,26 @@
   border-radius: 15px;
   color: white;
   font-weight: 700;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   z-index: 3000;
 }
 
-.toast-success { background: #1a1a1a; border-left: 6px solid #4CAF50; }
-.toast-error { background: #1a1a1a; border-left: 6px solid #ff4d4d; }
+.toast-success {
+  background: #1a1a1a;
+  border-left: 6px solid #4CAF50;
+}
+
+.toast-error {
+  background: #1a1a1a;
+  border-left: 6px solid #ff4d4d;
+}
 
 /* Table View (Legacy but improved) */
 .lux-table-wrap {
   background: white;
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
 .lux-table {
@@ -619,8 +626,15 @@
   font-weight: 700;
 }
 
-.status-lux.active { background: #e6f7ed; color: #1e8e3e; }
-.status-lux.hidden { background: #feebeb; color: #d93025; }
+.status-lux.active {
+  background: #e6f7ed;
+  color: #1e8e3e;
+}
+
+.status-lux.hidden {
+  background: #feebeb;
+  color: #d93025;
+}
 
 .table-actions-lux {
   display: flex;
@@ -637,8 +651,16 @@
   font-size: 10px;
 }
 
-.table-actions-lux button.edit:hover { background: #1a1a1a; color: white; }
-.table-actions-lux button.del:hover { background: #ff4d4d; color: white; border-color: #ff4d4d; }
+.table-actions-lux button.edit:hover {
+  background: #1a1a1a;
+  color: white;
+}
+
+.table-actions-lux button.del:hover {
+  background: #ff4d4d;
+  color: white;
+  border-color: #ff4d4d;
+}
 
 /* Empty State */
 .lux-empty-state {
@@ -649,9 +671,20 @@
   border: 3px dashed #eee;
 }
 
-.empty-visual { font-size: 80px; margin-bottom: 30px; }
-.lux-empty-state h3 { font-size: 28px; margin-bottom: 15px; }
-.lux-empty-state p { color: #888; margin-bottom: 40px; }
+.empty-visual {
+  font-size: 80px;
+  margin-bottom: 30px;
+}
+
+.lux-empty-state h3 {
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+.lux-empty-state p {
+  color: #888;
+  margin-bottom: 40px;
+}
 
 /* Loader */
 .lux-loading-state {
@@ -662,7 +695,7 @@
 .spin-lux {
   width: 30px;
   height: 30px;
-  border: 3px solid rgba(0,0,0,0.1);
+  border: 3px solid rgba(0, 0, 0, 0.1);
   border-top-color: #1a1a1a;
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -670,9 +703,16 @@
   margin-bottom: 20px;
 }
 
-.spin-lux.large { width: 50px; height: 50px; }
+.spin-lux.large {
+  width: 50px;
+  height: 50px;
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* Mobile Responsiveness Optimizations */
 @media (max-width: 768px) {
@@ -795,7 +835,8 @@
 
   .lux-input {
     padding: 12px 14px;
-    font-size: 16px !important; /* Prevents iOS WebKit auto-zoom */
+    font-size: 16px !important;
+    /* Prevents iOS WebKit auto-zoom */
     border-radius: 10px;
     min-height: 46px;
   }
@@ -874,7 +915,8 @@
     min-width: 650px;
   }
 
-  .lux-table th, .lux-table td {
+  .lux-table th,
+  .lux-table td {
     padding: 10px 8px;
     font-size: 0.8rem;
   }

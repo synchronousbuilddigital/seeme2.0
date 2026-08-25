@@ -10,9 +10,21 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  shortDescription: {
+    type: String,
+    trim: true
+  },
   category: {
     type: String,
     required: true
+  },
+  subcategory: {
+    type: String,
+    trim: true
+  },
+  slug: {
+    type: String,
+    trim: true
   },
   // SKU and Style Code
   sku: {
@@ -109,41 +121,13 @@ const productSchema = new mongoose.Schema({
   },
   // Physical Dimensions & Shipping Specs (Ad2Ship)
   dimensions: {
-    length: Number,
-    width: Number,
-    height: Number,
-    lengthCm: Number,
-    widthCm: Number,
-    heightCm: Number,
-    breadth: Number
-  },
-  weight: {
-    type: mongoose.Schema.Types.Mixed,
-    default: 0.5
+    length: { type: Number, default: 20 },
+    width: { type: Number, default: 15 },
+    height: { type: Number, default: 5 }
   },
   weightKg: {
     type: Number,
     default: 0.5
-  },
-  height: {
-    type: Number,
-    default: 5
-  },
-  heightCm: {
-    type: Number,
-    default: 5
-  },
-  breadth: {
-    type: Number,
-    default: 15
-  },
-  widthCm: {
-    type: Number,
-    default: 15
-  },
-  lengthCm: {
-    type: Number,
-    default: 20
   },
   // Material & Care
   material: {
@@ -171,6 +155,10 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  inCollection: {
+    type: Boolean,
+    default: false
+  },
   status: {
     type: String,
     enum: ['draft', 'published', 'archived'],
@@ -179,14 +167,6 @@ const productSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
 }, {
   timestamps: true
@@ -229,5 +209,20 @@ productSchema.index({ isActive: 1, featured: 1 })
 productSchema.index({ isActive: 1, inCollection: 1 })
 productSchema.index({ isActive: 1, isNewArrival: 1 })
 productSchema.index({ createdAt: -1 })
+
+// Virtual getters for backwards compatibility with legacy dimension/weight property access
+productSchema.virtual('dimensions.lengthCm').get(function () { return this.dimensions?.length })
+productSchema.virtual('dimensions.widthCm').get(function () { return this.dimensions?.width })
+productSchema.virtual('dimensions.heightCm').get(function () { return this.dimensions?.height })
+productSchema.virtual('dimensions.breadth').get(function () { return this.dimensions?.width })
+
+productSchema.virtual('lengthCm').get(function () { return this.dimensions?.length })
+productSchema.virtual('widthCm').get(function () { return this.dimensions?.width })
+productSchema.virtual('breadth').get(function () { return this.dimensions?.width })
+productSchema.virtual('heightCm').get(function () { return this.dimensions?.height })
+productSchema.virtual('weight').get(function () { return this.weightKg })
+
+productSchema.set('toObject', { virtuals: true })
+productSchema.set('toJSON', { virtuals: true })
 
 export default mongoose.model('Product', productSchema)

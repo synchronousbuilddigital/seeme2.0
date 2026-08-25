@@ -168,12 +168,33 @@ export const AuthProvider = ({ children }) => {
             return { success: false, message: error.message }
           }
         },
-        resetPassword: async (token, password) => {
+        verifyOtp: async (email, otp) => {
           try {
+            const response = await fetch(API_ENDPOINTS.AUTH_VERIFY_OTP || `${API_ENDPOINTS.LOGIN.replace('/login', '/verify-otp')}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, otp })
+            })
+            return await response.json()
+          } catch (error) {
+            return { success: false, message: error.message }
+          }
+        },
+        resetPassword: async (email, otp, password) => {
+          try {
+            let bodyPayload
+            if (typeof email === 'object' && email !== null) {
+              bodyPayload = email
+            } else if (password !== undefined) {
+              bodyPayload = { email, otp, password }
+            } else {
+              bodyPayload = { email, otp: email, password: otp }
+            }
+
             const response = await fetch(API_ENDPOINTS.AUTH_RESET_PASSWORD || `${API_ENDPOINTS.LOGIN.replace('/login', '/reset-password')}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token, password })
+              body: JSON.stringify(bodyPayload)
             })
             return await response.json()
           } catch (error) {

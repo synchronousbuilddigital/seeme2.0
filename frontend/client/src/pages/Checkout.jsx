@@ -463,7 +463,8 @@ const Checkout = () => {
   }
 
   const calculateShipping = () => {
-    return 0
+    const charge = selectedPartner?.shippingCharges ?? selectedPartner?.shippingCharge ?? 0
+    return typeof charge === 'number' && !isNaN(charge) && charge >= 0 ? charge : 0
   }
 
   const calculateTotal = () => {
@@ -494,9 +495,9 @@ const Checkout = () => {
       return false
     }
 
-    const pincodeRegex = /^[a-zA-Z0-9\s-]{4,10}$/
+    const pincodeRegex = /^\d{6}$/
     if (!pincodeRegex.test(trimmedPincode)) {
-      alert('Please enter a valid pincode / zipcode.')
+      alert('Please enter a valid 6-digit PIN code.')
       return false
     }
 
@@ -520,17 +521,25 @@ const Checkout = () => {
       return
     }
     try {
+      const authHeaders = { 'Content-Type': 'application/json' }
+      if (token) authHeaders['Authorization'] = `Bearer ${token}`
+
       const response = await fetch(API_ENDPOINTS.CREATE_RAZORPAY_ORDER, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: calculateTotal() })
+        headers: authHeaders,
+        body: JSON.stringify({
+          amount: calculateTotal(),
+          items: orderData.items,
+          couponCode: appliedCoupon?.code || null,
+          couponDiscount: couponDiscount || 0
+        })
       })
       const { data: razorpayOrder } = await response.json()
 
       if (razorpayOrder.id.startsWith('order_mock_')) {
         const verifyResponse = await fetch(API_ENDPOINTS.VERIFY_PAYMENT, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders,
           body: JSON.stringify({
             razorpay_order_id: razorpayOrder.id,
             razorpay_payment_id: 'pay_mock_' + Date.now(),
@@ -565,7 +574,7 @@ const Checkout = () => {
         handler: async function (response) {
           const verifyResponse = await fetch(API_ENDPOINTS.VERIFY_PAYMENT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders,
             body: JSON.stringify({
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
@@ -635,6 +644,7 @@ const Checkout = () => {
     }
 
     const orderData = {
+      user: user?._id || user?.id || null,
       orderType: orderType,
       customer: {
         name: formData.name,
@@ -675,9 +685,12 @@ const Checkout = () => {
       handleRazorpayPayment(orderData)
     } else {
       try {
+        const authHeaders = { 'Content-Type': 'application/json' }
+        if (token) authHeaders['Authorization'] = `Bearer ${token}`
+
         const response = await fetch(API_ENDPOINTS.ORDERS, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders,
           body: JSON.stringify(orderData)
         })
         const result = await response.json()
@@ -1361,7 +1374,9 @@ const Checkout = () => {
               </div>
               <div className="calc-line">
                 <span>Insured Express Shipping</span>
-                <span className="green-text">FREE</span>
+                <span className={calculateShipping() > 0 ? '' : 'green-text'}>
+                  {calculateShipping() > 0 ? `₹${calculateShipping().toLocaleString('en-IN')}` : 'FREE'}
+                </span>
               </div>
               {appliedCoupon && (
                 <div className="calc-line discount-line">

@@ -110,8 +110,16 @@ const Auth = () => {
         setLoading(false)
         return
       }
-      if (!formData.phone || !formData.phone.trim()) {
+      const rawPhone = (formData.phone || '').trim()
+      if (!rawPhone) {
         setError('Phone Number is required')
+        setLoading(false)
+        return
+      }
+      const digitsOnly = rawPhone.replace(/\D/g, '')
+      const isValidPhone = /^[6-9]\d{9}$/.test(digitsOnly) || (digitsOnly.length === 12 && digitsOnly.startsWith('91') && /^[6-9]\d{9}$/.test(digitsOnly.slice(2)))
+      if (!isValidPhone) {
+        setError('Please enter a valid 10-digit mobile number')
         setLoading(false)
         return
       }

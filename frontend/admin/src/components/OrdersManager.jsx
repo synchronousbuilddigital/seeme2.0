@@ -359,7 +359,6 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
     const trackingData = {
       trackingNumber: formData.get('trackingNumber'),
       estimatedDelivery: formData.get('estimatedDelivery'),
-      status: selectedOrder.status,
       note: `Tracking information updated: ${formData.get('trackingNumber')}`
     }
 
@@ -381,15 +380,45 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
   }
 
   const printInvoice = () => {
-    const printContent = document.getElementById('invoice-printable').innerHTML
-    const win = window.open('', '', 'height=700,width=900')
-    win.document.write('<html><head><title>Invoice - SeeMee</title>')
-    win.document.write('<style>body{font-family:sans-serif;padding:40px;} .header{display:flex;justify-content:space-between;margin-bottom:40px;} .table{width:100%;border-collapse:collapse;} .table th,.table td{border:1px solid #eee;padding:12px;text-align:left;} .total-box{margin-top:30px;text-align:right;} .badge{padding:4px 8px;border-radius:4px;font-size:12px;text-transform:uppercase;}</style>')
+    const printableEl = document.getElementById('invoice-printable')
+    if (!printableEl) {
+      showNotification('Invoice template element not found', 'error')
+      return
+    }
+
+    const printContent = printableEl.innerHTML
+    const win = window.open('', '_blank', 'height=750,width=950')
+    if (!win) {
+      showNotification('Popup blocked. Please allow popups to print invoice.', 'error')
+      return
+    }
+
+    win.document.write('<!DOCTYPE html><html><head><title>Invoice - SeeMee</title>')
+    win.document.write(`
+      <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; color: #111; background: #fff; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .table th, .table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .table th { background: #f8f8f8; font-weight: 600; }
+        .total-box { margin-top: 30px; text-align: right; font-size: 16px; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; text-transform: uppercase; background: #eee; }
+        @media print {
+          body { padding: 20px; }
+        }
+      </style>
+    `)
     win.document.write('</head><body>')
     win.document.write(printContent)
     win.document.write('</body></html>')
     win.document.close()
-    win.print()
+    win.focus()
+
+    // Wait for document styles and DOM to render completely before printing
+    setTimeout(() => {
+      win.print()
+      win.close()
+    }, 500)
   }
 
   const openExportModal = () => {

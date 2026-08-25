@@ -44,6 +44,7 @@ const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
 const TermsConditionsPage = lazy(() => import('./pages/TermsConditionsPage'))
 const ReturnPolicyPage = lazy(() => import('./pages/ReturnPolicyPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 const AdminRedirect = () => {
   useEffect(() => {
@@ -165,21 +166,7 @@ function App() {
                 <Route path="/catalog" element={<PageWithNav><CatalogPage /></PageWithNav>} />
 
                 {/* Magazine Page */}
-                <Route path="/magazine" element={
-                  <>
-                    <Navbar
-                      onCartOpen={() => setIsCartOpen(true)}
-                      onWishlistOpen={() => setIsWishlistOpen(true)}
-                    />
-                    <main>
-                      <Suspense fallback={<div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
-                        <MagazinePage />
-                      </Suspense>
-                    </main>
-                    <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-                    <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
-                  </>
-                } />
+                <Route path="/magazine" element={<PageWithNav><MagazinePage /></PageWithNav>} />
 
                 {/* Categories & Collections Page */}
                 <Route path="/categories" element={<PageWithNav><CategoriesPage /></PageWithNav>} />
@@ -217,7 +204,10 @@ function App() {
                 <Route path="/product/:id" element={<PageWithNav><ProductPage /></PageWithNav>} />
 
                 {/* Home Page */}
-                <Route path="/*" element={<HomePage />} />
+                <Route path="/" element={<HomePage />} />
+
+                {/* 404 Not Found Catch-All Route */}
+                <Route path="*" element={<PageWithNav><NotFoundPage /></PageWithNav>} />
               </Routes>
             </Suspense>
           </div>
