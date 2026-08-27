@@ -179,11 +179,6 @@ const CategoriesPage = () => {
                         alt={cat.title}
                         loading="lazy"
                       />
-
-                      {/* Top-Left Index Overlay */}
-                      <div className="card-index-overlay">{indexFormatted}</div>
-
-
                     </div>
 
                     {/* Bottom Content Container */}

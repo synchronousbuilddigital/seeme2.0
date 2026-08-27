@@ -25,6 +25,7 @@ import couponRoutes from './routes/coupons.js'
 import adminCouponRoutes from './routes/adminCoupons.js'
 import shippingRoutes from './routes/shipping.js'
 import pushNotificationRoutes from './routes/notificationRoutes.js'
+import brandRoutes from './routes/brandRoutes.js'
 
 // Security Middlewares
 import helmet from 'helmet'
@@ -178,6 +179,7 @@ app.use('/api/users', userRoutes)
 app.use('/api/reels', reelRoutes)
 app.use('/api/shipping', shippingRoutes)
 app.use('/api/notifications', pushNotificationRoutes)
+app.use('/api/brands', brandRoutes)
 app.use('/api/admin/push', pushNotificationRoutes)
 
 // ─── 404 HANDLER ───────────────────────────────────────

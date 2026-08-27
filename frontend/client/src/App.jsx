@@ -1,10 +1,13 @@
 import { useState, useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 // Critical components - loaded immediately (above the fold)
 import Navbar from './components/Navbar'
 import Hero from './components/Hero'
+import CategoryTabs from './components/CategoryTabs'
 import Footer from './components/Footer'
 import NewArrivals from './components/NewArrivals'
+import BrandsThatLead from './components/BrandsThatLead'
 import ScrollToTop from './components/ScrollToTop'
 import InstallAppWidget from './components/InstallAppWidget'
 import Cart from './components/Cart'
@@ -21,6 +24,7 @@ const CategoriesSlider = lazy(() => import('./components/CategoriesSlider'))
 const About = lazy(() => import('./components/About'))
 const ShopSection = lazy(() => import('./components/ShopSection'))
 const FabricSection = lazy(() => import('./components/FabricSection'))
+const EthosBanner = lazy(() => import('./components/EthosBanner'))
 const CatalogSection = lazy(() => import('./components/CatalogSection'))
 
 // Lazy load route pages
@@ -74,28 +78,57 @@ function App() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isWishlistOpen, setIsWishlistOpen] = useState(false)
 
-  const HomePage = () => (
-    <>
-      <Navbar
-        onCartOpen={() => setIsCartOpen(true)}
-        onWishlistOpen={() => setIsWishlistOpen(true)}
-      />
-      <main>
-        <Hero />
-        <NewArrivals />
-        <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
-          <ShopSection />
-          <CategoriesSlider />
-          <FabricSection />
-          <CatalogSection />
-          <About />
-        </Suspense>
-      </main>
-      <Footer />
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
-    </>
-  )
+  const HomePage = () => {
+    const [activeAudience, setActiveAudience] = useState('all')
+
+    useEffect(() => {
+      const themeClass = `theme-${activeAudience || 'all'}`
+      document.body.classList.remove('theme-all', 'theme-men', 'theme-women')
+      document.body.classList.add(themeClass)
+
+      return () => {
+        document.body.classList.remove('theme-all', 'theme-men', 'theme-women')
+      }
+    }, [activeAudience])
+
+    return (
+      <div className={`store-theme-wrapper theme-${activeAudience || 'all'}`}>
+        <Navbar
+          onCartOpen={() => setIsCartOpen(true)}
+          onWishlistOpen={() => setIsWishlistOpen(true)}
+        />
+        <main className={`homepage-main theme-${activeAudience || 'all'}`}>
+          <Hero activeAudience={activeAudience} />
+          <CategoryTabs onTabChange={(tab) => setActiveAudience(tab)} />
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeAudience === 'men' ? 'men-brands' : 'other-arrivals'}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            >
+              {activeAudience === 'men' ? (
+                <BrandsThatLead activeAudience={activeAudience} />
+              ) : (
+                <NewArrivals activeAudience={activeAudience} />
+              )}
+            </motion.div>
+          </AnimatePresence>
+          <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
+            <ShopSection activeAudience={activeAudience} />
+            <CategoriesSlider activeAudience={activeAudience} />
+            <CatalogSection activeAudience={activeAudience} />
+            <EthosBanner />
+            <About />
+          </Suspense>
+        </main>
+        <Footer />
+        <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+      </div>
+    )
+  }
 
   const PageWithNav = ({ children }) => (
     <>

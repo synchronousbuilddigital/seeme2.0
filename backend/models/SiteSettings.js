@@ -12,6 +12,7 @@ const categorySlideSchema = new mongoose.Schema({
   slug: { type: String, required: true },
   subtitle: { type: String, required: true },
   description: { type: String, required: true },
+  targetAudience: { type: mongoose.Schema.Types.Mixed, default: ['all'] },
   features: [String],
   image: { type: String, required: true },
   order: { type: Number, required: true }

@@ -8,6 +8,7 @@ import NewArrivalsManager from '../components/NewArrivalsManager'
 import ProductsManager from '../components/ProductsManager'
 import OrdersManager from '../components/OrdersManager'
 import CategoryManager from '../components/CategoryManager'
+import BrandManager from '../components/BrandManager'
 import GlobalSearch from '../components/GlobalSearch'
 import InventoryManager from '../components/InventoryManager'
 import CustomersManager from '../components/CustomersManager'
@@ -251,6 +252,10 @@ const AdminDashboard = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
             <span>Categories</span>
           </button>
+          <button className={activeTab === 'brands' ? 'active' : ''} onClick={() => handleTabClick('brands')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+            <span>Brands</span>
+          </button>
           <button className={activeTab === 'hero' ? 'active' : ''} onClick={() => handleTabClick('hero')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
             <span>Hero Section</span>
@@ -291,6 +296,7 @@ const AdminDashboard = () => {
                 {activeTab === 'customers' && 'Customer Registry'}
                 {activeTab === 'activity' && 'Real-time Activity'}
                 {activeTab === 'categories' && 'Category Slides'}
+                {activeTab === 'brands' && 'Brands Manager'}
                 {activeTab === 'hero' && 'Hero Carousel'}
                 {activeTab === 'magazine' && 'Magazine Booklet'}
                 {activeTab === 'reels' && 'Catalog Reels Studio'}
@@ -556,6 +562,12 @@ const AdminDashboard = () => {
         {visitedTabs.has('categories') && (
           <div style={{ display: activeTab === 'categories' ? 'block' : 'none' }}>
             <CategoryManager />
+          </div>
+        )}
+
+        {visitedTabs.has('brands') && (
+          <div style={{ display: activeTab === 'brands' ? 'block' : 'none' }}>
+            <BrandManager />
           </div>
         )}
 

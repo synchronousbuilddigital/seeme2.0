@@ -58,6 +58,84 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ==========================================================================
+   DYNAMIC GLOBAL THEME SWITCHING (ALL / MEN / WOMEN)
+   ========================================================================== */
+
+/* 1. ALL Theme — Original default site theme */
+body.theme-all,
+.store-theme-wrapper.theme-all {
+  --theme-bg: #FEFDFB;
+  --theme-surface: #FFFFFF;
+  --theme-border: #D4AF37;
+  --theme-primary: #D4AF37;
+  --theme-accent: #B8941E;
+  --theme-text: #2B2B2B;
+  --theme-glow: rgba(212, 175, 55, 0.25);
+  background-color: var(--off-white);
+  transition: background-color 0.45s ease, color 0.45s ease;
+}
+
+/* 2. MEN Theme — Soft Sky / Ice Blue */
+body.theme-men,
+.store-theme-wrapper.theme-men {
+  --theme-bg: #E2F0FD;
+  --theme-surface: #EBF5FF;
+  --theme-border: #3B82F6;
+  --theme-primary: #1D4ED8;
+  --theme-accent: #60A5FA;
+  --theme-text: #0F172A;
+  --theme-glow: rgba(37, 99, 235, 0.25);
+  background-color: var(--theme-bg);
+  transition: background-color 0.45s ease, color 0.45s ease;
+}
+
+body.theme-men .hero-banner {
+  background: linear-gradient(135deg, #EBF5FF 0%, #E2F0FD 50%, #DBEAFE 100%) !important;
+}
+
+body.theme-men section,
+body.theme-men .new-arrivals-section,
+body.theme-men .brands-lead-section,
+body.theme-men .shop-section,
+body.theme-men .categories-slider-section,
+body.theme-men .fabric-section,
+body.theme-men .catalog-section,
+body.theme-men .about-section {
+  background-color: var(--theme-bg) !important;
+  transition: background-color 0.45s ease;
+}
+
+/* 3. WOMEN Theme — Soft Rose / Blush Pink */
+body.theme-women,
+.store-theme-wrapper.theme-women {
+  --theme-bg: #FCE7F3;
+  --theme-surface: #FFF0F5;
+  --theme-border: #EC4899;
+  --theme-primary: #BE185D;
+  --theme-accent: #F472B6;
+  --theme-text: #4C0519;
+  --theme-glow: rgba(236, 72, 153, 0.25);
+  background-color: var(--theme-bg);
+  transition: background-color 0.45s ease, color 0.45s ease;
+}
+
+body.theme-women .hero-banner {
+  background: linear-gradient(135deg, #FFF0F5 0%, #FCE7F3 50%, #FBCFE8 100%) !important;
+}
+
+body.theme-women section,
+body.theme-women .new-arrivals-section,
+body.theme-women .brands-lead-section,
+body.theme-women .shop-section,
+body.theme-women .categories-slider-section,
+body.theme-women .fabric-section,
+body.theme-women .catalog-section,
+body.theme-women .about-section {
+  background-color: var(--theme-bg) !important;
+  transition: background-color 0.45s ease;
+}
+
 /* --- Mobile First Container --- */
 .container {
   width: 100%;

@@ -17,7 +17,17 @@ export const getAllProducts = async (filters = {}) => {
   if (category) filter.category = category
   if (featured) filter.featured = true
   if (inCollection) filter.inCollection = true
-  if (filters.isNewArrival) filter.isNewArrival = true
+  if (filters.gender && filters.gender !== 'all') {
+    const g = String(filters.gender).toLowerCase().trim()
+    filter.$or = [
+      { gender: g },
+      { gender: 'all' },
+      { gender: { $in: [g, 'all'] } },
+      { targetAudience: g },
+      { targetAudience: 'all' },
+      { targetAudience: { $in: [g, 'all'] } }
+    ]
+  }
 
   if (minPrice || maxPrice) {
     filter.price = {}

@@ -1,0 +1,103 @@
+/* ==========================================================================
+   THE SEEMEE ETHOS BANNER — HIGH-LUXURY EDITORIAL QUOTE BANNER
+   ========================================================================== */
+
+.seemee-ethos-banner {
+  position: relative;
+  width: 100%;
+  padding: 5.5rem 1.5rem;
+  background-color: #140C0A; /* Rich Deep Chocolate Maroon-Black */
+  background-image: radial-gradient(circle at 50% 50%, rgba(180, 83, 9, 0.12) 0%, transparent 70%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.ethos-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(20, 12, 10, 0.35) 0%, rgba(20, 12, 10, 0.95) 100%);
+  pointer-events: none;
+}
+
+.ethos-banner-container {
+  position: relative;
+  z-index: 2;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.ethos-content-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+/* Stylized Gold Quote Mark matching reference screenshot */
+.ethos-quote-mark {
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: 3.5rem;
+  line-height: 1;
+  color: #D4AF37;
+  margin-bottom: 0.75rem;
+  opacity: 0.9;
+  user-select: none;
+}
+
+/* Main Italicized Quote Text */
+.ethos-quote-text {
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: 1.85rem;
+  font-style: italic;
+  font-weight: 400;
+  color: #F8F5F0;
+  line-height: 1.55;
+  margin: 0 0 1.75rem 0;
+  letter-spacing: 0.01em;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Gold Divider Line */
+.ethos-gold-divider {
+  width: 44px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #D4AF37, transparent);
+  margin-bottom: 1.5rem;
+  border-radius: 2px;
+}
+
+/* Attribution Line */
+.ethos-attribution {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: #D4AF37;
+  text-transform: uppercase;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .seemee-ethos-banner {
+    padding: 4rem 1.25rem;
+  }
+
+  .ethos-quote-mark {
+    font-size: 2.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .ethos-quote-text {
+    font-size: 1.35rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+  }
+
+  .ethos-attribution {
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+  }
+}

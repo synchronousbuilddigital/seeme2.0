@@ -7,38 +7,28 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from './AddToCartButton'
+import { belongsToAudience } from '../utils/categoryHelper'
 import './ShopSection.css'
 
-const ShopSection = () => {
+const ShopSection = ({ activeAudience = 'all' }) => {
   const navigate = useNavigate()
   const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
 
-  const [products, setProducts] = useState(() => {
-    try {
-      const cached = localStorage.getItem('seemee_shop_products')
-      return cached ? JSON.parse(cached) : []
-    } catch {
-      return []
-    }
-  })
+  const [products, setProducts] = useState([])
   const [hoveredProductId, setHoveredProductId] = useState(null)
-  const [loading, setLoading] = useState(() => {
-    try {
-      const cached = localStorage.getItem('seemee_shop_products')
-      return cached ? false : true
-    } catch {
-      return true
-    }
-  })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=8&status=active`)
+        setLoading(true)
+        const endpoint = activeAudience !== 'all'
+          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=100&status=active`
+          : `${API_ENDPOINTS.PRODUCTS}?limit=100&status=active`
+        const data = await cachedFetch(endpoint, { forceRefresh: true })
         if (data.success && data.data) {
-          const activeProducts = data.data.slice(0, 8)
-          setProducts(activeProducts)
-          localStorage.setItem('seemee_shop_products', JSON.stringify(activeProducts))
+          const filtered = data.data.filter(p => belongsToAudience(p, activeAudience)).slice(0, 8)
+          setProducts(filtered)
         }
       } catch (error) {
         console.error('Error fetching shop products:', error)
@@ -47,7 +37,7 @@ const ShopSection = () => {
       }
     }
     fetchProducts()
-  }, [])
+  }, [activeAudience])
 
   useEffect(() => {
     if (products.length > 0) {

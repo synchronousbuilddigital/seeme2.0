@@ -82,11 +82,10 @@ const getCategoryType = (slug) => {
   return 'COUTURE'
 }
 
-const Hero = () => {
+const Hero = ({ activeAudience = 'all' }) => {
   const navigate = useNavigate()
 
-  // Initialize slides state from local storage cache (filtering out old hardcoded paths)
-  const [slides, setSlides] = useState(() => {
+  const [rawSlides, setRawSlides] = useState(() => {
     try {
       const cached = localStorage.getItem('seemee_carousel_slides')
       if (cached) {
@@ -103,6 +102,27 @@ const Hero = () => {
   })
 
   const [activeIndex, setActiveIndex] = useState(0)
+
+  // Multi-audience section matching:
+  // Allows slides assigned to multiple audiences (e.g. ['men', 'women']) to show in all checked panels!
+  const getAudienceArray = (val) => {
+    if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase())
+    if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+    return ['all']
+  }
+
+  const filteredSlides = rawSlides.filter(slide => {
+    const slideAudiences = getAudienceArray(slide.targetAudience)
+    const current = (activeAudience || 'all').toLowerCase()
+    return slideAudiences.includes(current)
+  })
+
+  const slides = filteredSlides.length > 0 ? filteredSlides : rawSlides
+
+  useEffect(() => {
+    setActiveIndex(0)
+  }, [activeAudience])
+
   const [loading, setLoading] = useState(slides.length === 0)
   const [isMobile, setIsMobile] = useState(false)
   // Initialize categories state from local storage cache to avoid blank states/flashing
@@ -403,14 +423,7 @@ const Hero = () => {
 
     const fetchCarouselImages = async () => {
       try {
-        let data
-        let promise = carouselPromise
-        if (promise) {
-          carouselPromise = null // Consume module eager promise
-          data = await promise
-        } else {
-          data = await cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true })
-        }
+        const data = await cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true })
 
         const EDITORIAL_DESCRIPTIONS = [
           'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
@@ -427,6 +440,7 @@ const Hero = () => {
               image: slide.image,
               title: slide.title || slide.productName || 'SeeMee Atelier Collection',
               subtitle: slide.subtitle || 'Premium Edit',
+              targetAudience: slide.targetAudience || 'all',
               description: slide.description || EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
               category: (slide.productCategory || 'Featured').toString(),
               productId: slide.productId || null
@@ -446,6 +460,7 @@ const Hero = () => {
                 image: (p.images && p.images[0]) || p.image,
                 title: p.name || 'SeeMee Haute Couture',
                 subtitle: p.category ? `Premium Edit • ${p.category}` : 'Premium Edit',
+                targetAudience: p.gender === 'men' ? 'men' : p.gender === 'women' ? 'women' : 'all',
                 description: p.description && p.description.length > 20
                   ? p.description.replace(/<[^>]*>/g, '').slice(0, 160)
                   : EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
@@ -459,7 +474,7 @@ const Hero = () => {
         }
 
         if (isMounted) {
-          setSlides(nextSlides)
+          setRawSlides(nextSlides)
           setActiveIndex(0)
           setLoading(false)
           try {
@@ -802,59 +817,6 @@ const Hero = () => {
         </div>
       </div>
 
-      {/* Dynamic Looping Category Circles Section */}
-      {categories.length > 0 && (
-        <div
-          className="category-marquee-container"
-          ref={marqueeContainerRef}
-          onMouseDown={handlePointerDown}
-          onMouseMove={handlePointerMove}
-          onMouseUp={handlePointerUp}
-          onMouseLeave={() => {
-            isDraggingRef.current = false
-            isHoveredRef.current = false
-          }}
-          onMouseEnter={() => { isHoveredRef.current = true }}
-          onTouchStart={handlePointerDown}
-          onTouchMove={handlePointerMove}
-          onTouchEnd={handlePointerUp}
-          onWheel={handleWheel}
-        >
-          <div className="category-marquee-track" ref={marqueeTrackRef}>
-            {Array(Math.max(12, Math.ceil(40 / (categories.length || 1))) * 2).fill(categories).flat().map((catItem, idx) => {
-              const catTitle = getCategoryTitle(catItem)
-              const catSlug = getCategorySlug(catItem)
-              return (
-                <div
-                  key={`${catSlug || idx}-${idx}`}
-                  className="category-circle-item"
-                  onClick={() => {
-                    if (!hasDraggedRef.current) {
-                      navigate(`/category/${catSlug}`)
-                    }
-                  }}
-                >
-                  <div className="category-circle-visual">
-                    <div className="category-circle-img-wrap">
-                      <img
-                        src={getCategoryDisplayImage(catItem)}
-                        alt={catTitle}
-                        className="category-circle-img"
-                        loading="lazy"
-                        onError={(e) => {
-                          e.target.src = 'https://res.cloudinary.com/dnuucbhwa/image/upload/v1779637240/seemee/categories/hws0gj5ey5hwxrbamgfu.png'
-                        }}
-                      />
-                      <div className="category-circle-overlay" />
-                    </div>
-                  </div>
-                  <span className="category-circle-name">{catTitle}</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </section>
   )
 }

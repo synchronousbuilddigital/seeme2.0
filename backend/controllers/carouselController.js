@@ -1,5 +1,6 @@
 import HeroCarousel from '../models/HeroCarousel.js'
 import asyncHandler from '../utils/asyncHandler.js'
+import cloudinary from '../config/cloudinary.js'
 
 // @desc    Get active carousel images (public)
 // @route   GET /api/carousel
@@ -21,7 +22,7 @@ export const getAllCarousel = asyncHandler(async (req, res) => {
 // @route   POST /api/carousel
 // @access  Admin
 export const createCarousel = asyncHandler(async (req, res) => {
-  const { image, productId, productName, productCategory, title, subtitle, order } = req.body
+  const { image, productId, productName, productCategory, title, subtitle, targetAudience, order } = req.body
 
   // If order is provided, shift existing slides
   if (order !== undefined) {
@@ -42,6 +43,7 @@ export const createCarousel = asyncHandler(async (req, res) => {
     productCategory: productCategory || '',
     title: title || productName || '',
     subtitle: subtitle || productCategory || '',
+    targetAudience: targetAudience || 'all',
     order: req.body.order,
     isActive: true
   })
@@ -53,7 +55,7 @@ export const createCarousel = asyncHandler(async (req, res) => {
 // @route   PUT /api/carousel/:id
 // @access  Admin
 export const updateCarousel = asyncHandler(async (req, res) => {
-  const { image, productId, productName, productCategory, title, subtitle, order, isActive } = req.body
+  const { image, productId, productName, productCategory, title, subtitle, targetAudience, order, isActive } = req.body
   const currentSlide = await HeroCarousel.findById(req.params.id)
 
   if (!currentSlide) {
@@ -78,7 +80,7 @@ export const updateCarousel = asyncHandler(async (req, res) => {
     }
   }
 
-  const updateData = { image, productId, productName, productCategory, title, subtitle, order, isActive }
+  const updateData = { image, productId, productName, productCategory, title, subtitle, targetAudience, order, isActive }
   Object.keys(updateData).forEach((key) => {
     if (updateData[key] === undefined) {
       delete updateData[key]
@@ -98,11 +100,26 @@ export const updateCarousel = asyncHandler(async (req, res) => {
 // @route   DELETE /api/carousel/:id
 // @access  Admin
 export const deleteCarousel = asyncHandler(async (req, res) => {
-  const carouselImage = await HeroCarousel.findByIdAndDelete(req.params.id)
+  const carouselImage = await HeroCarousel.findById(req.params.id)
   if (!carouselImage) {
     res.status(404)
     throw new Error('Carousel image not found')
   }
+
+  await HeroCarousel.findByIdAndDelete(req.params.id)
+
+  if (carouselImage.image && carouselImage.image.includes('cloudinary.com')) {
+    try {
+      const parts = carouselImage.image.split('/')
+      const folderAndFile = parts.slice(-2).join('/').replace(/\.[^/.]+$/, '')
+      if (folderAndFile) {
+        await cloudinary.uploader.destroy(folderAndFile).catch(() => null)
+      }
+    } catch (e) {
+      console.error('Cloudinary asset cleanup error:', e)
+    }
+  }
+
   res.json({ success: true, message: 'Carousel image deleted' })
 })
 

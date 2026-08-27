@@ -1,194 +1,218 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
-import { useCart } from '../context/CartContext'
 import './CatalogSection.css'
 
 const CatalogSection = () => {
   const navigate = useNavigate()
-  const { addToCart } = useCart()
-  const [reels, setReels] = useState([])
+  const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeIndex, setActiveIndex] = useState(0)
   const [mutedStates, setMutedStates] = useState({})
   const videoRefs = useRef({})
 
   useEffect(() => {
-    const fetchReels = async () => {
+    const fetchAdminReels = async () => {
       try {
-        const data = await cachedFetch(API_ENDPOINTS.REELS, { forceRefresh: true })
-        if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
-          setReels(data.data.slice(0, 6))
-        } else {
-          setReels([])
+        setLoading(true)
+        const reelsRes = await cachedFetch(API_ENDPOINTS.REELS, { forceRefresh: true })
+        const reelsData = (reelsRes?.success && Array.isArray(reelsRes.data)) ? reelsRes.data : []
+
+        // Map strictly and exclusively reels published in Admin Panel Catalog Reels
+        const reelItems = reelsData.map(r => ({
+          id: r._id,
+          title: r.title || r.product?.name || 'Catalog Reel',
+          caption: r.caption || '',
+          videoUrl: r.videoUrl,
+          image: r.coverImage || r.product?.images?.[0] || r.product?.image,
+          link: r.product ? `/product/${r.product._id || r.product.id}` : '/catalog',
+          product: r.product
+        })).filter(r => Boolean(r.videoUrl || r.image))
+
+        setItems(reelItems)
+        if (reelItems.length > 0) {
+          setActiveIndex(Math.floor(reelItems.length / 2))
         }
       } catch (err) {
-        console.error('Error fetching reels for homepage catalog section:', err)
-        setReels([])
+        console.error('Error fetching admin reels:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchReels()
+    fetchAdminReels()
   }, [])
 
-  const toggleMute = (reelId, e) => {
+  const handlePrev = () => {
+    setActiveIndex(prev => (prev === 0 ? items.length - 1 : prev - 1))
+  }
+
+  const handleNext = () => {
+    setActiveIndex(prev => (prev === items.length - 1 ? 0 : prev + 1))
+  }
+
+  const toggleMute = (itemId, e) => {
     e.stopPropagation()
     setMutedStates(prev => ({
       ...prev,
-      [reelId]: !prev[reelId]
+      [itemId]: !prev[itemId]
     }))
   }
 
-  const handleProductClick = (product, e) => {
-    e.stopPropagation()
-    if (product?._id || product?.id) {
-      navigate(`/product/${product._id || product.id}`)
-    } else {
-      navigate('/catalog')
-    }
+  if (loading || items.length === 0) {
+    return null
   }
 
-  if (loading) return null
-
-  // If no active reels have been added in the Admin Panel, do not render this section
-  if (reels.length === 0) return null
-
   return (
-    <section className="homepage-catalog-section" id="catalog-reels">
-      {/* Background Ambient Glows */}
-      <div className="catalog-glow-gold" />
-      <div className="catalog-glow-rose" />
-
-      <div className="catalog-section-container">
+    <section className="catalog-coverflow-section" id="catalog-reels">
+      <div className="catalog-coverflow-container">
         {/* Editorial Section Header */}
         <div className="catalog-section-header">
-          
-          <h2 className="catalog-heading">
-            Catalog <span className="italic">Products</span>
-          </h2>
-          <div className="catalog-header-line" />
-          <p className="catalog-section-intro">
-            Experience the fluid grace of SeeMee silhouettes. Watch high-definition video reels, explore ancestral embroidery in motion, and discover featured pieces directly from the atelier.
-          </p>
+          <span className="catalog-eyebrow">EXCLUSIVE LOOKBOOK</span>
+          <h2 className="catalog-heading">CATALOG SHOWCASE</h2>
+          <div className="catalog-title-underline" />
         </div>
 
-        {/* Video Reels Grid Container */}
-        <div className="catalog-reels-slider-grid">
-          {reels.map((reel, index) => {
-            const product = reel.product
-            const isMuted = mutedStates[reel._id] !== false // Muted by default
-            const posterImg = reel.coverImage || product?.images?.[0] || product?.image
+        {/* 3D Cover Flow Carousel Viewport */}
+        <div className="coverflow-viewport">
+          {/* Navigation Button Left */}
+          <button
+            type="button"
+            className="coverflow-nav-btn prev"
+            onClick={handlePrev}
+            aria-label="Previous Slide"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
 
-            return (
-              <motion.div
-                key={reel._id || index}
-                className="catalog-reel-card"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                onClick={() => navigate('/catalog')}
-              >
-                {/* Media Container with Autoplay Loop Video */}
-                <div className="catalog-reel-media-wrapper">
-                  {reel.videoUrl ? (
-                    <video
-                      ref={el => videoRefs.current[reel._id] = el}
-                      src={reel.videoUrl}
-                      poster={posterImg ? getOptimizedImageUrl(posterImg, 'card') : undefined}
-                      autoPlay
-                      loop
-                      muted={isMuted}
-                      playsInline
-                      className="catalog-reel-video"
-                    />
-                  ) : (
-                    <img
-                      src={getOptimizedImageUrl(posterImg || '/images/ruby_bridal_sharara.png', 'card')}
-                      alt={reel?.title || ''}
-                      className="catalog-reel-poster"
-                    />
-                  )}
+          {/* 3D Cards Track */}
+          <div className="coverflow-track">
+            {items.map((item, idx) => {
+              // Calculate offset relative to activeIndex (with circular loop calculation)
+              let offset = idx - activeIndex
+              const count = items.length
 
-                  <div className="catalog-reel-gradient-overlay" />
+              // Adjust offset for seamless loop
+              if (offset > count / 2) offset -= count
+              if (offset < -count / 2) offset += count
 
-                  {/* Top Live Badge & Audio Control */}
-                  <div className="catalog-card-top-bar">
-                    <span className="reel-live-badge">
-                      <span className="live-dot" />
-                      REEL
-                    </span>
+              const isActive = offset === 0
+              const absOffset = Math.abs(offset)
 
-                    {reel?.videoUrl && (
+              // Determine 3D transform metrics based on distance from center
+              let translateX = offset * 185
+              let scale = 1 - absOffset * 0.14
+              let zIndex = 30 - absOffset * 5
+              let opacity = absOffset > 2 ? 0 : (1 - absOffset * 0.22)
+              let rotateY = offset > 0 ? -12 : offset < 0 ? 12 : 0
+
+              if (isActive) {
+                scale = 1.16
+                zIndex = 40
+                opacity = 1
+                rotateY = 0
+              }
+
+              const isMuted = mutedStates[item.id] !== false
+
+              return (
+                <motion.div
+                  key={item.id || idx}
+                  className={`coverflow-card ${isActive ? 'active' : ''}`}
+                  style={{
+                    zIndex,
+                    opacity: opacity <= 0 ? 0 : opacity,
+                    pointerEvents: absOffset > 2 ? 'none' : 'auto'
+                  }}
+                  animate={{
+                    x: translateX,
+                    scale: Math.max(0.7, scale),
+                    rotateY,
+                    opacity: opacity <= 0 ? 0 : opacity
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    ease: [0.16, 1, 0.3, 1]
+                  }}
+                  onClick={() => {
+                    if (!isActive) {
+                      setActiveIndex(idx)
+                    }
+                  }}
+                >
+                  <div className="coverflow-media-box">
+                    {item.videoUrl ? (
+                      <video
+                        ref={el => videoRefs.current[item.id] = el}
+                        src={item.videoUrl}
+                        poster={getOptimizedImageUrl(item.image, 'card')}
+                        autoPlay
+                        loop
+                        muted={isMuted}
+                        playsInline
+                        className="coverflow-video"
+                      />
+                    ) : (
+                      <img
+                        src={getOptimizedImageUrl(item.image, 'card')}
+                        alt={item.title}
+                        className="coverflow-img"
+                        loading="lazy"
+                        onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
+                      />
+                    )}
+
+                    {/* Top Mute Control if video */}
+                    {item.videoUrl && (
                       <button
                         type="button"
-                        className="catalog-mute-btn"
-                        onClick={(e) => toggleMute(reel?._id, e)}
-                        title={isMuted ? "Unmute audio" : "Mute audio"}
+                        className="coverflow-mute-btn"
+                        onClick={(e) => toggleMute(item.id, e)}
                       >
-                        {isMuted ? (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="1" y1="1" x2="23" y2="23" />
-                            <path d="M9 9l10.5 10.5M15.54 8.46A5 5 0 0 1 19 12M6 15H3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3l5-4v5.58" />
-                          </svg>
-                        ) : (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" />
-                          </svg>
-                        )}
+                        {isMuted ? '🔇' : '🔊'}
                       </button>
                     )}
-                  </div>
 
-                  {/* Reel Info & Linked Product Pill */}
-                  <div className="catalog-reel-info-overlay">
-                    <h3 className="catalog-reel-title">{reel?.title || ''}</h3>
-                    {reel?.caption && <p className="catalog-reel-caption">{reel.caption}</p>}
-
-                    {product && (
-                      <div
-                        className="catalog-linked-product-pill"
-                        onClick={(e) => handleProductClick(product, e)}
-                      >
-                        <div className="product-pill-left">
-                          <img
-                            src={getOptimizedImageUrl(product.images?.[0] || product.image || posterImg, 'thumbnail')}
-                            alt={product.name}
-                            className="product-pill-thumb"
-                          />
-                          <div className="product-pill-text">
-                            <span className="product-pill-name">{product.name}</span>
-                            <span className="product-pill-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                          </div>
+                    {/* Gradient Overlay & Bottom Content for Active Item */}
+                    <div className="coverflow-card-overlay">
+                      {isActive && (
+                        <div className="coverflow-content">
+                          <h3 className="coverflow-item-title">{item.title}</h3>
+                          <button
+                            type="button"
+                            className="coverflow-view-btn"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigate(item.link || '/catalog')
+                            }}
+                          >
+                            View
+                          </button>
                         </div>
-                        <span className="product-pill-action">Shop →</span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            )
-          })}
-        </div>
+                </motion.div>
+              )
+            })}
+          </div>
 
-        {/* Explore More Button Footer */}
-        <div className="catalog-section-action">
-          <motion.button
-            className="explore-catalog-btn"
-            onClick={() => navigate('/catalog')}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.98 }}
+          {/* Navigation Button Right */}
+          <button
+            type="button"
+            className="coverflow-nav-btn next"
+            onClick={handleNext}
+            aria-label="Next Slide"
           >
-            <span>Explore Full Catalog Reels</span>
-            <svg width="22" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M2,6 L22,6 M16,1 L22,6 L16,11" />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M9 18l6-6-6-6" />
             </svg>
-          </motion.button>
+          </button>
         </div>
       </div>
     </section>

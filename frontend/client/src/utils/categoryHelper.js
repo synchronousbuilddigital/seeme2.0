@@ -48,3 +48,19 @@ export const getCategoryProducts = (allProducts, categorySlug) => {
 
   return active.filter(p => isProductInCategory(p, categorySlug))
 }
+
+export const getAudienceArray = (val) => {
+  if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase().trim())
+  if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+  return ['all']
+}
+
+export const belongsToAudience = (product, audience) => {
+  if (!product || !audience || audience === 'all') return true
+  const target = audience.toLowerCase().trim()
+  const audList = [
+    ...getAudienceArray(product.targetAudience),
+    ...getAudienceArray(product.gender)
+  ]
+  return audList.includes(target) || audList.includes('all')
+}

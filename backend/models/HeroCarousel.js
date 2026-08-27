@@ -26,6 +26,10 @@ const heroCarouselSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  targetAudience: {
+    type: mongoose.Schema.Types.Mixed,
+    default: ['all']
+  },
   order: {
     type: Number,
     required: true

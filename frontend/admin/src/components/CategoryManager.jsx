@@ -13,15 +13,36 @@ const CategoryManager = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
   const [uploading, setUploading] = useState(false)
+  const [audienceFilter, setAudienceFilter] = useState('all') // 'all', 'men', 'women'
+
+  const normalizeAudience = (val) => {
+    if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase())
+    if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+    return ['all']
+  }
 
   const emptySlide = {
     title: '',
     subtitle: '',
     slug: '',
     description: '',
+    targetAudience: ['all'],
     features: [],
     image: '',
     order: 0
+  }
+
+  const handleCategoryAudienceToggle = (value) => {
+    if (!editingSlide) return
+    const current = normalizeAudience(editingSlide.targetAudience)
+    let updated
+    if (current.includes(value)) {
+      updated = current.filter(v => v !== value)
+      if (updated.length === 0) updated = ['all']
+    } else {
+      updated = [...current, value]
+    }
+    setEditingSlide({ ...editingSlide, targetAudience: updated })
   }
 
   useEffect(() => {
@@ -56,21 +77,25 @@ const CategoryManager = () => {
     setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000)
   }
 
-  const handleEdit = (slide) => {
-    setEditingSlide({ ...slide })
+  const handleEdit = (slide, index) => {
+    setEditingSlide({ ...slide, _index: index })
     setIsAdding(false)
   }
 
   const handleAddNew = () => {
-    setEditingSlide({ ...emptySlide, order: settings?.categorySlides?.length || 0 })
+    const initialAudience = audienceFilter === 'all' ? 'all' : audienceFilter
+    setEditingSlide({ ...emptySlide, targetAudience: initialAudience, order: settings?.categorySlides?.length || 0 })
     setIsAdding(true)
   }
 
-  const handleDelete = async (slideId) => {
+  const handleDelete = async (slideId, index) => {
     if (!window.confirm('Are you sure you want to delete this category?')) return
 
     try {
-      const updatedSlides = settings.categorySlides.filter(s => s._id !== slideId)
+      const updatedSlides = (settings?.categorySlides || []).filter((s, idx) => {
+        if (slideId && s._id) return s._id !== slideId
+        return idx !== index
+      })
       const data = await apiRequest(API_ENDPOINTS.SITE_SETTINGS, {
         method: 'PUT',
         auth: true,
@@ -79,6 +104,7 @@ const CategoryManager = () => {
 
       if (data.success) {
         setSettings(data.data)
+        localStorage.setItem('seemee_admin_site_settings', JSON.stringify(data.data))
         showNotification('Category deleted successfully')
       }
     } catch (error) {
@@ -104,7 +130,6 @@ const CategoryManager = () => {
     setUploading(true)
     try {
       const formData = new FormData()
-      // Appending fields BEFORE the file is better for some multipart parsers
       formData.append('folder', 'seemee/categories')
       formData.append('images', file)
 
@@ -116,14 +141,12 @@ const CategoryManager = () => {
       })
 
       if (data.success && data.data && data.data.length > 0) {
-        // The plural endpoint returns an array
         const uploadedImage = data.data[0]
         const imageUrl = uploadedImage.url || uploadedImage.secure_url || getImageUrl(uploadedImage)
 
         setEditingSlide(prev => ({ ...prev, image: imageUrl }))
         showNotification('Image uploaded successfully')
       } else if (data.success && !Array.isArray(data.data)) {
-        // Fallback for single object response
         const imageUrl = data.data.url || data.data.secure_url || getImageUrl(data.data)
         setEditingSlide(prev => ({ ...prev, image: imageUrl }))
         showNotification('Image uploaded successfully')
@@ -133,7 +156,6 @@ const CategoryManager = () => {
       showNotification(error.message || 'Failed to upload image', 'error')
     } finally {
       setUploading(false)
-      // Reset input value so the same file can be uploaded again if needed
       const input = document.getElementById('cat-img-input')
       if (input) input.value = ''
     }
@@ -147,19 +169,43 @@ const CategoryManager = () => {
 
     setIsSaving(true)
     try {
+      const targetSlide = { ...editingSlide }
+      delete targetSlide._index
+
+      const cleanTargetSlide = {
+        ...targetSlide,
+        targetAudience: Array.isArray(targetSlide.targetAudience) && targetSlide.targetAudience.length > 0
+          ? targetSlide.targetAudience
+          : [targetSlide.targetAudience || 'all']
+      }
+
       let updatedSlides
       if (isAdding) {
-        updatedSlides = [...(settings.categorySlides || []), editingSlide]
+        updatedSlides = [...(settings?.categorySlides || []), cleanTargetSlide]
       } else {
-        updatedSlides = settings.categorySlides.map(s =>
-          s._id === editingSlide._id ? editingSlide : s
-        )
+        updatedSlides = (settings?.categorySlides || []).map((s, idx) => {
+          if (cleanTargetSlide._id && s._id && s._id === cleanTargetSlide._id) {
+            return cleanTargetSlide
+          }
+          if (editingSlide._index !== undefined && idx === editingSlide._index) {
+            return cleanTargetSlide
+          }
+          return s
+        })
       }
+
+      // Ensure every slide in updatedSlides has normalized targetAudience array
+      const normalizedSlides = updatedSlides.map(s => ({
+        ...s,
+        targetAudience: Array.isArray(s.targetAudience)
+          ? s.targetAudience
+          : (typeof s.targetAudience === 'string' && s.targetAudience.trim() ? [s.targetAudience] : ['all'])
+      }))
 
       const data = await apiRequest(API_ENDPOINTS.SITE_SETTINGS, {
         method: 'PUT',
         auth: true,
-        body: { categorySlides: updatedSlides }
+        body: { categorySlides: normalizedSlides }
       })
 
       if (data.success) {
@@ -183,18 +229,55 @@ const CategoryManager = () => {
     </div>
   )
 
+  const allSlides = settings?.categorySlides || []
+  const displayedCategorySlides = allSlides.filter(slide => {
+    const arr = normalizeAudience(slide.targetAudience)
+    return arr.includes(audienceFilter.toLowerCase())
+  })
+
+  const formatAudienceBadge = (val) => {
+    if (Array.isArray(val)) return val.map(v => (v || '').toUpperCase()).join(', ')
+    if (typeof val === 'string' && val.trim()) return val.toUpperCase()
+    return 'ALL'
+  }
+
   return (
     <div className="category-manager">
-      <div className="manager-header">
+      <div className="manager-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
+        <div className="audience-filter-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#f1f5f9', padding: '4px 6px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', padding: '0 6px' }}>Filter:</span>
+          <button
+            type="button"
+            style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'all' ? '#ffffff' : 'transparent', color: audienceFilter === 'all' ? '#0f172a' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
+            onClick={() => setAudienceFilter('all')}
+          >
+            🌐 ALL ({allSlides.filter(s => normalizeAudience(s.targetAudience).includes('all')).length})
+          </button>
+          <button
+            type="button"
+            style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'men' ? '#2563eb' : 'transparent', color: audienceFilter === 'men' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'men' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
+            onClick={() => setAudienceFilter('men')}
+          >
+            👨 MEN ({allSlides.filter(s => normalizeAudience(s.targetAudience).includes('men')).length})
+          </button>
+          <button
+            type="button"
+            style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'women' ? '#ec4899' : 'transparent', color: audienceFilter === 'women' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'women' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
+            onClick={() => setAudienceFilter('women')}
+          >
+            👩 WOMEN ({allSlides.filter(s => normalizeAudience(s.targetAudience).includes('women')).length})
+          </button>
+        </div>
+
         <button className="add-btn" onClick={handleAddNew}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-          Add New Category
+          Add {audienceFilter === 'all' ? 'Category' : `${audienceFilter.toUpperCase()} Category`}
         </button>
       </div>
 
       <div className="slides-grid">
-        {settings?.categorySlides?.length > 0 ? (
-          settings.categorySlides.map((slide, index) => (
+        {displayedCategorySlides.length > 0 ? (
+          displayedCategorySlides.map((slide, index) => (
             <motion.div
               key={slide._id || index}
               className="slide-card"
@@ -209,16 +292,16 @@ const CategoryManager = () => {
                   onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
                 />
                 <div className="slide-actions">
-                  <button className="icon-btn edit" onClick={() => handleEdit(slide)} title="Edit">
+                  <button className="icon-btn edit" onClick={() => handleEdit(slide, index)} title="Edit">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                   </button>
-                  <button className="icon-btn delete" onClick={() => handleDelete(slide._id)} title="Delete">
+                  <button className="icon-btn delete" onClick={() => handleDelete(slide._id, index)} title="Delete">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                   </button>
                 </div>
               </div>
               <div className="slide-info">
-                <span className="category-label">{slide.subtitle}</span>
+                <span className="category-label">{slide.subtitle} • 🎯 {formatAudienceBadge(slide.targetAudience)}</span>
                 <h3>{slide.title}</h3>
                 <p>{slide.description.substring(0, 80)}...</p>
                 <div className="feature-tags">
@@ -287,6 +370,36 @@ const CategoryManager = () => {
                     onChange={(e) => setEditingSlide({ ...editingSlide, slug: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                   />
                   <small>This will be used in the URL: /category/{"{slug}"}</small>
+                </div>
+
+                <div className="form-group">
+                  <label>Target Audiences (Select 1 or Multiple)</label>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '0.4rem', background: '#f8fafc', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={normalizeAudience(editingSlide.targetAudience).includes('all')}
+                        onChange={() => handleCategoryAudienceToggle('all')}
+                      />
+                      🌐 ALL
+                    </label>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#2563eb' }}>
+                      <input
+                        type="checkbox"
+                        checked={normalizeAudience(editingSlide.targetAudience).includes('men')}
+                        onChange={() => handleCategoryAudienceToggle('men')}
+                      />
+                      👨 MEN
+                    </label>
+                    <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#ec4899' }}>
+                      <input
+                        type="checkbox"
+                        checked={normalizeAudience(editingSlide.targetAudience).includes('women')}
+                        onChange={() => handleCategoryAudienceToggle('women')}
+                      />
+                      👩 WOMEN
+                    </label>
+                  </div>
                 </div>
 
                 <div className="form-group">

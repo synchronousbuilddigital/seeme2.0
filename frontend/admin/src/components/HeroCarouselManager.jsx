@@ -22,6 +22,26 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
   const [isActive, setIsActive] = useState(true)
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
+  const normalizeAudience = (val) => {
+    if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase())
+    if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+    return ['all']
+  }
+
+  const [targetAudience, setTargetAudience] = useState(['all'])
+  const [audienceFilter, setAudienceFilter] = useState('all') // 'all', 'men', 'women'
+
+  const handleAudienceToggle = (value) => {
+    setTargetAudience(prev => {
+      const arr = Array.isArray(prev) ? prev : [prev]
+      if (arr.includes(value)) {
+        const next = arr.filter(v => v !== value)
+        return next.length > 0 ? next : ['all']
+      } else {
+        return [...arr, value]
+      }
+    })
+  }
 
   useEffect(() => {
     fetchHeroSlides()
@@ -36,6 +56,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
       setCustomImage('')
       setTitle(preSelectedProduct.name)
       setSubtitle(preSelectedProduct.category)
+      setTargetAudience(['all'])
 
       const maxOrder = heroSlides.length > 0
         ? Math.max(...heroSlides.map(s => s.order || 0))
@@ -56,6 +77,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
       setIsActive(editingSlide.isActive !== false)
       setTitle(editingSlide.title || editingSlide.productName || '')
       setSubtitle(editingSlide.subtitle || editingSlide.productCategory || '')
+      setTargetAudience(normalizeAudience(editingSlide.targetAudience))
       setSelectedProductId(editingSlide.productId || '')
 
       const product = products.find(p => p._id === editingSlide.productId)
@@ -74,6 +96,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
       setOrder(maxOrder + 1)
       setTitle('')
       setSubtitle('')
+      setTargetAudience([audienceFilter === 'all' ? 'all' : audienceFilter])
       setSelectedProductId('')
       setSelectedImageIndex(0)
       setCustomImage('')
@@ -168,6 +191,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
         productCategory: selectedProduct?.category || '',
         title: title || selectedProduct?.name || 'New Collection',
         subtitle: subtitle || selectedProduct?.category || 'Premium Edit',
+        targetAudience: Array.isArray(targetAudience) && targetAudience.length > 0 ? targetAudience : ['all'],
         order: Number(order),
         isActive
       }
@@ -244,10 +268,52 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
   const selectedProduct = products.find(p => p._id === selectedProductId)
   const selectedImages = selectedProduct?.images || []
 
+  const formatAudienceBadge = (val) => {
+    if (Array.isArray(val)) return val.map(v => (v || '').toUpperCase()).join(', ')
+    if (typeof val === 'string' && val.trim()) return val.toUpperCase()
+    return 'ALL'
+  }
+
+  const displayedSlides = heroSlides.filter(slide => {
+    const arr = normalizeAudience(slide.targetAudience)
+    return arr.includes(audienceFilter.toLowerCase())
+  })
+
+  const handleCreateSlideClick = () => {
+    setEditingSlide(null)
+    setTargetAudience([audienceFilter])
+    setShowForm(true)
+  }
+
   return (
     <div className="hero-carousel-manager">
       <div className="manager-header-lux">
-        <div className="header-actions">
+        <div className="header-actions" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div className="audience-filter-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#f1f5f9', padding: '4px 6px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', padding: '0 6px' }}>Filter:</span>
+            <button
+              type="button"
+              style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'all' ? '#ffffff' : 'transparent', color: audienceFilter === 'all' ? '#0f172a' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
+              onClick={() => setAudienceFilter('all')}
+            >
+              🌐 ALL ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('all')).length})
+            </button>
+            <button
+              type="button"
+              style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'men' ? '#2563eb' : 'transparent', color: audienceFilter === 'men' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'men' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
+              onClick={() => setAudienceFilter('men')}
+            >
+              👨 MEN ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('men')).length})
+            </button>
+            <button
+              type="button"
+              style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'women' ? '#ec4899' : 'transparent', color: audienceFilter === 'women' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'women' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
+              onClick={() => setAudienceFilter('women')}
+            >
+              👩 WOMEN ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('women')).length})
+            </button>
+          </div>
+
           <div className="view-switcher">
             <button
               className={viewMode === 'storyboard' ? 'active' : ''}
@@ -262,8 +328,9 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
               Detailed List
             </button>
           </div>
-          <button className="btn-add-hero" onClick={() => { setEditingSlide(null); setShowForm(true); }}>
-            <span>+</span> Create Slide
+
+          <button className="btn-add-hero" onClick={handleCreateSlideClick}>
+            <span>+</span> Create {audienceFilter === 'all' ? 'Slide' : `${audienceFilter.toUpperCase()} Slide`}
           </button>
         </div>
       </div>
@@ -382,6 +449,35 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
                       <label>Subtitle</label>
                       <input type="text" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} className="lux-input" placeholder="e.g. High Silk" />
                     </div>
+                    <div className="lux-group">
+                      <label>🎯 Target Audiences (Select 1 or Multiple)</label>
+                      <div style={{ display: 'flex', gap: '1rem', marginTop: '0.4rem', background: '#f8fafc', padding: '0.6rem 0.8rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={targetAudience.includes('all')}
+                            onChange={() => handleAudienceToggle('all')}
+                          />
+                          🌐 ALL
+                        </label>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#2563eb' }}>
+                          <input
+                            type="checkbox"
+                            checked={targetAudience.includes('men')}
+                            onChange={() => handleAudienceToggle('men')}
+                          />
+                          👨 MEN
+                        </label>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#ec4899' }}>
+                          <input
+                            type="checkbox"
+                            checked={targetAudience.includes('women')}
+                            onChange={() => handleAudienceToggle('women')}
+                          />
+                          👩 WOMEN
+                        </label>
+                      </div>
+                    </div>
                     <div className="lux-row">
                       <div className="lux-group">
                         <label>Order</label>
@@ -416,16 +512,16 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
             <div className="spin-lux large"></div>
             <p>Gathering your visual story...</p>
           </div>
-        ) : heroSlides.length === 0 ? (
+        ) : displayedSlides.length === 0 ? (
           <div className="lux-empty-state">
             <div className="empty-visual">🎨</div>
-            <h3>Your Story Starts Here</h3>
-            <p>Create your first hero slide to welcome visitors with style.</p>
-            <button className="btn-lux-primary" onClick={() => setShowForm(true)}>Begin Creating</button>
+            <h3>No {audienceFilter.toUpperCase()} Slides Found</h3>
+            <p>Create your first slide for the {audienceFilter.toUpperCase()} audience segment.</p>
+            <button className="btn-lux-primary" onClick={handleCreateSlideClick}>Create {audienceFilter.toUpperCase()} Slide</button>
           </div>
         ) : viewMode === 'storyboard' ? (
           <div className="storyboard-grid">
-            {heroSlides.map((slide, index) => (
+            {displayedSlides.map((slide, index) => (
               <motion.div
                 key={slide._id}
                 className={`story-card ${!slide.isActive ? 'inactive' : ''}`}
@@ -435,12 +531,12 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
               >
                 <div className="card-media">
                   <img src={getImageUrl(slide.image)} alt={slide.title} />
-                  <div className="card-badge">#{slide.order}</div>
+                  <div className="card-badge">#{slide.order} • {formatAudienceBadge(slide.targetAudience)}</div>
                   {!slide.isActive && <div className="card-status-label">HIDDEN</div>}
                 </div>
                 <div className="card-info">
                   <h4>{slide.title}</h4>
-                  <p>{slide.subtitle}</p>
+                  <p>{slide.subtitle} • 🎯 {formatAudienceBadge(slide.targetAudience)}</p>
                 </div>
                 <div className="card-footer">
                   <div className="reorder-mini">
@@ -468,7 +564,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
                 </tr>
               </thead>
               <tbody>
-                {heroSlides.map((slide, index) => (
+                {displayedSlides.map((slide, index) => (
                   <tr key={slide._id}>
                     <td>#{slide.order}</td>
                     <td><div className="table-img-lux"><img src={getImageUrl(slide.image)} alt="" /></div></td>

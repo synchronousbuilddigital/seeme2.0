@@ -32,6 +32,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     shortDescription: '',
     slug: '',
     category: '',
+    targetAudience: ['women'],
     subcategory: '',
     sku: '',
     price: '',
@@ -96,6 +97,24 @@ const ProductsManager = ({ onPromoteToHero }) => {
       ...prev,
       tags: (prev.tags || []).filter(t => t.toLowerCase() !== tagToRemove.toLowerCase())
     }))
+  }
+
+  const getAudienceArray = (val) => {
+    if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase().trim())
+    if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+    return ['women']
+  }
+
+  const handleAudienceToggle = (val) => {
+    setFormData(prev => {
+      const current = getAudienceArray(prev.targetAudience || prev.gender)
+      if (current.includes(val)) {
+        const next = current.filter(v => v !== val)
+        return { ...prev, targetAudience: next.length > 0 ? next : ['women'] }
+      } else {
+        return { ...prev, targetAudience: [...current, val] }
+      }
+    })
   }
 
   useEffect(() => {
@@ -427,12 +446,16 @@ const ProductsManager = ({ onPromoteToHero }) => {
         })
       }
 
+      const audienceList = getAudienceArray(formData.targetAudience || formData.gender)
+
       const payload = {
         name: formData.name.trim(),
         slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
         description: formData.description,
         shortDescription: formData.shortDescription,
         category: formData.category,
+        gender: audienceList,
+        targetAudience: audienceList,
         subcategory: formData.subcategory,
         sku: formData.sku ? formData.sku.trim() : undefined,
         price: parsedPrice,
@@ -549,6 +572,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       shortDescription: product.shortDescription || '',
       slug: product.slug || '',
       category: product.category,
+      targetAudience: getAudienceArray(product.targetAudience || product.gender),
       subcategory: product.subcategory || '',
       sku: product.sku || '',
       price: product.price ? product.price.toString() : '',
@@ -775,6 +799,38 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div className="form-group">
                         <label>Subcategory</label>
                         <input type="text" value={formData.subcategory} onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })} placeholder="e.g. Wedding Wear" />
+                      </div>
+                    </div>
+
+                    <div className="form-group mb-4">
+                      <label style={{ fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
+                        Target Audience Panels (Multi-Select: Choose where this product appears) *
+                      </label>
+                      <div className="checkbox-audience-row" style={{ display: 'flex', gap: '1.25rem', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                          <input
+                            type="checkbox"
+                            checked={getAudienceArray(formData.targetAudience || formData.gender).includes('all')}
+                            onChange={() => handleAudienceToggle('all')}
+                          />
+                          <span>🌐 ALL</span>
+                        </label>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#2563eb' }}>
+                          <input
+                            type="checkbox"
+                            checked={getAudienceArray(formData.targetAudience || formData.gender).includes('men')}
+                            onChange={() => handleAudienceToggle('men')}
+                          />
+                          <span>👨 MEN</span>
+                        </label>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#ec4899' }}>
+                          <input
+                            type="checkbox"
+                            checked={getAudienceArray(formData.targetAudience || formData.gender).includes('women')}
+                            onChange={() => handleAudienceToggle('women')}
+                          />
+                          <span>👩 WOMEN</span>
+                        </label>
                       </div>
                     </div>
                     <div className="form-group">
@@ -1316,6 +1372,9 @@ const ProductsManager = ({ onPromoteToHero }) => {
                   </td>
                   <td>
                     <span className="category-pill">{product.category}</span>
+                    <div style={{ marginTop: '4px', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', color: '#2563eb' }}>
+                      {getAudienceArray(product.targetAudience || product.gender).join(', ')}
+                    </div>
                   </td>
                   <td>
                     <span className="table-price">₹{product.price.toLocaleString()}</span>

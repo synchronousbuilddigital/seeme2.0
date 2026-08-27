@@ -1,0 +1,388 @@
+/* ==========================================================================
+   CATEGORY TABS COMPONENT — GENDER NAV WITH DYNAMIC THEME SWITCHING
+   ========================================================================== */
+
+.category-tabs-section {
+  width: 100%;
+  position: relative;
+  padding: 0 0 1.25rem 0;
+  margin-top: -1.75rem;
+  /* Shift section upwards right under hero */
+  transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+/* --- THEME VARIATIONS --- */
+
+/* 1. ALL Theme — Current default site theme (Peach / Warm Blush) */
+.category-tabs-section.theme-all {
+  --tab-bg: #FFF7F6;
+  --section-bg: #FAF3F2;
+  --tab-border: #F43F5E;
+  --tab-text-muted: #64748B;
+  --tab-text-active: #E11D48;
+  --ring-glow: rgba(225, 29, 72, 0.4);
+  --ring-bg: #FFFFFF;
+  --label-color: #1E293B;
+  background-color: var(--section-bg);
+}
+
+/* 2. MEN Theme — Theme of photo for Men (Soft Ice / Sky Blue) */
+.category-tabs-section.theme-men {
+  --tab-bg: #EBF5FF;
+  --section-bg: #E2F0FD;
+  --tab-border: #3B82F6;
+  --tab-text-muted: #475569;
+  --tab-text-active: #1D4ED8;
+  --ring-glow: rgba(37, 99, 235, 0.4);
+  --ring-bg: #FFFFFF;
+  --label-color: #0F172A;
+  background-color: var(--section-bg);
+}
+
+/* 3. WOMEN Theme — Theme of photo for Women (Soft Blush / Rose Pink) */
+.category-tabs-section.theme-women {
+  --tab-bg: #FFF0F5;
+  --section-bg: #FCE7F3;
+  --tab-border: #EC4899;
+  --tab-text-muted: #831843;
+  --tab-text-active: #BE185D;
+  --ring-glow: rgba(236, 72, 153, 0.4);
+  --ring-bg: #FFFFFF;
+  --label-color: #4C0519;
+  background-color: var(--section-bg);
+}
+
+/* Container for category avatars — 100% Full Bleed Edge-to-Edge */
+.category-tabs-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Full Bleed Tab Navigation Header Bar Wrapper */
+.category-tabs-nav-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 0.5rem;
+}
+
+.category-tabs-bar-container {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.category-tabs-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.75rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* 100% Full-Bleed Edge-to-Edge Screen Line */
+.category-tabs-baseline {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  height: 2px;
+  background-color: var(--tab-border);
+  z-index: 1;
+  transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Folder Tab Item Button */
+.category-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 0.65rem 1.8rem;
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--tab-text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.category-tab-btn:hover {
+  color: var(--tab-text-active);
+}
+
+.category-tab-btn span {
+  position: relative;
+  z-index: 4;
+}
+
+/* Folder Tab Active Item Button */
+.category-tab-btn.active {
+  color: var(--tab-text-active);
+  font-weight: 800;
+  z-index: 3;
+}
+
+/* Framer Motion Gliding Folder Tab Active Notch */
+.category-tab-active-notch {
+  position: absolute;
+  inset: 0;
+  background-color: var(--tab-bg);
+  border-top: 2px solid var(--tab-border);
+  border-left: 2px solid var(--tab-border);
+  border-right: 2px solid var(--tab-border);
+  border-bottom: 2px solid var(--tab-bg);
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  margin-bottom: -2px;
+  pointer-events: none;
+  z-index: 1;
+  transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Clean Outer Bottom Radius Curves for File-Folder Tab Notch Effect */
+.category-tab-active-notch::before {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: -12px;
+  width: 12px;
+  height: 12px;
+  background: transparent;
+  border-bottom-right-radius: 10px;
+  box-shadow: 2px 2px 0 0px var(--tab-border);
+  pointer-events: none;
+  transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.category-tab-active-notch::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  right: -12px;
+  width: 12px;
+  height: 12px;
+  background: transparent;
+  border-bottom-left-radius: 10px;
+  box-shadow: -2px 2px 0 0px var(--tab-border);
+  pointer-events: none;
+  transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Circular Avatars Viewport — Full Screen Edge-to-Edge */
+.category-avatars-viewport {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  padding: 0.75rem 0;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE 10+ */
+}
+
+.category-avatars-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes categoryInfiniteMarquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.category-avatars-track {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.25rem;
+  min-width: max-content;
+}
+
+.category-avatars-track.infinite-loop {
+  animation: categoryInfiniteMarquee 28s linear infinite;
+  will-change: transform;
+}
+
+.category-avatars-viewport:hover .category-avatars-track.infinite-loop {
+  animation-play-state: paused;
+}
+
+/* Individual Avatar Card */
+.avatar-circle-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.avatar-circle-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Ring outline */
+.avatar-circle-ring {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  padding: 3px;
+  background: var(--ring-bg);
+  border: 2px solid var(--tab-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-circle-card:hover .avatar-circle-ring {
+  box-shadow: 0 8px 24px var(--ring-glow);
+  border-color: var(--tab-text-active);
+}
+
+/* Image wrapper inside ring */
+.avatar-circle-image-wrapper {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  background: #F1F5F9;
+}
+
+.avatar-circle-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.avatar-circle-card:hover .avatar-circle-img {
+  transform: scale(1.12);
+}
+
+/* Label text below avatar */
+.avatar-circle-label {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--label-color);
+  text-align: center;
+  max-width: 110px;
+  line-height: 1.25;
+  transition: color 0.35s ease;
+}
+
+.avatar-circle-card:hover .avatar-circle-label {
+  color: var(--tab-text-active);
+}
+
+/* Skeleton Loading State */
+.category-avatars-skeleton-track {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.25rem;
+  min-width: max-content;
+}
+
+.avatar-circle-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.skeleton-ring {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.6) 25%, rgba(241, 245, 249, 0.8) 50%, rgba(226, 232, 240, 0.6) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-line {
+  width: 70px;
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.6) 25%, rgba(241, 245, 249, 0.8) 50%, rgba(226, 232, 240, 0.6) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive Rules */
+@media (max-width: 768px) {
+  .category-tabs-section {
+    padding: 0 0 0.75rem 0;
+    margin-top: -0.5rem;
+  }
+
+  .category-tabs-bar-container {
+    padding: 0 1rem;
+  }
+
+  .category-tabs-bar {
+    gap: 0.6rem;
+  }
+
+  .category-tab-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+  }
+
+  .avatar-circle-ring {
+    width: 76px;
+    height: 76px;
+  }
+
+  .avatar-circle-label {
+    font-size: 0.76rem;
+    max-width: 90px;
+  }
+
+  .category-avatars-track {
+    gap: 1.25rem;
+  }
+}

@@ -2,8 +2,8 @@
 
 .hero-banner {
   position: relative;
-  min-height: 100vh;
-  padding: clamp(4rem, 8vh, 5.5rem) 0 clamp(6.5rem, 10vw, 8rem);
+  min-height: auto;
+  padding: clamp(3.5rem, 6vh, 4.5rem) 0 1rem;
   overflow: hidden;
   /* Brand-Aligned warm off-white and soft gold-cream royal gradient */
   background:
@@ -96,7 +96,8 @@
   grid-template-columns: 1.15fr 0.85fr;
   gap: clamp(2rem, 5vw, 6rem);
   align-items: center;
-  min-height: calc(100vh - clamp(10rem, 18vh, 14rem));
+  min-height: auto;
+  padding-bottom: 1.5rem;
 }
 
 /* ─── LEFT COPY CONTAINER ─── */

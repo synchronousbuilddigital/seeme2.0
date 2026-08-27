@@ -50,6 +50,7 @@ export const API_ENDPOINTS = {
   MAGAZINE_ALL: `${API_BASE_URL}/api/magazine/all`,
   HERO_CAROUSEL: `${API_BASE_URL}/api/carousel`,
   HERO_CAROUSEL_ALL: `${API_BASE_URL}/api/carousel/all`,
+  BRANDS: `${API_BASE_URL}/api/brands`,
   REELS: `${API_BASE_URL}/api/reels`,
   REELS_ALL: `${API_BASE_URL}/api/reels/all`,
   PUSH: {

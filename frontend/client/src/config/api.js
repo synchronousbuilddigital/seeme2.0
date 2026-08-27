@@ -82,6 +82,9 @@ export const API_ENDPOINTS = {
   // ─── New Arrivals ──────────────────────────────
   NEW_ARRIVALS: `${API_BASE_URL}/api/new-arrivals`,
 
+  // ─── Brands ─────────────────────────────────────
+  BRANDS: `${API_BASE_URL}/api/brands`,
+
   // ─── Site Settings ─────────────────────────────
   SITE_SETTINGS: `${API_BASE_URL}/api/site-settings`,
 

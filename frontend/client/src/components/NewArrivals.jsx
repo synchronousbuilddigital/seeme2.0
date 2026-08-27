@@ -5,38 +5,28 @@ import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
+import { belongsToAudience } from '../utils/categoryHelper'
 import AddToCartButton from './AddToCartButton'
 import './NewArrivals.css'
 
-const NewArrivals = () => {
+const NewArrivals = ({ activeAudience = 'all' }) => {
   const navigate = useNavigate()
   const { toggleWishlist, isInWishlist, addToCart } = useContext(CartContext)
-  const [arrivals, setArrivals] = useState(() => {
-    try {
-      const cached = localStorage.getItem('seemee_new_arrivals')
-      return cached ? JSON.parse(cached) : []
-    } catch {
-      return []
-    }
-  })
-  const [loading, setLoading] = useState(() => {
-    try {
-      const cached = localStorage.getItem('seemee_new_arrivals')
-      return cached ? false : true
-    } catch {
-      return true
-    }
-  })
+  const [arrivals, setArrivals] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // Fetch Arrivals
   useEffect(() => {
     const fetchTopProducts = async () => {
       try {
-        const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=6&status=active`)
+        setLoading(true)
+        const endpoint = activeAudience !== 'all'
+          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=100&status=active`
+          : `${API_ENDPOINTS.PRODUCTS}?limit=100&status=active`
+        const data = await cachedFetch(endpoint, { forceRefresh: true })
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const sliced = data.data.slice(0, 4)
-          setArrivals(sliced)
-          localStorage.setItem('seemee_new_arrivals', JSON.stringify(sliced))
+          const filtered = data.data.filter(p => belongsToAudience(p, activeAudience)).slice(0, 4)
+          setArrivals(filtered)
         }
       } catch (error) {
         console.error('Error fetching new arrivals:', error)
@@ -45,7 +35,7 @@ const NewArrivals = () => {
       }
     }
     fetchTopProducts()
-  }, [])
+  }, [activeAudience])
 
   if (loading) return null
 

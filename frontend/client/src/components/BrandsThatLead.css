@@ -1,0 +1,225 @@
+/* ==========================================================================
+   BRANDS THAT LEAD COMPONENT — MOCKUP DESIGN MATCHING USER SPEC
+   ========================================================================== */
+
+.brands-lead-section {
+  width: 100%;
+  padding: 3.5rem 0;
+  background-color: #FAFAFA;
+  position: relative;
+  overflow: hidden;
+}
+
+.brands-lead-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Header */
+.brands-lead-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.brands-lead-eyebrow {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  color: #64748B;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.brands-lead-title {
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0F172A;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.brands-title-underline {
+  width: 48px;
+  height: 3px;
+  background-color: #2563EB;
+  margin-top: 0.75rem;
+  border-radius: 2px;
+}
+
+/* Grid / Row of Brand Cards */
+.brands-cards-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.75rem;
+}
+
+/* Individual Card — Split 2-Column Full-Height Cover Layout */
+.brand-card-item {
+  position: relative;
+  border-radius: 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 165px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.brand-card-item:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* Left Photo Side — Full Height Edge-to-Edge Cover */
+.brand-card-photo-side {
+  width: 44%;
+  min-width: 135px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-color: #E2E8F0;
+}
+
+.brand-card-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.4s ease;
+}
+
+.brand-card-item:hover .brand-card-photo-img {
+  transform: scale(1.06);
+}
+
+/* Right Info Side */
+.brand-card-info-side {
+  width: 56%;
+  padding: 1.35rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+/* Center Details */
+.brand-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.brand-name-text {
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #0F172A;
+  margin: 0;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.brand-tagline-text {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #334155;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Bottom Pill Action Button */
+.brand-action-area {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: 0.25rem;
+}
+
+.brand-pill-button {
+  background: #FFFFFF;
+  color: #0F172A;
+  border: none;
+  padding: 0.5rem 1.15rem;
+  border-radius: 30px;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-card-item:hover .brand-pill-button {
+  background: #0F172A;
+  color: #FFFFFF;
+  transform: translateX(4px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+}
+
+/* Skeleton Loading State */
+.brands-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.75rem;
+}
+
+.brand-skeleton-card {
+  height: 160px;
+  border-radius: 24px;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.6) 25%, rgba(241, 245, 249, 0.8) 50%, rgba(226, 232, 240, 0.6) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Responsive Rules */
+@media (max-width: 768px) {
+  .brands-lead-section {
+    padding: 2.25rem 0;
+  }
+
+  .brands-lead-title {
+    font-size: 1.75rem;
+  }
+
+  .brands-cards-row {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .brand-avatar-frame {
+    width: 74px;
+    height: 74px;
+  }
+
+  .brand-name-text {
+    font-size: 1.15rem;
+  }
+
+  .brand-tagline-text {
+    font-size: 0.8rem;
+  }
+}
