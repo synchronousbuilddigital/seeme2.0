@@ -130,6 +130,7 @@ const paymentLimiter = rateLimit({
 app.use('/api/', globalLimiter)
 app.use('/api/auth/login', authLimiter)
 app.use('/api/auth/register', authLimiter)
+app.use('/api/auth/send-signup-otp', otpLimiter)
 app.use('/api/auth/forgot-password', otpLimiter)
 app.use('/api/auth/verify-otp', otpLimiter)
 app.use('/api/auth/reset-password', otpLimiter)

@@ -1,7 +1,7 @@
 import Product from '../models/Product.js'
 
 export const getAllProducts = async (filters = {}) => {
-  const { category, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 1000, includeInactive, status } = filters
+  const { category, brand, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 1000, includeInactive, status } = filters
   const filter = {}
 
   const shouldIncludeInactive = includeInactive === 'true' || includeInactive === true || includeInactive === '1' || includeInactive === 1
@@ -11,22 +11,43 @@ export const getAllProducts = async (filters = {}) => {
   } else if (status === 'inactive') {
     filter.isActive = false
   } else if (!shouldIncludeInactive) {
-    filter.isActive = { $ne: false } // Client storefront only gets active products
+    filter.isActive = { $ne: false }
   }
 
   if (category) filter.category = category
+  if (brand && brand !== 'all') {
+    const cleanBrand = String(brand).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    filter.brand = new RegExp(cleanBrand, 'i')
+  }
   if (featured) filter.featured = true
   if (inCollection) filter.inCollection = true
   if (filters.gender && filters.gender !== 'all') {
     const g = String(filters.gender).toLowerCase().trim()
-    filter.$or = [
-      { gender: g },
-      { gender: 'all' },
-      { gender: { $in: [g, 'all'] } },
-      { targetAudience: g },
-      { targetAudience: 'all' },
-      { targetAudience: { $in: [g, 'all'] } }
-    ]
+    const oppositeG = g === 'men' ? 'women' : (g === 'women' ? 'men' : null)
+
+    if (oppositeG) {
+      filter.$and = [
+        {
+          $or: [
+            { gender: g },
+            { gender: { $in: [g, 'all', 'unisex'] } },
+            { targetAudience: g },
+            { targetAudience: { $in: [g, 'all', 'unisex'] } }
+          ]
+        },
+        {
+          gender: { $nin: [oppositeG] },
+          targetAudience: { $nin: [oppositeG] }
+        }
+      ]
+    } else {
+      filter.$or = [
+        { gender: g },
+        { gender: { $in: [g, 'all', 'unisex'] } },
+        { targetAudience: g },
+        { targetAudience: { $in: [g, 'all', 'unisex'] } }
+      ]
+    }
   }
 
   if (minPrice || maxPrice) {
@@ -176,25 +197,12 @@ export const getProductById = async (id) => {
 }
 
 export const createProduct = async (productData) => {
-  if (productData.inCollection) {
-    const collectionCount = await getCollectionCount()
-    if (collectionCount >= 15) {
-      throw new Error('Collection is full. Maximum 15 products allowed in collection.')
-    }
-  }
   clearCategoryCache()
   return await Product.create(productData)
 }
 
 export const updateProduct = async (id, productData) => {
-  const existingProduct = await getProductById(id)
-
-  if (productData.inCollection && !existingProduct.inCollection) {
-    const collectionCount = await getCollectionCount()
-    if (collectionCount >= 15) {
-      throw new Error('Collection is full. Maximum 15 products allowed in collection.')
-    }
-  }
+  await getProductById(id)
 
   clearCategoryCache()
   const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true, runValidators: true }).lean()

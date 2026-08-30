@@ -3,7 +3,8 @@ import * as authService from '../services/authService.js'
 import * as googleAuthService from '../services/googleAuthService.js'
 import User from '../models/User.js'
 import asyncHandler from '../utils/asyncHandler.js'
-import { sendOtpEmail } from '../services/emailService.js'
+import PendingOtp from '../models/PendingOtp.js'
+import { sendOtpEmail, sendSignupOtpEmail } from '../services/emailService.js'
 
 // Helper to set refresh token cookie
 const setRefreshTokenCookie = (res, token) => {
@@ -15,8 +16,103 @@ const setRefreshTokenCookie = (res, token) => {
   })
 }
 
+/**
+ * @desc    Send 6-digit OTP for Account Signup Verification
+ * @route   POST /api/auth/send-signup-otp
+ * @access  Public
+ */
+export const sendSignupOtp = asyncHandler(async (req, res) => {
+  const { email, name } = req.body
+
+  if (!email || !email.trim()) {
+    res.status(400)
+    throw new Error('Email address is required.')
+  }
+
+  const cleanEmail = email.toLowerCase().trim()
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  if (!emailRegex.test(cleanEmail)) {
+    res.status(400)
+    throw new Error('Please enter a valid email address (e.g., user@example.com).')
+  }
+
+  // 1. Check if an account already exists with this email
+  const existingUser = await User.findOne({ email: cleanEmail })
+  if (existingUser) {
+    res.status(400)
+    throw new Error('An account with this email address already exists. Please sign in instead.')
+  }
+
+  // 2. Generate secure 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+  // 3. Upsert pending OTP in database (valid for 10 minutes)
+  await PendingOtp.deleteMany({ email: cleanEmail })
+  await PendingOtp.create({
+    email: cleanEmail,
+    name: name ? name.trim() : 'Valued Customer',
+    otpCode: otp,
+    otpExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
+    otpAttempts: 0
+  })
+
+  console.log(`🔑 [SIGNUP OTP SENT] Verification code sent to: ${cleanEmail}`)
+
+  // 4. Send email
+  await sendSignupOtpEmail(cleanEmail, name, otp)
+
+  res.json({
+    success: true,
+    message: `Verification OTP has been sent to ${cleanEmail}. Please enter the 6-digit code to complete registration.`
+  })
+})
+
 export const register = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body
+
+  if (!otp || !otp.trim()) {
+    res.status(400)
+    throw new Error('Email Verification OTP code is required.')
+  }
+
+  const cleanEmail = String(email || '').toLowerCase().trim()
+
+  // Check pending OTP in database
+  const pendingRecord = await PendingOtp.findOne({ email: cleanEmail })
+  if (!pendingRecord || !pendingRecord.otpCode || !pendingRecord.otpExpires) {
+    res.status(400)
+    throw new Error('No active OTP request found for this email. Please request a new verification code.')
+  }
+
+  // Check expiration
+  if (new Date(pendingRecord.otpExpires).getTime() < Date.now()) {
+    await PendingOtp.deleteMany({ email: cleanEmail })
+    res.status(400)
+    throw new Error('Verification OTP has expired. Please request a new verification code.')
+  }
+
+  // Check OTP attempts limit (max 5)
+  if ((pendingRecord.otpAttempts || 0) >= 5) {
+    await PendingOtp.deleteMany({ email: cleanEmail })
+    res.status(400)
+    throw new Error('Too many failed OTP verification attempts. Please request a new verification code.')
+  }
+
+  // Verify OTP match
+  if (String(pendingRecord.otpCode).trim() !== String(otp).trim()) {
+    pendingRecord.otpAttempts = (pendingRecord.otpAttempts || 0) + 1
+    await pendingRecord.save()
+    const remaining = 5 - pendingRecord.otpAttempts
+    res.status(400)
+    throw new Error(`Invalid OTP verification code. ${remaining} attempt(s) remaining.`)
+  }
+
+  // OTP verified! Create user account
   const user = await authService.registerUser(req.body)
+
+  // Clear pending OTP record
+  await PendingOtp.deleteMany({ email: cleanEmail })
+
   const accessToken = authService.generateToken(user._id)
   const refreshToken = authService.generateRefreshToken(user._id)
 
@@ -39,7 +135,7 @@ export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body
   try {
     const user = await authService.loginUser({ email, password })
-    
+
     // Update lastLogin timestamp
     user.lastLogin = new Date()
     await user.save()

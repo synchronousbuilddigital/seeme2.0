@@ -24,12 +24,18 @@ export const verifyRefreshToken = (token) => {
 export const registerUser = async (userData) => {
   const { email, password, name, phone } = userData
 
-  const userExists = await User.findOne({ email })
-  if (userExists) {
-    throw new Error('User already exists')
+  const cleanEmail = String(email || '').toLowerCase().trim()
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  if (!emailRegex.test(cleanEmail)) {
+    throw new Error('Please enter a valid email address (e.g., user@example.com).')
   }
 
-  const user = await User.create({ email, password, name, phone, role: 'customer' })
+  const userExists = await User.findOne({ email: cleanEmail })
+  if (userExists) {
+    throw new Error('An account with this email address already exists.')
+  }
+
+  const user = await User.create({ email: cleanEmail, password, name, phone, role: 'customer' })
   return user
 }
 

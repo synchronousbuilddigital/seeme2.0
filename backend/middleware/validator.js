@@ -21,7 +21,12 @@ export const validate = (req, res, next) => {
 export const registerValidationRules = () => {
   return [
     body('name').notEmpty().withMessage('Name is required').trim(),
-    body('email').isEmail().withMessage('Invalid email address').normalizeEmail(),
+    body('email')
+      .trim()
+      .notEmpty().withMessage('Email address is required')
+      .isEmail().withMessage('Please enter a valid email address')
+      .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).withMessage('Please enter a valid email address (e.g., user@example.com)')
+      .normalizeEmail(),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   ]
 }

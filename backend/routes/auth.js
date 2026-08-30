@@ -6,7 +6,8 @@ import { registerValidationRules, loginValidationRules, validate } from '../midd
 
 const router = express.Router()
 
-// Register
+// Register & Signup OTP Flow
+router.post('/send-signup-otp', authController.sendSignupOtp)
 router.post('/register', registerValidationRules(), validate, authController.register)
 router.post('/signup', registerValidationRules(), validate, authController.register) // Alias
 

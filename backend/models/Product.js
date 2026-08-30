@@ -20,11 +20,11 @@ const productSchema = new mongoose.Schema({
   },
   gender: {
     type: mongoose.Schema.Types.Mixed,
-    default: ['women']
+    default: ['all']
   },
   targetAudience: {
     type: mongoose.Schema.Types.Mixed,
-    default: ['women']
+    default: ['all']
   },
   subcategory: {
     type: String,

@@ -22,10 +22,16 @@ export const getBrands = asyncHandler(async (req, res) => {
     return { ...b, targetAudience: audience }
   })
 
-  if (gender && admin !== 'true') {
+  if (gender && gender !== 'all' && admin !== 'true') {
     const g = gender.toLowerCase()
-    const filtered = normalized.filter(b => b.targetAudience.includes(g) || b.targetAudience.includes('all'))
-    return res.json({ success: true, count: filtered.length, data: filtered })
+    const filtered = normalized.filter(b => 
+      b.targetAudience.includes(g) || 
+      b.targetAudience.includes('all') || 
+      b.targetAudience.length === 0
+    )
+    if (filtered.length > 0) {
+      return res.json({ success: true, count: filtered.length, data: filtered })
+    }
   }
 
   res.json({ success: true, count: normalized.length, data: normalized })

@@ -179,6 +179,39 @@ export const sendOtpEmail = async (email, name, otp) => {
 }
 
 /**
+ * Send Account Signup Verification OTP Email
+ */
+export const sendSignupOtpEmail = async (email, name, otp) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #FAF9F6; padding: 30px; border-radius: 12px; border: 1px solid #E7E5E4; color: #1C1917;">
+      ${getLogoHeaderHtml('Account Email Verification')}
+
+      <div style="background: #FFFFFF; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
+        <h3 style="margin-top: 0; color: #1C1917; font-size: 20px;">Verify Your Email Address</h3>
+        <p style="color: #57534E; font-size: 14px; line-height: 1.6;">Hello <strong>${name || 'Valued Customer'}</strong>,</p>
+        <p style="color: #57534E; font-size: 14px; line-height: 1.6;">Thank you for registering with SEEMEE. Use the 6-digit OTP code below to verify your email address and complete your account creation:</p>
+        
+        <div style="background: #1C1917; border: 2px solid #D4AF37; padding: 18px; border-radius: 8px; text-align: center; margin: 25px 0;">
+          <span style="font-family: monospace; font-size: 36px; font-weight: bold; color: #D4AF37; letter-spacing: 8px;">${otp}</span>
+        </div>
+
+        <p style="font-size: 13px; color: #78716C; margin-bottom: 0;">⏰ This OTP is valid for <strong>10 minutes</strong>. Do not share this verification code with anyone.</p>
+      </div>
+
+      <div style="text-align: center; margin-top: 25px; font-size: 12px; color: #A8A29E;">
+        <p>© ${new Date().getFullYear()} SEEMEE. All rights reserved.</p>
+      </div>
+    </div>
+  `
+
+  return await sendEmail({
+    to: email,
+    subject: `${otp} is your SEEMEE Account Verification OTP`,
+    html
+  })
+}
+
+/**
  * 2. Send Order Status Email (Placed, Confirmed, Shipped, Delivered, Cancelled)
  */
 export const sendOrderEmail = async (order, statusType = 'Placed') => {
@@ -394,6 +427,7 @@ export const sendAdminNewOrderAlertEmail = async (order) => {
 export default {
   sendEmail,
   sendOtpEmail,
+  sendSignupOtpEmail,
   sendOrderEmail,
   sendAdminNewOrderAlertEmail
 }
