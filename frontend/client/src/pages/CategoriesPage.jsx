@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
-import { getCategoryProducts } from '../utils/categoryHelper'
+import { getCategoryProducts, belongsToAudience, isCategoryForAudience } from '../utils/categoryHelper'
 import './CategoriesPage.css'
 
 const CategoriesPage = () => {
@@ -12,19 +12,26 @@ const CategoriesPage = () => {
   const [categoriesList, setCategoriesList] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Category Search State
+  // Category Search & Audience State
   const [searchCategoryQuery, setSearchCategoryQuery] = useState('')
+  const [activeAudience, setActiveAudience] = useState('all')
 
   useEffect(() => {
     loadAllCategories()
     window.scrollTo(0, 0)
   }, [])
 
+  const normalizeAudience = (val) => {
+    if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase().trim())
+    if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+    return ['all']
+  }
+
   const loadAllCategories = async () => {
     setLoading(true)
     try {
       const [prodData, settingsData] = await Promise.all([
-        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`),
+        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000`),
         cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
       ])
 
@@ -48,6 +55,7 @@ const CategoriesPage = () => {
           ...cat,
           title: catTitle,
           slug: catSlug,
+          targetAudience: normalizeAudience(cat?.targetAudience),
           productCount: matching.length,
           features: cat?.features && cat.features.length > 0 ? cat.features : ['Luxury Tailoring', 'Pure Fabrics'],
           subtitle: cat?.subtitle || 'Seemee Collection',
@@ -64,17 +72,21 @@ const CategoriesPage = () => {
     }
   }
 
-  // Filter Categories by Search Query
+  // Filter Categories by Audience & Search Query (Strict Segmentation)
   const filteredCategories = useMemo(() => {
-    if (!searchCategoryQuery.trim()) return categoriesList
-    const q = searchCategoryQuery.toLowerCase().trim()
-    return categoriesList.filter(cat =>
-      cat.title?.toLowerCase().includes(q) ||
-      cat.subtitle?.toLowerCase().includes(q) ||
-      cat.description?.toLowerCase().includes(q) ||
-      cat.slug?.toLowerCase().includes(q)
-    )
-  }, [categoriesList, searchCategoryQuery])
+    let result = categoriesList.filter(cat => isCategoryForAudience(cat, activeAudience))
+
+    if (searchCategoryQuery.trim()) {
+      const q = searchCategoryQuery.toLowerCase().trim()
+      result = result.filter(cat =>
+        cat.title?.toLowerCase().includes(q) ||
+        cat.subtitle?.toLowerCase().includes(q) ||
+        cat.description?.toLowerCase().includes(q) ||
+        cat.slug?.toLowerCase().includes(q)
+      )
+    }
+    return result
+  }, [categoriesList, activeAudience, searchCategoryQuery])
 
   if (loading) {
     return (
@@ -134,6 +146,31 @@ const CategoriesPage = () => {
             <div className="title-left">
               <span className="section-eyebrow">✦ SEEMEE ATELIER GALLERY</span>
               <h2>Curated Category Showcase</h2>
+            </div>
+
+            {/* Audience Filter Tabs (ALL, MEN, WOMEN) matching Admin Panel */}
+            <div className="category-audience-tabs">
+              <button
+                type="button"
+                className={`audience-tab-btn ${activeAudience === 'all' ? 'active' : ''}`}
+                onClick={() => setActiveAudience('all')}
+              >
+                🌐 ALL
+              </button>
+              <button
+                type="button"
+                className={`audience-tab-btn ${activeAudience === 'men' ? 'active' : ''}`}
+                onClick={() => setActiveAudience('men')}
+              >
+                👨 MEN
+              </button>
+              <button
+                type="button"
+                className={`audience-tab-btn ${activeAudience === 'women' ? 'active' : ''}`}
+                onClick={() => setActiveAudience('women')}
+              >
+                👩 WOMEN
+              </button>
             </div>
 
             {/* Search Categories */}

@@ -4,9 +4,16 @@ import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
 import { getImageUrl } from '../utils/imageHelper'
 import { cachedFetch } from '../utils/cachedFetch'
+import { belongsToAudience, isCategoryForAudience } from '../utils/categoryHelper'
 import './CategoriesSlider.css'
 
-const CategoriesSlider = () => {
+const normalizeAudience = (val) => {
+  if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase().trim())
+  if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+  return ['all']
+}
+
+const CategoriesSlider = ({ activeAudience = 'all' }) => {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -15,7 +22,7 @@ const CategoriesSlider = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=12&status=active`)
+        const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000&status=active`)
         const activeProducts = prodData.success && prodData.data
           ? prodData.data
           : []
@@ -25,14 +32,19 @@ const CategoriesSlider = () => {
         let categoryList = []
 
         if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
-          // Use strictly the categories created/managed in Admin Category Manager
+          // Filter strictly by activeAudience matching Admin Panel configuration
           categoryList = settingsData.data.categorySlides
             .filter(Boolean)
+            .filter(cat => isCategoryForAudience(cat, activeAudience, activeProducts))
             .sort((a, b) => ((a?.order || 0) - (b?.order || 0)))
         } else {
           // Fallback dynamically from active products uploaded in Admin Panel
           const existingSlugs = new Set()
-          activeProducts.forEach(p => {
+          const audienceProducts = activeAudience !== 'all'
+            ? activeProducts.filter(p => belongsToAudience(p, activeAudience))
+            : activeProducts
+
+          audienceProducts.forEach(p => {
             if (!p || !p.category) return
             const pCatSlug = p.category.toLowerCase().trim()
             if (!existingSlugs.has(pCatSlug)) {
@@ -55,6 +67,7 @@ const CategoriesSlider = () => {
           const normCatSlug = catSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
           const matchingProds = activeProducts.filter(p => {
             if (!p || !p.category) return false
+            if (!belongsToAudience(p, activeAudience)) return false
             const normPCat = p.category.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
             return normPCat === normCatSlug || p.category.toLowerCase() === catSlug
           })
@@ -76,7 +89,7 @@ const CategoriesSlider = () => {
             description: cat?.description || 'Exquisite artisanal creations.',
             image: finalImage
           }
-        }).filter(c => Boolean(c.image))
+        }).filter(c => Boolean(c.image) && isCategoryForAudience(c, activeAudience, activeProducts))
 
         setCategories(mappedCategories)
       } catch (err) {
@@ -87,7 +100,7 @@ const CategoriesSlider = () => {
     }
 
     loadCategories()
-  }, [])
+  }, [activeAudience])
 
   if (loading || categories.length === 0) return null
 

@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
   LOGIN: `${API_BASE_URL}/api/auth/login`,
   REGISTER: `${API_BASE_URL}/api/auth/register`,
   SIGNUP: `${API_BASE_URL}/api/auth/signup`,
+  SEND_SIGNUP_OTP: `${API_BASE_URL}/api/auth/send-signup-otp`,
   ME: `${API_BASE_URL}/api/auth/me`,
   AUTH_FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
   AUTH_VERIFY_OTP: `${API_BASE_URL}/api/auth/verify-otp`,

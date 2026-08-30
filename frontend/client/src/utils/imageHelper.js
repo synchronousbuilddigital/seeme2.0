@@ -58,6 +58,7 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
     quality = 'auto',
     format = 'webp',
     crop = 'fill',
+    gravity = null,
     fetchFormat = 'webp',
     blur = null
   } = options
@@ -74,6 +75,7 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
     if (quality) transformations.push(`q_${quality}`)
     if (format) transformations.push(`f_${format}`)
     if (crop) transformations.push(`c_${crop}`)
+    if (gravity) transformations.push(`g_${gravity}`)
     
     // Add blur if specified
     if (blur) {
@@ -134,10 +136,11 @@ export const getOptimizedImageUrl = (imageData, preset = 'default', customOption
     },
     // Category/Fabric circles
     circle: {
-      width: 300,
+      width: 400,
       quality: 'auto:good',
       format: 'webp',
-      crop: 'fill'
+      crop: 'fill',
+      gravity: 'face'
     },
     // Default - Sensible optimization
     default: {

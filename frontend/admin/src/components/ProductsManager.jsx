@@ -16,6 +16,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [showNotificationModal, setShowNotificationModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [audienceFilter, setAudienceFilter] = useState('all') // 'all', 'women', 'men'
+  const [brandFilter, setBrandFilter] = useState('all')
   const [collectionFilter, setCollectionFilter] = useState('all')
   const [stockFilter, setStockFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -32,6 +34,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     shortDescription: '',
     slug: '',
     category: '',
+    brand: 'SeeMee',
     targetAudience: ['women'],
     subcategory: '',
     sku: '',
@@ -72,6 +75,19 @@ const ProductsManager = ({ onPromoteToHero }) => {
     isActive: true
   })
   const [availableCategories, setAvailableCategories] = useState([])
+  const [availableBrands, setAvailableBrands] = useState([])
+
+  const fetchBrands = async () => {
+    try {
+      const res = await apiRequest(`${API_ENDPOINTS.BRANDS}?admin=true`)
+      if (res?.success && Array.isArray(res.data)) {
+        const brandList = res.data.map(b => b.name?.trim()).filter(Boolean)
+        setAvailableBrands(Array.from(new Set(brandList)))
+      }
+    } catch (err) {
+      console.error('Error fetching admin brands:', err)
+    }
+  }
 
   const handleAddTag = (tagToAdd) => {
     const cleanTag = (tagToAdd || tagInput).trim()
@@ -120,12 +136,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
   useEffect(() => {
     fetchProducts()
     fetchCategories()
+    fetchBrands()
   }, [])
 
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, categoryFilter, collectionFilter, stockFilter, statusFilter])
+  }, [searchTerm, categoryFilter, audienceFilter, brandFilter, collectionFilter, stockFilter, statusFilter])
 
   const normalizeMediaUrl = (media) => {
     if (!media) return ''
@@ -209,35 +226,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
     try {
       let catList = []
 
-      // 1. Fetch categories configured in Category Section (SITE_SETTINGS)
+      // Fetch ONLY categories configured in Admin Category Section (SITE_SETTINGS)
       const settingsData = await apiRequest(API_ENDPOINTS.SITE_SETTINGS)
-      if (settingsData.success && settingsData.data && settingsData.data.categorySlides && settingsData.data.categorySlides.length > 0) {
-        catList = settingsData.data.categorySlides.map(c => ({
-          slug: c.slug || c.title.toLowerCase().replace(/\s+/g, '-'),
+      if (settingsData?.success && settingsData?.data?.categorySlides && Array.isArray(settingsData.data.categorySlides)) {
+        catList = settingsData.data.categorySlides.filter(Boolean).map(c => ({
+          slug: c.slug || (c.title ? c.title.toLowerCase().replace(/\s+/g, '-') : ''),
           title: c.title || c.slug
-        }))
-      }
-
-      // 2. Fetch categories existing across products
-      const prodCatData = await apiRequest(API_ENDPOINTS.GET_CATEGORIES)
-      if (prodCatData.success && Array.isArray(prodCatData.data)) {
-        prodCatData.data.forEach(c => {
-          const slug = typeof c === 'string' ? c : (c.slug || c.title || '')
-          if (slug && !catList.some(existing => existing.slug === slug || existing.title === slug)) {
-            catList.push({
-              slug: slug,
-              title: typeof c === 'string' ? (c.charAt(0).toUpperCase() + c.slice(1).replace(/-/g, ' ')) : (c.title || slug)
-            })
-          }
-        })
-      }
-
-      if (catList.length === 0) {
-        catList = [
-          { slug: '2-piece-sets', title: '2-Piece Sets' },
-          { slug: '3-piece-sets', title: '3-Piece Sets' },
-          { slug: 'co-ord-sets', title: 'Co-ord Sets' }
-        ]
+        })).filter(c => c.slug || c.title)
       }
 
       setAvailableCategories(catList)
@@ -454,6 +449,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         description: formData.description,
         shortDescription: formData.shortDescription,
         category: formData.category,
+        brand: formData.brand ? formData.brand.trim() : undefined,
         gender: audienceList,
         targetAudience: audienceList,
         subcategory: formData.subcategory,
@@ -530,12 +526,14 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   const resetForm = () => {
     const defaultCat = availableCategories[0]?.slug || availableCategories[0]?.title || ''
+    const defaultBrand = availableBrands[0] || ''
     setFormData({
       name: '',
       description: '',
       shortDescription: '',
       slug: '',
       category: defaultCat,
+      brand: defaultBrand,
       subcategory: '',
       sku: '',
       price: '',
@@ -572,6 +570,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       shortDescription: product.shortDescription || '',
       slug: product.slug || '',
       category: product.category,
+      brand: product.brand || (availableBrands[0] || ''),
       targetAudience: getAudienceArray(product.targetAudience || product.gender),
       subcategory: product.subcategory || '',
       sku: product.sku || '',
@@ -661,13 +660,64 @@ const ProductsManager = ({ onPromoteToHero }) => {
     showNotification('Product details copied!')
   }
 
+  const checkBelongsToAudience = (product, audience) => {
+    if (!product || !audience || audience === 'all') return true
+    const target = audience.toLowerCase().trim()
+    const targetAud = getAudienceArray(product.targetAudience)
+    const genderArr = getAudienceArray(product.gender)
+    const allAuds = [...targetAud, ...genderArr]
+
+    const pCat = String(product.category || '').toLowerCase().trim()
+    const pName = String(product.name || '').toLowerCase().trim()
+    const fullText = `${pCat} ${pName}`
+
+    const womenKeywords = ['kurti', 'sharara', 'saree', 'lehenga', 'anarkali', 'kaftan', 'gown', 'dupatta', 'suit', 'palazzo', 'women', 'female', 'ladies']
+    const menKeywords = ['sherwani', 'bandhgala', 'nehru jacket', 'waistcoat', 'pathani', 'men kurta', 'kurta pyjama', 'men', 'male', 'gents', 'mens']
+
+    const isWomenCategory = womenKeywords.some(kw => fullText.includes(kw))
+    const isMenCategory = menKeywords.some(kw => fullText.includes(kw))
+
+    const hasExplicitMen = allAuds.some(a => ['men', 'male', 'gents', 'mens'].includes(a))
+    const hasExplicitWomen = allAuds.some(a => ['women', 'female', 'ladies', 'womens'].includes(a))
+    const isUnisex = allAuds.some(a => ['all', 'unisex'].includes(a)) || (hasExplicitMen && hasExplicitWomen)
+
+    if (isUnisex) return true
+
+    if (target === 'men') {
+      if (hasExplicitMen) return true
+      if (hasExplicitWomen) return false
+      if (isWomenCategory && !isMenCategory) return false
+      if (isMenCategory) return true
+      return false
+    }
+
+    if (target === 'women') {
+      if (hasExplicitWomen) return true
+      if (hasExplicitMen) return false
+      if (isMenCategory) return false
+      if (isWomenCategory) return true
+      return !hasExplicitMen && !isMenCategory
+    }
+
+    return true
+  }
+
   const filteredProducts = products.filter((product) => {
     const matchesSearch = [product.name, product.description, product.category]
       .join(' ')
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
 
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter
+    const matchesCategory = categoryFilter === 'all' || (() => {
+      if (!product.category) return false
+      const pCat = product.category.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
+      const cFilter = categoryFilter.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
+      return pCat === cFilter || pCat.includes(cFilter) || cFilter.includes(pCat)
+    })()
+
+    const matchesAudience = audienceFilter === 'all' || checkBelongsToAudience(product, audienceFilter)
+
+    const matchesBrand = brandFilter === 'all' || (product.brand || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '') === brandFilter.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
     const matchesCollection = collectionFilter === 'all'
       || (collectionFilter === 'collection' && product.inCollection)
       || (collectionFilter === 'regular' && !product.inCollection)
@@ -678,7 +728,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       || (statusFilter === 'active' && product.isActive !== false)
       || (statusFilter === 'inactive' && product.isActive === false)
 
-    return matchesSearch && matchesCategory && matchesCollection && matchesStock && matchesStatus
+    return matchesSearch && matchesCategory && matchesAudience && matchesBrand && matchesCollection && matchesStock && matchesStatus
   })
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize))
@@ -706,6 +756,12 @@ const ProductsManager = ({ onPromoteToHero }) => {
           />
         </div>
 
+        <select className="toolbar-select" value={audienceFilter} onChange={(e) => setAudienceFilter(e.target.value)}>
+          <option value="all">All Gender (Men & Women)</option>
+          <option value="women">Women Only</option>
+          <option value="men">Men Only</option>
+        </select>
+
         <select className="toolbar-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
           <option value="all">All categories</option>
           {availableCategories.map(cat => {
@@ -713,6 +769,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
             const title = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')) : (cat.title || cat.slug)
             return <option key={slug} value={slug}>{title}</option>
           })}
+        </select>
+
+        <select className="toolbar-select" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
+          <option value="all">All Brands</option>
+          {availableBrands.map(b => (
+            <option key={b} value={b}>{b}</option>
+          ))}
         </select>
 
         <select className="toolbar-select" value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}>
@@ -770,6 +833,35 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required placeholder="e.g. Vintage Silk Anarkali" />
                     </div>
                     <div className="form-row">
+                      <div className="form-group">
+                        <label style={{ fontWeight: 700, color: '#1e293b' }}>Brand *</label>
+                        <select
+                          value={formData.brand || ''}
+                          onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                          required
+                          style={{ borderColor: '#3b82f6', background: '#f0f9ff' }}
+                        >
+                          <option value="">-- Select Brand --</option>
+                          {availableBrands.map(b => (
+                            <option key={b} value={b}>{b}</option>
+                          ))}
+                          <option value="new_brand">+ Add Custom Brand</option>
+                        </select>
+                        {formData.brand === 'new_brand' && (
+                          <input
+                            type="text"
+                            placeholder="Type new brand name"
+                            className="mt-2"
+                            onBlur={(e) => {
+                              if (e.target.value.trim()) {
+                                const newBrandName = e.target.value.trim()
+                                setAvailableBrands(prev => Array.from(new Set([...prev, newBrandName])))
+                                setFormData({ ...formData, brand: newBrandName })
+                              }
+                            }}
+                          />
+                        )}
+                      </div>
                       <div className="form-group">
                         <label>Category *</label>
                         <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} required>
@@ -1372,6 +1464,16 @@ const ProductsManager = ({ onPromoteToHero }) => {
                   </td>
                   <td>
                     <span className="category-pill">{product.category}</span>
+                    {product.brand && (
+                      <span
+                        className="brand-pill"
+                        style={{ display: 'inline-block', marginTop: '4px', marginLeft: '6px', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer' }}
+                        onClick={() => setBrandFilter(product.brand)}
+                        title={`Click to filter products by ${product.brand}`}
+                      >
+                        🏢 {product.brand}
+                      </span>
+                    )}
                     <div style={{ marginTop: '4px', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', color: '#2563eb' }}>
                       {getAudienceArray(product.targetAudience || product.gender).join(', ')}
                     </div>

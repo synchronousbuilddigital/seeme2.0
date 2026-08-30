@@ -1,25 +1,29 @@
 import { useState, useEffect, useContext, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
-import { isProductInCategory, getCategoryProducts } from '../utils/categoryHelper'
+import { isProductInCategory, getCategoryProducts, belongsToAudience } from '../utils/categoryHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from '../components/AddToCartButton'
 import './CollectionsPage.css'
 
 const CollectionsPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
 
   const [products, setProducts] = useState([])
   const [categoriesList, setCategoriesList] = useState([])
+  const [adminBrandsList, setAdminBrandsList] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Filters & Search & Sorting
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedAudience, setSelectedAudience] = useState('all')
+  const [selectedBrand, setSelectedBrand] = useState('all')
   const [sortBy, setSortBy] = useState('featured')
   const [searchQuery, setSearchQuery] = useState('')
   const [priceFilter, setPriceFilter] = useState('all')
@@ -45,21 +49,45 @@ const CollectionsPage = () => {
   const [selectedSize, setSelectedSize] = useState('M')
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const catParam = params.get('category')
+    const genderParam = params.get('gender')
+    const brandParam = params.get('brand')
+    if (catParam) {
+      setSelectedCategory(catParam.toLowerCase().trim())
+    } else if (brandParam) {
+      setSelectedCategory('all')
+    }
+    if (genderParam) {
+      setSelectedAudience(genderParam.toLowerCase().trim())
+    } else {
+      const savedAudience = localStorage.getItem('seemee_active_audience') || 'all'
+      setSelectedAudience(savedAudience.toLowerCase().trim())
+    }
+    if (brandParam) {
+      setSelectedBrand(brandParam.toLowerCase().trim())
+    } else {
+      setSelectedBrand('all')
+    }
     fetchCollectionsAndProducts()
     window.scrollTo(0, 0)
-  }, [])
+  }, [location.search])
 
   const fetchCollectionsAndProducts = async () => {
     setLoading(true)
     try {
-      const [prodData, settingsData] = await Promise.all([
-        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`),
-        cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
+      const [prodData, settingsData, brandsData] = await Promise.all([
+        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000`),
+        cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true }),
+        cachedFetch(API_ENDPOINTS.BRANDS, { forceRefresh: true }).catch(() => null)
       ])
 
       const rawList = Array.isArray(prodData?.data) ? prodData.data : (Array.isArray(prodData?.products) ? prodData.products : [])
       const activeProducts = rawList.filter(p => p.isActive !== false)
       setProducts(activeProducts)
+
+      const fetchedBrands = (brandsData?.success && Array.isArray(brandsData.data)) ? brandsData.data : []
+      setAdminBrandsList(fetchedBrands)
 
       // Dynamic Categories collection strictly from Admin Panel Site Settings
       const catsMap = new Map()
@@ -99,13 +127,30 @@ const CollectionsPage = () => {
     )
   }
 
+  const audienceProducts = useMemo(() => {
+    if (!selectedAudience || selectedAudience === 'all') return products
+    return products.filter(p => belongsToAudience(p, selectedAudience))
+  }, [products, selectedAudience])
+
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
-    let result = [...products]
+    let result = [...audienceProducts]
 
     // Category Filter
     if (selectedCategory !== 'all') {
       result = getCategoryProducts(result, selectedCategory)
+    }
+
+    // Brand Filter (Robust Matching for clicked Brand)
+    if (selectedBrand && selectedBrand !== 'all') {
+      const targetNorm = selectedBrand.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
+      result = result.filter(p => {
+        if (!p) return false
+        const rawBrand = p.brand || p.brandName || ''
+        const pNorm = rawBrand.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
+        if (!pNorm) return false
+        return pNorm === targetNorm || pNorm.includes(targetNorm) || targetNorm.includes(pNorm)
+      })
     }
 
     // Search Filter
@@ -165,7 +210,7 @@ const CollectionsPage = () => {
     }
 
     return result
-  }, [products, selectedCategory, searchQuery, priceFilter, maxPrice, selectedSizes, sortBy])
+  }, [audienceProducts, selectedCategory, selectedBrand, searchQuery, priceFilter, maxPrice, selectedSizes, sortBy])
 
   useEffect(() => {
     if (filteredProducts.length > 0) {
@@ -195,6 +240,7 @@ const CollectionsPage = () => {
 
   const resetFilters = () => {
     setSelectedCategory('all')
+    setSelectedBrand('all')
     setPriceFilter('all')
     setMaxPrice(10000)
     setSelectedSizes([])
@@ -202,7 +248,7 @@ const CollectionsPage = () => {
     setSearchQuery('')
   }
 
-  const hasActiveFilters = selectedCategory !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
+  const hasActiveFilters = selectedCategory !== 'all' || selectedBrand !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
 
   if (loading) {
     return (
@@ -257,6 +303,30 @@ const CollectionsPage = () => {
       >
         <h1 className="collections-title">Shop Our <span>Collections</span></h1>
         <p className="collections-subtitle">Explore our full repertoire of handcrafted luxury ensembles and silhouettes.</p>
+
+        {/* Gender / Audience Switcher Pills (All | Women | Men) */}
+        <div className="collections-audience-tab-bar">
+          {[
+            { key: 'all', label: 'All Collections' },
+            { key: 'women', label: 'Women' },
+            { key: 'men', label: 'Men' }
+          ].map((tab) => {
+            const isActive = selectedAudience === tab.key
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                className={`collections-audience-pill ${isActive ? 'active' : ''}`}
+                onClick={() => {
+                  setSelectedAudience(tab.key)
+                  localStorage.setItem('seemee_active_audience', tab.key)
+                }}
+              >
+                <span className="audience-pill-text">{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
       </motion.div>
 
       {/* Main Layout: Sticky Sidebar Filter on Left + Product Grid on Right */}
@@ -264,6 +334,16 @@ const CollectionsPage = () => {
         {/* Left Sidebar Filter Panel (Unified for Desktop and Mobile) */}
         <aside className={`collections-sidebar-panel ${showMobileFilters ? 'mobile-active' : ''}`}>
 
+          {/* Mobile Drawer Header */}
+          <div className="sidebar-mobile-header">
+            <div className="mobile-header-title-box">
+              <span className="mobile-header-badge"> FILTERS</span>
+              <h3>Refine Collections</h3>
+            </div>
+            <button className="sidebar-close-btn" onClick={() => setShowMobileFilters(false)} aria-label="Close filters">
+              ✕
+            </button>
+          </div>
 
           <div className="sidebar-widgets-scroll-container">
             {/* Search Widget */}
@@ -285,14 +365,43 @@ const CollectionsPage = () => {
               </div>
             </div>
 
+            {/* Gender / Audience Widget */}
+            <div className="sidebar-widget">
+              <h4 className="widget-title">GENDER</h4>
+              <div className="sidebar-category-list">
+                {[
+                  { key: 'all', label: 'All Collections' },
+                  { key: 'women', label: 'Women' },
+                  { key: 'men', label: 'Men' }
+                ].map(aud => {
+                  const isSelected = selectedAudience === aud.key
+                  const count = products.filter(p => belongsToAudience(p, aud.key)).length
+                  return (
+                    <button
+                      key={aud.key}
+                      className={`sidebar-cat-row ${isSelected ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedAudience(aud.key)
+                        localStorage.setItem('seemee_active_audience', aud.key)
+                      }}
+                    >
+                      <span className="cat-bullet">{isSelected ? '✦' : '•'}</span>
+                      <span className="cat-name">{aud.label}</span>
+                      <span className="cat-count">{count}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Category Filter */}
             <div className="sidebar-widget">
               <h4 className="widget-title">CATEGORIES</h4>
               <div className="sidebar-category-list">
                 {categoriesList.map(cat => {
                   const count = cat.value === 'all'
-                    ? products.length
-                    : getCategoryProducts(products, cat.value).length
+                    ? audienceProducts.length
+                    : getCategoryProducts(audienceProducts, cat.value).length
                   const isSelected = selectedCategory === cat.value
 
                   return (
@@ -309,6 +418,39 @@ const CollectionsPage = () => {
                 })}
               </div>
             </div>
+
+            {/* Dynamic Brands Filter (Fetched from Admin Brand Section) */}
+            {adminBrandsList.length > 0 && (
+              <div className="sidebar-widget">
+                <h4 className="widget-title">BRANDS</h4>
+                <div className="sidebar-category-list">
+                  <button
+                    className={`sidebar-cat-row ${selectedBrand === 'all' ? 'active' : ''}`}
+                    onClick={() => setSelectedBrand('all')}
+                  >
+                    <span className="cat-bullet">{selectedBrand === 'all' ? '✦' : '•'}</span>
+                    <span className="cat-name">All Brands</span>
+                  </button>
+                  {adminBrandsList.map(b => {
+                    const bName = b.name || ''
+                    const bNorm = bName.toLowerCase().trim()
+                    const isSelected = selectedBrand === bNorm
+                    const count = audienceProducts.filter(p => (p.brand || '').toLowerCase().trim() === bNorm).length
+                    return (
+                      <button
+                        key={b._id || bName}
+                        className={`sidebar-cat-row ${isSelected ? 'active' : ''}`}
+                        onClick={() => setSelectedBrand(bNorm)}
+                      >
+                        <span className="cat-bullet">{isSelected ? '✦' : '•'}</span>
+                        <span className="cat-name">{bName}</span>
+                        {count > 0 && <span className="cat-count">{count}</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Price Filter Slider Widget */}
             <div className="sidebar-widget">
@@ -425,7 +567,21 @@ const CollectionsPage = () => {
         {/* Right Product Grid Wrapper */}
         <div className="collections-grid-wrapper">
           <div className="grid-header-bar">
-            <span className="grid-count-chip">✦ {filteredProducts.length} SILHOUETTES</span>
+            <div className="grid-count-wrap" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <span className="grid-count-chip">✦ {filteredProducts.length} SILHOUETTES</span>
+              {selectedBrand && selectedBrand !== 'all' && (
+                <span className="brand-filter-active-pill" style={{ background: '#1e293b', color: '#ffffff', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  🏢 BRAND: {selectedBrand.toUpperCase()}
+                  <button
+                    style={{ background: 'none', border: 'none', color: '#ffffff', cursor: 'pointer', fontSize: '14px', padding: 0 }}
+                    onClick={() => setSelectedBrand('all')}
+                    title="Clear Brand Filter"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+            </div>
             <button
               className="mobile-filter-trigger-btn"
               onClick={() => setShowMobileFilters(true)}

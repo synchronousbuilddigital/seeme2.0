@@ -15,8 +15,13 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
       try {
         setLoading(true)
         const res = await cachedFetch(`${API_ENDPOINTS.BRANDS}?gender=${activeAudience}`, { forceRefresh: true })
-        if (res?.success && Array.isArray(res.data)) {
+        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
           setBrands(res.data)
+        } else {
+          const fallbackRes = await cachedFetch(API_ENDPOINTS.BRANDS, { forceRefresh: true })
+          if (fallbackRes?.success && Array.isArray(fallbackRes.data) && fallbackRes.data.length > 0) {
+            setBrands(fallbackRes.data)
+          }
         }
       } catch (err) {
         console.error('Error loading Brands That Lead:', err)
@@ -60,11 +65,8 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
                   backgroundImage: brand.bgImage ? `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${getImageUrl(brand.bgImage)})` : 'none'
                 }}
                 onClick={() => {
-                  if (brand.link) {
-                    navigate(`/collections?category=${brand.link}&gender=${activeAudience}`)
-                  } else {
-                    navigate('/collections')
-                  }
+                  const bName = brand.name || ''
+                  navigate(`/collections?brand=${encodeURIComponent(bName)}`)
                 }}
               >
                 {/* Left Side: Photo covering full card height */}
@@ -91,11 +93,8 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
                       className="brand-pill-button"
                       onClick={(e) => {
                         e.stopPropagation()
-                        if (brand.link) {
-                          navigate(`/collections?category=${brand.link}&gender=${activeAudience}`)
-                        } else {
-                          navigate('/collections')
-                        }
+                        const bName = brand.name || ''
+                        navigate(`/collections?brand=${encodeURIComponent(bName)}`)
                       }}
                     >
                       <span>{brand.buttonText || 'Products ↗'}</span>

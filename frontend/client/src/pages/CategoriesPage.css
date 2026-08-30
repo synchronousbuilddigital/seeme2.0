@@ -196,6 +196,39 @@
   font-weight: 400;
 }
 
+.category-audience-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(28, 25, 23, 0.05);
+  padding: 4px 6px;
+  border-radius: 30px;
+  border: 1px solid rgba(28, 25, 23, 0.1);
+}
+
+.audience-tab-btn {
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: none;
+  background: transparent;
+  color: #78716c;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.audience-tab-btn:hover {
+  color: #1c1917;
+}
+
+.audience-tab-btn.active {
+  background: #1c1917;
+  color: #d4af37;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
 .category-search-box {
   position: relative;
   min-width: 260px;

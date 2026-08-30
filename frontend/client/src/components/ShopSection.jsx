@@ -23,12 +23,14 @@ const ShopSection = ({ activeAudience = 'all' }) => {
       try {
         setLoading(true)
         const endpoint = activeAudience !== 'all'
-          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=100&status=active`
-          : `${API_ENDPOINTS.PRODUCTS}?limit=100&status=active`
+          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=1000&status=active`
+          : `${API_ENDPOINTS.PRODUCTS}?limit=1000&status=active`
         const data = await cachedFetch(endpoint, { forceRefresh: true })
         if (data.success && data.data) {
-          const filtered = data.data.filter(p => belongsToAudience(p, activeAudience)).slice(0, 8)
-          setProducts(filtered)
+          const filtered = data.data.filter(p => belongsToAudience(p, activeAudience))
+          const featuredProds = filtered.filter(p => p.featured === true || p.inCollection === true)
+          const finalProds = featuredProds.length > 0 ? featuredProds : filtered
+          setProducts(finalProds.slice(0, 8))
         }
       } catch (error) {
         console.error('Error fetching shop products:', error)
@@ -195,7 +197,7 @@ const ShopSection = ({ activeAudience = 'all' }) => {
         <div className="shop-explore-footer">
           <motion.button
             className="shop-view-all-btn"
-            onClick={() => navigate('/collections')}
+            onClick={() => navigate(`/collections?gender=${activeAudience}`)}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.98 }}
           >

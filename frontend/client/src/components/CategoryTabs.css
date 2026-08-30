@@ -5,9 +5,9 @@
 .category-tabs-section {
   width: 100%;
   position: relative;
-  padding: 0 0 1.25rem 0;
+  padding: 1.25rem 0 1.25rem 0;
   margin-top: -1.75rem;
-  /* Shift section upwards right under hero */
+  background-color: #EBDACD; /* Warm tan beige background matching reference image */
   transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
     color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
@@ -15,40 +15,31 @@
 
 /* --- THEME VARIATIONS --- */
 
-/* 1. ALL Theme — Current default site theme (Peach / Warm Blush) */
 .category-tabs-section.theme-all {
-  --tab-bg: #FFF7F6;
-  --section-bg: #FAF3F2;
-  --tab-border: #F43F5E;
-  --tab-text-muted: #64748B;
-  --tab-text-active: #E11D48;
-  --ring-glow: rgba(225, 29, 72, 0.4);
+  --section-bg: #EBDACD;
+  --tab-border: #1C1917;
+  --tab-text-active: #000000;
+  --ring-glow: rgba(28, 25, 23, 0.2);
   --ring-bg: #FFFFFF;
-  --label-color: #1E293B;
+  --label-color: #261F1A;
   background-color: var(--section-bg);
 }
 
-/* 2. MEN Theme — Theme of photo for Men (Soft Ice / Sky Blue) */
 .category-tabs-section.theme-men {
-  --tab-bg: #EBF5FF;
-  --section-bg: #E2F0FD;
-  --tab-border: #3B82F6;
-  --tab-text-muted: #475569;
-  --tab-text-active: #1D4ED8;
-  --ring-glow: rgba(37, 99, 235, 0.4);
+  --section-bg: #DEE9F5;
+  --tab-border: #1D4ED8;
+  --tab-text-active: #0F172A;
+  --ring-glow: rgba(29, 78, 216, 0.25);
   --ring-bg: #FFFFFF;
   --label-color: #0F172A;
   background-color: var(--section-bg);
 }
 
-/* 3. WOMEN Theme — Theme of photo for Women (Soft Blush / Rose Pink) */
 .category-tabs-section.theme-women {
-  --tab-bg: #FFF0F5;
-  --section-bg: #FCE7F3;
-  --tab-border: #EC4899;
-  --tab-text-muted: #831843;
-  --tab-text-active: #BE185D;
-  --ring-glow: rgba(236, 72, 153, 0.4);
+  --section-bg: #F9E2EB;
+  --tab-border: #BE185D;
+  --tab-text-active: #4C0519;
+  --ring-glow: rgba(190, 24, 93, 0.25);
   --ring-bg: #FFFFFF;
   --label-color: #4C0519;
   background-color: var(--section-bg);
@@ -86,11 +77,12 @@
 
 .category-tabs-bar {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: center;
-  gap: 1.75rem;
+  gap: 2.5rem;
   position: relative;
   z-index: 2;
+  padding-bottom: 0.5rem;
 }
 
 /* 100% Full-Bleed Edge-to-Edge Screen Line */
@@ -100,94 +92,132 @@
   left: 50%;
   width: 100vw;
   transform: translateX(-50%);
-  height: 2px;
-  background-color: var(--tab-border);
+  height: 1px;
+  background-color: rgba(28, 25, 23, 0.12);
   z-index: 1;
   transition: background-color 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Folder Tab Item Button */
-.category-tab-btn {
+/* Capsule Pill Tab Button (3D Glossy Tactile Pill) */
+.category-tab-pill-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 128px;
+  gap: 0.45rem;
   background: transparent;
   border: none;
-  padding: 0.65rem 1.8rem;
-  font-family: var(--font-heading, 'Playfair Display', serif);
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--tab-text-muted);
   cursor: pointer;
+  padding: 0;
   position: relative;
-  transition: color 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   outline: none;
-  display: inline-flex;
+  text-align: center;
+}
+
+/* 3D Pill Image Frame Container */
+.tab-pill-image-frame {
+  width: 128px;
+  height: 54px;
+  border-radius: 27px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 
+    0 10px 22px -2px rgba(0, 0, 0, 0.24),
+    0 4px 8px -2px rgba(0, 0, 0, 0.14),
+    inset 0 3px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.3);
+  border: 3.5px solid #FFFFFF;
+  background: radial-gradient(circle at center, #FAF6F0 0%, #E8D8C8 100%);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+  display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.category-tab-btn:hover {
-  color: var(--tab-text-active);
-}
-
-.category-tab-btn span {
-  position: relative;
-  z-index: 4;
-}
-
-/* Folder Tab Active Item Button */
-.category-tab-btn.active {
-  color: var(--tab-text-active);
-  font-weight: 800;
-  z-index: 3;
-}
-
-/* Framer Motion Gliding Folder Tab Active Notch */
-.category-tab-active-notch {
+/* 3D Glass Lens Reflection Overlay */
+.tab-pill-image-frame::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--tab-bg);
-  border-top: 2px solid var(--tab-border);
-  border-left: 2px solid var(--tab-border);
-  border-right: 2px solid var(--tab-border);
-  border-bottom: 2px solid var(--tab-bg);
-  border-top-left-radius: 14px;
-  border-top-right-radius: 14px;
-  margin-bottom: -2px;
+  border-radius: 24px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.08) 45%,
+    rgba(0, 0, 0, 0.05) 55%,
+    rgba(0, 0, 0, 0.22) 100%
+  );
   pointer-events: none;
-  z-index: 1;
-  transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
 }
 
-/* Clean Outer Bottom Radius Curves for File-Folder Tab Notch Effect */
-.category-tab-active-notch::before {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: -12px;
-  width: 12px;
-  height: 12px;
-  background: transparent;
-  border-bottom-right-radius: 10px;
-  box-shadow: 2px 2px 0 0px var(--tab-border);
-  pointer-events: none;
-  transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+.tab-pill-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: contrast(1.05) brightness(1.02);
+  padding: 0;
 }
 
-.category-tab-active-notch::after {
+.category-tab-pill-btn:hover .tab-pill-img {
+  transform: scale(1.12);
+}
+
+/* 3D Active State for Capsule Frame */
+.category-tab-pill-btn.active .tab-pill-image-frame {
+  border-color: #FFFFFF;
+  box-shadow: 
+    0 12px 26px -3px rgba(0, 0, 0, 0.3),
+    0 6px 12px -2px rgba(0, 0, 0, 0.2),
+    0 0 0 3px rgba(255, 255, 255, 0.95),
+    inset 0 3px 5px rgba(255, 255, 255, 0.95),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.35);
+  transform: translateY(-4px) scale(1.05);
+}
+
+/* Text Label Below Pill */
+.tab-pill-label {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #2D2520;
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  position: relative;
+  display: inline-block;
+}
+
+.category-tab-pill-btn:hover .tab-pill-label {
+  color: #000000;
+}
+
+.category-tab-pill-btn.active .tab-pill-label {
+  color: #000000;
+  font-weight: 800;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+/* 100% Exact Active Underline Indicator directly attached underneath the word */
+.category-tab-pill-btn.active .tab-pill-label::after {
   content: '';
   position: absolute;
-  bottom: -2px;
-  right: -12px;
-  width: 12px;
-  height: 12px;
-  background: transparent;
-  border-bottom-left-radius: 10px;
-  box-shadow: -2px 2px 0 0px var(--tab-border);
-  pointer-events: none;
-  transition: box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #1C1917;
+  border-radius: 2px;
+  margin-top: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 /* Circular Avatars Viewport — Full Screen Edge-to-Edge */
@@ -208,29 +238,31 @@
 
 @keyframes categoryInfiniteMarquee {
   0% {
-    transform: translateX(0);
+    transform: translate3d(0, 0, 0);
   }
-
   100% {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
-.category-avatars-track {
+.category-marquee-track {
   display: flex;
+  width: max-content;
   align-items: center;
-  gap: 2rem;
-  padding: 0.25rem;
-  min-width: max-content;
-}
-
-.category-avatars-track.infinite-loop {
-  animation: categoryInfiniteMarquee 28s linear infinite;
+  animation: categoryInfiniteMarquee 38s linear infinite;
   will-change: transform;
 }
 
-.category-avatars-viewport:hover .category-avatars-track.infinite-loop {
+.category-avatars-viewport:hover .category-marquee-track {
   animation-play-state: paused;
+}
+
+.category-marquee-group {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding-right: 2rem; /* Matches gap for seamless continuous loop */
+  flex-shrink: 0;
 }
 
 /* Individual Avatar Card */
@@ -248,46 +280,72 @@
   transform: translateY(-4px);
 }
 
-/* Ring outline */
+/* Ring outline - 100% Perfect Circle Ratio */
 .avatar-circle-ring {
-  width: 92px;
-  height: 92px;
+  width: 90px;
+  height: 90px;
+  min-width: 90px;
+  min-height: 90px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
-  padding: 3px;
-  background: var(--ring-bg);
-  border: 2px solid var(--tab-border);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
-  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  padding: 3.5px;
+  background: #FFFFFF;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
+/* Double Concentric Gold Ring Effect matching reference screenshot */
+.avatar-circle-card:first-child .avatar-circle-ring,
+.avatar-circle-card.active .avatar-circle-ring,
 .avatar-circle-card:hover .avatar-circle-ring {
-  box-shadow: 0 8px 24px var(--ring-glow);
-  border-color: var(--tab-text-active);
+  border-color: #C5A059;
+  box-shadow: 
+    0 0 0 2px #FFFFFF,
+    0 0 0 4.5px #C5A059,
+    0 8px 22px rgba(197, 160, 89, 0.35);
+  transform: scale(1.04);
 }
 
-/* Image wrapper inside ring */
+/* Image wrapper inside ring - 100% Perfect Circle Mask */
 .avatar-circle-image-wrapper {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
   overflow: hidden;
   position: relative;
-  background: #F1F5F9;
+  background: #F8FAFC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: circle(50% at 50% 50%);
+  -webkit-clip-path: circle(50% at 50% 50%);
+  box-sizing: border-box;
 }
 
 .avatar-circle-img {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  object-position: top center;
+  object-position: center 25%;
+  border-radius: 50%;
+  clip-path: circle(50% at 50% 50%);
+  -webkit-clip-path: circle(50% at 50% 50%);
+  display: block;
+  transform: scale(1.15);
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .avatar-circle-card:hover .avatar-circle-img {
-  transform: scale(1.12);
+  transform: scale(1.26);
 }
 
 /* Label text below avatar */
@@ -363,13 +421,17 @@
   }
 
   .category-tabs-bar {
-    gap: 0.6rem;
+    gap: 1.25rem;
   }
 
-  .category-tab-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.8rem;
-    letter-spacing: 0.08em;
+  .tab-pill-image-frame {
+    width: 90px;
+    height: 40px;
+    border-radius: 20px;
+  }
+
+  .tab-pill-label {
+    font-size: 0.82rem;
   }
 
   .avatar-circle-ring {
@@ -382,7 +444,8 @@
     max-width: 90px;
   }
 
-  .category-avatars-track {
+  .category-marquee-group {
     gap: 1.25rem;
+    padding-right: 1.25rem;
   }
 }

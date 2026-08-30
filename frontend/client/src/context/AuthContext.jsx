@@ -90,14 +90,34 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const signup = async (name, email, password, phone) => {
+  const sendSignupOtp = async (name, email) => {
+    try {
+      const response = await fetch(API_ENDPOINTS.SEND_SIGNUP_OTP, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send verification OTP')
+      }
+      return { success: true, message: data.message }
+    } catch (error) {
+      console.error('Send Signup OTP Error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
+  const signup = async (name, email, password, phone, otp) => {
     try {
       const response = await fetch(API_ENDPOINTS.SIGNUP, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, email, password, phone }),
+        body: JSON.stringify({ name, email, password, phone, otp }),
       })
 
       const data = await response.json()
@@ -152,6 +172,7 @@ export const AuthProvider = ({ children }) => {
         token,
         login,
         signup,
+        sendSignupOtp,
         logout,
         loginWithToken,
         isAuthenticated,

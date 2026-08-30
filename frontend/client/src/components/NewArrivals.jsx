@@ -25,8 +25,10 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
           : `${API_ENDPOINTS.PRODUCTS}?limit=100&status=active`
         const data = await cachedFetch(endpoint, { forceRefresh: true })
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const filtered = data.data.filter(p => belongsToAudience(p, activeAudience)).slice(0, 4)
-          setArrivals(filtered)
+          const audienceFiltered = data.data.filter(p => belongsToAudience(p, activeAudience))
+          const newArrivalOnly = audienceFiltered.filter(p => p.isNewArrival === true)
+          const finalSelection = newArrivalOnly.length > 0 ? newArrivalOnly : audienceFiltered
+          setArrivals(finalSelection.slice(0, 4))
         }
       } catch (error) {
         console.error('Error fetching new arrivals:', error)
@@ -131,7 +133,7 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
           <motion.button
             className="explore-btn-modern"
             whileHover={{ letterSpacing: '0.2em' }}
-            onClick={() => navigate('/collections')}
+            onClick={() => navigate(`/collections?gender=${activeAudience}`)}
           >
             Explore Full Collection
           </motion.button>

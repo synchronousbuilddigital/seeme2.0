@@ -3,36 +3,43 @@
   top: 0;
   left: 0;
   right: 0;
+  margin: 0 auto;
+  width: 100%;
   z-index: 1000;
   background: transparent;
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   border-bottom: 1px solid rgba(212, 175, 55, 0.06);
 }
 
 .navbar.scrolled {
-  background: #fefdfb;
-  -webkit-backdrop-filter: blur(15px);
-  backdrop-filter: blur(15px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-  padding: 5px 0;
+  top: 0.75rem;
+  width: 92%;
+  max-width: 1280px;
+  background: rgba(254, 253, 251, 0.95);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.25);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50px;
+  padding: 0;
 }
 
 .navbar-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 1.5rem 4rem;
+  padding: 1.25rem 4rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 2rem;
-  transition: all 0.5s ease;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .navbar.scrolled .navbar-container {
-  padding: 0.8rem 4rem;
+  padding: 0.35rem 2.2rem;
+  gap: 1.5rem;
 }
 
 .logo {
@@ -43,28 +50,29 @@
   /* Restricts the layout height so it never stretches the navbar */
   display: flex;
   align-items: center;
+  transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .logo-image {
-  height: 105px;
+  height: 98px;
   /* Make the actual logo image big */
   width: auto;
   object-fit: contain;
-  transition: all 0.5s ease;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.1));
-  transform: translateY(10px);
+  transform: translateY(8px);
   /* Lets the logo hang down elegantly over the sleek navbar border */
 }
 
 .navbar.scrolled .logo {
-  height: 35px;
+  height: 28px;
   /* Restrict scrolled container layout height */
 }
 
 .navbar.scrolled .logo-image {
-  height: 75px;
-  /* Make it stand out on scroll */
-  transform: translateY(5px);
+  height: 48px;
+  /* Shrinks cleanly on scroll */
+  transform: translateY(2px);
 }
 
 /* Navigation Links */
@@ -532,8 +540,9 @@
 /* Responsive Design */
 @media (max-width: 1200px) {
   .navbar.scrolled {
-    left: 2rem;
-    right: 2rem;
+    width: 94%;
+    top: 0.6rem;
+    border-radius: 40px;
   }
 
   .nav-links {
@@ -551,11 +560,9 @@
   }
 
   .navbar.scrolled {
-    left: 0;
-    right: 0;
-    top: 0;
-    border-radius: 0;
-    max-width: 100%;
+    width: 95%;
+    top: 0.5rem;
+    border-radius: 35px;
   }
 
   .navbar-container {
@@ -564,7 +571,7 @@
   }
 
   .navbar.scrolled .navbar-container {
-    padding: clamp(0.6rem, 1.2vw, 0.8rem) clamp(0.8rem, 1.5vw, 1rem);
+    padding: clamp(0.5rem, 1vw, 0.6rem) clamp(0.8rem, 1.5vw, 1rem);
     gap: clamp(0.3rem, 0.8vw, 0.5rem);
   }
 
@@ -636,23 +643,29 @@
 
 @media (max-width: 640px) {
   .navbar {
-    background: rgba(254, 253, 251, 0.98);
+    background: transparent;
   }
 
   .navbar.scrolled {
+    width: 92%;
+    top: 0.5rem;
     left: 0;
     right: 0;
-    top: 0;
-    border-radius: 0;
+    margin: 0 auto;
+    border-radius: 35px;
+    box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(212, 175, 55, 0.2);
+    background: rgba(254, 253, 251, 0.96);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
   }
 
   .navbar-container {
-    padding: 0.7rem 0.8rem;
+    padding: 0.6rem 1rem;
     gap: 0.4rem;
   }
 
   .navbar.scrolled .navbar-container {
-    padding: 0.7rem 0.8rem;
+    padding: 0.35rem 0.9rem;
     gap: 0.4rem;
   }
 
@@ -666,12 +679,12 @@
   }
 
   .navbar.scrolled .logo {
-    height: 25px;
+    height: 24px;
   }
 
   .navbar.scrolled .logo-image {
-    height: 60px;
-    transform: translateY(2px);
+    height: 48px;
+    transform: translateY(1px);
   }
 
   .nav-actions {
@@ -720,13 +733,19 @@
 }
 
 @media (max-width: 480px) {
+  .navbar.scrolled {
+    width: 93%;
+    top: 0.4rem;
+    border-radius: 28px;
+  }
+
   .navbar-container {
-    padding: 0.6rem 0.6rem;
+    padding: 0.5rem 0.75rem;
     gap: 0.3rem;
   }
 
   .navbar.scrolled .navbar-container {
-    padding: 0.6rem 0.6rem;
+    padding: 0.3rem 0.7rem;
     gap: 0.3rem;
   }
 
@@ -740,11 +759,11 @@
   }
 
   .navbar.scrolled .logo {
-    height: 24px;
+    height: 22px;
   }
 
   .navbar.scrolled .logo-image {
-    height: 52px;
+    height: 44px;
     transform: translateY(1px);
   }
 

@@ -231,8 +231,9 @@ const CategoryManager = () => {
 
   const allSlides = settings?.categorySlides || []
   const displayedCategorySlides = allSlides.filter(slide => {
+    if (audienceFilter === 'all') return true
     const arr = normalizeAudience(slide.targetAudience)
-    return arr.includes(audienceFilter.toLowerCase())
+    return arr.includes('all') || arr.includes(audienceFilter.toLowerCase())
   })
 
   const formatAudienceBadge = (val) => {

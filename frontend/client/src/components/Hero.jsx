@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
+import { belongsToAudience } from '../utils/categoryHelper'
 import './Hero.css'
 
 // Module-level eager fetch promises to optimize first-paint load speed
@@ -112,12 +113,25 @@ const Hero = ({ activeAudience = 'all' }) => {
   }
 
   const filteredSlides = rawSlides.filter(slide => {
-    const slideAudiences = getAudienceArray(slide.targetAudience)
-    const current = (activeAudience || 'all').toLowerCase()
-    return slideAudiences.includes(current)
+    const slideAudiences = getAudienceArray(slide.targetAudience || slide.gender)
+    const cleanAudiences = slideAudiences.length > 0 ? slideAudiences : ['all']
+    const current = (activeAudience || 'all').toLowerCase().trim()
+
+    const hasStrict = rawSlides.some(s => {
+      const a = getAudienceArray(s.targetAudience || s.gender)
+      return a.includes(current)
+    })
+
+    if (hasStrict) {
+      return cleanAudiences.includes(current)
+    }
+
+    if (current === 'all') return true
+
+    return cleanAudiences.includes(current) || cleanAudiences.includes('all') || cleanAudiences.includes('unisex')
   })
 
-  const slides = filteredSlides.length > 0 ? filteredSlides : rawSlides
+  const slides = filteredSlides
 
   useEffect(() => {
     setActiveIndex(0)
@@ -423,14 +437,23 @@ const Hero = ({ activeAudience = 'all' }) => {
 
     const fetchCarouselImages = async () => {
       try {
-        const data = await cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true })
+        const currentAud = (activeAudience || 'all').toLowerCase().trim()
+        const [data, prodData] = await Promise.all([
+          cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true }).catch(() => null),
+          cachedFetch(
+            currentAud !== 'all'
+              ? `${API_ENDPOINTS.PRODUCTS}?gender=${currentAud}&limit=20&status=active`
+              : `${API_ENDPOINTS.PRODUCTS}?limit=20&status=active`,
+            { forceRefresh: true }
+          ).catch(() => null)
+        ])
 
         const EDITORIAL_DESCRIPTIONS = [
-          'Tailored for the modern woman, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
-          'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate the royal legacy of Indian couture.',
-          'Celebrate your grand milestones with our signature bridal shararas and lehengas, embellished with intricate hand-embroidered tilla and zardozi that define exquisite royalty.',
-          'Every thread holds a centuries-old story of craftsmanship, intricately interlaced with pure gold zari and raw mulberry silk to create heirlooms for generations to come.',
-          'Designed to drape like liquid gold, this collection features deep gemstone colors paired with traditional dabka hand-embroidery, ideal for royal winter soirées.'
+          'Tailored for the modern ensemble, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
+          'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate royal heritage.',
+          'Celebrate your grand milestones with our signature shararas, suits, and jackets, embellished with intricate hand embroidery.',
+          'Every thread holds a centuries-old story of craftsmanship, intricately interlaced with pure gold zari and raw mulberry silk.',
+          'Designed to drape like liquid gold, this collection features deep gemstone colors paired with traditional dabka hand-embroidery.'
         ]
 
         const backendSlides = data && data.success && Array.isArray(data.data)
@@ -440,7 +463,7 @@ const Hero = ({ activeAudience = 'all' }) => {
               image: slide.image,
               title: slide.title || slide.productName || 'SeeMee Atelier Collection',
               subtitle: slide.subtitle || 'Premium Edit',
-              targetAudience: slide.targetAudience || 'all',
+              targetAudience: slide.targetAudience || slide.gender || 'all',
               description: slide.description || EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
               category: (slide.productCategory || 'Featured').toString(),
               productId: slide.productId || null
@@ -448,29 +471,47 @@ const Hero = ({ activeAudience = 'all' }) => {
           : []
 
         let nextSlides = []
-        if (backendSlides && backendSlides.length > 0) {
-          nextSlides = [...backendSlides]
+
+        // 1. Strict filter for slides configured in Admin Panel matching target audience ('all', 'men', or 'women')
+        const strictCarousel = backendSlides.filter(s => {
+          const auds = getAudienceArray(s.targetAudience)
+          return auds.includes(currentAud)
+        })
+
+        if (strictCarousel.length > 0) {
+          nextSlides = strictCarousel
+        } else if (currentAud === 'all') {
+          nextSlides = backendSlides
         } else {
-          // If no admin carousel slides exist, dynamically pull active products from Admin DB
-          try {
-            const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10`)
-            if (prodData && prodData.success && Array.isArray(prodData.data)) {
-              const activeProds = prodData.data.filter(p => p && p.isActive !== false && (p.image || p.images?.[0]))
-              nextSlides = activeProds.slice(0, 5).map((p, index) => ({
-                image: (p.images && p.images[0]) || p.image,
-                title: p.name || 'SeeMee Haute Couture',
-                subtitle: p.category ? `Premium Edit • ${p.category}` : 'Premium Edit',
-                targetAudience: p.gender === 'men' ? 'men' : p.gender === 'women' ? 'women' : 'all',
-                description: p.description && p.description.length > 20
-                  ? p.description.replace(/<[^>]*>/g, '').slice(0, 160)
-                  : EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
-                category: p.category || 'Featured',
-                productId: p._id || p.id
-              }))
-            }
-          } catch (err) {
-            console.error('Error constructing dynamic slides from products:', err)
+          // 2. Check for slides marked 'all' or 'unisex'
+          const fallbackCarousel = backendSlides.filter(s => {
+            const auds = getAudienceArray(s.targetAudience)
+            return auds.includes('all') || auds.includes('unisex')
+          })
+          if (fallbackCarousel.length > 0) {
+            nextSlides = fallbackCarousel
           }
+        }
+
+        // 3. Fallback to active products for currentAudience if no matching carousel slides exist
+        if (nextSlides.length === 0 && prodData && prodData.success && Array.isArray(prodData.data)) {
+          const activeProds = prodData.data.filter(p => p && p.isActive !== false && (p.image || p.images?.[0]))
+          const audienceProds = currentAud !== 'all'
+            ? activeProds.filter(p => belongsToAudience(p, currentAud))
+            : activeProds
+          const finalProds = audienceProds.length > 0 ? audienceProds : activeProds
+
+          nextSlides = finalProds.slice(0, 5).map((p, index) => ({
+            image: (p.images && p.images[0]) || p.image,
+            title: p.name || 'SeeMee Haute Couture',
+            subtitle: p.category ? `Premium Edit • ${p.category}` : 'Premium Edit',
+            targetAudience: currentAud,
+            description: p.description && p.description.length > 20
+              ? p.description.replace(/<[^>]*>/g, '').slice(0, 160)
+              : EDITORIAL_DESCRIPTIONS[index % EDITORIAL_DESCRIPTIONS.length],
+            category: p.category || 'Featured',
+            productId: p._id || p.id
+          }))
         }
 
         if (isMounted) {
@@ -486,8 +527,6 @@ const Hero = ({ activeAudience = 'all' }) => {
       } catch (error) {
         console.error('Error fetching carousel:', error)
         if (isMounted) {
-          setSlides([])
-          setActiveIndex(0)
           setLoading(false)
         }
       }
@@ -498,7 +537,7 @@ const Hero = ({ activeAudience = 'all' }) => {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [activeAudience])
 
   useEffect(() => {
     if (slides.length <= 1) return

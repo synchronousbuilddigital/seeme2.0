@@ -82,6 +82,7 @@ function App() {
     const [activeAudience, setActiveAudience] = useState('all')
 
     useEffect(() => {
+      localStorage.setItem('seemee_active_audience', activeAudience || 'all')
       const themeClass = `theme-${activeAudience || 'all'}`
       document.body.classList.remove('theme-all', 'theme-men', 'theme-women')
       document.body.classList.add(themeClass)
@@ -102,26 +103,23 @@ function App() {
           <CategoryTabs onTabChange={(tab) => setActiveAudience(tab)} />
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeAudience === 'men' ? 'men-brands' : 'other-arrivals'}
+              key={activeAudience}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
             >
-              {activeAudience === 'men' ? (
-                <BrandsThatLead activeAudience={activeAudience} />
-              ) : (
-                <NewArrivals activeAudience={activeAudience} />
-              )}
+              <BrandsThatLead activeAudience={activeAudience} />
+              <NewArrivals activeAudience={activeAudience} />
+              <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
+                <ShopSection activeAudience={activeAudience} />
+                <CategoriesSlider activeAudience={activeAudience} />
+                <CatalogSection activeAudience={activeAudience} />
+                <EthosBanner />
+                <About />
+              </Suspense>
             </motion.div>
           </AnimatePresence>
-          <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
-            <ShopSection activeAudience={activeAudience} />
-            <CategoriesSlider activeAudience={activeAudience} />
-            <CatalogSection activeAudience={activeAudience} />
-            <EthosBanner />
-            <About />
-          </Suspense>
         </main>
         <Footer />
         <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

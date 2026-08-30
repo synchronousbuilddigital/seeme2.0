@@ -55,7 +55,7 @@ const CategoryPage = () => {
     setLoading(true)
     try {
       const [prodData, settingsData] = await Promise.all([
-        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`),
+        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000`),
         cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
       ])
 
@@ -139,6 +139,12 @@ const CategoryPage = () => {
   // Filter and Sort Computation
   const filteredProducts = useMemo(() => {
     let result = [...products]
+
+    // Audience / Gender Filter (Strict Panel Segmentation)
+    const currentAudience = (new URLSearchParams(location.search)).get('gender') || localStorage.getItem('seemee_active_audience') || 'all'
+    if (currentAudience && currentAudience !== 'all') {
+      result = result.filter(p => belongsToAudience(p, currentAudience))
+    }
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim()

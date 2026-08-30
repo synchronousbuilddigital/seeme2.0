@@ -22,13 +22,29 @@ const Auth = () => {
   const [forgotEmail, setForgotEmail] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  
-  const { user, token, login, signup, forgotPassword, loginWithToken } = useAuth()
+
+  const [signupOtpStep, setSignupOtpStep] = useState(false)
+  const [signupOtp, setSignupOtp] = useState('')
+  const [otpTimer, setOtpTimer] = useState(0)
+
+  const { user, token, login, signup, sendSignupOtp, forgotPassword, loginWithToken } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
   const authNotice = location.state?.message
   const redirectTarget = location.state?.from || location.state?.redirectUrl || '/'
+
+  useEffect(() => {
+    let interval = null
+    if (otpTimer > 0) {
+      interval = setInterval(() => {
+        setOtpTimer(prev => prev - 1)
+      }, 1000)
+    } else {
+      clearInterval(interval)
+    }
+    return () => clearInterval(interval)
+  }, [otpTimer])
 
   // Handle Google OAuth callback redirect parameters
   useEffect(() => {
@@ -91,22 +107,62 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
     setLoading(true)
 
     if (!isLogin) {
+      // Step 2 of Signup: User submits OTP Verification Modal
+      if (signupOtpStep) {
+        if (!signupOtp || signupOtp.trim().length !== 6) {
+          setError('Please enter the 6-digit OTP code sent to your email')
+          setLoading(false)
+          return
+        }
+
+        try {
+          const result = await signup(
+            formData.name,
+            formData.email,
+            formData.password,
+            formData.phone,
+            signupOtp
+          )
+
+          if (result.success) {
+            setSignupOtpStep(false)
+            if (result.user && result.user.role === 'admin') {
+              localStorage.setItem('adminToken', result.token)
+              localStorage.setItem('adminUser', JSON.stringify(result.user))
+              window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`
+            } else {
+              navigate(redirectTarget)
+            }
+          } else {
+            setError(result.error || 'Account creation failed. Please check your OTP.')
+          }
+        } catch (err) {
+          setError(err.message || 'An error occurred during verification.')
+        } finally {
+          setLoading(false)
+        }
+        return
+      }
+
+      // Step 1 of Signup: Validate details and send OTP
       if (!formData.name || !formData.name.trim()) {
         setError('Full Name is required')
         setLoading(false)
         return
       }
-      if (!formData.email || !formData.email.trim()) {
+      const cleanEmail = (formData.email || '').toLowerCase().trim()
+      if (!cleanEmail) {
         setError('Email Address is required')
         setLoading(false)
         return
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(formData.email)) {
-        setError('Please enter a valid email address')
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailRegex.test(cleanEmail)) {
+        setError('Please enter a valid email address (e.g. name@example.com)')
         setLoading(false)
         return
       }
@@ -133,7 +189,23 @@ const Auth = () => {
         setLoading(false)
         return
       }
+
+      try {
+        const res = await sendSignupOtp(formData.name, cleanEmail)
+        if (res.success) {
+          setSignupOtpStep(true)
+          setOtpTimer(60)
+          setSuccess(`Verification OTP code sent to ${cleanEmail}`)
+        } else {
+          setError(res.error || 'Failed to send verification OTP to email')
+        }
+      } catch (err) {
+        setError('Failed to send verification OTP. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     } else {
+      // Login Flow
       if (!formData.email || !formData.email.trim()) {
         setError('Email Address is required')
         setLoading(false)
@@ -144,33 +216,43 @@ const Auth = () => {
         setLoading(false)
         return
       }
-    }
 
-    try {
-      let result
-      if (isLogin) {
-        result = await login(formData.email, formData.password)
-      } else {
-        result = await signup(formData.name, formData.email, formData.password, formData.phone)
-      }
-
-      if (result.success) {
-        // Check if user is admin and redirect accordingly
-        if (result.user && result.user.role === 'admin') {
-          // Store admin credentials
-          localStorage.setItem('adminToken', result.token)
-          localStorage.setItem('adminUser', JSON.stringify(result.user))
-          
-          window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`
+      try {
+        const result = await login(formData.email, formData.password)
+        if (result.success) {
+          if (result.user && result.user.role === 'admin') {
+            localStorage.setItem('adminToken', result.token)
+            localStorage.setItem('adminUser', JSON.stringify(result.user))
+            window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(result.token)}&user=${encodeURIComponent(JSON.stringify(result.user))}`
+          } else {
+            navigate(redirectTarget)
+          }
         } else {
-          // Regular user goes to redirect target or home
-          navigate(redirectTarget)
+          setError(result.error || 'Authentication failed')
         }
+      } catch (err) {
+        setError('An error occurred. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
+  const handleResendSignupOtp = async () => {
+    if (otpTimer > 0) return
+    setLoading(true)
+    setError('')
+    setSuccess('')
+    try {
+      const res = await sendSignupOtp(formData.name, formData.email.toLowerCase().trim())
+      if (res.success) {
+        setOtpTimer(60)
+        setSuccess(`A new verification OTP has been sent to ${formData.email.toLowerCase().trim()}`)
       } else {
-        setError(result.error || 'Authentication failed')
+        setError(res.error || 'Failed to resend verification OTP')
       }
     } catch (err) {
-      setError('An error occurred. Please try again.')
+      setError('Error resending OTP code')
     } finally {
       setLoading(false)
     }
@@ -179,6 +261,9 @@ const Auth = () => {
   const toggleMode = () => {
     setIsLogin(!isLogin)
     setError('')
+    setSuccess('')
+    setSignupOtpStep(false)
+    setSignupOtp('')
     setFormData({
       name: '',
       email: '',
@@ -210,7 +295,7 @@ const Auth = () => {
     <div className="auth-page-editorial">
       <div className="auth-split-layout">
         {/* Left Side: Cinematic Image */}
-        <motion.div 
+        <motion.div
           className="auth-image-side"
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -227,7 +312,7 @@ const Auth = () => {
         </motion.div>
 
         {/* Right Side: Form */}
-        <motion.div 
+        <motion.div
           className="auth-form-side"
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
@@ -242,15 +327,15 @@ const Auth = () => {
 
             {/* Mode Switcher Tabs */}
             <div className="auth-mode-switcher">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={`switcher-tab ${isLogin ? 'active' : ''}`}
                 onClick={() => { if (!isLogin) toggleMode() }}
               >
                 Sign In
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className={`switcher-tab ${!isLogin ? 'active' : ''}`}
                 onClick={() => { if (isLogin) toggleMode() }}
               >
@@ -262,8 +347,8 @@ const Auth = () => {
               <span className="form-kicker">{isLogin ? 'WELCOME BACK' : 'START YOUR JOURNEY'}</span>
               <h1 className="form-title">{isLogin ? 'Sign In' : 'Create Account'}</h1>
               <p className="form-subtitle">
-                {isLogin 
-                  ? 'Access your exclusive collections and orders.' 
+                {isLogin
+                  ? 'Access your exclusive collections and orders.'
                   : 'Join the world of SEEMEE for a curated luxury experience.'}
               </p>
             </div>
@@ -276,14 +361,14 @@ const Auth = () => {
 
             <AnimatePresence mode="wait">
               {error && (
-                <motion.div 
+                <motion.div
                   className="auth-error-editorial"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                   {error}
                 </motion.div>
@@ -294,7 +379,7 @@ const Auth = () => {
               <AnimatePresence mode="wait">
                 {!isLogin && (
                   <>
-                    <motion.div 
+                    <motion.div
                       className="input-group-editorial"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -310,8 +395,8 @@ const Auth = () => {
                         required={!isLogin}
                       />
                     </motion.div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       className="input-group-editorial"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -375,22 +460,22 @@ const Auth = () => {
                   </button>
                 </div>
               </div>
- 
-               {isLogin && (
-                 <div className="forgot-password-link-container">
-                   <Link 
-                     to="/forgot-password"
-                     className="forgot-password-btn"
-                     onClick={(e) => e.stopPropagation()}
-                   >
-                     Forgot your password?
-                   </Link>
-                 </div>
-               )}
+
+              {isLogin && (
+                <div className="forgot-password-link-container">
+                  <Link
+                    to="/forgot-password"
+                    className="forgot-password-btn"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+              )}
 
               <AnimatePresence mode="wait">
                 {!isLogin && (
-                  <motion.div 
+                  <motion.div
                     className="input-group-editorial"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -471,10 +556,10 @@ const Auth = () => {
                 whileTap={{ scale: 0.99 }}
               >
                 <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                 </svg>
                 <span>Continue with Google</span>
               </motion.button>
@@ -487,10 +572,10 @@ const Auth = () => {
                   {isLogin ? 'Join SEEMEE' : 'Sign In instead'}
                 </button>
               </p>
-              
+
               <button className="back-btn-minimal" onClick={() => navigate('/')}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M19 12H5M12 19l-7-7 7-7"/>
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
                 </svg>
                 Return to Store
               </button>
@@ -501,13 +586,13 @@ const Auth = () => {
         {/* Forgot Password Modal/Overlay */}
         <AnimatePresence>
           {showForgot && (
-            <motion.div 
+            <motion.div
               className="forgot-password-overlay"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <motion.div 
+              <motion.div
                 className="forgot-password-modal"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -518,10 +603,10 @@ const Auth = () => {
                   setSuccess('')
                   setError('')
                 }}>✕</button>
-                
+
                 <h2>Recover Password</h2>
                 <p>Enter your email address and we'll send you a link to reset your password.</p>
-                
+
                 {error && <div className="auth-error-editorial" style={{ marginBottom: '20px' }}>{error}</div>}
                 {success && <div className="modal-success" style={{ padding: '20px', marginBottom: '20px' }}>{success}</div>}
 
@@ -529,12 +614,12 @@ const Auth = () => {
                   <form onSubmit={handleForgotPassword} className="auth-form-editorial">
                     <div className="input-group-editorial">
                       <label>Email Address</label>
-                      <input 
-                        type="email" 
-                        value={forgotEmail} 
+                      <input
+                        type="email"
+                        value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         placeholder="Enter your registered email"
-                        required 
+                        required
                       />
                     </div>
                     <button type="submit" className="submit-btn-editorial" disabled={loading}>
@@ -542,6 +627,123 @@ const Auth = () => {
                     </button>
                   </form>
                 )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Account Signup Email OTP Verification Modal */}
+        <AnimatePresence>
+          {signupOtpStep && (
+            <motion.div
+              className="forgot-password-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                className="forgot-password-modal"
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                style={{ maxWidth: '440px' }}
+              >
+                <button
+                  className="close-modal-btn"
+                  onClick={() => {
+                    setSignupOtpStep(false)
+                    setSignupOtp('')
+                    setError('')
+                    setSuccess('')
+                  }}
+                >
+                  ✕
+                </button>
+
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <span style={{ fontSize: '2.5rem', color: '#d4af37', display: 'block', marginBottom: '10px' }}>✉️</span>
+                  <h2 style={{ fontFamily: 'var(--font-heading, serif)', fontSize: '1.8rem', color: '#1c1917', margin: '0 0 8px' }}>Verify Your Email</h2>
+                  <p style={{ fontFamily: 'var(--font-body, sans-serif)', fontSize: '0.88rem', color: '#78716c', margin: 0, lineHeight: 1.5 }}>
+                    We sent a 6-digit OTP code to <strong style={{ color: '#1c1917' }}>{formData.email}</strong>. Enter it below to complete account creation.
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="auth-error-editorial" style={{ marginBottom: '16px' }}>
+                    {error}
+                  </div>
+                )}
+
+                {success && (
+                  <div className="modal-success" style={{ padding: '12px 16px', marginBottom: '16px', fontSize: '0.85rem' }}>
+                    {success}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="auth-form-editorial">
+                  <div className="input-group-editorial" style={{ textAlign: 'center' }}>
+                    <label style={{ display: 'block', marginBottom: '8px' }}>6-Digit OTP Code</label>
+                    <input
+                      type="text"
+                      maxLength="6"
+                      value={signupOtp}
+                      onChange={(e) => {
+                        setSignupOtp(e.target.value.replace(/\D/g, ''))
+                        setError('')
+                      }}
+                      placeholder="• • • • • •"
+                      style={{
+                        textAlign: 'center',
+                        fontSize: '1.8rem',
+                        letterSpacing: '8px',
+                        fontWeight: '700',
+                        fontFamily: 'monospace',
+                        color: '#1c1917',
+                        padding: '12px'
+                      }}
+                      required
+                      autoFocus
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="submit-btn-editorial"
+                    disabled={loading || signupOtp.length !== 6}
+                    style={{ marginTop: '10px' }}
+                  >
+                    {loading ? 'Verifying...' : 'Verify OTP & Create Account'}
+                  </button>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', fontSize: '0.82rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSignupOtpStep(false)
+                        setSignupOtp('')
+                        setError('')
+                      }}
+                      style={{ background: 'none', border: 'none', color: '#78716c', cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                      ← Change Email
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleResendSignupOtp}
+                      disabled={otpTimer > 0 || loading}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: otpTimer > 0 ? '#a8a29e' : '#d4af37',
+                        cursor: otpTimer > 0 ? 'not-allowed' : 'pointer',
+                        fontWeight: 600
+                      }}
+                    >
+                      {otpTimer > 0 ? `Resend OTP in ${otpTimer}s` : 'Resend OTP'}
+                    </button>
+                  </div>
+                </form>
               </motion.div>
             </motion.div>
           )}

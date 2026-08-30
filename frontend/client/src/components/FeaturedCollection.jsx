@@ -5,10 +5,11 @@ import { useInView } from '../hooks/useInView'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { belongsToAudience } from '../utils/categoryHelper'
 import AddToCartButton from './AddToCartButton'
 import './FeaturedCollection.css'
 
-const FeaturedCollection = () => {
+const FeaturedCollection = ({ activeAudience }) => {
   const navigate = useNavigate()
   const { addToCart, toggleWishlist, isInWishlist } = useContext(CartContext)
   const [products, setProducts] = useState([])
@@ -16,14 +17,27 @@ const FeaturedCollection = () => {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const [ref, inView] = useInView({ once: true, threshold: 0.02 })
+  const currentAudience = activeAudience || localStorage.getItem('seemee_active_audience') || 'all'
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.FEATURED_PRODUCTS)
+        setLoading(true)
+        const endpoint = currentAudience !== 'all'
+          ? `${API_ENDPOINTS.PRODUCTS}?featured=true&gender=${currentAudience}&status=active`
+          : `${API_ENDPOINTS.PRODUCTS}?featured=true&status=active`
+        const response = await fetch(endpoint)
         const data = await response.json()
-        if (data.success && data.data.length > 0) {
-          setProducts(data.data.filter(p => p.isActive))
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const audienceFiltered = data.data.filter(p => p.isActive !== false && belongsToAudience(p, currentAudience))
+          setProducts(audienceFiltered)
+        } else {
+          // Fallback to all products filtered by audience
+          const allRes = await fetch(API_ENDPOINTS.PRODUCTS)
+          const allData = await allRes.json()
+          if (allData.success && Array.isArray(allData.data)) {
+            setProducts(allData.data.filter(p => p.isActive !== false && belongsToAudience(p, currentAudience)))
+          }
         }
       } catch (error) {
         console.error('Error fetching featured products:', error)
@@ -32,7 +46,7 @@ const FeaturedCollection = () => {
       }
     }
     fetchProducts()
-  }, [])
+  }, [currentAudience])
 
   const nextProduct = () => setCurrentIndex((prev) => (prev + 1) % products.length)
   const prevProduct = () => setCurrentIndex((prev) => (prev - 1 + products.length) % products.length)
