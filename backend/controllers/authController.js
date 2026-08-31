@@ -43,8 +43,19 @@ export const sendSignupOtp = asyncHandler(async (req, res) => {
     throw new Error('An account with this email address already exists. Please sign in instead.')
   }
 
-  // 2. Generate secure 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  // 1b. Rate limiting safeguard (60-second cooldown per email)
+  const existingPending = await PendingOtp.findOne({ email: cleanEmail })
+  if (existingPending && existingPending.updatedAt) {
+    const elapsedMs = Date.now() - new Date(existingPending.updatedAt).getTime()
+    if (elapsedMs < 60 * 1000) {
+      const waitSec = Math.ceil((60 * 1000 - elapsedMs) / 1000)
+      res.status(429)
+      throw new Error(`Please wait ${waitSec} second(s) before requesting a new verification code.`)
+    }
+  }
+
+  // 2. Generate secure 6-digit OTP using CSPRNG
+  const otp = crypto.randomInt(100000, 1000000).toString()
 
   // 3. Upsert pending OTP in database (valid for 10 minutes)
   await PendingOtp.deleteMany({ email: cleanEmail })
@@ -137,6 +148,11 @@ export const login = asyncHandler(async (req, res) => {
   try {
     const user = await authService.loginUser({ email, password })
 
+    if (user.isBlocked) {
+      res.status(403)
+      throw new Error('Your account has been suspended. Please contact support.')
+    }
+
     // Update lastLogin timestamp
     user.lastLogin = new Date()
     await user.save()
@@ -223,8 +239,24 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     throw new Error('No registered account found with this email address.')
   }
 
-  // Generate secure 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  if (user.isBlocked) {
+    res.status(403)
+    throw new Error('Your account has been suspended. Please contact support.')
+  }
+
+  // Rate limiting safeguard (60-second cooldown per user)
+  if (user.otpExpires) {
+    const createdAt = new Date(user.otpExpires).getTime() - 10 * 60 * 1000
+    const elapsedMs = Date.now() - createdAt
+    if (elapsedMs < 60 * 1000) {
+      const waitSec = Math.ceil((60 * 1000 - elapsedMs) / 1000)
+      res.status(429)
+      throw new Error(`Please wait ${waitSec} second(s) before requesting a new OTP.`)
+    }
+  }
+
+  // Generate secure 6-digit OTP using CSPRNG
+  const otp = crypto.randomInt(100000, 1000000).toString()
 
   // Store OTP and set expiration to 10 minutes from now
   user.otpCode = otp

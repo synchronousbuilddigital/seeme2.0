@@ -4,7 +4,7 @@ import { getJwtSecret, getJwtRefreshSecret } from '../config/jwt.js'
 
 export const generateToken = (id) => {
   const secret = getJwtSecret()
-  return jwt.sign({ id }, secret, { expiresIn: '30d' })
+  return jwt.sign({ id }, secret, { expiresIn: '1d' })
 }
 
 export const generateRefreshToken = (id) => {
@@ -42,7 +42,8 @@ export const registerUser = async (userData) => {
 export const loginUser = async (credentials) => {
   const { email, password } = credentials
 
-  const user = await User.findOne({ email })
+  const cleanEmail = String(email || '').toLowerCase().trim()
+  const user = await User.findOne({ email: cleanEmail })
   if (!user || !(await user.comparePassword(password))) {
     throw new Error('Invalid credentials')
   }

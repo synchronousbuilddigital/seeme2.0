@@ -26,14 +26,14 @@ export const registerValidationRules = () => {
       .notEmpty().withMessage('Email address is required')
       .isEmail().withMessage('Please enter a valid email address')
       .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/).withMessage('Please enter a valid email address (e.g., user@example.com)')
-      .normalizeEmail(),
+      .normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
   ]
 }
 
 export const loginValidationRules = () => {
   return [
-    body('email').isEmail().withMessage('Invalid email address').normalizeEmail(),
+    body('email').isEmail().withMessage('Invalid email address').normalizeEmail({ gmail_remove_dots: false, gmail_remove_subaddress: false }),
     body('password').notEmpty().withMessage('Password is required'),
   ]
 }

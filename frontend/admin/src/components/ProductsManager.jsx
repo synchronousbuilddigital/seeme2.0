@@ -502,6 +502,47 @@ const ProductsManager = ({ onPromoteToHero }) => {
     }
   }
 
+  const handleMoveProduct = async (product, direction) => {
+    const currentIndex = products.findIndex(p => p._id === product._id)
+    if (currentIndex === -1) return
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+    if (targetIndex < 0 || targetIndex >= products.length) return
+
+    const targetProduct = products[targetIndex]
+
+    const updatedProducts = [...products]
+    updatedProducts[currentIndex] = targetProduct
+    updatedProducts[targetIndex] = product
+
+    const reordered = updatedProducts.map((p, idx) => ({
+      ...p,
+      order: idx
+    }))
+
+    setProducts(reordered)
+
+    try {
+      await Promise.all([
+        apiRequest(`${API_ENDPOINTS.PRODUCTS}/${product._id}`, {
+          method: 'PUT',
+          auth: true,
+          body: { order: targetIndex }
+        }),
+        apiRequest(`${API_ENDPOINTS.PRODUCTS}/${targetProduct._id}`, {
+          method: 'PUT',
+          auth: true,
+          body: { order: currentIndex }
+        })
+      ])
+      showNotification(`Moved "${product.name}" ${direction === 'up' ? 'Up ⬆️' : 'Down ⬇️'}`)
+    } catch (err) {
+      console.error('Reorder error:', err)
+      showNotification('Failed to update product position', 'error')
+      fetchProducts()
+    }
+  }
+
   const handleDelete = async () => {
     if (!productToDelete) return
 
@@ -602,8 +643,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
         width: product.dimensions?.width || product.dimensions?.widthCm || product.breadth || product.widthCm || '15',
         height: product.dimensions?.height || product.dimensions?.heightCm || product.heightCm || product.height || '5'
       },
-      weight: typeof product.weightKg === 'number' ? product.weightKg.toString() : (typeof product.weight === 'number' ? product.weight.toString() : (product.weight?.value || product.weight?.valueGrams ? (product.weight.valueGrams/1000).toString() : '0.5')),
-      weightKg: typeof product.weightKg === 'number' ? product.weightKg.toString() : (typeof product.weight === 'number' ? product.weight.toString() : (product.weight?.value || product.weight?.valueGrams ? (product.weight.valueGrams/1000).toString() : '0.5')),
+      weight: typeof product.weightKg === 'number' ? product.weightKg.toString() : (typeof product.weight === 'number' ? product.weight.toString() : (product.weight?.value || product.weight?.valueGrams ? (product.weight.valueGrams / 1000).toString() : '0.5')),
+      weightKg: typeof product.weightKg === 'number' ? product.weightKg.toString() : (typeof product.weight === 'number' ? product.weight.toString() : (product.weight?.value || product.weight?.valueGrams ? (product.weight.valueGrams / 1000).toString() : '0.5')),
       materials: product.materials || [],
       fabric: product.fabric || '',
       fit: product.fit || '',
@@ -619,46 +660,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     setShowForm(true)
   }
 
-  const handleDuplicate = (product) => {
-    setFormData({
-      name: `${product.name} (Copy)`,
-      description: product.description,
-      shortDescription: product.shortDescription || '',
-      slug: `${product.slug || ''}-copy`,
-      category: product.category,
-      subcategory: product.subcategory || '',
-      sku: `${product.sku || ''}-copy`,
-      price: product.price.toString(),
-      discountPrice: product.discountPrice ? product.discountPrice.toString() : '',
-      stock: product.stock.toString(),
-      sizeStock: product.sizeStock && product.sizeStock.length > 0
-        ? JSON.parse(JSON.stringify(product.sizeStock))
-        : [
-          { size: 'XS', quantity: 0 },
-          { size: 'S', quantity: 0 },
-          { size: 'M', quantity: 0 },
-          { size: 'L', quantity: 0 },
-          { size: 'XL', quantity: 0 },
-          { size: 'XXL', quantity: 0 }
-        ],
-      sizes: [...(product.sizes || [])],
-      colors: [...(product.colors || [])],
-      featured: false,
-      inCollection: false,
-      isNewArrival: false,
-      images: [...(product.images || [])].map(normalizeMediaUrl),
-      preview3dImages: [...(product.preview3dImages || [])].map(normalizeMediaUrl),
-      gallery: [...(product.gallery || [])].map(normalizeMediaUrl),
-      video: normalizeMediaUrl(product.video),
-      dimensions: product.dimensions ? { ...product.dimensions } : { length: '', width: '', height: '' },
-      weight: product.weight ? { ...product.weight } : { value: '' },
-      materials: [...(product.materials || [])],
-      seo: product.seo ? { ...product.seo, title: `${product.seo.title || ''} (Copy)` } : { title: '', description: '' }
-    })
-    setEditingProduct(null)
-    setShowForm(true)
-    showNotification('Product details copied!')
-  }
+
 
   const checkBelongsToAudience = (product, audience) => {
     if (!product || !audience || audience === 'all') return true
@@ -756,45 +758,47 @@ const ProductsManager = ({ onPromoteToHero }) => {
           />
         </div>
 
-        <select className="toolbar-select" value={audienceFilter} onChange={(e) => setAudienceFilter(e.target.value)}>
-          <option value="all">All Gender (Men & Women)</option>
-          <option value="women">Women Only</option>
-          <option value="men">Men Only</option>
-        </select>
+        <div className="filter-selects-group">
+          <select className="toolbar-select" value={audienceFilter} onChange={(e) => setAudienceFilter(e.target.value)}>
+            <option value="all">All Gender (Men & Women)</option>
+            <option value="women">Women Only</option>
+            <option value="men">Men Only</option>
+          </select>
 
-        <select className="toolbar-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-          <option value="all">All categories</option>
-          {availableCategories.map(cat => {
-            const slug = typeof cat === 'string' ? cat : (cat.slug || cat.title)
-            const title = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')) : (cat.title || cat.slug)
-            return <option key={slug} value={slug}>{title}</option>
-          })}
-        </select>
+          <select className="toolbar-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+            <option value="all">All categories</option>
+            {availableCategories.map(cat => {
+              const slug = typeof cat === 'string' ? cat : (cat.slug || cat.title)
+              const title = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')) : (cat.title || cat.slug)
+              return <option key={slug} value={slug}>{title}</option>
+            })}
+          </select>
 
-        <select className="toolbar-select" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
-          <option value="all">All Brands</option>
-          {availableBrands.map(b => (
-            <option key={b} value={b}>{b}</option>
-          ))}
-        </select>
+          <select className="toolbar-select" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
+            <option value="all">All Brands</option>
+            {availableBrands.map(b => (
+              <option key={b} value={b}>{b}</option>
+            ))}
+          </select>
 
-        <select className="toolbar-select" value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}>
-          <option value="all">All products</option>
-          <option value="collection">In collection</option>
-          <option value="regular">Not in collection</option>
-        </select>
+          <select className="toolbar-select" value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}>
+            <option value="all">All products</option>
+            <option value="collection">In collection</option>
+            <option value="regular">Not in collection</option>
+          </select>
 
-        <select className="toolbar-select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
-          <option value="all">All stock levels</option>
-          <option value="in-stock">In stock</option>
-          <option value="out-of-stock">Out of stock</option>
-        </select>
+          <select className="toolbar-select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
+            <option value="all">All stock levels</option>
+            <option value="in-stock">In stock</option>
+            <option value="out-of-stock">Out of stock</option>
+          </select>
 
-        <select className="toolbar-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="all">All Statuses (Active & Inactive)</option>
-          <option value="active">Active Only (Live on Storefront)</option>
-          <option value="inactive">Inactive Only (Hidden on Storefront)</option>
-        </select>
+          <select className="toolbar-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="all">All Statuses (Active & Inactive)</option>
+            <option value="active">Active Only (Live on Storefront)</option>
+            <option value="inactive">Inactive Only (Hidden on Storefront)</option>
+          </select>
+        </div>
       </div>
 
       <div className="toolbar-summary">
@@ -1202,39 +1206,39 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
                         <div className="form-group">
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Weight (kg)</label>
-                          <input 
-                            type="number" 
+                          <input
+                            type="number"
                             step="0.01"
-                            placeholder="e.g. 0.5" 
-                            value={formData.weightKg !== undefined ? formData.weightKg : (typeof formData.weight === 'string' ? formData.weight : (formData.weight?.value || ''))} 
-                            onChange={(e) => setFormData({ ...formData, weightKg: e.target.value, weight: e.target.value })} 
+                            placeholder="e.g. 0.5"
+                            value={formData.weightKg !== undefined ? formData.weightKg : (typeof formData.weight === 'string' ? formData.weight : (formData.weight?.value || ''))}
+                            onChange={(e) => setFormData({ ...formData, weightKg: e.target.value, weight: e.target.value })}
                           />
                         </div>
                         <div className="form-group">
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Length (cm)</label>
-                          <input 
-                            type="number" 
-                            placeholder="e.g. 20" 
-                            value={formData.dimensions?.length !== undefined ? formData.dimensions.length : ''} 
-                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })} 
+                          <input
+                            type="number"
+                            placeholder="e.g. 20"
+                            value={formData.dimensions?.length !== undefined ? formData.dimensions.length : ''}
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })}
                           />
                         </div>
                         <div className="form-group">
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Breadth / Width (cm)</label>
-                          <input 
-                            type="number" 
-                            placeholder="e.g. 15" 
-                            value={formData.dimensions?.width !== undefined ? formData.dimensions.width : ''} 
-                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })} 
+                          <input
+                            type="number"
+                            placeholder="e.g. 15"
+                            value={formData.dimensions?.width !== undefined ? formData.dimensions.width : ''}
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })}
                           />
                         </div>
                         <div className="form-group">
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Height (cm)</label>
-                          <input 
-                            type="number" 
-                            placeholder="e.g. 5" 
-                            value={formData.dimensions?.height !== undefined ? formData.dimensions.height : ''} 
-                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })} 
+                          <input
+                            type="number"
+                            placeholder="e.g. 5"
+                            value={formData.dimensions?.height !== undefined ? formData.dimensions.height : ''}
+                            onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })}
                           />
                         </div>
                       </div>
@@ -1463,19 +1467,35 @@ const ProductsManager = ({ onPromoteToHero }) => {
                     </div>
                   </td>
                   <td>
-                    <span className="category-pill">{product.category}</span>
-                    {product.brand && (
-                      <span
-                        className="brand-pill"
-                        style={{ display: 'inline-block', marginTop: '4px', marginLeft: '6px', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '600', cursor: 'pointer' }}
-                        onClick={() => setBrandFilter(product.brand)}
-                        title={`Click to filter products by ${product.brand}`}
-                      >
-                        🏢 {product.brand}
-                      </span>
-                    )}
-                    <div style={{ marginTop: '4px', fontSize: '0.72rem', fontWeight: '700', textTransform: 'uppercase', color: '#2563eb' }}>
-                      {getAudienceArray(product.targetAudience || product.gender).join(', ')}
+                    <div className="product-taxonomy-cell">
+                      <div className="taxonomy-pill-row">
+                        <span className="category-badge-pill">{product.category || 'General'}</span>
+                        {product.brand && (
+                          <span
+                            className="brand-badge-pill"
+                            onClick={() => setBrandFilter(product.brand)}
+                            title={`Click to filter products by ${product.brand}`}
+                          >
+                            🏢 {product.brand}
+                          </span>
+                        )}
+                      </div>
+                      <div className="audience-pill-row">
+                        {(() => {
+                          const auds = getAudienceArray(product.targetAudience || product.gender)
+                          return auds.map((aud, i) => {
+                            const isMen = aud === 'men'
+                            const isWomen = aud === 'women'
+                            const badgeClass = isMen ? 'aud-badge men' : isWomen ? 'aud-badge women' : 'aud-badge all'
+                            const icon = isMen ? '👨' : isWomen ? '👩' : '🌐'
+                            return (
+                              <span key={i} className={badgeClass}>
+                                {icon} {aud.toUpperCase()}
+                              </span>
+                            )
+                          })
+                        })()}
+                      </div>
                     </div>
                   </td>
                   <td>
@@ -1521,6 +1541,22 @@ const ProductsManager = ({ onPromoteToHero }) => {
                   <td>
                     <div className="table-actions">
                       <button
+                        onClick={() => handleMoveProduct(product, 'up')}
+                        disabled={products.findIndex(p => p._id === product._id) === 0}
+                        className="action-icon-btn move-up"
+                        title="Move Up (Aage / Uper)"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                      </button>
+                      <button
+                        onClick={() => handleMoveProduct(product, 'down')}
+                        disabled={products.findIndex(p => p._id === product._id) === products.length - 1}
+                        className="action-icon-btn move-down"
+                        title="Move Down (Peeche / Neeche)"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                      </button>
+                      <button
                         onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)}
                         className="action-icon-btn hero"
                         title="Promote to Hero"
@@ -1529,9 +1565,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       </button>
                       <button onClick={() => startEdit(product)} className="action-icon-btn edit" title="Edit Product">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-                      </button>
-                      <button onClick={() => handleDuplicate(product)} className="action-icon-btn duplicate" title="Duplicate Product">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
                       </button>
                       <button onClick={() => setProductToDelete(product)} className="action-icon-btn delete" title="Delete Product">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
@@ -1558,7 +1591,17 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 </div>
                 <div className="mobile-card-meta">
                   <div className="mobile-card-category-row">
-                    <span className="category-pill">{product.category}</span>
+                    <div className="taxonomy-pill-row">
+                      <span className="category-badge-pill">{product.category || 'General'}</span>
+                      {product.brand && (
+                        <span
+                          className="brand-badge-pill"
+                          onClick={() => setBrandFilter(product.brand)}
+                        >
+                          🏢 {product.brand}
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       className={`inline-status-toggle ${product.isActive !== false ? 'is-active' : 'is-inactive'}`}
@@ -1599,6 +1642,24 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
               <div className="mobile-card-actions">
                 <button
+                  onClick={() => handleMoveProduct(product, 'up')}
+                  disabled={products.findIndex(p => p._id === product._id) === 0}
+                  className="mobile-action-btn move-up"
+                  title="Move Up (Uper)"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                  <span>Up</span>
+                </button>
+                <button
+                  onClick={() => handleMoveProduct(product, 'down')}
+                  disabled={products.findIndex(p => p._id === product._id) === products.length - 1}
+                  className="mobile-action-btn move-down"
+                  title="Move Down (Neeche)"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  <span>Down</span>
+                </button>
+                <button
                   onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)}
                   className="mobile-action-btn hero"
                 >
@@ -1608,10 +1669,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <button onClick={() => startEdit(product)} className="mobile-action-btn edit">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                   <span>Edit</span>
-                </button>
-                <button onClick={() => handleDuplicate(product)} className="mobile-action-btn duplicate">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                  <span>Copy</span>
                 </button>
                 <button onClick={() => setProductToDelete(product)} className="mobile-action-btn delete">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>

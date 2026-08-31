@@ -229,12 +229,47 @@ const CategoryManager = () => {
     </div>
   )
 
-  const allSlides = settings?.categorySlides || []
-  const displayedCategorySlides = allSlides.filter(slide => {
-    if (audienceFilter === 'all') return true
+  const isCategoryForAudience = (slide, audience) => {
+    if (!slide || !audience || audience === 'all') return true
+    const target = audience.toLowerCase().trim()
     const arr = normalizeAudience(slide.targetAudience)
-    return arr.includes('all') || arr.includes(audienceFilter.toLowerCase())
-  })
+
+    const hasMen = arr.includes('men') || arr.includes('male') || arr.includes('gents')
+    const hasWomen = arr.includes('women') || arr.includes('female') || arr.includes('ladies')
+    const hasExplicitAll = arr.includes('all') || arr.includes('unisex')
+
+    // 1. Explicit single gender tags set in Admin Panel
+    if (hasWomen && !hasMen) return target === 'women'
+    if (hasMen && !hasWomen) return target === 'men'
+
+    // 2. Keyword fallback for title/subtitle/slug
+    const text = `${slide.title || ''} ${slide.subtitle || ''} ${slide.slug || ''}`.toLowerCase()
+    const womenKw = ['kurti', 'sharara', 'saree', 'sari', 'lehenga', 'anarkali', 'kaftan', 'gown', 'dupatta', 'suit', 'palazzo', 'women', 'female', 'ladies', 'dress', 'top']
+    const menKw = ['sherwani', 'bandhgala', 'nehru jacket', 'waistcoat', 'pathani', 'men', 'male', 'gents', 'mens', 'tshirt', 'shirt', 'kurta pyjama']
+
+    const isWomenTitle = womenKw.some(kw => text.includes(kw))
+    const isMenTitle = menKw.some(kw => text.includes(kw))
+
+    if (target === 'men') {
+      if (isWomenTitle && !isMenTitle) return false
+      if (hasMen || isMenTitle) return true
+      return hasExplicitAll && !isWomenTitle
+    }
+
+    if (target === 'women') {
+      if (isMenTitle && !isWomenTitle) return false
+      if (hasWomen || isWomenTitle) return true
+      return hasExplicitAll && !isMenTitle
+    }
+
+    return true
+  }
+
+  const allSlides = settings?.categorySlides || []
+  const displayedCategorySlides = allSlides.filter(slide => isCategoryForAudience(slide, audienceFilter))
+
+  const menCount = allSlides.filter(s => isCategoryForAudience(s, 'men')).length
+  const womenCount = allSlides.filter(s => isCategoryForAudience(s, 'women')).length
 
   const formatAudienceBadge = (val) => {
     if (Array.isArray(val)) return val.map(v => (v || '').toUpperCase()).join(', ')
@@ -252,21 +287,21 @@ const CategoryManager = () => {
             style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'all' ? '#ffffff' : 'transparent', color: audienceFilter === 'all' ? '#0f172a' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
             onClick={() => setAudienceFilter('all')}
           >
-            🌐 ALL ({allSlides.filter(s => normalizeAudience(s.targetAudience).includes('all')).length})
+            🌐 ALL ({allSlides.length})
           </button>
           <button
             type="button"
             style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'men' ? '#2563eb' : 'transparent', color: audienceFilter === 'men' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'men' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
             onClick={() => setAudienceFilter('men')}
           >
-            👨 MEN ({allSlides.filter(s => normalizeAudience(s.targetAudience).includes('men')).length})
+            👨 MEN ({menCount})
           </button>
           <button
             type="button"
             style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'women' ? '#ec4899' : 'transparent', color: audienceFilter === 'women' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'women' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
             onClick={() => setAudienceFilter('women')}
           >
-            👩 WOMEN ({allSlides.filter(s => normalizeAudience(s.targetAudience).includes('women')).length})
+            👩 WOMEN ({womenCount})
           </button>
         </div>
 

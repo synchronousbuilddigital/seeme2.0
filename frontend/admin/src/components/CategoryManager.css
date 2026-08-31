@@ -58,7 +58,8 @@
 .slide-card {
   background: #fff;
   border: 1px solid #F0F0F0;
-  border-radius: 0; /* Sharp, modern editorial look */
+  border-radius: 0;
+  /* Sharp, modern editorial look */
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -66,14 +67,15 @@
 }
 
 .slide-card:hover {
-  box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.1);
   transform: translateY(-8px);
   border-color: #000;
 }
 
 .slide-image {
   position: relative;
-  height: 450px; /* Taller for full portrait view */
+  height: 450px;
+  /* Taller for full portrait view */
   background: #F5F5F5;
   overflow: hidden;
 }
@@ -113,7 +115,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   transition: all 0.2s;
 }
 
@@ -188,7 +190,7 @@
   max-width: 700px;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -241,7 +243,8 @@
   margin-bottom: 8px;
 }
 
-.form-group input, .form-group textarea {
+.form-group input,
+.form-group textarea {
   width: 100%;
   padding: 0.9rem 1.1rem;
   border: 1px solid #DDD;
@@ -251,7 +254,8 @@
   font-family: inherit;
 }
 
-.form-group input:focus, .form-group textarea:focus {
+.form-group input:focus,
+.form-group textarea:focus {
   border-color: #000;
   outline: none;
 }
@@ -390,8 +394,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Toast */
@@ -403,13 +412,18 @@
   border-radius: 12px;
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   z-index: 10000;
   backdrop-filter: blur(5px);
 }
 
-.toast.success { background: #2E7D32; }
-.toast.error { background: #D32F2F; }
+.toast.success {
+  background: #2E7D32;
+}
+
+.toast.error {
+  background: #D32F2F;
+}
 
 /* Mobile Responsiveness Optimizations */
 @media (max-width: 768px) {
@@ -444,7 +458,8 @@
   }
 
   .slide-actions {
-    opacity: 1; /* Keep actions visible on touch screens */
+    opacity: 1;
+    /* Keep actions visible on touch screens */
   }
 
   .action-btn {
@@ -479,7 +494,8 @@
 
   .form-group input,
   .form-group textarea {
-    font-size: 16px !important; /* Prevents iOS WebKit auto-zoom */
+    font-size: 16px !important;
+    /* Prevents iOS WebKit auto-zoom */
   }
 
   .image-upload-wrapper {
@@ -512,7 +528,8 @@
     padding: 14px 18px;
   }
 
-  .btn-cancel, .btn-save {
+  .btn-cancel,
+  .btn-save {
     flex: 1;
     padding: 0.85rem;
     text-align: center;

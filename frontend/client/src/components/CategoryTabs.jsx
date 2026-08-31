@@ -128,23 +128,41 @@ const CategoryTabs = ({ onTabChange }) => {
             {TABS_DATA.map((tab) => {
               const isActive = activeTab === tab.key
               return (
-                <button
+                <motion.button
                   key={tab.key}
                   type="button"
                   className={`category-tab-pill-btn ${isActive ? 'active' : ''}`}
                   onClick={() => handleTabClick(tab.key)}
+                  whileHover={{ y: -3, scale: 1.04 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: 'spring', stiffness: 450, damping: 25 }}
                 >
                   <div className="tab-pill-image-frame">
                     <img src={tab.image} alt={tab.label} className="tab-pill-img" />
+                    {isActive && (
+                      <motion.div
+                        className="tab-pill-shimmer"
+                        initial={{ x: '-100%' }}
+                        animate={{ x: '200%' }}
+                        transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut', repeatDelay: 0.8 }}
+                      />
+                    )}
                   </div>
-                  <span className="tab-pill-label">{tab.label}</span>
-                </button>
+                  <span className="tab-pill-label">
+                    {tab.label}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTabIndicator"
+                        className="active-pill-underline"
+                        transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                      />
+                    )}
+                  </span>
+                </motion.button>
               )
             })}
           </div>
         </div>
-        {/* Full Screen End-to-End Baseline */}
-        <div className="category-tabs-baseline" />
       </div>
 
       <div className="category-tabs-container">

@@ -22,6 +22,10 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ success: false, message: 'User not found' })
     }
 
+    if (req.user.isBlocked) {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact support.' })
+    }
+
     next()
   } catch (error) {
     console.warn('⚠️ [AUTH PROTECT 401]:', error.message)

@@ -113,8 +113,8 @@ function App() {
               <NewArrivals activeAudience={activeAudience} />
               <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
                 <ShopSection activeAudience={activeAudience} />
-                <CategoriesSlider activeAudience={activeAudience} />
                 <CatalogSection activeAudience={activeAudience} />
+                <CategoriesSlider activeAudience={activeAudience} />
                 <EthosBanner />
                 <About />
               </Suspense>

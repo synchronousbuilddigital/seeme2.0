@@ -212,15 +212,31 @@ const BrandManager = () => {
     }
   }
 
-  const displayedBrands = brands.filter(b => {
-    const arr = normalizeAudience(b.targetAudience)
-    return arr.includes(audienceFilter.toLowerCase())
-  })
+  const isBrandForAudience = (brand, audience) => {
+    if (!brand || !audience || audience === 'all') return true
+    const target = audience.toLowerCase().trim()
+    const arr = normalizeAudience(brand.targetAudience)
+
+    const hasMen = arr.includes('men') || arr.includes('male') || arr.includes('gents')
+    const hasWomen = arr.includes('women') || arr.includes('female') || arr.includes('ladies')
+    const hasExplicitAll = arr.includes('all') || arr.includes('unisex')
+
+    if (hasWomen && !hasMen) return target === 'women'
+    if (hasMen && !hasWomen) return target === 'men'
+    if (hasExplicitAll || (hasMen && hasWomen)) return true
+
+    return true
+  }
+
+  const displayedBrands = brands.filter(b => isBrandForAudience(b, audienceFilter))
+
+  const menCount = brands.filter(b => isBrandForAudience(b, 'men')).length
+  const womenCount = brands.filter(b => isBrandForAudience(b, 'women')).length
 
   const formatAudienceBadge = (val) => {
     if (Array.isArray(val)) return val.map(v => (v || '').toUpperCase()).join(', ')
     if (typeof val === 'string' && val.trim()) return val.toUpperCase()
-    return 'MEN'
+    return 'ALL'
   }
 
   return (
@@ -239,19 +255,19 @@ const BrandManager = () => {
               className={`filter-btn ${audienceFilter === 'all' ? 'active' : ''}`}
               onClick={() => setAudienceFilter('all')}
             >
-              🌐 ALL ({brands.filter(b => normalizeAudience(b.targetAudience).includes('all')).length})
+              🌐 ALL ({brands.length})
             </button>
             <button
               className={`filter-btn men ${audienceFilter === 'men' ? 'active' : ''}`}
               onClick={() => setAudienceFilter('men')}
             >
-              👨 MEN ({brands.filter(b => normalizeAudience(b.targetAudience).includes('men')).length})
+              👨 MEN ({menCount})
             </button>
             <button
               className={`filter-btn women ${audienceFilter === 'women' ? 'active' : ''}`}
               onClick={() => setAudienceFilter('women')}
             >
-              👩 WOMEN ({brands.filter(b => normalizeAudience(b.targetAudience).includes('women')).length})
+              👩 WOMEN ({womenCount})
             </button>
           </div>
 

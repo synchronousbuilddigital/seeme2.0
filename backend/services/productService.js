@@ -58,7 +58,7 @@ export const getAllProducts = async (filters = {}) => {
 
   const skip = (page - 1) * limit
 
-  let sortOptions = { createdAt: -1 }
+  let sortOptions = { order: 1, createdAt: -1 }
   if (sortBy === 'price_asc') sortOptions = { price: 1 }
   if (sortBy === 'price_desc') sortOptions = { price: -1 }
   if (sortBy === 'newest') sortOptions = { createdAt: -1 }

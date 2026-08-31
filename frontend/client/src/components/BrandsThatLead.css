@@ -8,8 +8,8 @@
   background: linear-gradient(180deg, #FAF7F2 0%, #FFFFFF 100%);
   position: relative;
   overflow: hidden;
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  border-top: none;
+  border-bottom: none;
 }
 
 .brands-lead-container {
@@ -137,14 +137,14 @@
 }
 
 .brand-name-text {
-  font-family: var(--font-heading, 'Cormorant Garamond', serif);
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-family: var(--font-body, 'Plus Jakarta Sans', 'Outfit', 'Inter', sans-serif);
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
   color: #0F172A;
   margin: 0;
   text-transform: uppercase;
-  line-height: 1.2;
+  line-height: 1.15;
 }
 
 .brand-tagline-text {
@@ -229,7 +229,8 @@
   }
 
   .brand-name-text {
-    font-size: 1.15rem;
+    font-size: 1.45rem;
+    font-weight: 900;
   }
 
   .brand-tagline-text {

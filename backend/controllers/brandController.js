@@ -2,6 +2,20 @@ import Brand from '../models/Brand.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import cloudinary from '../config/cloudinary.js'
 
+// Helper to cleanup Cloudinary images on delete
+const deleteCloudinaryImage = async (imageUrl) => {
+  if (!imageUrl || typeof imageUrl !== 'string' || !imageUrl.includes('cloudinary.com')) return
+  try {
+    const parts = imageUrl.split('/')
+    const folderAndFile = parts.slice(-2).join('/').replace(/\.[^/.]+$/, '')
+    if (folderAndFile) {
+      await cloudinary.uploader.destroy(folderAndFile).catch(() => null)
+    }
+  } catch (err) {
+    console.warn('⚠️ Cloudinary deletion warning:', err.message)
+  }
+}
+
 // @desc    Get all active brands (or all for admin)
 // @route   GET /api/brands
 // @access  Public
@@ -28,14 +42,16 @@ export const getBrands = asyncHandler(async (req, res) => {
 
   if (gender && gender !== 'all' && admin !== 'true') {
     const g = gender.toLowerCase()
-    const filtered = normalized.filter(b => 
-      b.targetAudience.includes(g) || 
-      b.targetAudience.includes('all') || 
-      b.targetAudience.length === 0
-    )
-    if (filtered.length > 0) {
-      return res.json({ success: true, count: filtered.length, data: filtered })
-    }
+    const filtered = normalized.filter(b => {
+      const hasWomen = b.targetAudience.includes('women') || b.targetAudience.includes('female')
+      const hasMen = b.targetAudience.includes('men') || b.targetAudience.includes('male')
+      const hasAll = b.targetAudience.includes('all') || b.targetAudience.includes('unisex')
+
+      if (hasWomen && !hasMen) return g === 'women'
+      if (hasMen && !hasWomen) return g === 'men'
+      return hasAll || (hasMen && hasWomen) || b.targetAudience.length === 0
+    })
+    return res.json({ success: true, count: filtered.length, data: filtered })
   }
 
   res.json({ success: true, count: normalized.length, data: normalized })
