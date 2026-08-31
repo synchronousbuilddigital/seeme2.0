@@ -5,8 +5,10 @@
 .global-site-loader {
   position: fixed;
   inset: 0;
-  background-color: #0c0a09; /* Deep, rich warm black */
-  z-index: 99999; /* Highest priority overlay */
+  background-color: #0c0a09;
+  /* Deep, rich warm black */
+  z-index: 99999;
+  /* Highest priority overlay */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -53,7 +55,8 @@
 .global-site-loader .orbit-dot {
   width: 6px;
   height: 6px;
-  background-color: #c5a880; /* Gold */
+  background-color: #c5a880;
+  /* Gold */
   border-radius: 50%;
   position: absolute;
   top: -3px;
@@ -80,18 +83,28 @@
 }
 
 @keyframes rotateOrbitGlobal {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes antiRotateGlobal {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(-360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
 }
 
 @keyframes breatheGlobalTagline {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.4;
   }
+
   50% {
     opacity: 0.8;
   }

@@ -124,6 +124,7 @@ export const register = asyncHandler(async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
       role: user.role,
       createdAt: user.createdAt
     },
@@ -151,6 +152,7 @@ export const login = asyncHandler(async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
         role: user.role,
         createdAt: user.createdAt
       },
@@ -189,7 +191,15 @@ export const getMe = asyncHandler(async (req, res) => {
   const user = await authService.getUserProfile(req.user._id)
   res.json({
     success: true,
-    data: user
+    data: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      avatar: user.avatar,
+      createdAt: user.createdAt
+    }
   })
 })
 
@@ -472,6 +482,7 @@ export const googleAuthCallback = asyncHandler(async (req, res) => {
       id: user._id,
       name: user.name,
       email: user.email,
+      phone: user.phone,
       role: user.role,
       avatar: user.avatar,
       createdAt: user.createdAt

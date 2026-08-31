@@ -57,6 +57,37 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token])
 
+  // Fetch current user profile from backend whenever token exists to keep state & localStorage up-to-date (e.g. phone number)
+  useEffect(() => {
+    if (!token) return
+
+    let isMounted = true
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.ME, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await response.json()
+        if (isMounted && response.ok && data.success && data.data) {
+          setUser(prev => ({
+            ...prev,
+            ...data.data
+          }))
+        }
+      } catch (err) {
+        console.error('Error fetching user profile:', err)
+      }
+    }
+
+    fetchUserProfile()
+
+    return () => {
+      isMounted = false
+    }
+  }, [token])
+
   const login = async (email, password) => {
     try {
       const response = await fetch(API_ENDPOINTS.LOGIN, {
