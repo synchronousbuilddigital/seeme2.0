@@ -1,4 +1,15 @@
-const API_BASE_URL = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://seeme2-0.vercel.app' : 'http://localhost:5000')).replace(/\/$/, '')
+const getApiBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (import.meta.env.PROD) {
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl.replace(/\/$/, '')
+    }
+    return 'https://seeme2-0.vercel.app'
+  }
+  return (envUrl || 'http://localhost:5000').replace(/\/$/, '')
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 export const API_ENDPOINTS = {
   HEALTH: `${API_BASE_URL}/api/health`,

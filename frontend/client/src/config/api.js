@@ -9,14 +9,14 @@ export const getAdminUrl = () => {
 }
 
 const getApiBaseUrl = () => {
-  // Use VITE_API_URL from env
-  // Fallback to the main backend URL in production if env is missing
+  const envUrl = import.meta.env.VITE_API_URL
   if (import.meta.env.PROD) {
-    return (import.meta.env.VITE_API_URL || 'https://seeme2-0.vercel.app').replace(/\/$/, '')
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl.replace(/\/$/, '')
+    }
+    return 'https://seeme2-0.vercel.app'
   }
-
-  // Local development fallback
-  return (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '')
+  return (envUrl || 'http://localhost:5000').replace(/\/$/, '')
 }
 
 const API_BASE_URL = getApiBaseUrl()
