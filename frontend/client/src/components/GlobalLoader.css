@@ -1,14 +1,12 @@
 /* ==========================================================================
-   GLOBALLOADER.CSS - Premium Site-Wide Preloader
+   GLOBALLOADER.CSS - Minimal & Elegant SEEMEE Couture Preloader
    ========================================================================== */
 
-.global-site-loader {
+.seemee-global-loader {
   position: fixed;
   inset: 0;
-  background-color: #0c0a09;
-  /* Deep, rich warm black */
+  background-color: #0a0908;
   z-index: 99999;
-  /* Highest priority overlay */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -17,95 +15,157 @@
   overflow: hidden;
 }
 
-/* Atmosphere spotlight behind spinner */
-.global-site-loader::before {
-  content: '';
+/* Subtle gold radial ambient glow */
+.loader-ambient-glow {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(197, 168, 128, 0.08) 0%, transparent 70%);
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.07) 0%, rgba(10, 9, 8, 0) 70%);
   pointer-events: none;
-  filter: blur(40px);
+  filter: blur(50px);
 }
 
-.loader-center-panel {
+.loader-content-box {
   position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 2;
+  text-align: center;
+  max-width: 340px;
+  width: 90%;
+  padding: 20px;
 }
 
-.global-site-loader .spinner-orbit {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 1px solid rgba(197, 168, 128, 0.15);
+/* Minimal Couture Hanger Emblem */
+.loader-emblem-wrap {
   position: relative;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: rotateOrbitGlobal 6s linear infinite;
 }
 
-.global-site-loader .orbit-dot {
-  width: 6px;
-  height: 6px;
-  background-color: #c5a880;
-  /* Gold */
-  border-radius: 50%;
+.loader-hanger-svg {
+  width: 52px;
+  height: 52px;
+  filter: drop-shadow(0 2px 8px rgba(212, 175, 55, 0.3));
+  animation: emblemFloat 3s ease-in-out infinite;
+}
+
+.emblem-pulse-ring {
   position: absolute;
-  top: -3px;
-  box-shadow: 0 0 10px #c5a880;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  animation: ringPulse 2.5s ease-out infinite;
 }
 
-.global-site-loader .orbit-text {
-  font-family: 'Italiana', serif;
-  color: #c5a880;
-  font-size: 1.4rem;
-  letter-spacing: 0.1em;
-  animation: antiRotateGlobal 6s linear infinite;
+/* Brand Title & Subtitle */
+.loader-brand-header {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.global-site-loader .loading-tagline {
-  margin-top: 25px;
-  font-family: 'Montserrat', sans-serif;
-  color: rgba(229, 207, 179, 0.6);
-  font-size: 0.72rem;
-  letter-spacing: 0.35em;
+.loader-logo-img {
+  max-height: 48px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
+}
+
+.loader-brand-title {
+  font-family: var(--font-heading, 'Cormorant Garamond', serif);
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: 0.38em;
+  color: #f5f5f4;
+  margin: 0;
+  text-indent: 0.38em;
   text-transform: uppercase;
-  text-align: center;
-  animation: breatheGlobalTagline 2.5s infinite ease-in-out;
 }
 
-@keyframes rotateOrbitGlobal {
-  to {
-    transform: rotate(360deg);
-  }
+.loader-brand-subtitle {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  color: #d4af37;
+  text-transform: uppercase;
+  margin-top: 6px;
+  opacity: 0.9;
 }
 
-@keyframes antiRotateGlobal {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(-360deg);
-  }
+/* Minimal Progress Bar & Status */
+.loader-progress-container {
+  width: 100%;
+  max-width: 260px;
 }
 
-@keyframes breatheGlobalTagline {
+.loader-progress-track {
+  width: 100%;
+  height: 2px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
 
-  0%,
-  100% {
-    opacity: 0.4;
+.loader-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #b8941e 0%, #d4af37 50%, #f4e4c1 100%);
+  border-radius: 2px;
+  transition: width 0.08s ease-out;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+}
+
+.loader-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  color: rgba(245, 245, 244, 0.6);
+  text-transform: uppercase;
+}
+
+.loader-status-text {
+  font-weight: 500;
+}
+
+.loader-percent-num {
+  font-weight: 600;
+  color: #d4af37;
+  font-family: monospace, sans-serif;
+}
+
+/* Keyframes */
+@keyframes emblemFloat {
+  0%, 100% {
+    transform: translateY(0);
   }
-
   50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes ringPulse {
+  0% {
+    transform: scale(0.85);
     opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
   }
 }

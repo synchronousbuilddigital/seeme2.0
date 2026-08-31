@@ -3,18 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import './GlobalLoader.css'
 
-const CLOTHING_PHRASES = [
-  'WEAVING HERITAGE FABRICS...',
-  'STITCHING GOLDEN EMBROIDERY...',
-  'TAILORING YOUR ROYAL ATELIER...',
-  'UNVEILING ETHNIC COUTURE...',
-  'YOUR OUTFIT IS READY'
-]
-
 const GlobalLoader = () => {
   const [visible, setVisible] = useState(true)
   const [progress, setProgress] = useState(0)
-  const [phraseIndex, setPhraseIndex] = useState(0)
   const [logo, setLogo] = useState(null)
 
   useEffect(() => {
@@ -35,7 +26,7 @@ const GlobalLoader = () => {
           clearInterval(interval)
           return 100
         }
-        const increment = Math.floor(Math.random() * 7) + 5
+        const increment = Math.floor(Math.random() * 12) + 8
         const nextVal = prev + increment
         return nextVal > 100 ? 100 : nextVal
       })
@@ -45,18 +36,10 @@ const GlobalLoader = () => {
   }, [])
 
   useEffect(() => {
-    if (progress < 25) setPhraseIndex(0)
-    else if (progress < 55) setPhraseIndex(1)
-    else if (progress < 75) setPhraseIndex(2)
-    else if (progress < 95) setPhraseIndex(3)
-    else setPhraseIndex(4)
-  }, [progress])
-
-  useEffect(() => {
     if (progress === 100) {
       const exitTimer = setTimeout(() => {
         setVisible(false)
-      }, 450)
+      }, 350)
       return () => clearTimeout(exitTimer)
     }
   }, [progress])
@@ -65,88 +48,53 @@ const GlobalLoader = () => {
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="global-site-loader real-clothing-loader"
+          className="seemee-global-loader"
           initial={{ opacity: 1 }}
           exit={{
             opacity: 0,
-            transition: { duration: 0.7, ease: [0.65, 0, 0.35, 1] }
+            transition: { duration: 0.6, ease: [0.65, 0, 0.35, 1] }
           }}
         >
-          {/* Ambient Glow Spotlight */}
+          {/* Subtle Ambient Radial Glow */}
           <div className="loader-ambient-glow" />
 
-          {/* Loom Background Pattern */}
-          <div className="loader-bg-weave" />
-
-          <div className="loader-center-panel">
-            {/* Real Clothing Showcase Frame */}
-            <div className="garment-showcase-frame">
-              <div className="garment-ring-glow" />
-              <div className="garment-img-wrapper">
-                <img
-                  src="/images/loader_clothing_garment.jpg"
-                  alt="SEEMEE Ethnic Garment"
-                  className="garment-img"
-                />
-                <div className="garment-overlay-shimmer" />
-              </div>
-              <div className="garment-hanger-badge">
-                <span>🪡</span>
-              </div>
+          <div className="loader-content-box">
+            {/* Minimal Luxury Hanger / Couture SVG Emblem */}
+            <div className="loader-emblem-wrap">
+              <svg className="loader-hanger-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Hanger Hook */}
+                <path d="M32 14C32 9.58172 35.5817 6 40 6C42.2091 6 44 7.79086 44 10C44 12.2091 42.2091 14 40 14" stroke="#D4AF37" strokeWidth="2.2" strokeLinecap="round"/>
+                {/* Hanger Body */}
+                <path d="M32 14L10 32C8 33.6 8 36 10 36H54C56 36 56 33.6 54 32L32 14Z" stroke="#D4AF37" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Bottom Accent Line */}
+                <line x1="18" y1="36" x2="46" y2="36" stroke="#F4E4C1" strokeWidth="1.5" strokeDasharray="3 3"/>
+              </svg>
+              <div className="emblem-pulse-ring" />
             </div>
 
-            {/* Brand Title / Logo */}
-            <div className="loader-brand-box">
+            {/* Brand Logo / Header */}
+            <div className="loader-brand-header">
               {logo ? (
                 <img src={logo} alt="SEEMEE" className="loader-logo-img" />
               ) : (
-                <span className="clothing-brand-title">SEEMEE</span>
+                <h1 className="loader-brand-title">SEEMEE</h1>
               )}
-              <span className="clothing-brand-sub">ETHNIC &amp; LUXURY COUTURE</span>
+              <span className="loader-brand-subtitle">HAUTE COUTURE • ATELIER</span>
             </div>
 
-            {/* Tailor's Measuring Tape Progress Bar */}
-            <div className="measuring-tape-wrapper">
-              <div className="tape-ticks-bar">
-                {Array(11).fill(0).map((_, i) => (
-                  <span key={i} className="tape-tick-mark" />
-                ))}
-              </div>
-
-              <div className="tape-progress-track">
+            {/* Minimal Gold Progress Bar */}
+            <div className="loader-progress-container">
+              <div className="loader-progress-track">
                 <div
-                  className="tape-progress-fill"
+                  className="loader-progress-bar"
                   style={{ width: `${progress}%` }}
-                >
-                  <div className="tape-needle-pointer">
-                    <span className="needle-head">✂️</span>
-                  </div>
-                </div>
+                />
+              </div>
+              <div className="loader-progress-meta">
+                <span className="loader-status-text">CURATING ATELIER</span>
+                <span className="loader-percent-num">{progress}%</span>
               </div>
             </div>
-
-            {/* Percentage Display */}
-            <div className="clothing-percentage-text">
-              <span>{progress}</span>
-              <span className="percent-unit">% TAILORED</span>
-            </div>
-
-            {/* Dynamic Status Phrase */}
-            <motion.p
-              key={phraseIndex}
-              className="clothing-tagline"
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.25 }}
-            >
-              {CLOTHING_PHRASES[phraseIndex]}
-            </motion.p>
-          </div>
-
-          {/* Footer Signature */}
-          <div className="loader-footer-signature">
-            <span>CURATING FINE ETHNIC WEAR • SEEMEE</span>
           </div>
         </motion.div>
       )}

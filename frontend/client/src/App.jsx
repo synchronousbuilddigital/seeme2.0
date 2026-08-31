@@ -162,12 +162,15 @@ function App() {
               <div style={{
                 minHeight: '100vh',
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontFamily: 'var(--font-body)',
-                color: 'var(--charcoal)'
+                backgroundColor: '#0a0908',
+                color: '#d4af37',
+                fontFamily: 'var(--font-heading, serif)'
               }}>
-                Loading...
+                <div style={{ fontSize: '1.8rem', fontWeight: 700, letterSpacing: '0.35em', textIndent: '0.35em', color: '#f5f5f4', marginBottom: '6px' }}>SEEMEE</div>
+                <div style={{ fontSize: '0.65rem', color: '#d4af37', letterSpacing: '0.3em', textTransform: 'uppercase', fontFamily: 'var(--font-body, sans-serif)' }}>HAUTE COUTURE • ATELIER</div>
               </div>
             }>
               <Routes>
