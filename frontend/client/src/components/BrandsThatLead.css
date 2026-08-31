@@ -4,10 +4,12 @@
 
 .brands-lead-section {
   width: 100%;
-  padding: 3.5rem 0;
-  background-color: #FAFAFA;
+  padding: 4.5rem 0;
+  background: linear-gradient(180deg, #FAF7F2 0%, #FFFFFF 100%);
   position: relative;
   overflow: hidden;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
 }
 
 .brands-lead-container {
@@ -22,34 +24,34 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
 }
 
 .brands-lead-eyebrow {
-  font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: 0.75rem;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.22em;
-  color: #64748B;
+  letter-spacing: 0.3em;
+  color: #D4AF37;
   text-transform: uppercase;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.5rem;
 }
 
 .brands-lead-title {
-  font-family: var(--font-heading, 'Playfair Display', serif);
-  font-size: 2.25rem;
+  font-family: var(--font-heading, 'Cormorant Garamond', serif);
+  font-size: 2.6rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #0F172A;
+  letter-spacing: 0.12em;
+  color: #1A1A1A;
   margin: 0;
   text-transform: uppercase;
 }
 
 .brands-title-underline {
-  width: 48px;
+  width: 60px;
   height: 3px;
-  background-color: #2563EB;
-  margin-top: 0.75rem;
+  background: linear-gradient(90deg, #D4AF37 0%, #F4E4C1 100%);
+  margin-top: 0.85rem;
   border-radius: 2px;
 }
 
@@ -68,26 +70,28 @@
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  min-height: 165px;
+  min-height: 175px;
   background-size: cover;
   background-position: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+  border: 1.5px solid rgba(212, 175, 55, 0.3);
   cursor: pointer;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
   overflow: hidden;
 }
 
 .brand-card-item:hover {
   transform: translateY(-6px);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.14);
+  border-color: rgba(212, 175, 55, 0.7);
 }
 
 /* Left Photo Side — Full Height Edge-to-Edge Cover */
 .brand-card-photo-side {
   width: 44%;
-  min-width: 135px;
+  min-width: 140px;
   position: relative;
   overflow: hidden;
   flex-shrink: 0;
@@ -123,9 +127,18 @@
   gap: 0.25rem;
 }
 
+.brand-mini-badge {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #D4AF37;
+  text-transform: uppercase;
+}
+
 .brand-name-text {
-  font-family: var(--font-heading, 'Playfair Display', serif);
-  font-size: 1.25rem;
+  font-family: var(--font-heading, 'Cormorant Garamond', serif);
+  font-size: 1.4rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   color: #0F172A;
@@ -135,10 +148,10 @@
 }
 
 .brand-tagline-text {
-  font-family: var(--font-body, 'Inter', sans-serif);
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
   font-size: 0.82rem;
   font-weight: 500;
-  color: #334155;
+  color: #475569;
   margin: 0;
   line-height: 1.35;
 }

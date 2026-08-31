@@ -17,14 +17,15 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
 
   // Fetch Arrivals
   useEffect(() => {
+    let isMounted = true
     const fetchTopProducts = async () => {
       try {
         setLoading(true)
         const endpoint = activeAudience !== 'all'
-          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=100&status=active`
-          : `${API_ENDPOINTS.PRODUCTS}?limit=100&status=active`
-        const data = await cachedFetch(endpoint, { forceRefresh: true })
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=16&status=active`
+          : `${API_ENDPOINTS.PRODUCTS}?limit=16&status=active`
+        const data = await cachedFetch(endpoint, { ttlMs: 300000 })
+        if (isMounted && data?.success && Array.isArray(data.data) && data.data.length > 0) {
           const audienceFiltered = data.data.filter(p => belongsToAudience(p, activeAudience))
           const newArrivalOnly = audienceFiltered.filter(p => p.isNewArrival === true)
           const finalSelection = newArrivalOnly.length > 0 ? newArrivalOnly : audienceFiltered
@@ -33,10 +34,11 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
       } catch (error) {
         console.error('Error fetching new arrivals:', error)
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
     fetchTopProducts()
+    return () => { isMounted = false }
   }, [activeAudience])
 
   if (loading) return null

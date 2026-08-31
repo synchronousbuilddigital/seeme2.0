@@ -2,6 +2,9 @@ import * as productService from '../services/productService.js'
 import asyncHandler from '../utils/asyncHandler.js'
 
 export const getProducts = asyncHandler(async (req, res) => {
+  if (req.query.status === 'active' || !req.query.includeInactive) {
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600')
+  }
   const result = await productService.getAllProducts(req.query)
   res.json({ success: true, data: result.products, ...result })
 })

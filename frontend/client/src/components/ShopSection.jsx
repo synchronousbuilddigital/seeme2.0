@@ -19,14 +19,15 @@ const ShopSection = ({ activeAudience = 'all' }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let isMounted = true
     const fetchProducts = async () => {
       try {
         setLoading(true)
         const endpoint = activeAudience !== 'all'
-          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=1000&status=active`
-          : `${API_ENDPOINTS.PRODUCTS}?limit=1000&status=active`
-        const data = await cachedFetch(endpoint, { forceRefresh: true })
-        if (data.success && data.data) {
+          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=24&status=active`
+          : `${API_ENDPOINTS.PRODUCTS}?limit=24&status=active`
+        const data = await cachedFetch(endpoint, { ttlMs: 300000 })
+        if (isMounted && data?.success && Array.isArray(data.data)) {
           const filtered = data.data.filter(p => belongsToAudience(p, activeAudience))
           const featuredProds = filtered.filter(p => p.featured === true || p.inCollection === true)
           const finalProds = featuredProds.length > 0 ? featuredProds : filtered
@@ -35,10 +36,11 @@ const ShopSection = ({ activeAudience = 'all' }) => {
       } catch (error) {
         console.error('Error fetching shop products:', error)
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
     fetchProducts()
+    return () => { isMounted = false }
   }, [activeAudience])
 
   useEffect(() => {

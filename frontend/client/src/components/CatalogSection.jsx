@@ -15,10 +15,11 @@ const CatalogSection = () => {
   const videoRefs = useRef({})
 
   useEffect(() => {
+    let isMounted = true
     const fetchAdminReels = async () => {
       try {
         setLoading(true)
-        const reelsRes = await cachedFetch(API_ENDPOINTS.REELS, { forceRefresh: true })
+        const reelsRes = await cachedFetch(API_ENDPOINTS.REELS, { ttlMs: 300000 })
         const reelsData = (reelsRes?.success && Array.isArray(reelsRes.data)) ? reelsRes.data : []
 
         // Map strictly and exclusively reels published in Admin Panel Catalog Reels
@@ -32,18 +33,21 @@ const CatalogSection = () => {
           product: r.product
         })).filter(r => Boolean(r.videoUrl || r.image))
 
-        setItems(reelItems)
-        if (reelItems.length > 0) {
-          setActiveIndex(Math.floor(reelItems.length / 2))
+        if (isMounted) {
+          setItems(reelItems)
+          if (reelItems.length > 0) {
+            setActiveIndex(Math.floor(reelItems.length / 2))
+          }
         }
       } catch (err) {
         console.error('Error fetching admin reels:', err)
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchAdminReels()
+    return () => { isMounted = false }
   }, [])
 
   const handlePrev = () => {

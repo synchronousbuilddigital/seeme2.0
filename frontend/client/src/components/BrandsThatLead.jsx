@@ -17,13 +17,22 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
       try {
         setLoading(true)
         const targetUrl = `${API_ENDPOINTS.BRANDS}?gender=${encodeURIComponent(activeAudience)}`
-        const res = await cachedFetch(targetUrl, { ttlMs: 120000 })
+        let res = await cachedFetch(targetUrl, { ttlMs: 60000 })
         
-        if (isMounted && res?.success && Array.isArray(res.data)) {
+        if (isMounted && res?.success && Array.isArray(res.data) && res.data.length > 0) {
           setBrands(res.data)
+        } else {
+          // Fallback to fetch all active brands created in Admin Panel
+          const fallbackRes = await cachedFetch(API_ENDPOINTS.BRANDS, { ttlMs: 60000 })
+          if (isMounted && fallbackRes?.success && Array.isArray(fallbackRes.data)) {
+            setBrands(fallbackRes.data)
+          } else if (isMounted) {
+            setBrands([])
+          }
         }
       } catch (err) {
         console.error('Error loading Brands That Lead:', err)
+        if (isMounted) setBrands([])
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -33,6 +42,7 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
     return () => { isMounted = false }
   }, [activeAudience])
 
+  // Strictly return null if no brands exist in Admin database
   if (!loading && brands.length === 0) {
     return null
   }
@@ -42,7 +52,6 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
       <div className="brands-lead-container">
         {/* Section Header */}
         <div className="brands-lead-header">
-          <span className="brands-lead-eyebrow">CURATED EXCELLENCE</span>
           <h2 className="brands-lead-title">BRANDS THAT LEAD</h2>
           <div className="brands-title-underline" />
         </div>
@@ -50,7 +59,7 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
         {/* Brands Grid */}
         {loading ? (
           <div className="brands-skeleton-grid">
-            {Array(3).fill(0).map((_, idx) => (
+            {Array(2).fill(0).map((_, idx) => (
               <div key={idx} className="brand-skeleton-card" />
             ))}
           </div>
@@ -61,8 +70,8 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
                 key={brand._id}
                 className="brand-card-item"
                 style={{
-                  backgroundColor: brand.bgColor || '#D1F2EE',
-                  backgroundImage: brand.bgImage ? `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${getOptimizedImageUrl(brand.bgImage, 'hero')})` : 'none'
+                  backgroundColor: brand.bgColor || '#FAF7F2',
+                  backgroundImage: brand.bgImage ? `linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url(${getOptimizedImageUrl(brand.bgImage, 'hero')})` : 'none'
                 }}
                 onClick={() => {
                   const bName = brand.name || ''
@@ -75,15 +84,16 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
                     src={getOptimizedImageUrl(brand.image, 'card')}
                     alt={brand.name}
                     className="brand-card-photo-img"
-                    loading="lazy"
+                    loading="eager"
                     decoding="async"
-                    onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
+                    onError={(e) => { e.target.src = '/images/home-hero.png' }}
                   />
                 </div>
 
                 {/* Right Side: Details & Action Pill Button */}
                 <div className="brand-card-info-side">
                   <div className="brand-details">
+                    <span className="brand-mini-badge">FEATURED BRAND</span>
                     <h3 className="brand-name-text">{brand.name}</h3>
                     {brand.tagline && <p className="brand-tagline-text">{brand.tagline}</p>}
                   </div>
