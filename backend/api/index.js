@@ -136,6 +136,9 @@ async function createApp() {
     const { default: notificationRoutes } = await import('../routes/notificationRoutes.js')
     console.log('✅ Notification routes loaded')
 
+    const { default: brandRoutes } = await import('../routes/brandRoutes.js')
+    console.log('✅ Brand routes loaded')
+
     app.use('/api/auth', authRoutes)
     app.use('/api/products', productRoutes)
     app.use('/api/orders', orderRoutes)
@@ -150,6 +153,7 @@ async function createApp() {
     app.use('/api/users', userRoutes)
     app.use('/api/reels', reelRoutes)
     app.use('/api/notifications', notificationRoutes)
+    app.use('/api/brands', brandRoutes)
 
 
     const { default: uploadRoutes } = await import('../routes/upload.js')
