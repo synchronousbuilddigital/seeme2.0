@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
-import { getImageUrl } from '../utils/imageHelper'
+import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './BrandsThatLead.css'
 
 const BrandsThatLead = ({ activeAudience = 'men' }) => {
@@ -11,26 +11,26 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
   const navigate = useNavigate()
 
   useEffect(() => {
+    let isMounted = true
+
     const fetchBrands = async () => {
       try {
         setLoading(true)
-        const res = await cachedFetch(`${API_ENDPOINTS.BRANDS}?gender=${activeAudience}`, { forceRefresh: true })
-        if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        const targetUrl = `${API_ENDPOINTS.BRANDS}?gender=${encodeURIComponent(activeAudience)}`
+        const res = await cachedFetch(targetUrl, { ttlMs: 120000 })
+        
+        if (isMounted && res?.success && Array.isArray(res.data)) {
           setBrands(res.data)
-        } else {
-          const fallbackRes = await cachedFetch(API_ENDPOINTS.BRANDS, { forceRefresh: true })
-          if (fallbackRes?.success && Array.isArray(fallbackRes.data) && fallbackRes.data.length > 0) {
-            setBrands(fallbackRes.data)
-          }
         }
       } catch (err) {
         console.error('Error loading Brands That Lead:', err)
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
 
     fetchBrands()
+    return () => { isMounted = false }
   }, [activeAudience])
 
   if (!loading && brands.length === 0) {
@@ -62,7 +62,7 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
                 className="brand-card-item"
                 style={{
                   backgroundColor: brand.bgColor || '#D1F2EE',
-                  backgroundImage: brand.bgImage ? `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${getImageUrl(brand.bgImage)})` : 'none'
+                  backgroundImage: brand.bgImage ? `linear-gradient(rgba(255,255,255,0.7), rgba(255,255,255,0.7)), url(${getOptimizedImageUrl(brand.bgImage, 'hero')})` : 'none'
                 }}
                 onClick={() => {
                   const bName = brand.name || ''
@@ -72,10 +72,11 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
                 {/* Left Side: Photo covering full card height */}
                 <div className="brand-card-photo-side">
                   <img
-                    src={getImageUrl(brand.image)}
+                    src={getOptimizedImageUrl(brand.image, 'card')}
                     alt={brand.name}
                     className="brand-card-photo-img"
                     loading="lazy"
+                    decoding="async"
                     onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
                   />
                 </div>

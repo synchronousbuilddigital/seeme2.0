@@ -11,9 +11,13 @@ export const getBrands = asyncHandler(async (req, res) => {
 
   if (admin !== 'true') {
     query.isActive = true
+    res.setHeader('Cache-Control', 'public, max-age=120, s-maxage=600, stale-while-revalidate=600')
   }
 
-  const brands = await Brand.find(query).sort({ order: 1, createdAt: -1 }).lean()
+  const brands = await Brand.find(query)
+    .select('name tagline image bgImage bgColor targetAudience buttonText link order isActive')
+    .sort({ order: 1, createdAt: -1 })
+    .lean()
 
   const normalized = brands.map(b => {
     const audience = Array.isArray(b.targetAudience)
