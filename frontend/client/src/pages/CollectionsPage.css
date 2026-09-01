@@ -1628,10 +1628,12 @@
   }
 
   .mobile-header-title-box h3 {
-    font-family: var(--font-heading, serif);
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: #1c1917;
+    font-family: var(--font-body, sans-serif);
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #000000;
     margin: 0;
   }
 

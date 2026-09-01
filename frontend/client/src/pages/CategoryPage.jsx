@@ -399,7 +399,7 @@ const CategoryPage = () => {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="drawer-header">
-                <h3>Refine Collection</h3>
+                <h3 style={{ fontWeight: 900, fontSize: '1.35rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#000000' }}>FILTER</h3>
                 <button className="drawer-close-btn" onClick={() => setShowMobileFilters(false)}>&times;</button>
               </div>
 

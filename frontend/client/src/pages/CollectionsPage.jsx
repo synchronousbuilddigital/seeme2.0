@@ -301,9 +301,6 @@ const CollectionsPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
       >
-        <h1 className="collections-title">Shop Our <span>Collections</span></h1>
-        <p className="collections-subtitle">Explore our full repertoire of handcrafted luxury ensembles and silhouettes.</p>
-
         {/* Gender / Audience Switcher Pills (All | Women | Men) */}
         <div className="collections-audience-tab-bar">
           {[
@@ -334,21 +331,16 @@ const CollectionsPage = () => {
         {/* Left Sidebar Filter Panel (Unified for Desktop and Mobile) */}
         <aside className={`collections-sidebar-panel ${showMobileFilters ? 'mobile-active' : ''}`}>
 
-          {/* Mobile Drawer Header */}
+          {/* Sidebar Header */}
           <div className="sidebar-mobile-header">
             <div className="mobile-header-title-box">
-              <span className="mobile-header-badge"> FILTERS</span>
-              <h3>Refine Collections</h3>
+              <h3 style={{ fontWeight: 900, fontSize: '1.35rem', letterSpacing: '2px', textTransform: 'uppercase', color: '#000000' }}>FILTER</h3>
             </div>
-            <button className="sidebar-close-btn" onClick={() => setShowMobileFilters(false)} aria-label="Close filters">
-              ✕
-            </button>
           </div>
 
           <div className="sidebar-widgets-scroll-container">
             {/* Search Widget */}
             <div className="sidebar-widget">
-              <h4 className="widget-title">SEARCH</h4>
               <div className="sidebar-search-box">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
