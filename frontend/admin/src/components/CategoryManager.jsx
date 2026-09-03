@@ -287,21 +287,21 @@ const CategoryManager = () => {
             style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'all' ? '#ffffff' : 'transparent', color: audienceFilter === 'all' ? '#0f172a' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
             onClick={() => setAudienceFilter('all')}
           >
-            🌐 ALL ({allSlides.length})
+            ALL ({allSlides.length})
           </button>
           <button
             type="button"
             style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'men' ? '#2563eb' : 'transparent', color: audienceFilter === 'men' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'men' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
             onClick={() => setAudienceFilter('men')}
           >
-            👨 MEN ({menCount})
+            MEN ({menCount})
           </button>
           <button
             type="button"
             style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'women' ? '#ec4899' : 'transparent', color: audienceFilter === 'women' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'women' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
             onClick={() => setAudienceFilter('women')}
           >
-            👩 WOMEN ({womenCount})
+            WOMEN ({womenCount})
           </button>
         </div>
 
@@ -417,7 +417,7 @@ const CategoryManager = () => {
                         checked={normalizeAudience(editingSlide.targetAudience).includes('all')}
                         onChange={() => handleCategoryAudienceToggle('all')}
                       />
-                      🌐 ALL
+                      ALL
                     </label>
                     <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#2563eb' }}>
                       <input
@@ -425,7 +425,7 @@ const CategoryManager = () => {
                         checked={normalizeAudience(editingSlide.targetAudience).includes('men')}
                         onChange={() => handleCategoryAudienceToggle('men')}
                       />
-                      👨 MEN
+                      MEN
                     </label>
                     <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#ec4899' }}>
                       <input
@@ -433,7 +433,7 @@ const CategoryManager = () => {
                         checked={normalizeAudience(editingSlide.targetAudience).includes('women')}
                         onChange={() => handleCategoryAudienceToggle('women')}
                       />
-                      👩 WOMEN
+                      WOMEN
                     </label>
                   </div>
                 </div>

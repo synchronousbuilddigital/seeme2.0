@@ -255,19 +255,19 @@ const BrandManager = () => {
               className={`filter-btn ${audienceFilter === 'all' ? 'active' : ''}`}
               onClick={() => setAudienceFilter('all')}
             >
-              🌐 ALL ({brands.length})
+              ALL ({brands.length})
             </button>
             <button
               className={`filter-btn men ${audienceFilter === 'men' ? 'active' : ''}`}
               onClick={() => setAudienceFilter('men')}
             >
-              👨 MEN ({menCount})
+              MEN ({menCount})
             </button>
             <button
               className={`filter-btn women ${audienceFilter === 'women' ? 'active' : ''}`}
               onClick={() => setAudienceFilter('women')}
             >
-              👩 WOMEN ({womenCount})
+              WOMEN ({womenCount})
             </button>
           </div>
 
@@ -346,7 +346,7 @@ const BrandManager = () => {
                           checked={targetAudience.includes('all')}
                           onChange={() => handleAudienceToggle('all')}
                         />
-                        <span>🌐 ALL</span>
+                        <span>ALL</span>
                       </label>
                       <label className="checkbox-item men">
                         <input
@@ -354,7 +354,7 @@ const BrandManager = () => {
                           checked={targetAudience.includes('men')}
                           onChange={() => handleAudienceToggle('men')}
                         />
-                        <span>👨 MEN</span>
+                        <span>MEN</span>
                       </label>
                       <label className="checkbox-item women">
                         <input
@@ -362,7 +362,7 @@ const BrandManager = () => {
                           checked={targetAudience.includes('women')}
                           onChange={() => handleAudienceToggle('women')}
                         />
-                        <span>👩 WOMEN</span>
+                        <span>WOMEN</span>
                       </label>
                     </div>
                   </div>

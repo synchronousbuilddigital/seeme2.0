@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
-import { getCategoryProducts, belongsToAudience, isCategoryForAudience } from '../utils/categoryHelper'
+import { getCategoryProducts, isCategoryForAudience } from '../utils/categoryHelper'
 import './CategoriesPage.css'
 
 const CategoriesPage = () => {
@@ -72,7 +72,7 @@ const CategoriesPage = () => {
     }
   }
 
-  // Filter Categories by Audience & Search Query (Strict Segmentation)
+  // Filter Categories by Audience & Search Query
   const filteredCategories = useMemo(() => {
     let result = categoriesList.filter(cat => isCategoryForAudience(cat, activeAudience))
 
@@ -92,22 +92,22 @@ const CategoriesPage = () => {
     return (
       <div className="categories-page-loading">
         <div className="glowing-gold-spinner"></div>
-        <p>SEEMEE Categories...</p>
+        <p>Curating SEEMEE Categories...</p>
       </div>
     )
   }
 
   return (
     <div className="all-categories-page">
-      {/* Editorial Navigation Bar */}
+      {/* Editorial Top Navigation */}
       <div className="editorial-top-bar">
         <div className="editorial-top-container">
           <button onClick={() => navigate(-1)} className="editorial-back-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="19" y1="12" x2="5" y2="12"></line>
               <polyline points="12 19 5 12 12 5"></polyline>
             </svg>
-            <span>Back</span>
+            <span>BACK</span>
           </button>
 
           <nav className="category-breadcrumbs">
@@ -118,58 +118,33 @@ const CategoriesPage = () => {
         </div>
       </div>
 
-      {/* Hero Header */}
-      <section className="categories-page-hero">
-        <div className="hero-watermark">ATELIER ARCHIVE</div>
-        <div className="container hero-container-box">
-          <motion.div
-            className="hero-header-box"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="seal-badge-box">
-              <span className="rotating-star">✦</span>
-              <span className="seal-text">SEEMEE HAUTE COUTURE • CATEGORIES DIRECTORY</span>
-            </div>
-
-            <h1 className="hero-title">All Categories</h1>
-            <p className="categories-hero-sub">Explore our curated silhouettes, handwoven textiles, and heritage drapes.</p>
-          </motion.div>
-        </div>
-      </section>
-
       {/* 🌟 LUXURY EDITORIAL CATEGORY SHOWCASE */}
       <section className="visual-categories-section">
         <div className="container">
+          {/* Glassmorphic Controls Toolbar */}
           <div className="section-title-bar">
-            <div className="title-left">
-              <span className="section-eyebrow">✦ SEEMEE ATELIER GALLERY</span>
-              <h2>Curated Category Showcase</h2>
-            </div>
-
-            {/* Audience Filter Tabs (ALL, MEN, WOMEN) matching Admin Panel */}
+            {/* Audience Filter Tabs (ALL, MEN, WOMEN) */}
             <div className="category-audience-tabs">
               <button
                 type="button"
                 className={`audience-tab-btn ${activeAudience === 'all' ? 'active' : ''}`}
                 onClick={() => setActiveAudience('all')}
               >
-                🌐 ALL
+                ALL
               </button>
               <button
                 type="button"
                 className={`audience-tab-btn ${activeAudience === 'men' ? 'active' : ''}`}
                 onClick={() => setActiveAudience('men')}
               >
-                👨 MEN
+                MEN
               </button>
               <button
                 type="button"
                 className={`audience-tab-btn ${activeAudience === 'women' ? 'active' : ''}`}
                 onClick={() => setActiveAudience('women')}
               >
-                👩 WOMEN
+                WOMEN
               </button>
             </div>
 
@@ -177,78 +152,88 @@ const CategoriesPage = () => {
             <div className="category-search-box">
               <input
                 type="text"
-                placeholder="Search categories..."
+                placeholder="Search silhouettes & styles..."
                 value={searchCategoryQuery}
                 onChange={(e) => setSearchCategoryQuery(e.target.value)}
               />
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-              </svg>
+              {searchCategoryQuery ? (
+                <button className="clear-search-trigger" onClick={() => setSearchCategoryQuery('')}>
+                  &times;
+                </button>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+                </svg>
+              )}
             </div>
-
-            <span className="count-tag">✦ {filteredCategories.length} Categories</span>
           </div>
 
-          <div className="categories-editorial-grid">
-            {filteredCategories.length === 0 ? (
-              <div className="no-categories-found">
-                <p>No categories found matching "{searchCategoryQuery}"</p>
-                <button onClick={() => setSearchCategoryQuery('')}>Clear Search</button>
-              </div>
-            ) : (
-              filteredCategories.map((cat, idx) => {
-                const indexFormatted = String(idx + 1).padStart(2, '0')
-                const isSale = idx % 3 === 2
-
-                return (
-                  <motion.div
-                    key={cat._id || cat.slug || idx}
-                    className="editorial-category-card"
-                    initial={{ opacity: 0, y: 35 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: idx * 0.08 }}
-                    onClick={() => navigate(`/category/${cat.slug}`)}
-                  >
-                    {/* Top Image Container */}
-                    <div className="editorial-card-media">
-                      <img
-                        src={getImageUrl(cat.image)}
-                        alt={cat.title}
-                        loading="lazy"
-                      />
-                    </div>
-
-                    {/* Bottom Content Container */}
-                    <div className="editorial-card-content">
-                      <span className="card-category-eyebrow">{cat.subtitle ? cat.subtitle.toUpperCase() : 'SEEMEE COLLECTION'}</span>
-                      <h3 className="card-title-heading">{cat.title}</h3>
-                      <p className="card-description-text">{cat.description}</p>
-
-                      {cat.productCount ? (
-                        <div className="card-price-count">
-                          <span className="count-text">{cat.productCount} Designs Available</span>
-                        </div>
-                      ) : null}
-
-                      <div
-                        className="discover-more-cta"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          navigate(`/category/${cat.slug}`)
-                        }}
-                      >
-                        <span>EXPLORE CATEGORY</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                          <polyline points="12 5 19 12 12 19"></polyline>
-                        </svg>
+          {/* Category Cards Grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeAudience}
+              className="categories-editorial-grid"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+            >
+              {filteredCategories.length === 0 ? (
+                <div className="no-categories-found">
+                  <p>No categories found matching "{searchCategoryQuery}"</p>
+                  <button onClick={() => setSearchCategoryQuery('')}>Reset Search</button>
+                </div>
+              ) : (
+                filteredCategories.map((cat, idx) => {
+                  return (
+                    <motion.div
+                      key={cat._id || cat.slug || idx}
+                      className="editorial-category-card"
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: (idx % 8) * 0.05 }}
+                      onClick={() => navigate(`/category/${cat.slug}`)}
+                    >
+                      {/* Top Image Container */}
+                      <div className="editorial-card-media">
+                        <img
+                          src={getImageUrl(cat.image)}
+                          alt={cat.title}
+                          loading="lazy"
+                          onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
+                        />
                       </div>
-                    </div>
-                  </motion.div>
-                )
-              })
-            )}
-          </div>
+
+                      {/* Bottom Content Container */}
+                      <div className="editorial-card-content">
+                        <div>
+                          <span className="card-category-eyebrow">
+                            {cat.subtitle ? cat.subtitle.toUpperCase() : 'SEEMEE COLLECTION'}
+                          </span>
+                          <h3 className="card-title-heading">{cat.title}</h3>
+                          <p className="card-description-text">{cat.description}</p>
+                        </div>
+
+                        <div
+                          className="discover-more-cta"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            navigate(`/category/${cat.slug}`)
+                          }}
+                        >
+                          <span>EXPLORE CATEGORY</span>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                          </svg>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
 

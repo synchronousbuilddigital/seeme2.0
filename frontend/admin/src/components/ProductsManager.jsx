@@ -909,7 +909,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             checked={getAudienceArray(formData.targetAudience || formData.gender).includes('all')}
                             onChange={() => handleAudienceToggle('all')}
                           />
-                          <span>🌐 ALL</span>
+                          <span>ALL</span>
                         </label>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#2563eb' }}>
                           <input
@@ -917,7 +917,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             checked={getAudienceArray(formData.targetAudience || formData.gender).includes('men')}
                             onChange={() => handleAudienceToggle('men')}
                           />
-                          <span>👨 MEN</span>
+                          <span>MEN</span>
                         </label>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#ec4899' }}>
                           <input
@@ -925,7 +925,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             checked={getAudienceArray(formData.targetAudience || formData.gender).includes('women')}
                             onChange={() => handleAudienceToggle('women')}
                           />
-                          <span>👩 WOMEN</span>
+                          <span>WOMEN</span>
                         </label>
                       </div>
                     </div>
@@ -1487,10 +1487,9 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             const isMen = aud === 'men'
                             const isWomen = aud === 'women'
                             const badgeClass = isMen ? 'aud-badge men' : isWomen ? 'aud-badge women' : 'aud-badge all'
-                            const icon = isMen ? '👨' : isWomen ? '👩' : '🌐'
                             return (
                               <span key={i} className={badgeClass}>
-                                {icon} {aud.toUpperCase()}
+                                {aud.toUpperCase()}
                               </span>
                             )
                           })

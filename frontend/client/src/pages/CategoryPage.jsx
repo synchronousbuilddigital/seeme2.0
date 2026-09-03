@@ -299,8 +299,6 @@ const CategoryPage = () => {
           {/* Main Controls Row */}
           <div className="toolbar-primary-row">
             <div className="toolbar-left-group">
-              <span className="count-badge-luxury">✦ {filteredProducts.length} DESIGNS</span>
-
               <button
                 className="mobile-filter-trigger-btn"
                 onClick={() => setShowMobileFilters(!showMobileFilters)}

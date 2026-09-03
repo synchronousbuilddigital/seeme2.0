@@ -296,21 +296,21 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
               style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'all' ? '#ffffff' : 'transparent', color: audienceFilter === 'all' ? '#0f172a' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
               onClick={() => setAudienceFilter('all')}
             >
-              🌐 ALL ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('all')).length})
+              ALL ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('all')).length})
             </button>
             <button
               type="button"
               style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'men' ? '#2563eb' : 'transparent', color: audienceFilter === 'men' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'men' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
               onClick={() => setAudienceFilter('men')}
             >
-              👨 MEN ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('men')).length})
+              MEN ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('men')).length})
             </button>
             <button
               type="button"
               style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: audienceFilter === 'women' ? '#ec4899' : 'transparent', color: audienceFilter === 'women' ? '#ffffff' : '#64748b', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer', boxShadow: audienceFilter === 'women' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none', transition: 'all 0.15s ease' }}
               onClick={() => setAudienceFilter('women')}
             >
-              👩 WOMEN ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('women')).length})
+              WOMEN ({heroSlides.filter(s => normalizeAudience(s.targetAudience).includes('women')).length})
             </button>
           </div>
 
@@ -458,7 +458,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
                             checked={targetAudience.includes('all')}
                             onChange={() => handleAudienceToggle('all')}
                           />
-                          🌐 ALL
+                          ALL
                         </label>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#2563eb' }}>
                           <input
@@ -466,7 +466,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
                             checked={targetAudience.includes('men')}
                             onChange={() => handleAudienceToggle('men')}
                           />
-                          👨 MEN
+                          MEN
                         </label>
                         <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem', color: '#ec4899' }}>
                           <input
@@ -474,7 +474,7 @@ const HeroCarouselManager = ({ preSelectedProduct, onClearPreSelected }) => {
                             checked={targetAudience.includes('women')}
                             onChange={() => handleAudienceToggle('women')}
                           />
-                          👩 WOMEN
+                          WOMEN
                         </label>
                       </div>
                     </div>
