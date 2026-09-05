@@ -18,7 +18,7 @@ const CatalogSection = () => {
     let isMounted = true
     const fetchAdminReels = async () => {
       try {
-        setLoading(true)
+        if (items.length === 0) setLoading(true)
         const reelsRes = await cachedFetch(API_ENDPOINTS.REELS, { ttlMs: 300000 })
         const reelsData = (reelsRes?.success && Array.isArray(reelsRes.data)) ? reelsRes.data : []
 
@@ -35,7 +35,7 @@ const CatalogSection = () => {
 
         if (isMounted) {
           setItems(reelItems)
-          if (reelItems.length > 0) {
+          if (reelItems.length > 0 && items.length === 0) {
             setActiveIndex(Math.floor(reelItems.length / 2))
           }
         }
@@ -66,7 +66,7 @@ const CatalogSection = () => {
     }))
   }
 
-  if (loading || items.length === 0) {
+  if (loading && items.length === 0) {
     return null
   }
 

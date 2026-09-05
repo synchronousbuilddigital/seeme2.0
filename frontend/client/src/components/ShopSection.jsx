@@ -22,11 +22,8 @@ const ShopSection = ({ activeAudience = 'all' }) => {
     let isMounted = true
     const fetchProducts = async () => {
       try {
-        setLoading(true)
-        const endpoint = activeAudience !== 'all'
-          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=24&status=active`
-          : `${API_ENDPOINTS.PRODUCTS}?limit=24&status=active`
-        const data = await cachedFetch(endpoint, { ttlMs: 300000 })
+        if (products.length === 0) setLoading(true)
+        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 })
         if (isMounted && data?.success && Array.isArray(data.data)) {
           const filtered = data.data.filter(p => belongsToAudience(p, activeAudience))
           const featuredProds = filtered.filter(p => p.featured === true || p.inCollection === true)
@@ -51,7 +48,7 @@ const ShopSection = ({ activeAudience = 'all' }) => {
     }
   }, [products.length])
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
       <div className="shop-loading-shell">
         <div className="shop-loading-spinner"></div>

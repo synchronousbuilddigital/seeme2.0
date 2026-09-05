@@ -68,12 +68,13 @@ export const belongsToAudience = (product, audience) => {
   const genderArr = getAudienceArray(product.gender)
   const targetAudArr = getAudienceArray(product.targetAudience)
   const forTargetArr = getAudienceArray(product.forTarget)
-  const allAuds = [...genderArr, ...targetAudArr, ...forTargetArr]
+  const targetAudiencesArr = getAudienceArray(product.targetAudiences)
+  const allAuds = [...genderArr, ...targetAudArr, ...forTargetArr, ...targetAudiencesArr]
 
-  const specificMenTags = ['men', 'male', 'gents', 'mens']
-  const specificWomenTags = ['women', 'female', 'ladies', 'womens']
-  const specificKidsTags = ['kids', 'children', 'child', 'boys', 'girls']
-  const unisexTags = ['all', 'unisex', 'both']
+  const specificMenTags = ['men', 'male', 'gents', 'mens', 'him', 'man']
+  const specificWomenTags = ['women', 'female', 'ladies', 'womens', 'her', 'woman']
+  const specificKidsTags = ['kids', 'children', 'child', 'boys', 'girls', 'kid']
+  const unisexTags = ['all', 'unisex', 'both', 'everyone']
 
   const hasExplicitMen = allAuds.some(a => specificMenTags.includes(a))
   const hasExplicitWomen = allAuds.some(a => specificWomenTags.includes(a))
@@ -81,44 +82,50 @@ export const belongsToAudience = (product, audience) => {
   const hasExplicitAll = allAuds.some(a => unisexTags.includes(a))
 
   // 1. Explicit Admin Panel settings take absolute priority
-  // Product is explicitly marked for Women only (and NOT Men)
+  // Product explicitly marked for Women only (and NOT Men)
   if (hasExplicitWomen && !hasExplicitMen) {
     if (target === 'women') return true
     return false
   }
 
-  // Product is explicitly marked for Men only (and NOT Women)
+  // Product explicitly marked for Men only (and NOT Women)
   if (hasExplicitMen && !hasExplicitWomen) {
     if (target === 'men') return true
     return false
   }
 
-  // Product is explicitly tagged for both Women AND Men, or tagged 'all' / 'unisex'
+  // Product explicitly tagged for both Women AND Men, or tagged 'all' / 'unisex'
   if ((hasExplicitWomen && hasExplicitMen) || (hasExplicitAll && !hasExplicitWomen && !hasExplicitMen)) {
     return target === 'women' || target === 'men' || target === 'all' || target === 'kids'
   }
 
   // Explicit Kids tag check
-  if (hasExplicitKids && target !== 'kids' && target !== 'all') {
+  if (hasExplicitKids) {
+    if (target === 'kids') return true
+    if (target === 'all') return true
     return false
   }
 
-  // 2. Keyword fallback for products without explicit single-gender tags set in Admin
+  // 2. Keyword fallback for products without explicit tags set in Admin
   const pCat = String(product.category || '').toLowerCase().trim()
   const pName = String(product.name || '').toLowerCase().trim()
   const pSub = String(product.subcategory || '').toLowerCase().trim()
-  const fullText = `${pCat} ${pName} ${pSub}`
+  const pDesc = String(product.description || '').toLowerCase().trim()
+  const pTags = Array.isArray(product.tags) ? product.tags.join(' ').toLowerCase().trim() : ''
+  const fullText = `${pCat} ${pName} ${pSub} ${pDesc} ${pTags}`
 
   const womenKeywords = [
     'kurti', 'kurtis', 'sharara', 'saree', 'sari', 'lehenga', 'anarkali', 
     'kaftan', 'gown', 'dupatta', 'suit', 'palazzo', 'women', 'female', 
-    'girl', 'ladies', 'draped saree', 'choli', 'blouse'
+    'girl', 'ladies', 'draped saree', 'choli', 'blouse', 'top', 'dress', 
+    'tunic', 'skirt', 'women co-ord', 'salwar'
   ]
   
   const menKeywords = [
     'sherwani', 'bandhgala', 'nehru jacket', 'waistcoat', 'pathani', 
     'men kurta', 'kurta pyjama', 'kurta pajama', 'men', 'male', 
-    'boy', 'gents', 'mens'
+    'boy', 'gents', 'mens', 'shirt', 'shirts', 'trouser', 'trousers', 
+    'suit for men', 't-shirt', 'polo', 'jacket for men', 'pyjama'
   ]
 
   const isWomenCategory = womenKeywords.some(kw => fullText.includes(kw))
@@ -127,7 +134,7 @@ export const belongsToAudience = (product, audience) => {
   if (target === 'men') {
     if (isWomenCategory && !isMenCategory) return false
     if (isMenCategory) return true
-    return false // Exclude non-men items from Men panel
+    return false
   }
 
   if (target === 'women') {

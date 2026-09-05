@@ -15,7 +15,7 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
 
     const fetchBrands = async () => {
       try {
-        setLoading(true)
+        if (brands.length === 0) setLoading(true)
         const targetUrl = `${API_ENDPOINTS.BRANDS}?gender=${encodeURIComponent(activeAudience)}`
         let res = await cachedFetch(targetUrl, { ttlMs: 60000 })
         

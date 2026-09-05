@@ -307,7 +307,7 @@ const Hero = ({ activeAudience = 'all' }) => {
     const fetchCategoriesAndProducts = async () => {
       // 1. Fetch category slides from Admin Site Settings
       try {
-        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
+        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
         if (isMounted && settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
           const adminSlides = settingsData.data.categorySlides
             .filter(Boolean)
@@ -439,13 +439,8 @@ const Hero = ({ activeAudience = 'all' }) => {
       try {
         const currentAud = (activeAudience || 'all').toLowerCase().trim()
         const [data, prodData] = await Promise.all([
-          cachedFetch(API_ENDPOINTS.CAROUSEL, { forceRefresh: true }).catch(() => null),
-          cachedFetch(
-            currentAud !== 'all'
-              ? `${API_ENDPOINTS.PRODUCTS}?gender=${currentAud}&limit=20&status=active`
-              : `${API_ENDPOINTS.PRODUCTS}?limit=20&status=active`,
-            { forceRefresh: true }
-          ).catch(() => null)
+          cachedFetch(API_ENDPOINTS.CAROUSEL, { ttlMs: 300000 }).catch(() => null),
+          cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 }).catch(() => null)
         ])
 
         const EDITORIAL_DESCRIPTIONS = [

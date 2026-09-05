@@ -22,12 +22,13 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000&status=active`)
-        const activeProducts = prodData.success && prodData.data
+        const [prodData, settingsData] = await Promise.all([
+          cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 }),
+          cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
+        ])
+        const activeProducts = prodData?.success && Array.isArray(prodData.data)
           ? prodData.data
           : []
-
-        const settingsData = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
 
         let categoryList = []
 

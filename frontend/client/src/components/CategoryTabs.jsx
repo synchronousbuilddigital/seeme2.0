@@ -4,24 +4,24 @@ import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
-import { belongsToAudience, isProductInCategory, isCategoryForAudience } from '../utils/categoryHelper'
+import { isCategoryForAudience } from '../utils/categoryHelper'
 import './CategoryTabs.css'
 
-const TABS_DATA = [
+const BLOB_TABS_DATA = [
   {
     key: 'all',
-    label: 'All',
-    image: '/images/all_collection_tab.jpg'
+    title: 'All',
+    image: '/images/category_card_all.jpg',
   },
   {
     key: 'men',
-    label: 'Men',
-    image: 'https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?auto=format&fit=crop&q=80&w=800'
+    title: 'Men',
+    image: '/images/category_card_men.jpg',
   },
   {
     key: 'women',
-    label: 'Women',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&q=80&w=800'
+    title: 'Women',
+    image: '/images/category_card_women.jpg',
   }
 ]
 
@@ -42,10 +42,10 @@ const CategoryTabs = ({ onTabChange }) => {
   useEffect(() => {
     const fetchAdminCategories = async () => {
       try {
-        setLoading(true)
+        if (adminCategories.all.length === 0) setLoading(true)
         const [settingsRes, prodRes] = await Promise.all([
-          cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true }).catch(() => null),
-          cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=100&status=active`, { forceRefresh: true }).catch(() => null)
+          cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 }).catch(() => null),
+          cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 }).catch(() => null)
         ])
 
         const activeProducts = (prodRes?.success && Array.isArray(prodRes.data)) ? prodRes.data : []
@@ -121,49 +121,64 @@ const CategoryTabs = ({ onTabChange }) => {
 
   return (
     <section className={`category-tabs-section theme-${activeTab}`} id="category-navigation">
-      {/* Full Bleed Tab Navigation Header Bar */}
-      <div className="category-tabs-nav-wrapper">
-        <div className="category-tabs-bar-container">
-          <div className="category-tabs-bar">
-            {TABS_DATA.map((tab) => {
+      {/* Organic Blob Category Cards Nav (Matching Reference Image) */}
+      <div className="blob-tabs-nav-wrapper">
+        <div className="blob-tabs-bar-container">
+          <div className="blob-cards-grid">
+            {BLOB_TABS_DATA.map((tab) => {
               const isActive = activeTab === tab.key
               return (
-                <motion.button
+                <motion.div
                   key={tab.key}
-                  type="button"
-                  className={`category-tab-pill-btn ${isActive ? 'active' : ''}`}
+                  className={`blob-category-card blob-card-${tab.key} ${isActive ? 'active' : ''}`}
                   onClick={() => handleTabClick(tab.key)}
-                  whileHover={{ y: -3, scale: 1.04 }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: 'spring', stiffness: 450, damping: 25 }}
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 28 }}
                 >
-                  <div className="tab-pill-image-frame">
-                    <img src={tab.image} alt={tab.label} className="tab-pill-img" />
-                    {isActive && (
-                      <motion.div
-                        className="tab-pill-shimmer"
-                        initial={{ x: '-100%' }}
-                        animate={{ x: '200%' }}
-                        transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut', repeatDelay: 0.8 }}
-                      />
-                    )}
+
+
+                  {/* Left Circular Avatar Photo Frame */}
+                  <div className="blob-avatar-frame">
+                    <img src={tab.image} alt={tab.title} className="blob-avatar-img" />
                   </div>
-                  <span className="tab-pill-label">
-                    {tab.label}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeTabIndicator"
-                        className="active-pill-underline"
-                        transition={{ type: 'spring', stiffness: 500, damping: 32 }}
-                      />
-                    )}
-                  </span>
-                </motion.button>
+
+                  {/* Right Content: Serif Title + Circle Arrow Button */}
+                  <div className="blob-card-content">
+                    <h3 className="blob-card-title">{tab.title}</h3>
+                    <button
+                      type="button"
+                      className="blob-arrow-btn"
+                      aria-label={`Explore ${tab.title}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleTabClick(tab.key)
+                        navigate(`/collections?gender=${tab.key}`)
+                      }}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </button>
+                  </div>
+                </motion.div>
               )
             })}
           </div>
         </div>
       </div>
+
+
 
       <div className="category-tabs-container">
         {/* Circular Avatar Category Row below tabs */}
@@ -178,14 +193,12 @@ const CategoryTabs = ({ onTabChange }) => {
               ))}
             </div>
           ) : (
-            <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
                 className="category-avatars-track"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                initial={{ opacity: 0.95 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2, ease: 'easeOut' }}
               >
                 {(() => {
                   if (!currentItems || currentItems.length === 0) return null
@@ -234,7 +247,6 @@ const CategoryTabs = ({ onTabChange }) => {
                   )
                 })()}
               </motion.div>
-            </AnimatePresence>
           )}
         </div>
       </div>
@@ -243,3 +255,4 @@ const CategoryTabs = ({ onTabChange }) => {
 }
 
 export default CategoryTabs
+

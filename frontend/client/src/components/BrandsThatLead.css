@@ -214,26 +214,98 @@
     padding: 2.25rem 0;
   }
 
+  .brands-lead-container {
+    padding: 0 0.75rem;
+  }
+
+  .brands-lead-header {
+    margin-bottom: 1.5rem;
+  }
+
   .brands-lead-title {
-    font-size: 1.75rem;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
   }
 
-  .brands-cards-row {
-    grid-template-columns: 1fr;
-    gap: 1.25rem;
+  .brands-cards-row,
+  .brands-skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
   }
 
-  .brand-avatar-frame {
-    width: 74px;
-    height: 74px;
+  .brand-card-item {
+    border-radius: 14px;
+    min-height: 135px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    border-width: 1px;
+  }
+
+  .brand-card-photo-side {
+    width: 38%;
+    min-width: 55px;
+  }
+
+  .brand-card-info-side {
+    width: 62%;
+    padding: 0.65rem 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .brand-mini-badge {
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
   }
 
   .brand-name-text {
-    font-size: 1.45rem;
-    font-weight: 900;
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.1;
   }
 
   .brand-tagline-text {
+    font-size: 0.68rem;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .brand-pill-button {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.68rem;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .brands-cards-row,
+  .brands-skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.45rem;
+  }
+
+  .brand-card-item {
+    min-height: 125px;
+    border-radius: 12px;
+  }
+
+  .brand-card-info-side {
+    padding: 0.5rem 0.4rem;
+    gap: 0.3rem;
+  }
+
+  .brand-name-text {
     font-size: 0.8rem;
+  }
+
+  .brand-tagline-text {
+    font-size: 0.62rem;
+    -webkit-line-clamp: 1;
+  }
+
+  .brand-pill-button {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.62rem;
   }
 }

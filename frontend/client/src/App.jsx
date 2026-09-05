@@ -19,13 +19,13 @@ import GlobalLoader from './components/GlobalLoader'
 import { getAdminUrl } from './config/api'
 import './App.css'
 
-// Lazy load below-the-fold components
-const CategoriesSlider = lazy(() => import('./components/CategoriesSlider'))
-const About = lazy(() => import('./components/About'))
-const ShopSection = lazy(() => import('./components/ShopSection'))
-const FabricSection = lazy(() => import('./components/FabricSection'))
-const EthosBanner = lazy(() => import('./components/EthosBanner'))
-const CatalogSection = lazy(() => import('./components/CatalogSection'))
+// Homepage sections - loaded immediately for instant 0-delay render
+import CategoriesSlider from './components/CategoriesSlider'
+import About from './components/About'
+import ShopSection from './components/ShopSection'
+import FabricSection from './components/FabricSection'
+import EthosBanner from './components/EthosBanner'
+import CatalogSection from './components/CatalogSection'
 
 // Lazy load route pages
 const Auth = lazy(() => import('./pages/Auth'))
@@ -74,59 +74,53 @@ const AdminRedirect = () => {
   return null
 }
 
-function App() {
+const HomePage = ({ onCartOpen, onWishlistOpen }) => {
+  const [activeAudience, setActiveAudience] = useState(() => {
+    return localStorage.getItem('seemee_active_audience') || 'all'
+  })
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isWishlistOpen, setIsWishlistOpen] = useState(false)
 
-  const HomePage = () => {
-    const [activeAudience, setActiveAudience] = useState('all')
+  useEffect(() => {
+    localStorage.setItem('seemee_active_audience', activeAudience || 'all')
+    const themeClass = `theme-${activeAudience || 'all'}`
+    document.body.classList.remove('theme-all', 'theme-men', 'theme-women')
+    document.body.classList.add(themeClass)
 
-    useEffect(() => {
-      localStorage.setItem('seemee_active_audience', activeAudience || 'all')
-      const themeClass = `theme-${activeAudience || 'all'}`
+    return () => {
       document.body.classList.remove('theme-all', 'theme-men', 'theme-women')
-      document.body.classList.add(themeClass)
+    }
+  }, [activeAudience])
 
-      return () => {
-        document.body.classList.remove('theme-all', 'theme-men', 'theme-women')
-      }
-    }, [activeAudience])
+  return (
+    <div className={`store-theme-wrapper theme-${activeAudience || 'all'}`}>
+      <Navbar
+        onCartOpen={onCartOpen}
+        onWishlistOpen={onWishlistOpen}
+      />
+      <main className={`homepage-main theme-${activeAudience || 'all'}`}>
+        <Hero activeAudience={activeAudience} />
+        <CategoryTabs onTabChange={(tab) => setActiveAudience(tab)} />
+        <div className="homepage-sections-container">
+          <BrandsThatLead activeAudience={activeAudience} />
+          <NewArrivals activeAudience={activeAudience} />
+          <ShopSection activeAudience={activeAudience} />
+          <CatalogSection activeAudience={activeAudience} />
+          <CategoriesSlider activeAudience={activeAudience} />
+          <EthosBanner />
+          <About />
+        </div>
+      </main>
+      <Footer />
+      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+      <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+    </div>
+  )
+}
 
-    return (
-      <div className={`store-theme-wrapper theme-${activeAudience || 'all'}`}>
-        <Navbar
-          onCartOpen={() => setIsCartOpen(true)}
-          onWishlistOpen={() => setIsWishlistOpen(true)}
-        />
-        <main className={`homepage-main theme-${activeAudience || 'all'}`}>
-          <Hero activeAudience={activeAudience} />
-          <CategoryTabs onTabChange={(tab) => setActiveAudience(tab)} />
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeAudience}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <BrandsThatLead activeAudience={activeAudience} />
-              <NewArrivals activeAudience={activeAudience} />
-              <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
-                <ShopSection activeAudience={activeAudience} />
-                <CatalogSection activeAudience={activeAudience} />
-                <CategoriesSlider activeAudience={activeAudience} />
-                <EthosBanner />
-                <About />
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
-        </main>
-        <Footer />
-        <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-        <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
-      </div>
-    )
-  }
+function App() {
+  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false)
 
   const PageWithNav = ({ children }) => (
     <>
@@ -238,7 +232,7 @@ function App() {
                 <Route path="/product/:id" element={<PageWithNav><ProductPage /></PageWithNav>} />
 
                 {/* Home Page */}
-                <Route path="/" element={<HomePage />} />
+                <Route path="/" element={<HomePage onCartOpen={() => setIsCartOpen(true)} onWishlistOpen={() => setIsWishlistOpen(true)} />} />
 
                 {/* 404 Not Found Catch-All Route */}
                 <Route path="*" element={<PageWithNav><NotFoundPage /></PageWithNav>} />

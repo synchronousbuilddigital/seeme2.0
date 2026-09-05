@@ -20,11 +20,8 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
     let isMounted = true
     const fetchTopProducts = async () => {
       try {
-        setLoading(true)
-        const endpoint = activeAudience !== 'all'
-          ? `${API_ENDPOINTS.PRODUCTS}?gender=${activeAudience}&limit=16&status=active`
-          : `${API_ENDPOINTS.PRODUCTS}?limit=16&status=active`
-        const data = await cachedFetch(endpoint, { ttlMs: 300000 })
+        if (arrivals.length === 0) setLoading(true)
+        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 })
         if (isMounted && data?.success && Array.isArray(data.data) && data.data.length > 0) {
           const audienceFiltered = data.data.filter(p => belongsToAudience(p, activeAudience))
           const newArrivalOnly = audienceFiltered.filter(p => p.isNewArrival === true)
@@ -41,7 +38,7 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
     return () => { isMounted = false }
   }, [activeAudience])
 
-  if (loading) return null
+  if (loading && arrivals.length === 0) return null
 
   // Quadruple items (4 copies) for seamless ultrawide continuous looping
   const extendedArrivals = [...arrivals, ...arrivals, ...arrivals, ...arrivals]
