@@ -153,24 +153,42 @@ export const isCategoryForAudience = (category, audience = 'all', activeProducts
 
   const auds = getAudienceArray(category.targetAudience || category.targetAudiences)
 
-  // 1. Explicitly tagged for target audience in Admin Panel
-  if (auds.includes(target)) {
-    return true
-  }
+  const hasMen = auds.includes('men') || auds.includes('male') || auds.includes('gents')
+  const hasWomen = auds.includes('women') || auds.includes('female') || auds.includes('ladies')
+  const hasExplicitAll = auds.includes('all') || auds.includes('unisex')
 
-  // 2. Explicitly tagged for the other gender only (e.g. 'women' when checking 'men')
-  const otherGender = target === 'men' ? 'women' : 'men'
-  if (auds.includes(otherGender) && !auds.includes(target)) {
+  const catSlug = (category.slug || category.title || '').toLowerCase().trim()
+  const text = `${category.title || ''} ${category.subtitle || ''} ${catSlug} ${category.description || ''}`.toLowerCase()
+  const womenKw = ['kurti', 'sharara', 'saree', 'sari', 'lehenga', 'anarkali', 'kaftan', 'gown', 'dupatta', 'suit', 'palazzo', 'women', 'female', 'ladies', 'dress', 'top', 'cord-set', 'coord']
+  const menKw = ['sherwani', 'bandhgala', 'nehru jacket', 'waistcoat', 'pathani', 'men', 'male', 'gents', 'mens', 'tshirt', 'shirt', 'kurta pyjama']
+
+  const isWomenKw = womenKw.some(kw => text.includes(kw))
+  const isMenKw = menKw.some(kw => text.includes(kw))
+
+  if (target === 'men') {
+    if (hasMen) return true
+    if (hasExplicitAll && !hasWomen) {
+      if (isWomenKw && !isMenKw) return false
+      if (isMenKw) return true
+      if (Array.isArray(activeProducts) && activeProducts.length > 0 && catSlug) {
+        return activeProducts.some(p => belongsToAudience(p, 'men') && isProductInCategory(p, catSlug))
+      }
+    }
     return false
   }
 
-  // 3. Fallback for 'all' tagged categories: check if active products exist for this audience
-  const catSlug = (category.slug || category.title || '').toLowerCase().trim()
-  if (Array.isArray(activeProducts) && activeProducts.length > 0 && catSlug) {
-    return activeProducts.some(p => belongsToAudience(p, target) && isProductInCategory(p, catSlug))
+  if (target === 'women') {
+    if (hasWomen) return true
+    if (hasExplicitAll && !hasMen) {
+      if (isMenKw && !isWomenKw) return false
+      if (isWomenKw) return true
+      if (Array.isArray(activeProducts) && activeProducts.length > 0 && catSlug) {
+        return activeProducts.some(p => belongsToAudience(p, 'women') && isProductInCategory(p, catSlug))
+      }
+    }
+    return false
   }
 
-  // 4. Default fallback for 'all' tagged categories
-  return auds.includes('all') || auds.length === 0
+  return true
 }
 

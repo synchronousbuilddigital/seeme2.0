@@ -226,13 +226,32 @@ const ProductsManager = ({ onPromoteToHero }) => {
     try {
       let catList = []
 
-      // Fetch ONLY categories configured in Admin Category Section (SITE_SETTINGS)
+      // 1. Fetch categories configured in Admin Category Section (SITE_SETTINGS)
       const settingsData = await apiRequest(API_ENDPOINTS.SITE_SETTINGS)
       if (settingsData?.success && settingsData?.data?.categorySlides && Array.isArray(settingsData.data.categorySlides)) {
-        catList = settingsData.data.categorySlides.filter(Boolean).map(c => ({
-          slug: c.slug || (c.title ? c.title.toLowerCase().replace(/\s+/g, '-') : ''),
-          title: c.title || c.slug
-        })).filter(c => c.slug || c.title)
+        settingsData.data.categorySlides.filter(Boolean).forEach(c => {
+          const title = (c.title || c.slug || '').trim()
+          const slug = (c.slug || title.toLowerCase().replace(/\s+/g, '-')).trim()
+          if (title || slug) {
+            const key = (slug || title).toLowerCase()
+            if (!catList.some(x => (x.slug || x.title).toLowerCase() === key)) {
+              catList.push({ slug: slug || title, title: title || slug })
+            }
+          }
+        })
+      }
+
+      // 2. Also merge all unique product categories present in products list
+      if (Array.isArray(products) && products.length > 0) {
+        products.forEach(p => {
+          if (p.category && String(p.category).trim()) {
+            const rawCat = String(p.category).trim()
+            const key = rawCat.toLowerCase()
+            if (!catList.some(x => (x.slug || x.title).toLowerCase() === key)) {
+              catList.push({ slug: rawCat, title: rawCat })
+            }
+          }
+        })
       }
 
       setAvailableCategories(catList)
@@ -712,9 +731,37 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
     const matchesCategory = categoryFilter === 'all' || (() => {
       if (!product.category) return false
-      const pCat = product.category.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
-      const cFilter = categoryFilter.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
-      return pCat === cFilter || pCat.includes(cFilter) || cFilter.includes(pCat)
+
+      const pRaw = String(product.category).toLowerCase().trim()
+      const fRaw = String(categoryFilter).toLowerCase().trim()
+
+      // 1. Direct exact string match
+      if (pRaw === fRaw) return true
+
+      // 2. Cleaned alpha-numeric strings
+      const pClean = pRaw.replace(/[^a-z0-9]/g, '')
+      const fClean = fRaw.replace(/[^a-z0-9]/g, '')
+
+      if (pClean === fClean) return true
+
+      // 3. Prevent cross-matching between T-Shirt and regular Shirt
+      const isP_TShirt = pClean === 'tshirt' || pClean === 'tshirts'
+      const isF_TShirt = fClean === 'tshirt' || fClean === 'tshirts'
+      if (isP_TShirt !== isF_TShirt) {
+        return false
+      }
+
+      // 4. Exact hyphen/space token match (e.g. "printed-suit-set")
+      const pTokens = pRaw.split(/[\s\-_]+/).filter(Boolean)
+      const fTokens = fRaw.split(/[\s\-_]+/).filter(Boolean)
+      if (pTokens.join('-') === fTokens.join('-')) return true
+
+      // 5. Plural variation stem match
+      const pSingular = pClean.replace(/s$/g, '')
+      const fSingular = fClean.replace(/s$/g, '')
+      if (pSingular === fSingular) return true
+
+      return false
     })()
 
     const matchesAudience = audienceFilter === 'all' || checkBelongsToAudience(product, audienceFilter)

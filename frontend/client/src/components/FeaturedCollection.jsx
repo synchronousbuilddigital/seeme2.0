@@ -5,6 +5,7 @@ import { useInView } from '../hooks/useInView'
 import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import { belongsToAudience } from '../utils/categoryHelper'
 import AddToCartButton from './AddToCartButton'
 import './FeaturedCollection.css'
@@ -22,22 +23,12 @@ const FeaturedCollection = ({ activeAudience }) => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true)
-        const endpoint = currentAudience !== 'all'
-          ? `${API_ENDPOINTS.PRODUCTS}?featured=true&gender=${currentAudience}&status=active`
-          : `${API_ENDPOINTS.PRODUCTS}?featured=true&status=active`
-        const response = await fetch(endpoint)
-        const data = await response.json()
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (products.length === 0) setLoading(true)
+        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 })
+        if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
           const audienceFiltered = data.data.filter(p => p.isActive !== false && belongsToAudience(p, currentAudience))
-          setProducts(audienceFiltered)
-        } else {
-          // Fallback to all products filtered by audience
-          const allRes = await fetch(API_ENDPOINTS.PRODUCTS)
-          const allData = await allRes.json()
-          if (allData.success && Array.isArray(allData.data)) {
-            setProducts(allData.data.filter(p => p.isActive !== false && belongsToAudience(p, currentAudience)))
-          }
+          const featuredOnly = audienceFiltered.filter(p => p.featured === true)
+          setProducts(featuredOnly.length > 0 ? featuredOnly : audienceFiltered)
         }
       } catch (error) {
         console.error('Error fetching featured products:', error)

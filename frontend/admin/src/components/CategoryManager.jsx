@@ -35,6 +35,7 @@ const CategoryManager = () => {
   const handleCategoryAudienceToggle = (value) => {
     if (!editingSlide) return
     const current = normalizeAudience(editingSlide.targetAudience)
+
     let updated
     if (current.includes(value)) {
       updated = current.filter(v => v !== value)
@@ -83,7 +84,7 @@ const CategoryManager = () => {
   }
 
   const handleAddNew = () => {
-    const initialAudience = audienceFilter === 'all' ? 'all' : audienceFilter
+    const initialAudience = audienceFilter === 'all' ? ['all'] : [audienceFilter]
     setEditingSlide({ ...emptySlide, targetAudience: initialAudience, order: settings?.categorySlides?.length || 0 })
     setIsAdding(true)
   }
@@ -238,28 +239,29 @@ const CategoryManager = () => {
     const hasWomen = arr.includes('women') || arr.includes('female') || arr.includes('ladies')
     const hasExplicitAll = arr.includes('all') || arr.includes('unisex')
 
-    // 1. Explicit single gender tags set in Admin Panel
-    if (hasWomen && !hasMen) return target === 'women'
-    if (hasMen && !hasWomen) return target === 'men'
-
-    // 2. Keyword fallback for title/subtitle/slug
     const text = `${slide.title || ''} ${slide.subtitle || ''} ${slide.slug || ''}`.toLowerCase()
-    const womenKw = ['kurti', 'sharara', 'saree', 'sari', 'lehenga', 'anarkali', 'kaftan', 'gown', 'dupatta', 'suit', 'palazzo', 'women', 'female', 'ladies', 'dress', 'top']
+    const womenKw = ['kurti', 'sharara', 'saree', 'sari', 'lehenga', 'anarkali', 'kaftan', 'gown', 'dupatta', 'suit', 'palazzo', 'women', 'female', 'ladies', 'dress', 'top', 'cord-set', 'coord']
     const menKw = ['sherwani', 'bandhgala', 'nehru jacket', 'waistcoat', 'pathani', 'men', 'male', 'gents', 'mens', 'tshirt', 'shirt', 'kurta pyjama']
 
     const isWomenTitle = womenKw.some(kw => text.includes(kw))
     const isMenTitle = menKw.some(kw => text.includes(kw))
 
     if (target === 'men') {
-      if (isWomenTitle && !isMenTitle) return false
-      if (hasMen || isMenTitle) return true
-      return hasExplicitAll && !isWomenTitle
+      if (hasMen) return true
+      if (hasExplicitAll && !hasWomen) {
+        if (isWomenTitle && !isMenTitle) return false
+        if (isMenTitle) return true
+      }
+      return false
     }
 
     if (target === 'women') {
-      if (isMenTitle && !isWomenTitle) return false
-      if (hasWomen || isWomenTitle) return true
-      return hasExplicitAll && !isMenTitle
+      if (hasWomen) return true
+      if (hasExplicitAll && !hasMen) {
+        if (isMenTitle && !isWomenTitle) return false
+        if (isWomenTitle) return true
+      }
+      return false
     }
 
     return true

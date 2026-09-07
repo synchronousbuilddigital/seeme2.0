@@ -10,6 +10,7 @@ import './CategoriesPage.css'
 const CategoriesPage = () => {
   const navigate = useNavigate()
   const [categoriesList, setCategoriesList] = useState([])
+  const [activeProducts, setActiveProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
   // Category Search & Audience State
@@ -65,6 +66,7 @@ const CategoriesPage = () => {
       })
 
       setCategoriesList(processedCategories)
+      setActiveProducts(activeProducts)
     } catch (error) {
       console.error('Error loading admin categories:', error)
     } finally {
@@ -74,7 +76,7 @@ const CategoriesPage = () => {
 
   // Filter Categories by Audience & Search Query
   const filteredCategories = useMemo(() => {
-    let result = categoriesList.filter(cat => isCategoryForAudience(cat, activeAudience))
+    let result = categoriesList.filter(cat => isCategoryForAudience(cat, activeAudience, activeProducts))
 
     if (searchCategoryQuery.trim()) {
       const q = searchCategoryQuery.toLowerCase().trim()
@@ -86,7 +88,7 @@ const CategoriesPage = () => {
       )
     }
     return result
-  }, [categoriesList, activeAudience, searchCategoryQuery])
+  }, [categoriesList, activeAudience, activeProducts, searchCategoryQuery])
 
   if (loading) {
     return (

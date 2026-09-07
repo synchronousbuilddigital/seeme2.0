@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './FabricSection.css'
 
 const FALLBACK_FABRICS = [
@@ -36,9 +37,8 @@ const FabricSection = () => {
   useEffect(() => {
     const fetchFabrics = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.SITE_SETTINGS)
-        const data = await response.json()
-        if (data.success && data.data.fabrics && data.data.fabrics.length > 0) {
+        const data = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
+        if (data && data.success && data.data && data.data.fabrics && data.data.fabrics.length > 0) {
           // Merge rich descriptions into the fetched data
           const merged = data.data.fabrics.slice(0, 4).map((f, idx) => ({
             ...f,

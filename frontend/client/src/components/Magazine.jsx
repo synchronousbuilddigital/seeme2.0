@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './Magazine.css'
 
 const Magazine = () => {
@@ -19,8 +20,7 @@ const Magazine = () => {
 
   const fetchMagazineStories = async () => {
     try {
-      const response = await fetch(API_ENDPOINTS.MAGAZINE)
-      const data = await response.json()
+      const data = await cachedFetch(API_ENDPOINTS.MAGAZINE, { ttlMs: 300000 })
 
       const fallbacks = [
         {
@@ -55,7 +55,7 @@ const Magazine = () => {
         }
       ]
 
-      if (data.success && data.data.length > 0) {
+      if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
         setMagazineStories(data.data)
       } else {
         setMagazineStories(fallbacks)

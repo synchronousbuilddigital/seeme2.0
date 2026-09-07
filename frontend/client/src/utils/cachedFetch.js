@@ -8,7 +8,7 @@
 const cacheMap = new Map()
 const inflightRequests = new Map()
 
-const DEFAULT_TTL_MS = 5 * 1000 // 5 seconds
+const DEFAULT_TTL_MS = 60 * 1000 // 60 seconds TTL
 
 /**
  * Perform a cached & deduplicated GET request
@@ -19,10 +19,9 @@ const DEFAULT_TTL_MS = 5 * 1000 // 5 seconds
 export const cachedFetch = async (url, options = {}) => {
   const { ttlMs = DEFAULT_TTL_MS, forceRefresh = false, ...fetchOptions } = options
 
-  // Cache key
   const cacheKey = url
 
-  // Return cached result if fresh and not force-refreshing
+  // 1. Return in-memory cached result if fresh
   if (!forceRefresh && cacheMap.has(cacheKey)) {
     const cached = cacheMap.get(cacheKey)
     if (Date.now() - cached.timestamp < ttlMs) {
@@ -31,9 +30,28 @@ export const cachedFetch = async (url, options = {}) => {
     cacheMap.delete(cacheKey)
   }
 
-  // Deduplicate inflight requests to same URL
+  // 2. Return inflight request if already running
   if (inflightRequests.has(cacheKey)) {
     return inflightRequests.get(cacheKey)
+  }
+
+  // 3. Check localStorage persistent cache fallback
+  const lsKey = `seemee_cache_${cacheKey.replace(/[^a-z0-9]/gi, '_')}`
+  if (!forceRefresh && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const stored = localStorage.getItem(lsKey)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed && parsed.data && (Date.now() - parsed.timestamp < ttlMs * 2)) {
+          // Pre-populate memory cache
+          cacheMap.set(cacheKey, { data: parsed.data, timestamp: parsed.timestamp })
+          // Still fetch in background if older than ttlMs
+          if (Date.now() - parsed.timestamp < ttlMs) {
+            return parsed.data
+          }
+        }
+      }
+    } catch (e) { }
   }
 
   const promise = (async () => {
@@ -44,7 +62,7 @@ export const cachedFetch = async (url, options = {}) => {
       }
       const data = await response.json()
 
-      // Ensure inactive products (isActive === false) and null/undefined items are never returned
+      // Ensure inactive products and null items are filtered out
       if (data && data.success) {
         if (Array.isArray(data.data)) {
           data.data = data.data.filter(item => item && item.isActive !== false)
@@ -53,14 +71,36 @@ export const cachedFetch = async (url, options = {}) => {
           data.products = data.products.filter(item => item && item.isActive !== false)
         }
       }
-      
-      // Cache successful response
+
+      // Save to memory cache
       cacheMap.set(cacheKey, {
         data,
         timestamp: Date.now()
       })
 
+      // Save to localStorage persistent cache
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          localStorage.setItem(lsKey, JSON.stringify({
+            data,
+            timestamp: Date.now()
+          }))
+        } catch (e) { }
+      }
+
       return data
+    } catch (error) {
+      // If network fails, return localStorage cached data if available
+      if (typeof window !== 'undefined' && window.localStorage) {
+        try {
+          const stored = localStorage.getItem(lsKey)
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (parsed && parsed.data) return parsed.data
+          }
+        } catch (e) { }
+      }
+      throw error
     } finally {
       inflightRequests.delete(cacheKey)
     }

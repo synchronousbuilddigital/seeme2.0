@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
+import { cachedFetch } from '../utils/cachedFetch'
 import './GlobalLoader.css'
 
 const GlobalLoader = () => {
@@ -9,10 +10,9 @@ const GlobalLoader = () => {
   const [logo, setLogo] = useState(null)
 
   useEffect(() => {
-    fetch(API_ENDPOINTS.SITE_SETTINGS)
-      .then(res => res.json())
+    cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
       .then(data => {
-        if (data.success && data.data?.logo) {
+        if (data && data.success && data.data?.logo) {
           setLogo(data.data.logo)
         }
       })
