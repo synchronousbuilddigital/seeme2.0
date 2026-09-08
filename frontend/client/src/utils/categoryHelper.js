@@ -23,6 +23,20 @@ export const isProductInCategory = (product, targetCategorySlug) => {
   // 1. Direct exact match (case-insensitive)
   if (pCatRaw === targetRaw) return true
 
+  // Helper to check if string refers to a T-Shirt specifically
+  const isTShirtCat = (str) => {
+    const s = String(str).toLowerCase().trim()
+    return /\bt[-_\s]*shirts?\b/.test(s) || /\btshirts?\b/.test(s)
+  }
+
+  const pIsTshirt = isTShirtCat(pCatRaw)
+  const tIsTshirt = isTShirtCat(targetRaw)
+
+  // Strict separation: T-Shirt products MUST NOT match Shirt categories and vice versa
+  if (pIsTshirt !== tIsTshirt) {
+    return false
+  }
+
   // 2. Pure dynamic slugified match (removes punctuation, spaces, and generic suffixes)
   const targetSlug = slugifyCategory(targetRaw)
   const pCatSlug = slugifyCategory(pCatRaw)
@@ -31,9 +45,42 @@ export const isProductInCategory = (product, targetCategorySlug) => {
     return true
   }
 
-  // 3. Substring matching for multi-word dynamic categories
-  if (targetSlug.length >= 3 && pCatSlug.length >= 3) {
-    if (pCatSlug.includes(targetSlug) || targetSlug.includes(pCatSlug)) {
+  // Stem helper for simple plural matching (e.g. shirts -> shirt, kurtis -> kurti)
+  const stem = (str) => {
+    if (!str) return ''
+    let s = String(str).toLowerCase().trim()
+    if (s.endsWith('ies')) return s.slice(0, -3) + 'y'
+    if (s.endsWith('es') && !s.endsWith('dresses')) return s.slice(0, -2)
+    if (s.endsWith('s') && !s.endsWith('ss')) return s.slice(0, -1)
+    return s
+  }
+
+  if (targetSlug && pCatSlug && stem(targetSlug) === stem(pCatSlug)) {
+    return true
+  }
+
+  // 3. Word-level token matching (prevents loose substring matching where "tshirt".includes("shirt"))
+  const getTokens = (str) => {
+    return String(str)
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean)
+  }
+
+  const stopWords = new Set(['collection', 'edition', 'set', 'sets', 'suit', 'suits', 'item', 'items', 'category', 'categories'])
+  const pTokens = getTokens(pCatRaw).map(stem).filter(t => !stopWords.has(t))
+  const tTokens = getTokens(targetRaw).map(stem).filter(t => !stopWords.has(t))
+
+  if (tTokens.length > 0 && pTokens.length > 0) {
+    const tJoined = tTokens.join(' ')
+    const pJoined = pTokens.join(' ')
+    if (tJoined === pJoined) return true
+
+    // Check if target tokens are contained in product tokens (e.g., target 'shirt' in product 'men casual shirt')
+    const tInP = tTokens.every(t => pTokens.includes(t))
+    const pInT = pTokens.every(t => tTokens.includes(t))
+    if (tInP || pInT) {
       return true
     }
   }
