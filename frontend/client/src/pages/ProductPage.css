@@ -21,9 +21,17 @@
 
 /* Skeleton Loading Animation */
 @keyframes skeletonPulse {
-  0% { background-color: #f3f0e9; }
-  50% { background-color: #e7e3d8; }
-  100% { background-color: #f3f0e9; }
+  0% {
+    background-color: #f3f0e9;
+  }
+
+  50% {
+    background-color: #e7e3d8;
+  }
+
+  100% {
+    background-color: #f3f0e9;
+  }
 }
 
 .skeleton-box {
@@ -350,7 +358,8 @@
 .savings-highlight {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #059669; /* Emerald Green Savings Text */
+  color: #059669;
+  /* Emerald Green Savings Text */
 }
 
 .product-subtitle-tagline {
@@ -484,7 +493,7 @@
   font-size: 0.85rem;
   font-weight: 700;
 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .size-option-header {
@@ -656,7 +665,8 @@
   gap: 6px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #059669; /* Emerald Green */
+  color: #059669;
+  /* Emerald Green */
 }
 
 .stock-dot {
@@ -1153,7 +1163,8 @@
   border-collapse: collapse;
 }
 
-.size-guide-table th, .size-guide-table td {
+.size-guide-table th,
+.size-guide-table td {
   padding: 10px 14px;
   text-align: center;
   border-bottom: 1px solid #f0eee9;
@@ -1219,6 +1230,7 @@
 }
 
 @media (max-width: 600px) {
+
   .modern-product-page,
   .product-page-wrapper {
     padding-top: 110px;
@@ -1627,6 +1639,7 @@
 
 /* Mobile Responsive Overrides for Product Page Top Spacing & Breadcrumbs */
 @media (max-width: 768px) {
+
   .modern-product-page,
   .product-page-wrapper {
     padding-top: 85px !important;
@@ -1917,7 +1930,8 @@
 
 /* ─── Out of Stock & Restock Alert Styles ─── */
 .stock-status-pill.out-of-stock {
-  color: #dc2626 !important; /* Crimson Red */
+  color: #dc2626 !important;
+  /* Crimson Red */
 }
 
 .stock-dot.out-of-stock-dot {
@@ -2121,4 +2135,3 @@
     gap: 8px;
   }
 }
-

@@ -337,7 +337,7 @@ const ProductPage = () => {
       {/* Toast Notification */}
       <AnimatePresence>
         {addedToast && (
-          <motion.div 
+          <motion.div
             className="cart-added-toast"
             initial={{ opacity: 0, y: -40, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
@@ -905,9 +905,9 @@ const ProductPage = () => {
                   <span className="window-sparkle-tag">🎁 ATELIER PROMOTIONAL OFFERS</span>
                   <h3 className="window-title">All Available Coupons</h3>
                 </div>
-                <button 
-                  type="button" 
-                  className="btn-window-close-x" 
+                <button
+                  type="button"
+                  className="btn-window-close-x"
                   onClick={() => setShowCouponModal(false)}
                 >
                   ✕
