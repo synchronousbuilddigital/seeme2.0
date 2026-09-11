@@ -646,15 +646,15 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
           <table className="orders-table">
             <thead>
               <tr>
-                <th>Order Ref</th>
+                <th>Ref</th>
                 <th>Channel</th>
-                <th>Items Preview</th>
+                <th>Items</th>
                 <th>Customer</th>
-                <th>Placement Date</th>
+                <th>Date</th>
                 <th>Payment</th>
-                <th>Fulfillment Status</th>
+                <th>Status</th>
                 <th>Amount</th>
-                <th>Actions</th>
+                <th className="actions-header">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -775,7 +775,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
                   <td>
                     <span className="amount-cell">₹{Number(order.totalAmount || 0).toLocaleString('en-IN')}</span>
                   </td>
-                  <td>
+                  <td className="actions-cell">
                     <button className="manage-btn" onClick={() => setSelectedOrder(order)}>
                       <span>Manage</span>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
