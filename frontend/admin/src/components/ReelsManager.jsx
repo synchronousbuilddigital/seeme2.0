@@ -10,6 +10,7 @@ const ReelsManager = () => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [showModal, setShowModal] = useState(false)
   const [editingReel, setEditingReel] = useState(null)
 
@@ -95,29 +96,123 @@ const ReelsManager = () => {
     if (!file) return
 
     setUploading(true)
-    showNotification('⚡ Uploading video to Cloudinary...', 'info')
+    setUploadProgress(0)
+    showNotification('⚡ Starting fast video upload to Cloudinary...', 'info')
+
     try {
-      const uploadData = new FormData()
-      uploadData.append('video', file)
+      let uploadedUrl = null
 
-      const endpoint = API_ENDPOINTS.UPLOAD.VIDEO
-      const response = await apiRequest(endpoint, {
-        method: 'POST',
-        body: uploadData,
-        isFormData: true,
-        auth: true
-      })
+      // 1. Attempt Direct Browser-to-Cloudinary Fast Upload (Bypasses backend Node memory limits)
+      try {
+        const sigResponse = await apiRequest(`${API_ENDPOINTS.UPLOAD.SIGNATURE}?folder=seemee/videos&resource_type=video`, {
+          method: 'GET',
+          auth: true
+        })
 
-      if (response.success) {
-        const url = response.data?.url || response.data
-        setFormData(prev => ({ ...prev, videoUrl: url }))
-        showNotification('⚡ Video saved to Cloudinary successfully!')
+        if (sigResponse.success && sigResponse.data?.signature) {
+          const { signature, timestamp, cloudName, apiKey, folder } = sigResponse.data
+
+          const uploadData = new FormData()
+          uploadData.append('file', file)
+          uploadData.append('api_key', apiKey)
+          uploadData.append('timestamp', timestamp)
+          uploadData.append('signature', signature)
+          uploadData.append('folder', folder)
+
+          uploadedUrl = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, true)
+
+            xhr.upload.onprogress = (evt) => {
+              if (evt.lengthComputable) {
+                const percent = Math.round((evt.loaded / evt.total) * 100)
+                setUploadProgress(percent)
+              }
+            }
+
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                  const resData = JSON.parse(xhr.responseText)
+                  resolve(resData.secure_url)
+                } catch (pErr) {
+                  reject(pErr)
+                }
+              } else {
+                reject(new Error(`Direct upload status ${xhr.status}`))
+              }
+            }
+
+            xhr.onerror = () => reject(new Error('Direct upload network error'))
+            xhr.send(uploadData)
+          })
+        }
+      } catch (directErr) {
+        console.warn('[Upload] Direct Cloudinary upload fallback to backend:', directErr.message)
+      }
+
+      // 2. Fallback to backend upload endpoint using XHR (No timeout limits + live progress tracking)
+      if (!uploadedUrl) {
+        showNotification('⚡ Uploading video via server stream...', 'info')
+        const uploadData = new FormData()
+        uploadData.append('video', file)
+
+        const token = localStorage.getItem('adminToken')
+
+        uploadedUrl = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest()
+          xhr.open('POST', API_ENDPOINTS.UPLOAD.VIDEO, true)
+          if (token) {
+            xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+          }
+
+          xhr.upload.onprogress = (evt) => {
+            if (evt.lengthComputable) {
+              const percent = Math.round((evt.loaded / evt.total) * 100)
+              setUploadProgress(percent)
+            }
+          }
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const resData = JSON.parse(xhr.responseText)
+                if (resData.success) {
+                  resolve(resData.data?.url || resData.data)
+                } else {
+                  reject(new Error(resData.message || 'Server upload failed'))
+                }
+              } catch (pErr) {
+                reject(pErr)
+              }
+            } else {
+              let errMsg = `Upload failed with status ${xhr.status}`
+              try {
+                const resData = JSON.parse(xhr.responseText)
+                if (resData.message) errMsg = resData.message
+              } catch (e) {}
+              reject(new Error(errMsg))
+            }
+          }
+
+          xhr.onerror = () => reject(new Error('Network error during video upload'))
+          xhr.send(uploadData)
+        })
+      }
+
+      if (uploadedUrl) {
+        setFormData(prev => ({ ...prev, videoUrl: uploadedUrl }))
+        setUploadProgress(100)
+        showNotification('⚡ Video uploaded & saved to Cloudinary successfully!')
+      } else {
+        throw new Error('Could not retrieve uploaded video URL')
       }
     } catch (err) {
       console.error('Video upload failed:', err)
-      showNotification('Video upload failed', 'error')
+      showNotification('Video upload failed: ' + (err.message || 'Error'), 'error')
     } finally {
       setUploading(false)
+      setTimeout(() => setUploadProgress(0), 1500)
     }
   }
 
@@ -127,19 +222,67 @@ const ReelsManager = () => {
 
     setUploading(true)
     try {
-      const uploadData = new FormData()
-      uploadData.append('image', file)
+      let uploadedUrl = null
 
-      const response = await apiRequest(API_ENDPOINTS.UPLOAD.IMAGE, {
-        method: 'POST',
-        body: uploadData,
-        isFormData: true,
-        auth: true
-      })
+      try {
+        const sigResponse = await apiRequest(`${API_ENDPOINTS.UPLOAD.SIGNATURE}?folder=seemee/images&resource_type=image`, {
+          method: 'GET',
+          auth: true
+        })
 
-      if (response.success) {
-        const url = response.data?.url || response.data
-        setFormData(prev => ({ ...prev, coverImage: url }))
+        if (sigResponse.success && sigResponse.data?.signature) {
+          const { signature, timestamp, cloudName, apiKey, folder } = sigResponse.data
+
+          const uploadData = new FormData()
+          uploadData.append('file', file)
+          uploadData.append('api_key', apiKey)
+          uploadData.append('timestamp', timestamp)
+          uploadData.append('signature', signature)
+          uploadData.append('folder', folder)
+
+          uploadedUrl = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, true)
+
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                try {
+                  const resData = JSON.parse(xhr.responseText)
+                  resolve(resData.secure_url)
+                } catch (pErr) {
+                  reject(pErr)
+                }
+              } else {
+                reject(new Error(`Direct image upload status ${xhr.status}`))
+              }
+            }
+
+            xhr.onerror = () => reject(new Error('Direct image upload error'))
+            xhr.send(uploadData)
+          })
+        }
+      } catch (dErr) {
+        console.warn('[Upload] Direct image upload fallback:', dErr.message)
+      }
+
+      if (!uploadedUrl) {
+        const uploadData = new FormData()
+        uploadData.append('image', file)
+
+        const response = await apiRequest(API_ENDPOINTS.UPLOAD.IMAGE, {
+          method: 'POST',
+          body: uploadData,
+          isFormData: true,
+          auth: true
+        })
+
+        if (response.success) {
+          uploadedUrl = response.data?.url || response.data
+        }
+      }
+
+      if (uploadedUrl) {
+        setFormData(prev => ({ ...prev, coverImage: uploadedUrl }))
         showNotification('Poster image uploaded successfully!')
       }
     } catch (err) {
@@ -381,11 +524,23 @@ const ReelsManager = () => {
                     required
                   />
                   <div className="upload-row">
-                    <input type="file" accept="video/*" onChange={handleVideoUpload} id="video-upload-input" style={{ display: 'none' }} />
-                    <label htmlFor="video-upload-input" className="btn-upload-file">
-                      {uploading ? 'Uploading Video...' : '🎥 Upload Video File'}
+                    <input type="file" accept="video/*" onChange={handleVideoUpload} id="video-upload-input" style={{ display: 'none' }} disabled={uploading} />
+                    <label htmlFor="video-upload-input" className={`btn-upload-file ${uploading ? 'disabled' : ''}`} style={{ cursor: uploading ? 'not-allowed' : 'pointer', opacity: uploading ? 0.7 : 1 }}>
+                      {uploading ? `⚡ Uploading Video (${uploadProgress}%)...` : '🎥 Upload Video File'}
                     </label>
                   </div>
+
+                  {uploading && uploadProgress > 0 && (
+                    <div style={{ marginTop: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#B8860B', fontWeight: 'bold', marginBottom: '4px' }}>
+                        <span>⚡ Uploading directly to Cloudinary...</span>
+                        <span>{uploadProgress}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: '8px', background: 'rgba(212, 175, 55, 0.15)', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ width: `${uploadProgress}%`, height: '100%', background: 'linear-gradient(90deg, #D4AF37 0%, #B8860B 100%)', transition: 'width 0.2s ease', borderRadius: '10px' }} />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">

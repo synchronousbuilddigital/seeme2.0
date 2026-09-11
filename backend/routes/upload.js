@@ -28,6 +28,10 @@ const videoUpload = multer({
 
 // ─── Routes ────────────────────────────────────────────
 
+// Cloudinary direct upload signature (admin)
+router.get('/signature', protect, admin, uploadController.getCloudinarySignature)
+router.post('/signature', protect, admin, uploadController.getCloudinarySignature)
+
 // Upload single image (admin)
 router.post('/image', protect, admin, imageUpload.any(), uploadController.uploadImage)
 

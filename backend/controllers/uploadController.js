@@ -110,6 +110,46 @@ export const uploadImages = asyncHandler(async (req, res) => {
   }
 })
 
+// @desc    Generate Cloudinary upload signature for hyper-fast direct browser uploads
+// @route   GET /api/upload/signature, POST /api/upload/signature
+// @access  Admin
+export const getCloudinarySignature = asyncHandler(async (req, res) => {
+  const cloudName = (process.env.CLOUDINARY_CLOUD_NAME || '').trim()
+  const apiKey = (process.env.CLOUDINARY_API_KEY || '').trim()
+  const apiSecret = (process.env.CLOUDINARY_API_SECRET || '').trim()
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    res.status(400)
+    throw new Error('Cloudinary API environment variables are not configured on the server')
+  }
+
+  const timestamp = Math.round(new Date().getTime() / 1000)
+  const folder = req.query.folder || req.body.folder || 'seemee/videos'
+  const resource_type = req.query.resource_type || req.body.resource_type || 'video'
+
+  const paramsToSign = {
+    timestamp,
+    folder
+  }
+
+  const signature = cloudinary.utils.api_sign_request(
+    paramsToSign,
+    apiSecret
+  )
+
+  res.json({
+    success: true,
+    data: {
+      signature,
+      timestamp,
+      cloudName,
+      apiKey,
+      folder,
+      resource_type
+    }
+  })
+})
+
 // Helper: upload video to Cloudinary with video resource type or save locally
 const saveVideoFile = async (file, folder = 'seemee/videos') => {
   if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
@@ -118,7 +158,9 @@ const saveVideoFile = async (file, folder = 'seemee/videos') => {
         {
           folder,
           resource_type: 'video',
-          chunk_size: 6000000, // 6MB chunk streaming
+          chunk_size: 10000000, // 10MB chunk streaming throughput
+          timeout: 300000, // 5 minutes timeout for large video uploads
+          async: true,
           eager_async: true
         },
         (error, result) => {

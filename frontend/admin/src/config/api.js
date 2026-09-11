@@ -51,6 +51,7 @@ export const API_ENDPOINTS = {
     REFUND_REJECT: (id) => `${API_BASE_URL}/api/admin/refunds/${id}/reject`
   },
   UPLOAD: {
+    SIGNATURE: `${API_BASE_URL}/api/upload/signature`,
     IMAGE: `${API_BASE_URL}/api/upload/image`,
     IMAGES: `${API_BASE_URL}/api/upload/images`,
     VIDEO: `${API_BASE_URL}/api/upload/video`,
