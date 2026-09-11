@@ -52,6 +52,17 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new Error('COD payment method is not allowed for Online Store orders. Please use Online Payment.')
   }
 
+  // SECURITY RULE: Offline Store orders MUST validate allowed pincode (122103)
+  if (normalizedOrderType === 'OFFLINE') {
+    const custPincode = String(
+      customer?.address?.pincode || customer?.pincode || customer?.zip || req.body?.pincode || ''
+    ).trim()
+    if (custPincode !== '122103') {
+      res.status(400)
+      throw new Error('Offline store is not available in your area.')
+    }
+  }
+
   let totalAmount = 0
   const orderItems = []
 
@@ -785,4 +796,33 @@ export const rejectCodOrder = asyncHandler(async (req, res) => {
   sendOrderEmail(order, 'CANCELLED').catch(err => console.error('COD rejection email error:', err.message))
 
   res.json({ success: true, data: order })
+})
+
+// @desc    Verify pincode for Offline Store eligibility (Only 122103 allowed)
+// @route   POST /api/orders/verify-offline-pincode
+// @access  Public
+export const verifyOfflinePincode = asyncHandler(async (req, res) => {
+  const { pincode } = req.body
+  const trimmed = String(pincode || '').trim()
+
+  if (!trimmed) {
+    res.status(400)
+    throw new Error('Pincode is required.')
+  }
+
+  if (trimmed === '122103') {
+    return res.json({
+      success: true,
+      allowed: true,
+      pincode: '122103',
+      message: 'Offline store is available in your area.'
+    })
+  } else {
+    res.status(400)
+    return res.json({
+      success: false,
+      allowed: false,
+      message: 'Offline store is not available in your area.'
+    })
+  }
 })

@@ -19,6 +19,7 @@ router.get('/myorders', protect, orderController.getMyOrders)
 // Razorpay & Webhook routes
 router.post('/create-razorpay-order', protect, orderController.createRazorpayOrder)
 router.post('/verify-payment', protect, orderController.verifyPayment)
+router.post('/verify-offline-pincode', orderController.verifyOfflinePincode)
 router.post('/razorpay-webhook', refundController.handleRazorpayWebhook)
 
 // Refund routes (Customer)

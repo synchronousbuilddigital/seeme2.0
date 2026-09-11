@@ -152,6 +152,64 @@ const Checkout = () => {
   const [checkoutCouponCode, setCheckoutCouponCode] = useState('')
   const [checkoutCouponError, setCheckoutCouponError] = useState('')
 
+  // Offline Store Pincode Verification State
+  const [showOfflineModal, setShowOfflineModal] = useState(false)
+  const [offlinePincodeInput, setOfflinePincodeInput] = useState('')
+  const [offlineVerifying, setOfflineVerifying] = useState(false)
+  const [offlinePincodeError, setOfflinePincodeError] = useState('')
+  const [offlineVerified, setOfflineVerified] = useState(false)
+
+  const handleOfflineStoreClick = () => {
+    if (offlineVerified && String(formData.pincode || '').trim() === '122103') {
+      setOrderType('OFFLINE')
+      return
+    }
+    setOfflinePincodeInput(formData.pincode || '')
+    setOfflinePincodeError('')
+    setShowOfflineModal(true)
+  }
+
+  const handleVerifyOfflinePincodeSubmit = async (e) => {
+    if (e) e.preventDefault()
+    const trimmed = String(offlinePincodeInput || '').trim()
+
+    if (!trimmed) {
+      setOfflinePincodeError('Please enter your 6-digit pincode.')
+      return
+    }
+
+    setOfflineVerifying(true)
+    setOfflinePincodeError('')
+
+    try {
+      const res = await fetch(API_ENDPOINTS.VERIFY_OFFLINE_PINCODE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pincode: trimmed })
+      })
+      const data = await res.json()
+
+      if (data.success && data.allowed) {
+        setOfflineVerified(true)
+        setOrderType('OFFLINE')
+        setFormData(prev => ({ ...prev, pincode: '122103' }))
+        setShowOfflineModal(false)
+        setOfflinePincodeError('')
+      } else {
+        setOfflinePincodeError(data.message || 'Offline store is not available in your area.')
+        setOfflineVerified(false)
+        setOrderType('ONLINE')
+      }
+    } catch (err) {
+      console.error('Offline pincode check error:', err)
+      setOfflinePincodeError('Offline store is not available in your area.')
+      setOfflineVerified(false)
+      setOrderType('ONLINE')
+    } finally {
+      setOfflineVerifying(false)
+    }
+  }
+
   // Mirror form data to local storage for quick fallback
   useEffect(() => {
     if (formData.street || formData.pincode || formData.city || formData.phone) {
@@ -498,6 +556,12 @@ const Checkout = () => {
     const pincodeRegex = /^\d{6}$/
     if (!pincodeRegex.test(trimmedPincode)) {
       alert('Please enter a valid 6-digit PIN code.')
+      return false
+    }
+
+    if (orderType === 'OFFLINE' && trimmedPincode !== '122103') {
+      alert('Offline store is not available in your area.')
+      setOrderType('ONLINE')
       return false
     }
 
@@ -1157,11 +1221,9 @@ const Checkout = () => {
                   </div>
                 </label>
 
-                <label 
+                <div 
                   className={`order-type-card ${orderType === 'OFFLINE' ? 'active' : ''}`}
-                  onClick={() => {
-                    setOrderType('OFFLINE')
-                  }}
+                  onClick={handleOfflineStoreClick}
                   style={{
                     flex: 1,
                     padding: '16px 20px',
@@ -1179,13 +1241,15 @@ const Checkout = () => {
                     name="orderType" 
                     value="OFFLINE" 
                     checked={orderType === 'OFFLINE'} 
-                    onChange={() => setOrderType('OFFLINE')} 
+                    onChange={handleOfflineStoreClick} 
                   />
                   <div>
                     <strong style={{ display: 'block', color: '#1c1917', fontSize: '15px' }}>Offline Store</strong>
-                    <span style={{ fontSize: '12px', color: '#78716c' }}>COD or Online Payment</span>
+                    <span style={{ fontSize: '12px', color: orderType === 'OFFLINE' ? '#16a34a' : '#78716c', fontWeight: orderType === 'OFFLINE' ? '600' : 'normal' }}>
+                      {orderType === 'OFFLINE' ? '✓ Verified (Pincode: 122103)' : 'Pincode Verification Required (122103)'}
+                    </span>
                   </div>
-                </label>
+                </div>
               </div>
 
               <div className="section-header-box" style={{ marginTop: '16px', marginBottom: '16px' }}>
@@ -1614,6 +1678,173 @@ const Checkout = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Offline Store Pincode Verification Modal */}
+      {showOfflineModal && (
+        <div 
+          className="offline-pincode-modal-overlay" 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '20px'
+          }}
+          onClick={() => {
+            setShowOfflineModal(false)
+            setOfflinePincodeError('')
+          }}
+        >
+          <div 
+            className="offline-pincode-modal-card" 
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              maxWidth: '440px',
+              width: '100%',
+              padding: '32px 28px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
+              textAlign: 'center',
+              position: 'relative'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '50%',
+              background: 'rgba(212, 175, 55, 0.12)',
+              border: '1.5px solid #d4af37',
+              color: '#b8860b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+              fontSize: '24px'
+            }}>
+              📍
+            </div>
+
+            <h3 style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: '22px',
+              fontWeight: '500',
+              color: '#1c1917',
+              marginBottom: '8px'
+            }}>
+              Offline Store Access
+            </h3>
+
+            <p style={{
+              fontSize: '13px',
+              color: '#78716c',
+              lineHeight: '1.5',
+              marginBottom: '20px'
+            }}>
+              Offline Store & Cash on Delivery options are exclusively available in select regions. Please enter your 6-digit delivery pincode to proceed.
+            </p>
+
+            <form onSubmit={handleVerifyOfflinePincodeSubmit}>
+              <div style={{ marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  maxLength={6}
+                  placeholder="Enter 6-digit Pincode"
+                  value={offlinePincodeInput}
+                  onChange={(e) => {
+                    setOfflinePincodeInput(e.target.value.replace(/\D/g, ''))
+                    setOfflinePincodeError('')
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    letterSpacing: '0.15em',
+                    textAlign: 'center',
+                    borderRadius: '12px',
+                    border: offlinePincodeError ? '1.5px solid #ef4444' : '1.5px solid #d6d3d1',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                  autoFocus
+                />
+              </div>
+
+              {offlinePincodeError && (
+                <div style={{
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1px solid #fecaca',
+                  borderRadius: '10px',
+                  padding: '10px 14px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}>
+                  <span>⚠️</span>
+                  <span>{offlinePincodeError}</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOfflineModal(false)
+                    setOfflinePincodeError('')
+                    setOrderType('ONLINE')
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: '1px solid #d6d3d1',
+                    background: '#f5f5f4',
+                    color: '#44403c',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={offlineVerifying}
+                  style={{
+                    flex: 2,
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #1c1917 0%, #000000 100%)',
+                    color: '#d4af37',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    letterSpacing: '0.05em',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  }}
+                >
+                  {offlineVerifying ? 'Checking...' : 'Verify Pincode'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

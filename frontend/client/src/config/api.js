@@ -55,6 +55,7 @@ export const API_ENDPOINTS = {
   ORDERS_REFUND_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/refund`,
   CREATE_RAZORPAY_ORDER: `${API_BASE_URL}/api/orders/create-razorpay-order`,
   VERIFY_PAYMENT: `${API_BASE_URL}/api/orders/verify-payment`,
+  VERIFY_OFFLINE_PINCODE: `${API_BASE_URL}/api/orders/verify-offline-pincode`,
 
   // ─── Shipping & Logistics (Ad2Ship) ───────────
   SHIPPING_RATE: `${API_BASE_URL}/api/shipping/rate`,
