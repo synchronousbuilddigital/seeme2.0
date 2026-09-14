@@ -83,9 +83,13 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
     const fetchNavbarCategories = async () => {
       try {
         const [settingsData, prodData] = await Promise.all([
-          cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true }).catch(() => null),
-          cachedFetch(API_ENDPOINTS.PRODUCTS).catch(() => null)
+          cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 }).catch(() => null),
+          cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=20`, { ttlMs: 300000 }).catch(() => null)
         ])
+
+        if (settingsData?.success && settingsData.data?.logo) {
+          setLogo(settingsData.data.logo)
+        }
 
         const activeProducts = (prodData?.success && Array.isArray(prodData.data)) ? prodData.data : []
 
@@ -94,7 +98,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
           adminCategorySlides = settingsData.data.categorySlides
         }
 
-        const categoriesData = await cachedFetch(API_ENDPOINTS.GET_CATEGORIES).catch(() => null)
+        const categoriesData = await cachedFetch(API_ENDPOINTS.GET_CATEGORIES, { ttlMs: 300000 }).catch(() => null)
         let apiCategories = []
         if (categoriesData?.success && Array.isArray(categoriesData.data)) {
           apiCategories = categoriesData.data
@@ -163,16 +167,6 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
     }
 
     fetchNavbarCategories()
-  }, [])
-
-  useEffect(() => {
-    cachedFetch(API_ENDPOINTS.SITE_SETTINGS)
-      .then(data => {
-        if (data.success && data.data.logo) {
-          setLogo(data.data.logo)
-        }
-      })
-      .catch(err => console.error('Error fetching logo:', err))
   }, [])
 
   useEffect(() => {

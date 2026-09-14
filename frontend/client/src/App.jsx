@@ -9,15 +9,16 @@ import Footer from './components/Footer'
 import NewArrivals from './components/NewArrivals'
 import BrandsThatLead from './components/BrandsThatLead'
 import ScrollToTop from './components/ScrollToTop'
-import InstallAppWidget from './components/InstallAppWidget'
-import Cart from './components/Cart'
-import Wishlist from './components/Wishlist'
-import ProductPage from './pages/ProductPage'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import GlobalLoader from './components/GlobalLoader'
 import { getAdminUrl } from './config/api'
 import './App.css'
+
+// Lazy load non-critical widgets & drawer overlays (saves ~134 KB on initial page load)
+const InstallAppWidget = lazy(() => import('./components/InstallAppWidget'))
+const Cart = lazy(() => import('./components/Cart'))
+const Wishlist = lazy(() => import('./components/Wishlist'))
 
 // Homepage sections - loaded immediately for instant 0-delay render
 import CategoriesSlider from './components/CategoriesSlider'
@@ -28,6 +29,7 @@ import EthosBanner from './components/EthosBanner'
 import CatalogSection from './components/CatalogSection'
 
 // Lazy load route pages
+const ProductPage = lazy(() => import('./pages/ProductPage'))
 const Auth = lazy(() => import('./pages/Auth'))
 const Orders = lazy(() => import('./pages/Orders'))
 const CartPage = lazy(() => import('./pages/CartPage'))
@@ -112,8 +114,16 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
         </div>
       </main>
       <Footer />
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+      {isCartOpen && (
+        <Suspense fallback={null}>
+          <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        </Suspense>
+      )}
+      {isWishlistOpen && (
+        <Suspense fallback={null}>
+          <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+        </Suspense>
+      )}
     </div>
   )
 }
@@ -134,8 +144,16 @@ function App() {
         </Suspense>
       </main>
       <Footer />
-      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+      {isCartOpen && (
+        <Suspense fallback={null}>
+          <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        </Suspense>
+      )}
+      {isWishlistOpen && (
+        <Suspense fallback={null}>
+          <Wishlist isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
+        </Suspense>
+      )}
     </>
   )
 
@@ -150,7 +168,9 @@ function App() {
           }}
         >
           <ScrollToTop />
-          <InstallAppWidget />
+          <Suspense fallback={null}>
+            <InstallAppWidget />
+          </Suspense>
           <div className="app">
             <Suspense fallback={
               <div style={{

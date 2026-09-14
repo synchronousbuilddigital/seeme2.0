@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from './AddToCartButton'
-import { belongsToAudience } from '../utils/categoryHelper'
+import { belongsToAudience, interleaveAudiences } from '../utils/categoryHelper'
 import './ShopSection.css'
 
 const ShopSection = ({ activeAudience = 'all' }) => {
@@ -23,11 +23,15 @@ const ShopSection = ({ activeAudience = 'all' }) => {
     const fetchProducts = async () => {
       try {
         if (products.length === 0) setLoading(true)
-        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 })
+        const genderParam = activeAudience && activeAudience !== 'all' ? `&gender=${activeAudience}` : ''
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}?limit=60${genderParam}`
+        const data = await cachedFetch(endpoint, { ttlMs: 300000 })
         if (isMounted && data?.success && Array.isArray(data.data)) {
           const filtered = data.data.filter(p => belongsToAudience(p, activeAudience))
-          const featuredProds = filtered.filter(p => p.featured === true || p.inCollection === true)
-          const finalProds = featuredProds.length > 0 ? featuredProds : filtered
+          const pool = filtered.length > 0 ? filtered : data.data
+          const featuredProds = pool.filter(p => p.featured === true || p.inCollection === true)
+          const selection = featuredProds.length > 0 ? featuredProds : pool
+          const finalProds = activeAudience === 'all' ? interleaveAudiences(selection) : selection
           setProducts(finalProds.slice(0, 8))
         }
       } catch (error) {

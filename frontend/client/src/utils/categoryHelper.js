@@ -239,3 +239,23 @@ export const isCategoryForAudience = (category, audience = 'all', activeProducts
   return true
 }
 
+export const interleaveAudiences = (items) => {
+  if (!Array.isArray(items) || items.length === 0) return []
+
+  const menItems = items.filter(p => p && belongsToAudience(p, 'men'))
+  const womenItems = items.filter(p => p && belongsToAudience(p, 'women') && !belongsToAudience(p, 'men'))
+  const otherItems = items.filter(p => p && !belongsToAudience(p, 'men') && !belongsToAudience(p, 'women'))
+
+  if (menItems.length === 0 || womenItems.length === 0) {
+    return items
+  }
+
+  const mixed = []
+  const maxLen = Math.max(menItems.length, womenItems.length)
+  for (let i = 0; i < maxLen; i++) {
+    if (i < womenItems.length) mixed.push(womenItems[i])
+    if (i < menItems.length) mixed.push(menItems[i])
+  }
+  return [...mixed, ...otherItems]
+}
+

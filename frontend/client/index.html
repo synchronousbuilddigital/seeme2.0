@@ -2,12 +2,16 @@
 <html lang="en">
 
 <head>
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-M8JDGXBG');</script>
+  <!-- Deferred Google Tag Manager (Non-blocking First Paint) -->
+  <script>
+    window.addEventListener('load', function() {
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','%VITE_GTM_ID%');
+    });
+  </script>
   <!-- End Google Tag Manager -->
 
   <meta charset="UTF-8" />
@@ -71,9 +75,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
 
-  <!-- Google Fonts with display=swap for zero FOUT / fast FCP -->
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" />
+  <!-- Optimized Asynchronous Google Fonts (4 weights: 400, 600 for zero FCP render block) -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600&display=swap" media="print" onload="this.media='all'" />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Plus+Jakarta+Sans:wght@400;600&display=swap" />
+  </noscript>
 
   <!-- Structured Data JSON-LD Schema.org -->
   <script type="application/ld+json">
@@ -102,7 +109,7 @@
 
 <body>
   <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M8JDGXBG"
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=%VITE_GTM_ID%"
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div id="root"></div>

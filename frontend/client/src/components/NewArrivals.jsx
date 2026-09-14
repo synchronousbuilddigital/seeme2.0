@@ -5,7 +5,7 @@ import { CartContext } from '../context/CartContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
-import { belongsToAudience } from '../utils/categoryHelper'
+import { belongsToAudience, interleaveAudiences } from '../utils/categoryHelper'
 import AddToCartButton from './AddToCartButton'
 import './NewArrivals.css'
 
@@ -21,12 +21,16 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
     const fetchTopProducts = async () => {
       try {
         if (arrivals.length === 0) setLoading(true)
-        const data = await cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 })
+        const genderParam = activeAudience && activeAudience !== 'all' ? `&gender=${activeAudience}` : ''
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}?limit=60${genderParam}`
+        const data = await cachedFetch(endpoint, { ttlMs: 300000 })
         if (isMounted && data?.success && Array.isArray(data.data) && data.data.length > 0) {
           const audienceFiltered = data.data.filter(p => belongsToAudience(p, activeAudience))
-          const newArrivalOnly = audienceFiltered.filter(p => p.isNewArrival === true)
-          const finalSelection = newArrivalOnly.length > 0 ? newArrivalOnly : audienceFiltered
-          setArrivals(finalSelection.slice(0, 4))
+          const pool = audienceFiltered.length > 0 ? audienceFiltered : data.data
+          const newArrivalOnly = pool.filter(p => p.isNewArrival === true)
+          const selection = newArrivalOnly.length > 0 ? newArrivalOnly : pool
+          const finalSelection = activeAudience === 'all' ? interleaveAudiences(selection) : selection
+          setArrivals(finalSelection.slice(0, 8))
         }
       } catch (error) {
         console.error('Error fetching new arrivals:', error)

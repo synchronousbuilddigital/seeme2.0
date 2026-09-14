@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
-import { belongsToAudience } from '../utils/categoryHelper'
+import { belongsToAudience, interleaveAudiences } from '../utils/categoryHelper'
 import './Hero.css'
 
 // Module-level eager fetch promises to optimize first-paint load speed
@@ -30,7 +30,7 @@ const startEagerFetches = () => {
   }
 
   if (!productsPromise) {
-    productsPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=12`).catch(err => {
+    productsPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=20`).catch(err => {
       console.error('Eager fetch products error:', err)
       return null
     })
@@ -362,7 +362,7 @@ const Hero = ({ activeAudience = 'all' }) => {
         if (prodPromise) {
           productsPromise = null // Consume module eager promise
         } else {
-          prodPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`)
+          prodPromise = cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=20`)
         }
 
         const prodData = await prodPromise
@@ -440,7 +440,7 @@ const Hero = ({ activeAudience = 'all' }) => {
         const currentAud = (activeAudience || 'all').toLowerCase().trim()
         const [data, prodData] = await Promise.all([
           cachedFetch(API_ENDPOINTS.CAROUSEL, { ttlMs: 300000 }).catch(() => null),
-          cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 }).catch(() => null)
+          cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=20`, { ttlMs: 300000 }).catch(() => null)
         ])
 
         const EDITORIAL_DESCRIPTIONS = [
@@ -493,7 +493,7 @@ const Hero = ({ activeAudience = 'all' }) => {
           const activeProds = prodData.data.filter(p => p && p.isActive !== false && (p.image || p.images?.[0]))
           const audienceProds = currentAud !== 'all'
             ? activeProds.filter(p => belongsToAudience(p, currentAud))
-            : activeProds
+            : interleaveAudiences(activeProds)
           const finalProds = audienceProds.length > 0 ? audienceProds : activeProds
 
           nextSlides = finalProds.slice(0, 5).map((p, index) => ({
