@@ -11,8 +11,8 @@ import BrandsThatLead from './components/BrandsThatLead'
 import ScrollToTop from './components/ScrollToTop'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
-import GlobalLoader from './components/GlobalLoader'
 import { getAdminUrl } from './config/api'
+import GlobalLoader from './components/GlobalLoader'
 import './App.css'
 
 // Lazy load non-critical widgets & drawer overlays (saves ~134 KB on initial page load)
@@ -57,7 +57,7 @@ const AdminRedirect = () => {
     const cleanPath = window.location.pathname.replace(/^\/admin/, '') || '/dashboard'
     const token = localStorage.getItem('adminToken') || localStorage.getItem('seemee-token') || ''
     const userStr = localStorage.getItem('adminUser') || localStorage.getItem('seemee-user') || ''
-    
+
     let targetUrl = `${getAdminUrl()}${cleanPath === '/' ? '/dashboard' : cleanPath}`
     const searchParams = new URLSearchParams(window.location.search)
 
@@ -96,6 +96,7 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
 
   return (
     <div className={`store-theme-wrapper theme-${activeAudience || 'all'}`}>
+      <GlobalLoader duration={4500} />
       <Navbar
         onCartOpen={onCartOpen}
         onWishlistOpen={onWishlistOpen}
@@ -160,7 +161,6 @@ function App() {
   return (
     <AuthProvider>
       <CartProvider>
-        <GlobalLoader />
         <Router
           future={{
             v7_startTransition: true,
@@ -227,7 +227,7 @@ function App() {
                 <Route path="/about" element={<PageWithNav><AboutPage /></PageWithNav>} />
                 <Route path="/contact" element={<PageWithNav><ContactPage /></PageWithNav>} />
                 <Route path="/contact-us" element={<PageWithNav><ContactPage /></PageWithNav>} />
-				<Route path="/fabrics" element={<PageWithNav><FabricsPage /></PageWithNav>} />
+                <Route path="/fabrics" element={<PageWithNav><FabricsPage /></PageWithNav>} />
 
                 {/* Footer Policy Pages */}
                 <Route path="/privacy" element={<PageWithNav><PrivacyPolicyPage /></PageWithNav>} />

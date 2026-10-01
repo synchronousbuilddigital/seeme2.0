@@ -428,8 +428,8 @@
     padding: 2.5rem 0;
   }
   .shop-products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.85rem !important;
   }
   .shop-title {
     font-size: 2.2rem;
@@ -438,25 +438,25 @@
 
 @media (max-width: 550px) {
   .shop-container {
-    padding: 0 0.85rem;
+    padding: 0 0.65rem;
   }
   .shop-products-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.85rem;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
   }
   .product-details-content {
-    padding: 0.75rem;
+    padding: 0.65rem 0.5rem;
     gap: 4px;
   }
   .product-card-title {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     line-height: 1.25;
   }
   .product-category-tag {
-    font-size: 8.5px;
+    font-size: 8px;
   }
   .price-val {
-    font-size: 0.95rem;
+    font-size: 0.88rem;
   }
   .shop-title {
     font-size: 1.8rem;
@@ -464,6 +464,25 @@
   .shop-view-all-btn {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 375px) {
+  .shop-container {
+    padding: 0 0.45rem;
+  }
+  .shop-products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+  .product-details-content {
+    padding: 0.5rem 0.35rem;
+  }
+  .product-card-title {
+    font-size: 0.82rem;
+  }
+  .price-val {
+    font-size: 0.82rem;
   }
 }
 

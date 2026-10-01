@@ -19,7 +19,7 @@ const storage = multer.memoryStorage()
 const fileFilter = (req, file, cb) => {
   // Accept image files only
   const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-  
+
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true)
   } else {
@@ -61,7 +61,7 @@ const uploadToCloudinary = (fileBuffer, filename, folder = 'seemee/products') =>
         }
       }
     )
-    
+
     streamifier.createReadStream(fileBuffer).pipe(stream)
   })
 }

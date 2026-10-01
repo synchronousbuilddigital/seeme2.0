@@ -686,7 +686,7 @@ const Hero = ({ activeAudience = 'all' }) => {
       </div>
 
       <div className="hero-shell">
-        {/* Left Side: Creative Typography */}
+        {/* Left Side: Creative Typography (Image 1 UI Matching Layout) */}
         <div className="hero-copy">
           <AnimatePresence mode="wait">
             <motion.div
@@ -695,46 +695,111 @@ const Hero = ({ activeAudience = 'all' }) => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'inherit', textAlign: 'inherit' }}
+              className="hero-copy-card"
             >
+              {/* 1. Spaced Top Tagline + Gold Hairline Accent */}
+              <div className="hero-tagline-accent">
+                <span className="hero-tagline-text">
+                  {currentSlide?.subtitle || 'CELEBRATE TRADITION'}
+                </span>
+                <div className="hero-tagline-line-wrap">
+                  <span className="hero-tagline-line" />
+                  <span className="hero-tagline-dot" />
+                </div>
+              </div>
+
+              {/* 2. Headline with Dual-Color Serif & Floating Gold Lotus Vector Icon */}
               <div className="hero-title-group">
                 <h1 className="hero-title">
-                  <span className="title-line-1">
-                    {line1}
+                  <span className="title-line-dark">
+                    {line1 || 'Festival'}
                     {currentLength > 0 && currentLength <= len1 && <span className="typing-cursor">|</span>}
                   </span>
-                  <span className="title-line-2">
-                    {line2}{' '}
-                    {currentLength > len1 && currentLength <= (len1 + 1 + len2) && <span className="typing-cursor">|</span>}
-                    <span className="circled-word">
-                      {circleWord}
-                      {currentLength > (len1 + 1 + len2) && currentLength < stableTitle.length && <span className="typing-cursor">|</span>}
+                  <span className="title-line-wine">
+                    <span className="wine-text">
+                      {line2 ? `${line2} ` : ''}{circleWord || 'Collection'}
                     </span>
+                    {currentLength > len1 && currentLength < stableTitle.length && <span className="typing-cursor">|</span>}
+                    <svg className="title-lotus-vector" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+                      <path d="M50,15 C54,30 50,45 50,45 C50,45 46,30 50,15 Z" fill="none" stroke="#b98a45" strokeWidth="2.5" />
+                      <path d="M50,45 C40,30 20,32 20,45 C20,58 40,50 50,45 Z" fill="none" stroke="#b98a45" strokeWidth="2.5" />
+                      <path d="M50,45 C60,30 80,32 80,45 C80,58 60,50 50,45 Z" fill="none" stroke="#b98a45" strokeWidth="2.5" />
+                      <path d="M50,45 C35,40 10,55 25,70 C40,85 50,55 50,45 Z" fill="none" stroke="#b98a45" strokeWidth="2.5" />
+                      <path d="M50,45 C65,40 90,55 75,70 C60,85 50,55 50,45 Z" fill="none" stroke="#b98a45" strokeWidth="2.5" />
+                      <circle cx="50" cy="45" r="3" fill="#b98a45" />
+                    </svg>
                   </span>
                 </h1>
               </div>
 
+              {/* 3. Sub-description Paragraph */}
               <p className="hero-description">
-                {currentSlide?.subtitle || 'Handcrafted Atelier'}
-                {currentSlide?.description && (
-                  <span className="hero-description-heritage">
-                    {' '}{currentSlide.description}
-                  </span>
-                )}
+                {currentSlide?.description || 'Premium ethnic wear crafted for your most cherished celebrations.'}
               </p>
 
-              <div className="hero-navigation-links">
+              {/* 4. Three Feature Pillars (Lotus, Flower, Diamond) */}
+              <div className="hero-pillars-row">
+                <div className="hero-pillar-item">
+                  <svg className="pillar-icon" viewBox="0 0 40 40" fill="none">
+                    <path d="M20 8C22 14 20 20 20 20C20 20 18 14 20 8Z" stroke="#b98a45" strokeWidth="1.8" />
+                    <path d="M20 20C15 13 6 15 6 21C6 27 15 23 20 20Z" stroke="#b98a45" strokeWidth="1.8" />
+                    <path d="M20 20C25 13 34 15 34 21C34 27 25 23 20 20Z" stroke="#b98a45" strokeWidth="1.8" />
+                  </svg>
+                  <span>PREMIUM FABRICS</span>
+                </div>
+
+                <div className="pillar-vertical-divider" />
+
+                <div className="hero-pillar-item">
+                  <svg className="pillar-icon" viewBox="0 0 40 40" fill="none">
+                    <circle cx="20" cy="20" r="4" stroke="#b98a45" strokeWidth="1.8" />
+                    <circle cx="20" cy="11" r="2.5" stroke="#b98a45" strokeWidth="1.5" />
+                    <circle cx="20" cy="29" r="2.5" stroke="#b98a45" strokeWidth="1.5" />
+                    <circle cx="11" cy="20" r="2.5" stroke="#b98a45" strokeWidth="1.5" />
+                    <circle cx="29" cy="20" r="2.5" stroke="#b98a45" strokeWidth="1.5" />
+                  </svg>
+                  <span>EXQUISITE EMBROIDERY</span>
+                </div>
+
+                <div className="pillar-vertical-divider" />
+
+                <div className="hero-pillar-item">
+                  <svg className="pillar-icon" viewBox="0 0 40 40" fill="none">
+                    <path d="M12 14L20 6L28 14L20 34L12 14Z" stroke="#b98a45" strokeWidth="1.8" strokeLinejoin="round" />
+                    <path d="M12 14H28" stroke="#b98a45" strokeWidth="1.5" />
+                    <path d="M16 14L20 34L24 14" stroke="#b98a45" strokeWidth="1.5" />
+                  </svg>
+                  <span>FESTIVE STYLES</span>
+                </div>
+              </div>
+
+              {/* 5. Rounded Pill CTA Button & Horizontal Timeline Pagination */}
+              <div className="hero-cta-group">
                 <motion.button
-                  className="read-more-link"
+                  className="hero-pill-cta"
                   onClick={handlePrimaryAction}
-                  whileHover={{ x: 6 }}
-                  transition={{ type: 'spring', stiffness: 200 }}
+                  whileHover={{ scale: 1.04, boxShadow: '0 8px 25px rgba(142, 39, 68, 0.35)' }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <span>View design</span>
-                  <svg width="22" height="14" viewBox="0 0 30 14" fill="none" stroke="#d4af37" strokeWidth="2.5" strokeLinecap="round">
-                    <path d="M2,7 L28,7 M22,1 L28,7 L22,13" />
+                  <span>View Collection</span>
+                  <svg width="18" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 6h20M16 1l5 5-5 5" />
                   </svg>
                 </motion.button>
+
+                <div className="hero-pagination-bar">
+                  <span className="pagination-line" />
+                  <div className="pagination-dots">
+                    {slides.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className={`pagination-dot ${idx === activeIndex ? 'active' : ''}`}
+                        onClick={() => setActiveIndex(idx)}
+                        aria-label={`Go to slide ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           </AnimatePresence>

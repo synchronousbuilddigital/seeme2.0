@@ -88,25 +88,25 @@
   overflow: visible;
 }
 
-/* Individual Organic Pebble Blob Card */
+/* Individual Organic Pebble Blob Card — Clean Pill Shape */
 .blob-category-card {
   position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0 16px 0 0;
-  height: 68px;
+  padding: 0 16px 0 0 !important;
+  height: 64px;
   box-sizing: border-box;
-  border-radius: 48px 32px 36px 44px / 40px 32px 40px 32px;
-  overflow: hidden; /* Attach & clip image flush to the side curve */
+  border-radius: 32px !important;
+  overflow: hidden;
   cursor: pointer;
   user-select: none;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
               background 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border: 2.5px solid #FFFFFF;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05), 0 2px 5px rgba(0, 0, 0, 0.03);
-  min-width: 190px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06), 0 2px 5px rgba(0, 0, 0, 0.03);
+  min-width: 180px;
 }
 
 /* Theme specific color palettes matching reference screenshot */
@@ -149,35 +149,35 @@
   border-color: #FFFFFF;
 }
 
-/* Left Avatar Photo Frame — Fully Attached to Side Curve */
+/* Left Avatar Photo Frame — Touches top, bottom, and left edge flush */
 .blob-avatar-frame {
-  width: 65px;
-  height: 100%;
-  min-width: 65px;
-  min-height: 100%;
-  border-radius: 0 32px 32px 0 !important;
+  width: 64px !important;
+  height: 64px !important;
+  min-width: 64px !important;
+  min-height: 64px !important;
+  border-radius: 50% !important;
   padding: 0;
   background: #FFFFFF;
-  border: none;
-  border-right: 2px solid #FFFFFF;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+  border: none !important;
+  border-right: 2.5px solid #FFFFFF !important;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1) !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.35s ease;
+  transition: all 0.35s ease;
   overflow: hidden !important;
   flex-shrink: 0;
+  margin-left: 0 !important;
 }
 
 .blob-category-card.active .blob-avatar-frame {
-  border-right-color: #FFFFFF;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.15);
+  border-right-color: #FFFFFF !important;
 }
 
 .blob-avatar-img {
   width: 100% !important;
   height: 100% !important;
-  border-radius: 0 !important;
+  border-radius: 50% !important;
   object-fit: cover !important;
   object-position: center top !important;
   transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
@@ -329,9 +329,7 @@
   overflow: hidden;
 }
 
-/* Double Concentric Gold Ring Effect matching reference screenshot */
-.avatar-circle-card:first-child .avatar-circle-ring,
-.avatar-circle-card.active .avatar-circle-ring,
+/* Concentric Gold Ring Effect on Hover */
 .avatar-circle-card:hover .avatar-circle-ring {
   border-color: #C5A059;
   box-shadow: 
@@ -487,23 +485,24 @@
   .blob-category-card {
     flex: 1 1 0;
     min-width: 0;
-    height: clamp(54px, 14vw, 72px);
-    padding: 0 8px 0 0;
+    height: clamp(48px, 12vw, 60px);
+    padding: 0 8px 0 0 !important;
     gap: 0.35rem;
-    border-radius: 40px 28px 32px 36px / 34px 28px 34px 28px;
-    border-width: 2.5px;
+    border-radius: 30px !important;
+    border-width: 2px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
     overflow: hidden;
   }
 
   .blob-avatar-frame {
-    width: clamp(48px, 12vw, 65px);
-    height: 100%;
-    min-width: clamp(48px, 12vw, 65px);
-    min-height: 100%;
-    border-radius: 0 28px 28px 0 !important;
-    border-width: 0;
-    border-right: 2px solid #FFFFFF;
+    width: clamp(48px, 12vw, 60px) !important;
+    height: clamp(48px, 12vw, 60px) !important;
+    min-width: clamp(48px, 12vw, 60px) !important;
+    min-height: clamp(48px, 12vw, 60px) !important;
+    border-radius: 50% !important;
+    border: none !important;
+    border-right: 2px solid #FFFFFF !important;
+    margin-left: 0 !important;
   }
 
   .blob-card-content {
@@ -560,18 +559,22 @@
   }
 
   .blob-category-card {
-    padding: 0 6px 0 0;
+    padding: 0 6px 0 0 !important;
+    height: 44px;
     gap: 0.25rem;
-    border-width: 2px;
+    border-width: 1.5px;
+    border-radius: 22px !important;
   }
 
   .blob-avatar-frame {
-    width: 42px;
-    height: 100%;
-    min-width: 42px;
-    min-height: 100%;
-    border-radius: 0 20px 20px 0 !important;
-    border-right: 1.5px solid #FFFFFF;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    border-right: 1.5px solid #FFFFFF !important;
+    margin-left: 0 !important;
   }
 
   .blob-card-title {

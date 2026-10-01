@@ -1,104 +1,87 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { API_ENDPOINTS } from '../config/api'
-import { cachedFetch } from '../utils/cachedFetch'
+import React, { useState, useEffect } from 'react'
 import './GlobalLoader.css'
 
-const GlobalLoader = () => {
-  const [visible, setVisible] = useState(true)
-  const [progress, setProgress] = useState(0)
-  const [logo, setLogo] = useState(null)
+const GlobalLoader = ({ duration = 4500, onComplete }) => {
+  const [isVisible, setIsVisible] = useState(true)
+  const [isHiding, setIsHiding] = useState(false)
 
   useEffect(() => {
-    cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
-      .then(data => {
-        if (data && data.success && data.data?.logo) {
-          setLogo(data.data.logo)
-        }
-      })
-      .catch(() => null)
-  }, [])
+    const timer = setTimeout(() => {
+      setIsHiding(true)
+      const hideTimer = setTimeout(() => {
+        setIsVisible(false)
+        if (onComplete) onComplete()
+      }, 550)
+      return () => clearTimeout(hideTimer)
+    }, duration)
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          return 100
-        }
-        const increment = Math.floor(Math.random() * 12) + 8
-        const nextVal = prev + increment
-        return nextVal > 100 ? 100 : nextVal
-      })
-    }, 40)
+    return () => clearTimeout(timer)
+  }, [duration, onComplete])
 
-    return () => clearInterval(interval)
-  }, [])
-
-  useEffect(() => {
-    if (progress === 100) {
-      const exitTimer = setTimeout(() => {
-        setVisible(false)
-      }, 350)
-      return () => clearTimeout(exitTimer)
-    }
-  }, [progress])
+  if (!isVisible) return null
 
   return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="seemee-global-loader"
-          initial={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            transition: { duration: 0.6, ease: [0.65, 0, 0.35, 1] }
+    <div
+      id="sm-loader"
+      className={isHiding ? 'sm-hide' : ''}
+      role="status"
+      aria-live="polite"
+      aria-label="SEEMEE is loading"
+    >
+      <div className="sm-beam"></div>
+
+      <div className="sm-center">
+        {/* 1. Gold Outline Lotus SVG Logo */}
+        <svg className="sm-lotus" viewBox="0 0 120 100" aria-hidden="true">
+          <path pathLength="1" d="M60 8L63 14L60 20L57 14Z" />
+          <path pathLength="1" d="M60 28C46 40 46 58 60 74C74 58 74 40 60 28Z" />
+          <path pathLength="1" d="M60 74C44 66 38 52 40 40C28 46 22 56 24 64C30 76 46 82 60 80" />
+          <path pathLength="1" d="M60 74C76 66 82 52 80 40C92 46 98 56 96 64C90 76 74 82 60 80" />
+          <circle className="sm-dot" cx="60" cy="52" r="2" />
+        </svg>
+
+        {/* 2. Brand Title with Letter-by-Letter Blur-up Reveal */}
+        <h1 className="sm-brand" aria-label="SEEMEE">
+          <span>S</span><span>E</span><span>E</span><span>M</span><span>E</span><span>E</span>
+        </h1>
+
+        {/* 3. Hairline Divider & Diamond Accent */}
+        <div className="sm-rule"><i></i><b></b><i></i></div>
+
+        {/* 4. Tagline */}
+        <p className="sm-tag">Ethnic wear for every you</p>
+
+        {/* 5. Gold & Wine Circular Gradient Spinner */}
+        <svg className="sm-spinner" viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <linearGradient id="gSmReact" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#b98a45" />
+              <stop offset="1" stopColor="#8e2744" />
+            </linearGradient>
+          </defs>
+          <circle className="track" cx="50" cy="50" r="42" />
+          <circle className="arc" cx="50" cy="50" r="42" stroke="url(#gSmReact)" />
+          <g className="head"><circle cx="50" cy="8" r="5" fill="#8e2744" /></g>
+        </svg>
+
+        {/* 6. Loading Text with Staggered Bouncing Dots */}
+        <p className="sm-load">Loading<em>.</em><em>.</em><em>.</em></p>
+      </div>
+
+      {/* Dynamic Falling Petals */}
+      {Array.from({ length: 10 }).map((_, i) => (
+        <div
+          key={i}
+          className="sm-petal"
+          style={{
+            left: `${(i * 10 + Math.random() * 8) % 100}%`,
+            animationDuration: `${9 + (i % 5) * 1.8}s`,
+            animationDelay: `${(i * 0.7) % 8}s`,
+            transform: `scale(${0.6 + (i % 4) * 0.2})`
           }}
-        >
-          {/* Subtle Ambient Radial Glow */}
-          <div className="loader-ambient-glow" />
-
-          <div className="loader-content-box">
-            {/* Minimal Luxury Hanger / Couture SVG Emblem */}
-            <div className="loader-emblem-wrap">
-              <svg className="loader-hanger-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Hanger Hook */}
-                <path d="M32 14C32 9.58172 35.5817 6 40 6C42.2091 6 44 7.79086 44 10C44 12.2091 42.2091 14 40 14" stroke="#D4AF37" strokeWidth="2.2" strokeLinecap="round"/>
-                {/* Hanger Body */}
-                <path d="M32 14L10 32C8 33.6 8 36 10 36H54C56 36 56 33.6 54 32L32 14Z" stroke="#D4AF37" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-                {/* Bottom Accent Line */}
-                <line x1="18" y1="36" x2="46" y2="36" stroke="#F4E4C1" strokeWidth="1.5" strokeDasharray="3 3"/>
-              </svg>
-              <div className="emblem-pulse-ring" />
-            </div>
-
-            {/* Brand Logo / Header */}
-            <div className="loader-brand-header">
-              {logo ? (
-                <img src={logo} alt="SEEMEE" className="loader-logo-img" />
-              ) : (
-                <h1 className="loader-brand-title">SEEMEE</h1>
-              )}
-              <span className="loader-brand-subtitle">HAUTE COUTURE • ATELIER</span>
-            </div>
-
-            {/* Minimal Gold Progress Bar */}
-            <div className="loader-progress-container">
-              <div className="loader-progress-track">
-                <div
-                  className="loader-progress-bar"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <div className="loader-progress-meta">
-                <span className="loader-status-text">CURATING ATELIER</span>
-                <span className="loader-percent-num">{progress}%</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        />
+      ))}
+    </div>
   )
 }
 

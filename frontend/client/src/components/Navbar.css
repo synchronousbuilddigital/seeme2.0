@@ -90,7 +90,7 @@
   border: none;
   color: var(--charcoal);
   font-family: var(--font-body);
-  font-weight: 500;
+  font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   position: relative;
@@ -177,6 +177,7 @@
   text-align: left;
   font-family: var(--font-body);
   font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
   color: var(--charcoal);
@@ -369,7 +370,7 @@
 }
 
 .profile-name {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--charcoal);
   font-size: 0.95rem;
   margin: 0 0 0.2rem 0;
@@ -380,6 +381,7 @@
 
 .profile-email {
   color: var(--charcoal);
+  font-weight: 600;
   opacity: 0.75;
   font-size: 0.8rem;
   margin: 0;
@@ -405,7 +407,7 @@
   border-radius: 10px;
   color: var(--charcoal);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: var(--font-body);
@@ -478,7 +480,7 @@
   background: none;
   border: none;
   color: var(--charcoal);
-  font-weight: 500;
+  font-weight: 700;
   font-size: 0.9rem;
   cursor: pointer;
   padding: 1rem 0;
@@ -513,7 +515,7 @@
   background: none;
   border: none;
   color: var(--charcoal);
-  font-weight: 500;
+  font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0.6rem 0;
@@ -868,7 +870,7 @@
   background: rgba(212, 175, 55, 0.05) !important;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
   margin-left: 10px !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
   font-size: 0.85rem !important;
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
@@ -991,7 +993,7 @@
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #ffffff;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .drawer-logo-img {
@@ -1047,7 +1049,7 @@
   color: #a0a0a0;
   transition: all 0.25s ease;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
   box-sizing: border-box;
 }
@@ -1061,6 +1063,7 @@
 .admin-style-link .link-text {
   font-family: var(--font-body, sans-serif);
   font-size: 0.9rem;
+  font-weight: 700;
   color: #d0d0d0;
   transition: color 0.25s ease;
 }
@@ -1133,6 +1136,7 @@
   text-align: left;
   font-family: var(--font-body, sans-serif);
   font-size: 0.82rem;
+  font-weight: 700;
   color: #aaaaaa;
   padding: 8px 12px;
   cursor: pointer;
@@ -1240,7 +1244,7 @@
 
   .client-mobile-bottom-nav .mobile-bottom-nav-item span {
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.8px;
     text-transform: uppercase;
     font-family: var(--font-body, sans-serif);
