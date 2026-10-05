@@ -96,7 +96,7 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
 
   return (
     <div className={`store-theme-wrapper theme-${activeAudience || 'all'}`}>
-      <GlobalLoader duration={4500} />
+      <GlobalLoader duration={2200} />
       <Navbar
         onCartOpen={onCartOpen}
         onWishlistOpen={onWishlistOpen}

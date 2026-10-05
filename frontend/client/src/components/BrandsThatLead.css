@@ -158,13 +158,14 @@
 /* Right Info Side with Swoop Arch Curve */
 .brand-card-info-side {
   width: 54%;
-  padding: 1.5rem 1.25rem 1.25rem 0.5rem;
+  padding: 1.25rem 1rem 1rem 0.25rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
   z-index: 2;
   background-color: var(--card-bg);
+  box-sizing: border-box;
 }
 
 /* Organic Swoop Vector overlay on left edge of info side */
@@ -198,18 +199,20 @@
 
 .brand-name-text {
   font-family: var(--font-heading, 'Cormorant Garamond', serif);
-  font-size: 1.85rem;
+  font-size: clamp(1.1rem, 2.1vw, 1.55rem);
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #1C2536;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.15;
   text-transform: uppercase;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .brand-tagline-text {
   font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 400;
   color: #5A6578;
   margin: 0;

@@ -557,9 +557,13 @@ const Hero = ({ activeAudience = 'all' }) => {
   const nextSlide = slides[nextSlideIndex] || slides[0] || defaultFallbackSlide
 
   useEffect(() => {
-    const fullTitle = currentSlide?.title || 'Dressing is nothing but a Choice'
-    setTypedTitle('')
+    const fullTitle = currentSlide?.title || ''
+    if (!fullTitle) {
+      setTypedTitle('')
+      return
+    }
 
+    setTypedTitle('')
     let titleInterval;
 
     const delayTimeout = setTimeout(() => {
@@ -572,7 +576,7 @@ const Hero = ({ activeAudience = 'all' }) => {
           clearInterval(titleInterval)
         }
       }, 45)
-    }, 600) // perfectly synced with AnimatePresence exit duration
+    }, 200)
 
     return () => {
       clearTimeout(delayTimeout)
@@ -580,11 +584,11 @@ const Hero = ({ activeAudience = 'all' }) => {
         clearInterval(titleInterval)
       }
     }
-  }, [activeIndex, currentSlide?.title, slides.length])
+  }, [activeIndex, currentSlide?.title])
 
   // Parse Title into segments dynamically
-  const stableTitle = currentSlide?.title || 'Dressing is nothing but a Choice'
-  const stableWords = stableTitle.split(' ')
+  const stableTitle = currentSlide?.title || ''
+  const stableWords = stableTitle ? stableTitle.split(' ') : []
 
   let targetLine1 = ''
   let targetLine2 = ''
@@ -595,7 +599,7 @@ const Hero = ({ activeAudience = 'all' }) => {
   } else if (stableWords.length === 2) {
     targetLine1 = stableWords[0]
     targetCircleWord = stableWords[1]
-  } else {
+  } else if (stableWords.length > 2) {
     const middleIndex = Math.ceil(stableWords.length / 2)
     targetLine1 = stableWords.slice(0, middleIndex).join(' ')
     targetLine2 = stableWords.slice(middleIndex, stableWords.length - 1).join(' ')
@@ -712,12 +716,12 @@ const Hero = ({ activeAudience = 'all' }) => {
               <div className="hero-title-group">
                 <h1 className="hero-title">
                   <span className="title-line-dark">
-                    {line1 || 'Festival'}
+                    {line1}
                     {currentLength > 0 && currentLength <= len1 && <span className="typing-cursor">|</span>}
                   </span>
                   <span className="title-line-wine">
                     <span className="wine-text">
-                      {line2 ? `${line2} ` : ''}{circleWord || 'Collection'}
+                      {line2 ? `${line2} ` : ''}{circleWord}
                     </span>
                     {currentLength > len1 && currentLength < stableTitle.length && <span className="typing-cursor">|</span>}
                     <svg className="title-lotus-vector" viewBox="0 0 100 100" fill="none" aria-hidden="true">

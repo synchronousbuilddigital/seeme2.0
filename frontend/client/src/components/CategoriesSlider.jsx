@@ -13,11 +13,25 @@ const normalizeAudience = (val) => {
   return ['all']
 }
 
+const ARCH_BG_COLORS = [
+  '#F4EBE1', // Warm Sand Cream
+  '#E8DFD8', // Soft Greige
+  '#EFE8DE', // Soft Almond
+  '#F5E6D3', // Warm Gold Tint
+  '#EAE0D5', // Taupe Cream
+  '#F0E5DB'  // Pure Warm Cream
+]
+
 const CategoriesSlider = ({ activeAudience = 'all' }) => {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [selectedAudience, setSelectedAudience] = useState(activeAudience)
 
   const navigate = useNavigate()
+
+  useEffect(() => {
+    setSelectedAudience(activeAudience)
+  }, [activeAudience])
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -33,16 +47,16 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
         let categoryList = []
 
         if (settingsData?.success && Array.isArray(settingsData.data?.categorySlides) && settingsData.data.categorySlides.length > 0) {
-          // Filter strictly by activeAudience matching Admin Panel configuration
+          // Filter strictly by selectedAudience matching Admin Panel configuration
           categoryList = settingsData.data.categorySlides
             .filter(Boolean)
-            .filter(cat => isCategoryForAudience(cat, activeAudience, activeProducts))
+            .filter(cat => isCategoryForAudience(cat, selectedAudience, activeProducts))
             .sort((a, b) => ((a?.order || 0) - (b?.order || 0)))
         } else {
           // Fallback dynamically from active products uploaded in Admin Panel
           const existingSlugs = new Set()
-          const audienceProducts = activeAudience !== 'all'
-            ? activeProducts.filter(p => belongsToAudience(p, activeAudience))
+          const audienceProducts = selectedAudience !== 'all'
+            ? activeProducts.filter(p => belongsToAudience(p, selectedAudience))
             : activeProducts
 
           audienceProducts.forEach(p => {
@@ -68,7 +82,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
           const normCatSlug = catSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
           const matchingProds = activeProducts.filter(p => {
             if (!p || !p.category) return false
-            if (!belongsToAudience(p, activeAudience)) return false
+            if (!belongsToAudience(p, selectedAudience)) return false
             const normPCat = p.category.toLowerCase().replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
             return normPCat === normCatSlug || p.category.toLowerCase() === catSlug
           })
@@ -87,10 +101,10 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
             title: cat?.title || cat?.name || 'Collection',
             features: cat?.features && cat.features.length ? cat.features : ['Luxury Tailoring', 'Pure Fabrics', 'Editorial Cut'],
             subtitle: cat?.subtitle || 'Atelier Collection',
-            description: cat?.description || 'Exquisite artisanal creations.',
+            description: cat?.description || `Curated designs in ${cat?.title || 'collection'}.`,
             image: finalImage
           }
-        }).filter(c => Boolean(c.image) && isCategoryForAudience(c, activeAudience, activeProducts))
+        }).filter(c => Boolean(c.image) && isCategoryForAudience(c, selectedAudience, activeProducts))
 
         setCategories(mappedCategories)
       } catch (err) {
@@ -101,7 +115,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
     }
 
     loadCategories()
-  }, [activeAudience])
+  }, [selectedAudience])
 
   if (loading || categories.length === 0) return null
 
@@ -124,79 +138,91 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="categories-header-left">
-            <h2 className="categories-title">
-              Signature <span>Categories</span>
-            </h2>
-            <div className="categories-header-line" />
-            <p className="categories-subtitle">
-              {dynamicSubtitle}
-            </p>
+          <h2 className="categories-title">
+            Signature <span>Categories</span>
+          </h2>
+          <div className="categories-header-line">
+            <span className="line-diamond">✦</span>
+          </div>
+
+          {/* Interactive Audience Filter Pills */}
+          <div className="categories-filter-pills">
+            <button
+              type="button"
+              className={`cat-pill-btn ${selectedAudience === 'all' ? 'active' : ''}`}
+              onClick={() => setSelectedAudience('all')}
+            >
+              <span className="pill-text-desktop">ALL SILHOUETTES</span>
+              <span className="pill-text-mobile">ALL</span>
+            </button>
+            <button
+              type="button"
+              className={`cat-pill-btn ${selectedAudience === 'men' ? 'active' : ''}`}
+              onClick={() => setSelectedAudience('men')}
+            >
+              <span className="pill-text-desktop">MEN'S COUTURE</span>
+              <span className="pill-text-mobile">MEN</span>
+            </button>
+            <button
+              type="button"
+              className={`cat-pill-btn ${selectedAudience === 'women' ? 'active' : ''}`}
+              onClick={() => setSelectedAudience('women')}
+            >
+              <span className="pill-text-desktop">WOMEN'S COUTURE</span>
+              <span className="pill-text-mobile">WOMEN</span>
+            </button>
           </div>
         </motion.div>
 
-        {/* Categories Grid - 4 Columns matching reference screenshot */}
-        <motion.div className="categories-ref-grid" layout>
+        {/* Arch Category Cards Grid (5-Column Vaulted Arch Window Cards with alternating uper-nitche wave rhythm) */}
+        <motion.div className="categories-arch-grid" layout>
           <AnimatePresence mode="popLayout">
             {categories.map((cat, idx) => {
+              const fallbackBg = ARCH_BG_COLORS[idx % ARCH_BG_COLORS.length]
+              const isStaggered = idx % 2 === 1
+              const rawDesc = cat.description || cat.subtitle || `Curated designs in ${cat.title}.`
+              const cleanDesc = rawDesc.replace(/\*\*/g, '').replace(/__/g, '').trim()
+
               return (
                 <motion.div
                   key={cat._id || cat.slug || idx}
-                  className="ref-category-card"
+                  className={`arch-category-card ${isStaggered ? 'staggered-down' : ''}`}
                   layout
                   initial={{ opacity: 0, y: 30, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 20, scale: 0.96 }}
-                  transition={{ duration: 0.45, delay: idx * 0.07, ease: [0.25, 1, 0.5, 1] }}
-                  whileHover={{ y: -8 }}
+                  transition={{ duration: 0.45, delay: idx * 0.06, ease: [0.25, 1, 0.5, 1] }}
+                  whileHover={{ y: isStaggered ? -4 : -12 }}
                   onClick={() => navigate(`/category/${cat.slug}`)}
                 >
-                  <div className="ref-card-media-box">
-                    <img
-                      src={getImageUrl(cat.image)}
-                      alt={cat.title}
-                      loading="lazy"
-                    />
-
-                    {/* Dark gradient overlay for clear white text readability */}
-                    <div className="ref-card-gradient" />
-
-                    {/* Bottom overlay section - full content shown on hover */}
-                    <div className="ref-card-bottom">
-                      <div className="ref-card-text">
-                        {cat.productCount ? (
-                          <span className="ref-card-meta">✦ {cat.productCount} Designs</span>
-                        ) : null}
-                        <h3 className="ref-card-title">{cat.title}</h3>
-                        <p className="ref-card-subtitle">
-                          {cat.description || cat.subtitle}
-                        </p>
-                        {cat.features && cat.features.length > 0 && (
-                          <div className="ref-card-chips">
-                            {cat.features.slice(0, 2).map((feat, fIdx) => (
-                              <span key={fIdx} className="ref-chip-item">{feat}</span>
-                            ))}
-                          </div>
-                        )}
+                  {/* Vaulted Dome Arch Top Photo Frame */}
+                  <div className="arch-card-media-box" style={{ backgroundColor: fallbackBg }}>
+                    {cat.image ? (
+                      <img
+                        src={getImageUrl(cat.image)}
+                        alt={cat.title}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="arch-placeholder-text">
+                        <span>{cat.title}</span>
                       </div>
+                    )}
+                    {/* Subtle sheen overlay */}
+                    <div className="arch-card-sheen" />
+                  </div>
 
-                      {/* Translucent glass circular up-right arrow button */}
-                      <div className="ref-arrow-button">
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <line x1="7" y1="17" x2="17" y2="7" />
-                          <polyline points="7 7 17 7 17 17" />
-                        </svg>
-                      </div>
+                  {/* Bottom Content Section - Title + Count Row & Description */}
+                  <div className="arch-card-info">
+                    <div className="arch-info-header">
+                      <h3 className="arch-card-title">{cat.title}</h3>
+                      {cat.productCount > 0 && (
+                        <span className="arch-card-count">{cat.productCount} designs</span>
+                      )}
                     </div>
+                    <p className="arch-card-desc">
+                      {cleanDesc}
+                    </p>
                   </div>
                 </motion.div>
               )
@@ -213,7 +239,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
             onClick={() => navigate('/categories')}
           >
             <span className="btn-sparkle">✦</span>
-            <span className="btn-text">EXPLORE MORE CATEGORIES</span>
+            <span className="btn-text">EXPLORE ALL CATEGORIES</span>
             <div className="btn-arrow-circle">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12"></line>

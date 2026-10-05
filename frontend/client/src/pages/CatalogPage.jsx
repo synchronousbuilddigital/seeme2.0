@@ -315,13 +315,13 @@ const CatalogPage = () => {
                       animate={{ y: 0, opacity: 1 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <div className="prod-thumb">
+                      <div className="prod-thumb" onClick={() => navigate(`/product/${product._id || product.id}`)} style={{ cursor: 'pointer' }}>
                         <img 
                           src={getOptimizedImageUrl(product.images?.[0] || product.image || mediaImage, 'thumbnail')} 
                           alt={product.name} 
                         />
                       </div>
-                      <div className="prod-info">
+                      <div className="prod-info" onClick={() => navigate(`/product/${product._id || product.id}`)} style={{ cursor: 'pointer' }}>
                         <h4>{product.name}</h4>
                         <span className="prod-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
                       </div>
@@ -351,8 +351,8 @@ const CatalogPage = () => {
                     title={isLiked ? "In your Wishlist" : "Like & Add to Wishlist"}
                   >
                     <svg 
-                      width="26" 
-                      height="26" 
+                      width="20" 
+                      height="20" 
                       viewBox="0 0 24 24" 
                       fill={isLiked ? "#D4AF37" : "none"} 
                       stroke={isLiked ? "#D4AF37" : "#FFFFFF"} 
@@ -377,7 +377,7 @@ const CatalogPage = () => {
                     onClick={handleShare}
                     title="Share Reel"
                   >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="18" cy="5" r="3"></circle>
                       <circle cx="6" cy="12" r="3"></circle>
                       <circle cx="18" cy="19" r="3"></circle>

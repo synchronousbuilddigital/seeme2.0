@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from 'react'
 import './GlobalLoader.css'
 
-const GlobalLoader = ({ duration = 4500, onComplete }) => {
-  const [isVisible, setIsVisible] = useState(true)
+const GlobalLoader = ({ duration = 2200, onComplete, forceShow = false }) => {
+  const [isVisible, setIsVisible] = useState(() => {
+    if (forceShow) return true
+    try {
+      return sessionStorage.getItem('seemee_has_loaded') !== 'true'
+    } catch (e) {
+      return true
+    }
+  })
   const [isHiding, setIsHiding] = useState(false)
 
   useEffect(() => {
+    if (!isVisible) return
+
     const timer = setTimeout(() => {
       setIsHiding(true)
       const hideTimer = setTimeout(() => {
         setIsVisible(false)
+        try {
+          sessionStorage.setItem('seemee_has_loaded', 'true')
+        } catch (e) {}
         if (onComplete) onComplete()
       }, 550)
       return () => clearTimeout(hideTimer)
     }, duration)
 
     return () => clearTimeout(timer)
-  }, [duration, onComplete])
+  }, [duration, onComplete, isVisible])
 
   if (!isVisible) return null
 
