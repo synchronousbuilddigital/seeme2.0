@@ -212,13 +212,10 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
                     <div className="arch-card-sheen" />
                   </div>
 
-                  {/* Bottom Content Section - Title + Count Row & Description */}
+                  {/* Bottom Content Section - Title & Description */}
                   <div className="arch-card-info">
                     <div className="arch-info-header">
                       <h3 className="arch-card-title">{cat.title}</h3>
-                      {cat.productCount > 0 && (
-                        <span className="arch-card-count">{cat.productCount} designs</span>
-                      )}
                     </div>
                     <p className="arch-card-desc">
                       {cleanDesc}
