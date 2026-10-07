@@ -783,10 +783,25 @@
     border-width: 1.5px !important;
   }
 
-  .marker-tl { top: -6px !important; left: -6px !important; }
-  .marker-tr { top: -6px !important; right: -6px !important; }
-  .marker-bl { bottom: -6px !important; left: -6px !important; }
-  .marker-br { bottom: -6px !important; right: -6px !important; }
+  .marker-tl {
+    top: -6px !important;
+    left: -6px !important;
+  }
+
+  .marker-tr {
+    top: -6px !important;
+    right: -6px !important;
+  }
+
+  .marker-bl {
+    bottom: -6px !important;
+    left: -6px !important;
+  }
+
+  .marker-br {
+    bottom: -6px !important;
+    right: -6px !important;
+  }
 
   /* Shift Thumbnail Navigation Bar to the Bottom on Mobile Screen */
   .hero-thumbnails-container {
@@ -1031,10 +1046,25 @@
     border-width: 1px !important;
   }
 
-  .marker-tl { top: -4px !important; left: -4px !important; }
-  .marker-tr { top: -4px !important; right: -4px !important; }
-  .marker-bl { bottom: -4px !important; left: -4px !important; }
-  .marker-br { bottom: -4px !important; right: -4px !important; }
+  .marker-tl {
+    top: -4px !important;
+    left: -4px !important;
+  }
+
+  .marker-tr {
+    top: -4px !important;
+    right: -4px !important;
+  }
+
+  .marker-bl {
+    bottom: -4px !important;
+    left: -4px !important;
+  }
+
+  .marker-br {
+    bottom: -4px !important;
+    right: -4px !important;
+  }
 
   .hero-thumbnails-container {
     bottom: -32px !important;
@@ -1283,8 +1313,26 @@
     letter-spacing: 1.2px;
   }
 
-  .category-marquee-track {
-    gap: 1.2rem;
-    animation-duration: 45s;
+  .banner-carousel-hero {
+    margin-top: 70px;
+    height: 460px;
+  }
+
+  .banner-carousel-arrow {
+    width: 38px;
+    height: 38px;
+    font-size: 1.3rem;
+  }
+
+  .banner-carousel-arrow.prev {
+    left: 12px;
+  }
+
+  .banner-carousel-arrow.next {
+    right: 12px;
+  }
+
+  .banner-carousel-content {
+    padding: 0 1.25rem;
   }
 }

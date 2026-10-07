@@ -88,7 +88,7 @@
 /* Navigation Links */
 .nav-links {
   display: flex;
-  gap: 2.5rem;
+  gap: 1.5rem;
   align-items: center;
   flex: 1;
   justify-content: center;
@@ -97,42 +97,107 @@
 
 .nav-item {
   background: none;
-  border: none;
+  border: 1px solid transparent;
   color: var(--charcoal);
   font-family: var(--font-body);
-  font-weight: 800;
-  font-size: 0.86rem;
+  font-weight: 700;
+  font-size: 0.82rem;
   cursor: pointer;
   position: relative;
-  transition: all 0.3s ease;
-  letter-spacing: 2px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  letter-spacing: 1.6px;
   text-transform: uppercase;
-  padding: 0.5rem 0;
+  padding: 0.45rem 1rem;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
 
-.nav-item::after {
+.nav-item:hover:not(.active) {
+  color: var(--primary-gold);
+  background: rgba(212, 175, 55, 0.08);
+  border-color: rgba(212, 175, 55, 0.2);
+  letter-spacing: 1.8px;
+  transform: translateY(-1px);
+}
+
+.nav-item:hover:not(.active) svg {
+  color: var(--primary-gold);
+}
+
+/* Premium Light Gold & Cream Capsule Pill Highlight (Active Page Only) */
+.nav-item.active {
+  position: relative;
+  padding: 0.45rem 1.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(254, 250, 242, 0.98) 0%, rgba(244, 228, 193, 0.92) 100%) !important;
+  color: #8C6F19 !important;
+  font-weight: 800;
+  font-size: 0.82rem;
+  letter-spacing: 1.5px;
+  border: 1.5px solid rgba(212, 175, 55, 0.65) !important;
+  box-shadow: 
+    0 4px 16px rgba(212, 175, 55, 0.22),
+    inset 0 1.5px 2px rgba(255, 255, 255, 0.95),
+    0 0 10px rgba(212, 175, 55, 0.12) !important;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Subtle Shimmer Ray effect on active item hover */
+.nav-item.active::before {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 1px;
-  background: var(--primary-gold);
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 70%
+  );
+  transform: rotate(25deg) translateX(-100%);
+  transition: transform 0.75s ease;
+  pointer-events: none;
 }
 
-.nav-item:hover,
-.nav-item.active {
-  color: var(--primary-gold);
-  letter-spacing: 2.5px;
+.nav-item.active:hover::before {
+  transform: rotate(25deg) translateX(100%);
 }
 
-.nav-item:hover::after,
-.nav-item.active::after {
-  width: 100%;
+.nav-item.active:hover {
+  background: linear-gradient(135deg, rgba(244, 228, 193, 1) 0%, rgba(232, 215, 180, 0.95) 100%) !important;
+  border-color: var(--primary-gold) !important;
+  color: #6E5510 !important;
+  transform: translateY(-2px) scale(1.03);
+  letter-spacing: 1.8px;
+  box-shadow: 
+    0 8px 22px rgba(212, 175, 55, 0.32),
+    0 2px 8px rgba(0, 0, 0, 0.06),
+    inset 0 1.5px 2px rgba(255, 255, 255, 1) !important;
+}
+
+.nav-item.active svg {
+  color: #8C6F19 !important;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.nav-item.active:hover svg {
+  transform: scale(1.15) rotate(-5deg);
+  color: #6E5510 !important;
+}
+
+/* Scrolled Navbar active capsule adjustments */
+.navbar.scrolled .nav-item.active {
+  background: linear-gradient(135deg, rgba(254, 250, 242, 0.98) 0%, rgba(244, 228, 193, 0.95) 100%) !important;
+  color: #8C6F19 !important;
+  border: 1.5px solid rgba(212, 175, 55, 0.7) !important;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.25), inset 0 1.5px 2px rgba(255, 255, 255, 0.95) !important;
 }
 
 .dropdown-trigger.active .dropdown-arrow {

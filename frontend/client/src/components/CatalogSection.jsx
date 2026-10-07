@@ -13,6 +13,7 @@ const CatalogSection = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [mutedStates, setMutedStates] = useState({})
   const videoRefs = useRef({})
+  const trackRef = useRef(null)
 
   useEffect(() => {
     let isMounted = true
@@ -35,7 +36,7 @@ const CatalogSection = () => {
 
         if (isMounted) {
           setItems(reelItems)
-          if (reelItems.length > 0 && items.length === 0) {
+          if (reelItems.length > 0) {
             setActiveIndex(Math.floor(reelItems.length / 2))
           }
         }
@@ -50,14 +51,6 @@ const CatalogSection = () => {
     return () => { isMounted = false }
   }, [])
 
-  const handlePrev = () => {
-    setActiveIndex(prev => (prev === 0 ? items.length - 1 : prev - 1))
-  }
-
-  const handleNext = () => {
-    setActiveIndex(prev => (prev === items.length - 1 ? 0 : prev + 1))
-  }
-
   const toggleMute = (itemId, e) => {
     e.stopPropagation()
     setMutedStates(prev => ({
@@ -66,90 +59,103 @@ const CatalogSection = () => {
     }))
   }
 
+  const orbitPrev = () => {
+    if (items.length === 0) return
+    setActiveIndex(prev => (prev > 0 ? prev - 1 : items.length - 1))
+  }
+
+  const orbitNext = () => {
+    if (items.length === 0) return
+    setActiveIndex(prev => (prev < items.length - 1 ? prev + 1 : 0))
+  }
+
   if (loading && items.length === 0) {
     return null
   }
 
   return (
-    <section className="catalog-coverflow-section" id="catalog-reels">
-      <div className="catalog-coverflow-container">
-        {/* Editorial Section Header */}
+    <section className="catalog-orbit-section" id="catalog-reels">
+      <div className="catalog-orbit-container">
+        {/* Editorial Section Header matching user mockup */}
         <div className="catalog-section-header">
-          <span className="catalog-eyebrow">EXCLUSIVE LOOKBOOK</span>
-          <h2 className="catalog-heading">CATALOG SHOWCASE</h2>
-          <div className="catalog-title-underline" />
+          <div className="catalog-header-top">
+            <div className="catalog-header-left">
+              <span className="catalog-eyebrow">THE SEEMEE SIGNATURES</span>
+              <h2 className="catalog-heading">
+                Catalog
+              </h2>
+            </div>
+            <button
+              type="button"
+              className="catalog-explore-link"
+              onClick={() => navigate('/catalog')}
+            >
+              <span>EXPLORE THE EDIT</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
         </div>
 
-        {/* 3D Cover Flow Carousel Viewport */}
-        <div className="coverflow-viewport">
-          {/* Navigation Button Left */}
+        {/* Orbit Stage Viewport */}
+        <div className="catalog-orbit-stage">
+          {/* Orbit Navigation Controls */}
           <button
             type="button"
-            className="coverflow-nav-btn prev"
-            onClick={handlePrev}
-            aria-label="Previous Slide"
+            className="catalog-orbit-nav catalog-orbit-nav-prev"
+            onClick={orbitPrev}
+            aria-label="Orbit Left"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
+          <button
+            type="button"
+            className="catalog-orbit-nav catalog-orbit-nav-next"
+            onClick={orbitNext}
+            aria-label="Orbit Right"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
 
-          {/* 3D Cards Track */}
-          <div className="coverflow-track">
+          {/* Central Orbiting Cards Track */}
+          <div className="catalog-orbit-track" ref={trackRef}>
             {items.map((item, idx) => {
-              // Calculate offset relative to activeIndex (with circular loop calculation)
-              let offset = idx - activeIndex
-              const count = items.length
-
-              // Adjust offset for seamless loop
-              if (offset > count / 2) offset -= count
-              if (offset < -count / 2) offset += count
-
-              const isActive = offset === 0
-              const absOffset = Math.abs(offset)
-
-              // Determine 3D transform metrics based on distance from center
-              let translateX = offset * 185
-              let scale = 1 - absOffset * 0.14
-              let zIndex = 30 - absOffset * 5
-              let opacity = absOffset > 2 ? 0 : (1 - absOffset * 0.22)
-              let rotateY = offset > 0 ? -12 : offset < 0 ? 12 : 0
-
-              if (isActive) {
-                scale = 1.16
-                zIndex = 40
-                opacity = 1
-                rotateY = 0
-              }
-
+              const diff = idx - activeIndex
+              const isCenter = diff === 0
+              const absDiff = Math.abs(diff)
+              
+              // Orbit Math: Angle steps around central pivot point
+              const rotateDeg = diff * 12.5
+              const cardScale = isCenter ? 1.08 : Math.max(0.78, 1 - absDiff * 0.08)
+              const opacity = absDiff > 4 ? 0 : 1 - absDiff * 0.15
+              const cardZIndex = 200 - absDiff * 10
               const isMuted = mutedStates[item.id] !== false
 
               return (
-                <motion.div
+                <div
                   key={item.id || idx}
-                  className={`coverflow-card ${isActive ? 'active' : ''}`}
+                  className={`catalog-orbit-card ${isCenter ? 'is-active-center' : ''}`}
                   style={{
-                    zIndex,
-                    opacity: opacity <= 0 ? 0 : opacity,
-                    pointerEvents: absOffset > 2 ? 'none' : 'auto'
-                  }}
-                  animate={{
-                    x: translateX,
-                    scale: Math.max(0.7, scale),
-                    rotateY,
-                    opacity: opacity <= 0 ? 0 : opacity
-                  }}
-                  transition={{
-                    duration: 0.5,
-                    ease: [0.16, 1, 0.3, 1]
+                    '--orbit-rotate': `${rotateDeg}deg`,
+                    '--orbit-scale': cardScale,
+                    opacity: opacity,
+                    zIndex: cardZIndex,
+                    pointerEvents: opacity === 0 ? 'none' : 'auto'
                   }}
                   onClick={() => {
-                    if (!isActive) {
+                    if (!isCenter) {
                       setActiveIndex(idx)
+                    } else {
+                      navigate(item.link || '/catalog')
                     }
                   }}
                 >
-                  <div className="coverflow-media-box">
+                  <div className="catalog-card-media-wrap">
                     {item.videoUrl ? (
                       <video
                         ref={el => videoRefs.current[item.id] = el}
@@ -159,64 +165,46 @@ const CatalogSection = () => {
                         loop
                         muted={isMuted}
                         playsInline
-                        className="coverflow-video"
+                        className="catalog-card-media"
                       />
                     ) : (
                       <img
                         src={getOptimizedImageUrl(item.image, 'card')}
                         alt={item.title}
-                        className="coverflow-img"
+                        className="catalog-card-media"
                         loading="lazy"
                         onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
                       />
                     )}
 
-                    {/* Top Mute Control if video */}
                     {item.videoUrl && (
                       <button
                         type="button"
-                        className="coverflow-mute-btn"
+                        className="catalog-mute-btn"
                         onClick={(e) => toggleMute(item.id, e)}
                       >
                         {isMuted ? '🔇' : '🔊'}
                       </button>
                     )}
 
-                    {/* Gradient Overlay & Bottom Content for Active Item */}
-                    <div className="coverflow-card-overlay">
-                      {isActive && (
-                        <div className="coverflow-content">
-                          <h3 className="coverflow-item-title">{item.title}</h3>
-                          <button
-                            type="button"
-                            className="coverflow-view-btn"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              navigate(item.link || '/catalog')
-                            }}
-                          >
-                            View
-                          </button>
+                    <div className="catalog-card-overlay">
+                      {item.product?.category && (
+                        <span className="catalog-card-tag">
+                          {item.product.category.toUpperCase()}
+                        </span>
+                      )}
+                      <h3 className="catalog-card-title">{item.title}</h3>
+                      {item.product?.price && (
+                        <div className="catalog-card-price-badge">
+                          ₹{Number(item.product.price).toLocaleString('en-IN')}
                         </div>
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )
             })}
           </div>
-
-          {/* Navigation Button Right */}
-          <button
-            type="button"
-            className="coverflow-nav-btn next"
-            onClick={handleNext}
-            aria-label="Next Slide"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
         </div>
       </div>
     </section>

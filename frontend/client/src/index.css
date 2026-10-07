@@ -273,3 +273,58 @@ body::before {
   font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif) !important;
   font-variant-numeric: tabular-nums lining-nums !important;
 }
+
+/* --- Mobile View Alternating Shop Product Grid (2 products -> 1 product -> 2 products...) --- */
+@media (max-width: 768px) {
+  .collections-grid,
+  .unique-product-grid,
+  .shop-products-grid,
+  .product-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  /* Every 3rd item spans full width across both columns (2 -> 1 -> 2 -> 1 pattern) */
+  .collections-grid > *:nth-child(3n),
+  .unique-product-grid > *:nth-child(3n),
+  .shop-products-grid > *:nth-child(3n),
+  .product-grid > *:nth-child(3n) {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* Cover full container width & expand vertically to show complete full-length outfit */
+  .collections-grid > *:nth-child(3n) .product-image-wrapper,
+  .unique-product-grid > *:nth-child(3n) .card-media-box,
+  .shop-products-grid > *:nth-child(3n) .product-image-container,
+  .shop-products-grid > *:nth-child(3n) .product-card-image,
+  .product-grid > *:nth-child(3n) .product-image-wrapper {
+    aspect-ratio: 2 / 3 !important;
+    height: auto !important;
+    max-height: 580px !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+
+  .collections-grid > *:nth-child(3n) img,
+  .unique-product-grid > *:nth-child(3n) img,
+  .shop-products-grid > *:nth-child(3n) img,
+  .product-grid > *:nth-child(3n) img,
+  .collections-grid .product-image,
+  .unique-product-grid img,
+  .shop-products-grid img {
+    object-fit: cover !important;
+    object-position: center top !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Elegant side padding/gap for product card title, info, and price */
+  .product-info,
+  .card-info-content,
+  .product-details-content {
+    padding: 12px 14px 14px !important;
+    box-sizing: border-box !important;
+  }
+}
