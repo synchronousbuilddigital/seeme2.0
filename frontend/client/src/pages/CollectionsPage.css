@@ -197,6 +197,14 @@
   border: 1px solid rgba(28, 25, 23, 0.08);
 }
 
+.audience-pill-text-mobile {
+  display: none;
+}
+
+.audience-pill-text-desktop {
+  display: inline;
+}
+
 .collections-audience-pill {
   padding: 10px 24px;
   border-radius: 30px;
@@ -1819,29 +1827,35 @@
     line-height: 1.4;
   }
 
-  .collections-audience-tab-bar {
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    gap: 6px;
-    padding: 4px;
-    margin-top: 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+  .audience-pill-text-mobile {
+    display: inline !important;
   }
 
-  .collections-audience-tab-bar::-webkit-scrollbar {
-    display: none;
+  .audience-pill-text-desktop {
+    display: none !important;
+  }
+
+  .collections-audience-tab-bar {
+    width: fit-content !important;
+    max-width: calc(100% - 24px) !important;
+    margin: 12px auto 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    padding: 4px !important;
+    background: rgba(28, 25, 23, 0.06) !important;
+    border-radius: 40px !important;
+    box-sizing: border-box !important;
+    border: 1px solid rgba(28, 25, 23, 0.08) !important;
   }
 
   .collections-audience-pill {
-    padding: 8px 16px;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    flex-shrink: 0;
+    padding: 7px 18px !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap !important;
+    border-radius: 30px !important;
+    flex-shrink: 0 !important;
   }
 
   .collections-main-layout {

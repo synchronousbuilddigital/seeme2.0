@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { cachedFetch } from '../utils/cachedFetch'
@@ -43,6 +43,52 @@ const LatestTrendsSection = ({ activeAudience = 'all' }) => {
   const [newArrivals, setNewArrivals] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeIndex, setActiveIndex] = useState(0)
+  const lastScrollTimeRef = useRef(0)
+
+  const touchStartXRef = useRef(0)
+  const touchStartYRef = useRef(0)
+  const touchEndXRef = useRef(0)
+  const touchEndYRef = useRef(0)
+
+  const handleTouchStart = (e) => {
+    if (!e.touches || e.touches.length === 0) return
+    touchStartXRef.current = e.touches[0].clientX
+    touchStartYRef.current = e.touches[0].clientY
+    touchEndXRef.current = e.touches[0].clientX
+    touchEndYRef.current = e.touches[0].clientY
+  }
+
+  const handleTouchMove = (e) => {
+    if (!e.touches || e.touches.length === 0) return
+    touchEndXRef.current = e.touches[0].clientX
+    touchEndYRef.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = () => {
+    const deltaX = touchEndXRef.current - touchStartXRef.current
+    const deltaY = touchEndYRef.current - touchStartYRef.current
+
+    if (Math.abs(deltaX) > 25 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < 0) {
+        handleNext()
+      } else {
+        handlePrev()
+      }
+    }
+  }
+
+  const handleWheel = (e) => {
+    const now = Date.now()
+    if (now - lastScrollTimeRef.current < 350) return
+    if (Math.abs(e.deltaX) > 15 || Math.abs(e.deltaY) > 30) {
+      lastScrollTimeRef.current = now
+      if (e.deltaX > 15 || e.deltaY > 30) {
+        handleNext()
+      } else if (e.deltaX < -15 || e.deltaY < -30) {
+        handlePrev()
+      }
+    }
+  }
 
   useEffect(() => {
     if (activeAudience) {
@@ -175,7 +221,13 @@ const LatestTrendsSection = ({ activeAudience = 'all' }) => {
             <span>DRAG TO BROWSE ({currentAudience.toUpperCase()})</span>
           </div>
 
-          <div className="stacked-cards-wrapper">
+          <div
+            className="stacked-cards-wrapper"
+            onWheel={handleWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <div className="stacked-cards-deck">
               <AnimatePresence mode="popLayout">
                 {visibleCards.map(({ product: prod, stackOffset, itemIndex }) => {
@@ -190,7 +242,17 @@ const LatestTrendsSection = ({ activeAudience = 'all' }) => {
                     <motion.div
                       key={`${currentAudience}-${prod._id || prod.id || itemIndex}`}
                       className={`stacked-card-item ${isTop ? 'active-top' : ''}`}
-                      style={{ zIndex }}
+                      style={{ zIndex, touchAction: 'pan-y' }}
+                      drag={isTop ? 'x' : false}
+                      dragConstraints={{ left: 0, right: 0 }}
+                      dragElastic={0.6}
+                      onDragEnd={(event, info) => {
+                        if (info.offset.x < -35 || info.velocity.x < -200) {
+                          handleNext()
+                        } else if (info.offset.x > 35 || info.velocity.x > 200) {
+                          handlePrev()
+                        }
+                      }}
                       initial={{ scale: 0.9, opacity: 0, x: 40 }}
                       animate={{
                         scale: 1 - stackOffset * 0.05,

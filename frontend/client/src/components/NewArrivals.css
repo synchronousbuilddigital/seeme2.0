@@ -92,12 +92,49 @@
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  touch-action: pan-x;
+  touch-action: pan-x pan-y;
   padding: 15px 0 25px 0; /* Extra vertical space so card shadow/hover doesn't clip */
 }
 
 .arrivals-carousel-viewport::-webkit-scrollbar {
   display: none;
+}
+
+/* Navigation Arrow Buttons for Carousel */
+.arrivals-arrow-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(254, 253, 251, 0.95);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: var(--charcoal, #2b2b2b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+  padding: 0;
+}
+
+.arrivals-arrow-btn:hover {
+  background: var(--charcoal, #2b2b2b);
+  color: #ffffff;
+  border-color: var(--charcoal, #2b2b2b);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.arrivals-arrow-btn.prev {
+  left: 12px;
+}
+
+.arrivals-arrow-btn.next {
+  right: 12px;
 }
 
 /* Seamless Continuous Marquee Ticker Track */
@@ -440,6 +477,19 @@
     width: 230px; /* Slightly narrower on tablet/mobile */
     padding: 0 8px;
   }
+
+  .arrivals-arrow-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .arrivals-arrow-btn.prev {
+    left: 6px;
+  }
+
+  .arrivals-arrow-btn.next {
+    right: 6px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -457,5 +507,18 @@
   
   .carousel-card-wrapper {
     width: 210px; /* Fully compact for smaller viewports */
+  }
+
+  .arrivals-arrow-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .arrivals-arrow-btn.prev {
+    left: 4px;
+  }
+
+  .arrivals-arrow-btn.next {
+    right: 4px;
   }
 }

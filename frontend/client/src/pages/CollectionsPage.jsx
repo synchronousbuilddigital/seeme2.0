@@ -304,9 +304,9 @@ const CollectionsPage = () => {
         {/* Gender / Audience Switcher Pills (All | Women | Men) */}
         <div className="collections-audience-tab-bar">
           {[
-            { key: 'all', label: 'All Collections' },
-            { key: 'women', label: 'Women' },
-            { key: 'men', label: 'Men' }
+            { key: 'all', label: 'All', fullLabel: 'All Collections' },
+            { key: 'women', label: 'Women', fullLabel: 'Women' },
+            { key: 'men', label: 'Men', fullLabel: 'Men' }
           ].map((tab) => {
             const isActive = selectedAudience === tab.key
             return (
@@ -319,7 +319,8 @@ const CollectionsPage = () => {
                   localStorage.setItem('seemee_active_audience', tab.key)
                 }}
               >
-                <span className="audience-pill-text">{tab.label}</span>
+                <span className="audience-pill-text-desktop">{tab.fullLabel}</span>
+                <span className="audience-pill-text-mobile">{tab.label}</span>
               </button>
             )
           })}

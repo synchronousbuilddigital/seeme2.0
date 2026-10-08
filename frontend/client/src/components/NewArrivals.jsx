@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
@@ -14,6 +14,13 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
   const { toggleWishlist, isInWishlist, addToCart } = useContext(CartContext)
   const [arrivals, setArrivals] = useState([])
   const [loading, setLoading] = useState(true)
+  const scrollContainerRef = useRef(null)
+
+  const handleScroll = (direction) => {
+    if (!scrollContainerRef.current) return
+    const scrollAmount = direction === 'left' ? -320 : 320
+    scrollContainerRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' })
+  }
 
   // Fetch Arrivals
   useEffect(() => {
@@ -69,7 +76,17 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
 
       {/* Continuous Marquee Ticker Container - FULL BLEED / EDGE-TO-EDGE */}
       <div className="arrivals-carousel-container full-bleed-carousel">
-        <div className="arrivals-carousel-viewport">
+        <button
+          className="arrivals-arrow-btn prev"
+          onClick={() => handleScroll('left')}
+          aria-label="Previous arrivals"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+
+        <div className="arrivals-carousel-viewport" ref={scrollContainerRef}>
           <div className="arrivals-marquee-track">
             {extendedArrivals.map((item, index) => (
               <div key={index} className="carousel-card-wrapper">
@@ -128,6 +145,16 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
             ))}
           </div>
         </div>
+
+        <button
+          className="arrivals-arrow-btn next"
+          onClick={() => handleScroll('right')}
+          aria-label="Next arrivals"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
       </div>
 
       {/* Footer Container - Centered and Padded */}
