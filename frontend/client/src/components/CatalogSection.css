@@ -1,213 +1,127 @@
-@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&display=swap');
-
 /* ==========================================================================
-   CATALOG SECTION — CENTRAL ORBITING MOTION CAROUSEL (SEEMEE SIGNATURES)
+   CATALOG SHOWCASE SECTION — PHONE MOCKUP STORY REELS SHOWCASE
    Matching User Screenshot Template
    ========================================================================== */
 
-.catalog-orbit-section {
+.catalog-showcase-section {
   width: 100%;
-  padding: 4.5rem 0 6rem;
+  padding: 5.5rem 0 6.5rem;
+  background-color: #FAF7F2;
   position: relative;
   overflow: hidden;
-  background-color: #FAF7F2;
-}
-
-.catalog-orbit-container {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
-/* Editorial Header Matching User Mockup */
-.catalog-section-header {
-  margin-bottom: 2rem;
-}
-
-.catalog-header-top {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 2rem;
-  flex-wrap: wrap;
-}
-
-.catalog-eyebrow {
-  display: block;
-  font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.24em;
-  color: #B8941E;
-  text-transform: uppercase;
-  margin-bottom: 0.4rem;
-}
-
-.catalog-heading {
-  font-family: var(--font-heading, 'Playfair Display', serif);
-  font-size: clamp(2.2rem, 4.2vw, 3.6rem);
-  font-weight: 300;
-  letter-spacing: -0.01em;
-  color: #1A1A1A;
-  margin: 0;
-  line-height: 1.1;
-}
-
-.catalog-heading-gold {
-  font-family: 'Alex Brush', 'Playfair Display', cursive;
-  font-weight: 400;
-  font-style: normal;
-  color: #D4AF37;
-  font-size: 1.25em;
-  margin-left: 0.15em;
-  text-transform: none;
-  display: inline-block;
-  vertical-align: baseline;
-  text-shadow: 0 2px 10px rgba(212, 175, 55, 0.15);
-}
-
-.catalog-explore-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #1A1A1A;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 6px 0;
-  border-bottom: 1.5px solid #1A1A1A;
-  transition: all 0.3s ease;
-}
-
-.catalog-explore-link:hover {
-  color: #D4AF37;
-  border-bottom-color: #D4AF37;
-  transform: translateX(4px);
-}
-
-.catalog-explore-link svg {
-  transition: transform 0.3s ease;
-}
-
-.catalog-explore-link:hover svg {
-  transform: translateX(3px);
-}
-
-/* Central Orbit Stage & Visual Cutout Dome */
-.catalog-orbit-stage {
-  position: relative;
-  width: 100%;
-  height: 520px;
-  display: flex;
-  align-items: flex-end;
   justify-content: center;
-  perspective: 1200px;
+  align-items: center;
+}
+
+.catalog-showcase-container {
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* 2-Column Centered Grid Layout matching Reference Screenshot */
+.catalog-showcase-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  gap: 5rem;
+  margin: 0 auto;
+}
+
+/* 2. Center Column: Phone Mockup Frame */
+.catalog-phone-column {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.phone-mockup-frame {
+  width: 320px;
+  height: 640px;
+  background: #141724;
+  border-radius: 44px;
+  padding: 10px;
+  position: relative;
+  box-shadow: 
+    0 35px 85px rgba(20, 23, 36, 0.28),
+    0 12px 35px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.1);
   user-select: none;
 }
 
-
-/* Floating Navigation Controls */
-.catalog-orbit-nav {
+.phone-top-notch {
   position: absolute;
-  top: 45%;
-  transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #FFFFFF;
-  color: #1A1A1A;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 250;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.catalog-orbit-nav-prev {
-  left: 2rem;
-}
-
-.catalog-orbit-nav-next {
-  right: 2rem;
-}
-
-.catalog-orbit-nav:hover {
-  background: #1A1A1A;
-  color: #D4AF37;
-  border-color: #1A1A1A;
-  transform: translateY(-50%) scale(1.1);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
-}
-
-/* Orbit Track & Cards pivot transform */
-.catalog-orbit-track {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  transform-style: preserve-3d;
-}
-
-.catalog-orbit-card {
-  position: absolute;
-  width: clamp(210px, 17vw, 250px);
-  height: clamp(300px, 24vw, 340px);
-  bottom: 80px;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 10px;
+  z-index: 50;
+  pointer-events: none;
+}
+
+/* Progress Segment Bars */
+.story-progress-bar-group {
+  position: absolute;
+  top: 30px;
+  left: 22px;
+  right: 22px;
+  display: flex;
+  gap: 4px;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.story-progress-segment {
+  flex: 1;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 2px;
   overflow: hidden;
-  background-color: #1E293B;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
-  cursor: pointer;
-  transform-origin: 50% 680px; /* Pivots cards along central circle orbit radius */
-  transform: rotate(var(--orbit-rotate, 0deg)) scale(var(--orbit-scale, 1));
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, box-shadow 0.4s ease;
-  will-change: transform;
 }
 
-.catalog-orbit-card.is-active-center {
-  box-shadow: 0 35px 75px rgba(0, 0, 0, 0.38), 0 0 0 2px rgba(212, 175, 55, 0.7);
+.story-progress-fill {
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: 2px;
 }
 
-.catalog-orbit-card:hover {
-  transform: rotate(var(--orbit-rotate, 0deg)) translateY(-22px) scale(calc(var(--orbit-scale, 1) * 1.06)) !important;
-  box-shadow: 0 38px 80px rgba(0, 0, 0, 0.42);
-  z-index: 300 !important;
-}
-
-.catalog-card-media-wrap {
-  position: relative;
+/* Screen Content */
+.phone-screen-content {
   width: 100%;
   height: 100%;
+  border-radius: 34px;
   overflow: hidden;
+  position: relative;
+  background: #000000;
 }
 
-.catalog-card-media {
+.phone-media-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.phone-video-element,
+.phone-image-element {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
 }
 
-.catalog-orbit-card:hover .catalog-card-media {
-  transform: scale(1.08);
-}
-
-/* Video Mute Button */
-.catalog-mute-btn {
+.phone-mute-btn {
   position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
+  top: 45px;
+  right: 16px;
+  z-index: 45;
   background: rgba(0, 0, 0, 0.55);
   color: #FFFFFF;
   border: none;
@@ -216,7 +130,6 @@
   border-radius: 50%;
   font-size: 0.8rem;
   cursor: pointer;
-  z-index: 15;
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -224,92 +137,336 @@
   transition: all 0.2s ease;
 }
 
-.catalog-mute-btn:hover {
+.phone-mute-btn:hover {
   transform: scale(1.1);
   background: rgba(0, 0, 0, 0.85);
 }
 
-/* Card Overlay Content */
-.catalog-card-overlay {
+/* Tap Areas */
+.phone-tap-area {
   position: absolute;
-  inset: 0;
+  top: 60px;
+  bottom: 120px;
+  width: 35%;
+  z-index: 25;
+  cursor: pointer;
+}
+
+.phone-tap-left {
+  left: 0;
+}
+
+.phone-tap-right {
+  right: 0;
+}
+
+/* Center Instagram Brand Watermark Badge */
+.phone-brand-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 15;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.phone-brand-watermark span {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #FFFFFF;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
+}
+
+/* Bottom Overlay Info inside Phone */
+.phone-bottom-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2.5rem 1.2rem 1.2rem;
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.92) 0%,
-    rgba(0, 0, 0, 0.55) 35%,
-    transparent 70%
+    rgba(0, 0, 0, 0.55) 60%,
+    transparent 100%
   );
+  z-index: 30;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 1.1rem 1rem;
-  pointer-events: none;
-  z-index: 5;
+  gap: 0.25rem;
+  pointer-events: auto;
 }
 
-.catalog-card-tag {
+.phone-card-tag {
   font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #D4AF37;
   text-transform: uppercase;
-  margin-bottom: 0.25rem;
 }
 
-.catalog-card-title {
+.phone-card-title {
   font-family: var(--font-heading, 'Playfair Display', serif);
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #FFFFFF;
-  margin: 0 0 0.4rem 0;
+  margin: 0 0 0.5rem 0;
   line-height: 1.2;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.catalog-card-price-badge {
+.phone-card-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.phone-price-badge {
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid #D4AF37;
+  color: #D4AF37;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 800;
+  backdrop-filter: blur(6px);
+}
+
+.phone-buy-btn {
   display: inline-flex;
   align-items: center;
-  background: rgba(212, 175, 55, 0.3);
-  border: 1px solid rgba(212, 175, 55, 0.6);
-  color: #FDFBF7;
-  padding: 3px 9px;
-  border-radius: 3px;
+  gap: 6px;
+  background: #D4AF37;
+  color: #141724;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
   font-family: var(--font-body, 'Inter', sans-serif);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  width: fit-content;
-  backdrop-filter: blur(4px);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
 }
 
-/* Responsive Styles */
-@media (max-width: 768px) {
-  .catalog-orbit-section {
-    padding: 3rem 0;
+.phone-buy-btn:hover {
+  background: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+/* 3. Right Column: Editorial Text matching website theme */
+.catalog-text-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 1.5rem;
+}
+
+.showcase-eyebrow {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
+  color: #B8941E;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.showcase-title {
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: clamp(2.8rem, 4.4vw, 4.2rem);
+  font-weight: 300;
+  color: #1A1A1A;
+  line-height: 1.1;
+  margin: 0.5rem 0 0.8rem 0;
+  letter-spacing: -0.02em;
+}
+
+.showcase-title-gold {
+  font-family: 'Alex Brush', 'Playfair Display', cursive;
+  font-weight: 400;
+  color: #D4AF37;
+  font-size: 1.18em;
+  text-shadow: 0 2px 10px rgba(212, 175, 55, 0.2);
+  display: inline-block;
+}
+
+.showcase-underline {
+  width: 65px;
+  height: 3.5px;
+  background: linear-gradient(90deg, #D4AF37, #B8941E);
+  margin: 1.2rem 0;
+  border-radius: 4px;
+}
+
+.showcase-description {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 1.12rem;
+  color: #4A4540;
+  line-height: 1.65;
+  max-width: 440px;
+  margin: 0 0 2.2rem 0;
+}
+
+.showcase-explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px 34px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #1A1A1A 0%, #2A2A2A 100%);
+  color: #D4AF37;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border: 1.5px solid rgba(212, 175, 55, 0.6);
+  cursor: pointer;
+  width: fit-content;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.2);
+}
+
+.showcase-explore-btn:hover {
+  background: #D4AF37;
+  color: #1A1A1A;
+  border-color: #D4AF37;
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 18px 40px rgba(212, 175, 55, 0.42);
+}
+
+.showcase-explore-btn svg {
+  transition: transform 0.3s ease;
+}
+
+.showcase-explore-btn:hover svg {
+  transform: translateX(4px);
+}
+
+/* Responsive Adaptation for Tablets & Mobile */
+@media (max-width: 968px) {
+  .catalog-showcase-section {
+    padding: 3rem 0 4rem;
   }
 
-  .catalog-orbit-stage {
-    height: 420px;
+  .catalog-showcase-container {
+    padding: 0 1.25rem;
   }
 
-  .catalog-orbit-card {
-    width: 190px;
-    height: 270px;
-    bottom: 50px;
-    transform-origin: 50% 550px;
+  .catalog-showcase-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    text-align: center;
   }
 
-
-  .catalog-orbit-nav-prev {
-    left: 0.5rem;
+  .catalog-text-column {
+    display: contents;
   }
 
-  .catalog-orbit-nav-next {
-    right: 0.5rem;
+  /* 1. Header Title & Description ABOVE Phone Reel Frame on Mobile */
+  .showcase-header-content {
+    order: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* 2. Smartphone Reel Frame in CENTER on Mobile */
+  .catalog-phone-column {
+    order: 2;
+    width: 100%;
+  }
+
+  /* 3. EXPLORE ALL REELS Button BELOW Phone Reel Frame on Mobile */
+  .showcase-action-content {
+    order: 3;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .showcase-underline {
+    margin: 1rem auto;
+  }
+
+  .showcase-description {
+    max-width: 100%;
+    font-size: 1.05rem;
+    margin: 0 0 1rem 0;
+  }
+
+  .showcase-explore-btn {
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .phone-mockup-frame {
+    width: 290px;
+    height: 570px;
+    border-radius: 36px;
+    padding: 8px;
+  }
+
+  .phone-screen-content {
+    border-radius: 28px;
+  }
+
+  .story-progress-bar-group {
+    top: 24px;
+    left: 18px;
+    right: 18px;
+  }
+
+  .phone-top-notch {
+    top: 14px;
+    width: 65px;
+    height: 3.5px;
+  }
+
+  .phone-mute-btn {
+    top: 36px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+
+  .phone-bottom-overlay {
+    padding: 2rem 1rem 1rem;
+  }
+
+  .phone-card-title {
+    font-size: 1.05rem;
+  }
+
+  .showcase-title {
+    font-size: 2.6rem;
+  }
+
+  .showcase-explore-btn {
+    padding: 13px 28px;
+    font-size: 0.8rem;
   }
 }

@@ -258,37 +258,46 @@ const CategoryPage = () => {
         )}
       </AnimatePresence>
 
-      {/* Clean Modern Category Page Header (No Giant Dark Banner) */}
+      {/* Clean Modern Category Page Header */}
       <header className="category-page-header">
         <div className="category-header-container">
-          <div className="category-header-top">
-            <button onClick={() => navigate('/categories')} className="editorial-back-btn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="19" y1="12" x2="5" y2="12"></line>
-                <polyline points="12 19 5 12 12 5"></polyline>
-              </svg>
-              <span>All Collections</span>
-            </button>
-
-            <nav className="category-breadcrumbs">
-              <Link to="/">Home</Link>
-              <span className="crumb-sep">/</span>
-              <Link to="/categories">Categories</Link>
-              <span className="crumb-sep">/</span>
-              <span className="crumb-current">{categoryInfo.title}</span>
-            </nav>
-          </div>
-
           <div className="category-header-title-bar">
             <div className="category-header-info">
-              <span className="category-badge-tag">✦ SEEMEE ATELIER</span>
               <h1 className="category-main-heading">{categoryInfo.title}</h1>
-              {categoryInfo.description && (
-                <p className="category-description-sub">{categoryInfo.description}</p>
-              )}
             </div>
 
+            {allCategories.length > 0 && (
+              <div className="category-switch-pills">
+                {allCategories.slice(0, 10).map((cat, idx) => {
+                  const catSlug = (cat.slug || cat.title || '').toLowerCase().trim()
+                  const currentSlug = (categoryName || '').toLowerCase().trim()
+                  const catNorm = catSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+                  const currentNorm = currentSlug.replace(/sets?$/g, '').replace(/[^a-z0-9]/g, '')
+                  const isActive = catSlug === currentSlug || (catNorm && catNorm === currentNorm)
 
+                  const rawTitle = cat.title || cat.name || cat.slug || ''
+                  let displayTitle = rawTitle
+                  if (rawTitle.includes('-')) {
+                    displayTitle = rawTitle
+                      .split('-')
+                      .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                      .join(' ')
+                  } else {
+                    displayTitle = rawTitle.replace(/\b\w/g, c => c.toUpperCase())
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      className={`cat-pill-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => navigate(`/category/${encodeURIComponent(cat.slug || cat.title)}`)}
+                    >
+                      {displayTitle}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -299,6 +308,7 @@ const CategoryPage = () => {
           {/* Main Controls Row */}
           <div className="toolbar-primary-row">
             <div className="toolbar-left-group">
+              <span className="count-badge-luxury">{filteredProducts.length} DESIGNS</span>
               <button
                 className="mobile-filter-trigger-btn"
                 onClick={() => setShowMobileFilters(!showMobileFilters)}
@@ -505,20 +515,42 @@ const CategoryPage = () => {
                       }}
                     >
                       <div className="card-media-box">
-
+                        {discountPct > 0 && (
+                          <div className="card-badges-wrapper">
+                            <span className="card-badge-minimal sale">{discountPct}% OFF</span>
+                          </div>
+                        )}
 
                         <img
                           src={getOptimizedImageUrl(imagesList[0], 'product')}
                           alt={product.name}
-                          className="card-img primary"
+                          className={`card-img primary ${secondImg ? 'has-secondary' : ''}`}
                           loading="lazy"
                           onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
                         />
 
-
+                        {secondImg && (
+                          <img
+                            src={getOptimizedImageUrl(secondImg, 'product')}
+                            alt={`${product.name} preview`}
+                            className="card-img secondary"
+                            loading="lazy"
+                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                          />
+                        )}
 
                         {/* Glassmorphic Top Controls */}
                         <div className="card-top-controls">
+                          <button
+                            className="action-btn-eye"
+                            onClick={(e) => openQuickView(e, product)}
+                            title="Quick View"
+                          >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                          </button>
                           <button
                             className={`action-btn-heart ${isInWishlist(product._id || product.id) ? 'active' : ''}`}
                             onClick={(e) => {
@@ -531,7 +563,6 @@ const CategoryPage = () => {
                               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                             </svg>
                           </button>
-
                         </div>
                       </div>
 

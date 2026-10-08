@@ -36,11 +36,11 @@
 .magazine-page-wrapper {
   width: 100vw;
   min-height: 100vh;
-  background: radial-gradient(circle at 50% 30%, #1e1b18 0%, #0c0a09 100%);
+  background: #FAF7F2;
   color: var(--j-ink);
   font-family: var(--font-sans);
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -117,7 +117,7 @@
 .magazine-page-loading {
   position: fixed;
   inset: 0;
-  background-color: #0c0a09;
+  background-color: #FAF7F2;
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -2149,4 +2149,88 @@
 .mobile-spread .flipping-side {
   width: 100% !important;
   height: 100% !important;
+}
+
+/* ─── MOBILE FLOATING GLASS CONTROL DOCK ─── */
+.mobile-glass-control-dock {
+  position: fixed;
+  bottom: clamp(72px, 12vh, 88px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(24, 22, 21, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  border-radius: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(197, 168, 128, 0.15);
+  max-width: calc(100vw - 28px);
+  box-sizing: border-box;
+}
+
+.mobile-dock-arrow {
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(197, 168, 128, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f2eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  outline: none;
+}
+
+.mobile-dock-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.mobile-dock-arrow:not(:disabled):active {
+  background: rgba(197, 168, 128, 0.25);
+  transform: scale(0.92);
+}
+
+.mobile-page-indicator {
+  font-family: var(--font-sans, 'Montserrat', sans-serif);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #c5a880;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.mobile-dock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 13px;
+  border-radius: 20px;
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  background: rgba(197, 168, 128, 0.15);
+  color: #f5f2eb;
+  font-family: var(--font-sans, 'Montserrat', sans-serif);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s ease;
+  outline: none;
+}
+
+.mobile-dock-btn:active {
+  background: rgba(197, 168, 128, 0.3);
+  transform: scale(0.95);
 }

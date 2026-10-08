@@ -160,7 +160,7 @@ const MagazinePage = () => {
 
   const isManualTurningRef = useRef(false)
   const lastFlipTimeRef = useRef(0)
-  const FLIP_THROTTLE_MS = 950
+  const FLIP_THROTTLE_MS = 550
 
   const fetchStories = async () => {
     try {
@@ -275,7 +275,7 @@ const MagazinePage = () => {
       setTimeout(() => {
         setIsFlipping(false)
         isManualTurningRef.current = false
-      }, 750)
+      }, 550)
     } else {
       if (isMobile) {
         if (mobilePageSide === 'left') {
@@ -284,7 +284,7 @@ const MagazinePage = () => {
           setTimeout(() => {
             setIsFlipping(false)
             isManualTurningRef.current = false
-          }, 500)
+          }, 450)
         } else {
           const nextIdx = Math.min(activeIdx + 1, stories.length)
           setActiveIdx(nextIdx)
@@ -293,7 +293,7 @@ const MagazinePage = () => {
           setTimeout(() => {
             setIsFlipping(false)
             isManualTurningRef.current = false
-          }, 500)
+          }, 450)
         }
       } else {
         const nextIdx = Math.min(activeIdx + 1, stories.length)
@@ -302,7 +302,7 @@ const MagazinePage = () => {
         setTimeout(() => {
           setIsFlipping(false)
           isManualTurningRef.current = false
-        }, 750)
+        }, 550)
       }
     }
   }
@@ -323,7 +323,7 @@ const MagazinePage = () => {
       setTimeout(() => {
         setIsFlipping(false)
         isManualTurningRef.current = false
-      }, 750)
+      }, 550)
     } else if (bookState === 'open') {
       if (isMobile) {
         if (mobilePageSide === 'right') {
@@ -332,7 +332,7 @@ const MagazinePage = () => {
           setTimeout(() => {
             setIsFlipping(false)
             isManualTurningRef.current = false
-          }, 500)
+          }, 450)
         } else {
           const prevIdx = Math.max(activeIdx - 1, 0)
           setActiveIdx(prevIdx)
@@ -341,7 +341,7 @@ const MagazinePage = () => {
           setTimeout(() => {
             setIsFlipping(false)
             isManualTurningRef.current = false
-          }, 500)
+          }, 450)
         }
       } else {
         const prevIdx = Math.max(activeIdx - 1, 0)
@@ -350,7 +350,7 @@ const MagazinePage = () => {
         setTimeout(() => {
           setIsFlipping(false)
           isManualTurningRef.current = false
-        }, 750)
+        }, 550)
       }
     }
   }
@@ -375,7 +375,7 @@ const MagazinePage = () => {
     setTimeout(() => {
       setIsFlipping(false)
       isManualTurningRef.current = false
-    }, 750)
+    }, 550)
   }
 
   // Capture wheel/scroll events on window and map them directly to manual page turns or natural scrolling
@@ -384,32 +384,33 @@ const MagazinePage = () => {
 
     const handleWheel = (e) => {
       const now = Date.now()
-      const isScrolled = window.scrollY > 5
+      const wrapperEl = document.querySelector('.magazine-page-wrapper')
+      const currentScroll = window.scrollY || wrapperEl?.scrollTop || document.documentElement.scrollTop || 0
 
-      // 1. If we are already scrolled down, let standard scrolling work naturally
-      if (isScrolled) return
+      const isAtLastPage = isMobile 
+        ? (activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right')
+        : (activeIdx === stories.length && bookState === 'open')
 
-      // 2. If the user is scrolling DOWN
-      if (e.deltaY > 10) {
-        const isAtLastPage = isMobile 
-          ? (activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right')
-          : (activeIdx === stories.length && bookState === 'open')
-
-        if (!isAtLastPage) {
-          e.preventDefault()
-          if (now - lastFlipTimeRef.current >= FLIP_THROTTLE_MS) {
-            lastFlipTimeRef.current = now
-            handleNext()
+      // Strictly lock window scroll & convert all scrolling into page flips until reaching the very last page
+      if (!isAtLastPage || currentScroll <= 15) {
+        // 1. Scrolling DOWN -> Turn to Next Page
+        if (e.deltaY > 3) {
+          if (!isAtLastPage) {
+            e.preventDefault()
+            if (!isFlipping && now - lastFlipTimeRef.current >= FLIP_THROTTLE_MS) {
+              lastFlipTimeRef.current = now
+              handleNext()
+            }
           }
-        }
-      } 
-      // 3. If the user is scrolling UP
-      else if (e.deltaY < -10) {
-        if (bookState === 'open') {
-          e.preventDefault()
-          if (now - lastFlipTimeRef.current >= FLIP_THROTTLE_MS) {
-            lastFlipTimeRef.current = now
-            handlePrev()
+        } 
+        // 2. Scrolling UP -> Turn to Previous Page
+        else if (e.deltaY < -3) {
+          if (bookState === 'open') {
+            e.preventDefault()
+            if (!isFlipping && now - lastFlipTimeRef.current >= FLIP_THROTTLE_MS) {
+              lastFlipTimeRef.current = now
+              handlePrev()
+            }
           }
         }
       }
@@ -434,34 +435,38 @@ const MagazinePage = () => {
     }
 
     const handleTouchMove = (e) => {
-      const isScrolled = window.scrollY > 5
-      if (isScrolled) return
+      const wrapperEl = document.querySelector('.magazine-page-wrapper')
+      const currentScroll = window.scrollY || wrapperEl?.scrollTop || document.documentElement.scrollTop || 0
 
-      const touchY = e.touches[0].clientY
-      const diffY = touchY - touchStartY
+      const isAtLastPage = activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right'
 
-      if (diffY < -10) { // Swiping up to scroll down
-        const isAtLastPage = activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right'
-        if (!isAtLastPage) {
+      if (!isAtLastPage || currentScroll <= 15) {
+        const touchY = e.touches[0].clientY
+        const diffY = touchY - touchStartY
+
+        if (diffY < -5 && !isAtLastPage) { // Swiping up to scroll down -> next page
+          if (e.cancelable) e.preventDefault()
+        } else if (diffY > 5 && bookState === 'open') { // Swiping down to scroll up -> prev page
           if (e.cancelable) e.preventDefault()
         }
-      } else if (diffY > 10 && bookState === 'open') { // Swiping down to scroll up
-        if (e.cancelable) e.preventDefault()
       }
     }
 
     const handleTouchEnd = (e) => {
-      const isScrolled = window.scrollY > 5
-      if (isScrolled) return
+      const wrapperEl = document.querySelector('.magazine-page-wrapper')
+      const currentScroll = window.scrollY || wrapperEl?.scrollTop || document.documentElement.scrollTop || 0
+
+      const isAtLastPage = activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right'
+      if (isAtLastPage && currentScroll > 15) return
 
       const diffX = e.changedTouches[0].clientX - touchStartX
       const diffY = e.changedTouches[0].clientY - touchStartY
       
       const now = Date.now()
-      if (now - lastFlipTimeRef.current < FLIP_THROTTLE_MS) return
+      if (isFlipping || now - lastFlipTimeRef.current < FLIP_THROTTLE_MS) return
 
       if (Math.abs(diffX) > Math.abs(diffY)) {
-        if (Math.abs(diffX) > 40) {
+        if (Math.abs(diffX) > 25) {
           lastFlipTimeRef.current = now
           if (diffX < 0) {
             handleNext()
@@ -470,15 +475,13 @@ const MagazinePage = () => {
           }
         }
       } else {
-        if (Math.abs(diffY) > 40) {
-          const isAtLastPage = activeIdx === stories.length && bookState === 'open' && mobilePageSide === 'right'
-          
-          if (diffY < 0) {
+        if (Math.abs(diffY) > 25) {
+          if (diffY < 0) { // Swiping finger UP -> next page
             if (!isAtLastPage) {
               lastFlipTimeRef.current = now
               handleNext()
             }
-          } else {
+          } else { // Swiping finger DOWN -> prev page
             if (bookState === 'open') {
               lastFlipTimeRef.current = now
               handlePrev()
@@ -498,6 +501,27 @@ const MagazinePage = () => {
       window.removeEventListener('touchend', handleTouchEnd)
     }
   }, [loading, stories, bookState, activeIdx, mobilePageSide, isFlipping, isMobile])
+
+  const isScrollUnlocked = activeIdx === stories.length && bookState === 'open' && (!isMobile || mobilePageSide === 'right')
+
+  // Lock document body & html scroll completely until the book reaches the very last page
+  useEffect(() => {
+    if (loading) return
+
+    if (isScrollUnlocked) {
+      document.body.style.overflow = 'auto'
+      document.documentElement.style.overflow = 'auto'
+    } else {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      window.scrollTo(0, 0)
+    }
+
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [isScrollUnlocked, loading])
 
   if (loading) {
     return (
@@ -727,8 +751,6 @@ const MagazinePage = () => {
     return `CH. 0${activeIdx + 1} // ${mobilePageSide === 'left' ? 'P.1' : 'P.2'}`
   }
 
-  const isScrollUnlocked = activeIdx === stories.length && bookState === 'open' && (!isMobile || mobilePageSide === 'right')
-
   return (
     <div 
       className="magazine-page-wrapper" 
@@ -736,6 +758,7 @@ const MagazinePage = () => {
         height: isScrollUnlocked ? 'auto' : '100dvh', 
         minHeight: '100dvh',
         overflowY: isScrollUnlocked ? 'auto' : 'hidden', 
+        overflowX: 'hidden',
         display: 'flex', 
         flexDirection: 'column',
         position: 'relative'
@@ -770,12 +793,7 @@ const MagazinePage = () => {
         ))}
       </div>
 
-      {/* Brand header overlay absolute positioned beautifully in the background */}
-      <header className="brand-overlay-header" style={{ position: 'absolute', top: isMobile ? '70px' : '95px', padding: '0 4.5vw', zIndex: 10, pointerEvents: 'none' }}>
-        <div className="brand-crest">SM</div>
-        <div className="brand-masthead">SEEMEE JOURNAL</div>
-        <div className="brand-edition">VOL. IV // EST. 2024</div>
-      </header>
+
 
       {/* ─── BOOK STAGE CONTAINER ─── */}
       <div 

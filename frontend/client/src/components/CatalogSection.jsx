@@ -11,9 +11,10 @@ const CatalogSection = () => {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [mutedStates, setMutedStates] = useState({})
-  const videoRefs = useRef({})
-  const trackRef = useRef(null)
+  const [isMuted, setIsMuted] = useState(true)
+  const [progress, setProgress] = useState(0)
+  const activeVideoRef = useRef(null)
+  const progressAnimRef = useRef(null)
 
   useEffect(() => {
     let isMounted = true
@@ -37,7 +38,7 @@ const CatalogSection = () => {
         if (isMounted) {
           setItems(reelItems)
           if (reelItems.length > 0) {
-            setActiveIndex(Math.floor(reelItems.length / 2))
+            setActiveIndex(0)
           }
         }
       } catch (err) {
@@ -51,160 +52,220 @@ const CatalogSection = () => {
     return () => { isMounted = false }
   }, [])
 
-  const toggleMute = (itemId, e) => {
-    e.stopPropagation()
-    setMutedStates(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }))
+  // Progress animation for current story reel
+  useEffect(() => {
+    if (items.length === 0) return
+    setProgress(0)
+
+    const currentItem = items[activeIndex]
+    let intervalId
+
+    if (!currentItem?.videoUrl) {
+      // Image story progress timer (5 seconds)
+      const startTime = Date.now()
+      const duration = 5000
+
+      intervalId = setInterval(() => {
+        const elapsed = Date.now() - startTime
+        const pct = Math.min(100, (elapsed / duration) * 100)
+        setProgress(pct)
+
+        if (pct >= 100) {
+          clearInterval(intervalId)
+          nextStory()
+        }
+      }, 50)
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [activeIndex, items])
+
+  const handleVideoTimeUpdate = () => {
+    const vid = activeVideoRef.current
+    if (vid && vid.duration) {
+      const pct = (vid.currentTime / vid.duration) * 100
+      setProgress(pct)
+    }
   }
 
-  const orbitPrev = () => {
-    if (items.length === 0) return
-    setActiveIndex(prev => (prev > 0 ? prev - 1 : items.length - 1))
+  const handleVideoEnd = () => {
+    nextStory()
   }
 
-  const orbitNext = () => {
-    if (items.length === 0) return
-    setActiveIndex(prev => (prev < items.length - 1 ? prev + 1 : 0))
+  const nextStory = () => {
+    setActiveIndex(prev => (prev + 1) % items.length)
   }
+
+  const prevStory = () => {
+    setActiveIndex(prev => (prev - 1 + items.length) % items.length)
+  }
+
+  const currentItem = items[activeIndex] || null
 
   if (loading && items.length === 0) {
     return null
   }
 
   return (
-    <section className="catalog-orbit-section" id="catalog-reels">
-      <div className="catalog-orbit-container">
-        {/* Editorial Section Header matching user mockup */}
-        <div className="catalog-section-header">
-          <div className="catalog-header-top">
-            <div className="catalog-header-left">
-              <span className="catalog-eyebrow">THE SEEMEE SIGNATURES</span>
-              <h2 className="catalog-heading">
-                Catalog
-              </h2>
-            </div>
-            <button
-              type="button"
-              className="catalog-explore-link"
-              onClick={() => navigate('/catalog')}
-            >
-              <span>EXPLORE THE EDIT</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
+    <section className="catalog-showcase-section" id="catalog-reels">
+      <div className="catalog-showcase-container">
+        {/* Main 2-Column Layout matching Reference Screenshot */}
+        <div className="catalog-showcase-grid">
+          
+          {/* Left Column: Phone Mockup Frame Playing Reels */}
+          <div className="catalog-phone-column">
+            <div className="phone-mockup-frame">
+              {/* Phone Speaker Notch */}
+              <div className="phone-top-notch" />
 
-        {/* Orbit Stage Viewport */}
-        <div className="catalog-orbit-stage">
-          {/* Orbit Navigation Controls */}
-          <button
-            type="button"
-            className="catalog-orbit-nav catalog-orbit-nav-prev"
-            onClick={orbitPrev}
-            aria-label="Orbit Left"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="catalog-orbit-nav catalog-orbit-nav-next"
-            onClick={orbitNext}
-            aria-label="Orbit Right"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
+              {/* Instagram Story Progress Segment Bars */}
+              <div className="story-progress-bar-group">
+                {items.map((_, idx) => {
+                  let barWidth = '0%'
+                  if (idx < activeIndex) barWidth = '100%'
+                  else if (idx === activeIndex) barWidth = `${progress}%`
 
-          {/* Central Orbiting Cards Track */}
-          <div className="catalog-orbit-track" ref={trackRef}>
-            {items.map((item, idx) => {
-              const diff = idx - activeIndex
-              const isCenter = diff === 0
-              const absDiff = Math.abs(diff)
-              
-              // Orbit Math: Angle steps around central pivot point
-              const rotateDeg = diff * 12.5
-              const cardScale = isCenter ? 1.08 : Math.max(0.78, 1 - absDiff * 0.08)
-              const opacity = absDiff > 4 ? 0 : 1 - absDiff * 0.15
-              const cardZIndex = 200 - absDiff * 10
-              const isMuted = mutedStates[item.id] !== false
-
-              return (
-                <div
-                  key={item.id || idx}
-                  className={`catalog-orbit-card ${isCenter ? 'is-active-center' : ''}`}
-                  style={{
-                    '--orbit-rotate': `${rotateDeg}deg`,
-                    '--orbit-scale': cardScale,
-                    opacity: opacity,
-                    zIndex: cardZIndex,
-                    pointerEvents: opacity === 0 ? 'none' : 'auto'
-                  }}
-                  onClick={() => {
-                    if (!isCenter) {
-                      setActiveIndex(idx)
-                    } else {
-                      navigate(item.link || '/catalog')
-                    }
-                  }}
-                >
-                  <div className="catalog-card-media-wrap">
-                    {item.videoUrl ? (
-                      <video
-                        ref={el => videoRefs.current[item.id] = el}
-                        src={item.videoUrl}
-                        poster={getOptimizedImageUrl(item.image, 'card')}
-                        autoPlay
-                        loop
-                        muted={isMuted}
-                        playsInline
-                        className="catalog-card-media"
+                  return (
+                    <div key={idx} className="story-progress-segment">
+                      <div
+                        className="story-progress-fill"
+                        style={{ width: barWidth }}
                       />
-                    ) : (
-                      <img
-                        src={getOptimizedImageUrl(item.image, 'card')}
-                        alt={item.title}
-                        className="catalog-card-media"
-                        loading="lazy"
-                        onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
-                      />
-                    )}
-
-                    {item.videoUrl && (
-                      <button
-                        type="button"
-                        className="catalog-mute-btn"
-                        onClick={(e) => toggleMute(item.id, e)}
-                      >
-                        {isMuted ? '🔇' : '🔊'}
-                      </button>
-                    )}
-
-                    <div className="catalog-card-overlay">
-                      {item.product?.category && (
-                        <span className="catalog-card-tag">
-                          {item.product.category.toUpperCase()}
-                        </span>
-                      )}
-                      <h3 className="catalog-card-title">{item.title}</h3>
-                      {item.product?.price && (
-                        <div className="catalog-card-price-badge">
-                          ₹{Number(item.product.price).toLocaleString('en-IN')}
-                        </div>
-                      )}
                     </div>
-                  </div>
-                </div>
-              )
-            })}
+                  )
+                })}
+              </div>
+
+              {/* Story Video / Image Content */}
+              <div className="phone-screen-content">
+                <AnimatePresence mode="wait">
+                  {currentItem && (
+                    <motion.div
+                      key={currentItem.id || activeIndex}
+                      className="phone-media-wrapper"
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {currentItem.videoUrl ? (
+                        <video
+                          ref={activeVideoRef}
+                          src={currentItem.videoUrl}
+                          poster={getOptimizedImageUrl(currentItem.image, 'hero')}
+                          autoPlay
+                          playsInline
+                          muted={isMuted}
+                          onTimeUpdate={handleVideoTimeUpdate}
+                          onEnded={handleVideoEnd}
+                          className="phone-video-element"
+                        />
+                      ) : (
+                        <img
+                          src={getOptimizedImageUrl(currentItem.image, 'hero')}
+                          alt={currentItem.title}
+                          className="phone-image-element"
+                          onError={(e) => { e.target.src = '/images/placeholder.jpg' }}
+                        />
+                      )}
+
+                      {/* Video Sound Toggle Button */}
+                      {currentItem.videoUrl && (
+                        <button
+                          type="button"
+                          className="phone-mute-btn"
+                          onClick={() => setIsMuted(!isMuted)}
+                        >
+                          {isMuted ? '🔇' : '🔊'}
+                        </button>
+                      )}
+
+                      {/* Center Instagram Brand Watermark Badge matching screenshot */}
+                      <div className="phone-brand-watermark">
+                        <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="url(#insta-grad-overlay)" strokeWidth="2">
+                          <defs>
+                            <linearGradient id="insta-grad-overlay" x1="0%" y1="100%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#f09433" />
+                              <stop offset="25%" stopColor="#e6683c" />
+                              <stop offset="50%" stopColor="#dc2743" />
+                              <stop offset="75%" stopColor="#cc2366" />
+                              <stop offset="100%" stopColor="#bc1888" />
+                            </linearGradient>
+                          </defs>
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                        </svg>
+                        <span>@SEEMEE.FASHIONS</span>
+                      </div>
+
+                      {/* Screen Navigation Tap Areas (Left/Right) */}
+                      <div className="phone-tap-area phone-tap-left" onClick={prevStory} />
+                      <div className="phone-tap-area phone-tap-right" onClick={nextStory} />
+
+                      {/* Bottom Product Overlay Info */}
+                      <div className="phone-bottom-overlay">
+                        {currentItem.product?.category && (
+                          <span className="phone-card-tag">
+                            {currentItem.product.category.toUpperCase()}
+                          </span>
+                        )}
+                        <h3 className="phone-card-title">{currentItem.title}</h3>
+                        
+                        <div className="phone-card-action-row">
+                          {currentItem.product?.price && (
+                            <span className="phone-price-badge">
+                              ₹{Number(currentItem.product.price).toLocaleString('en-IN')}
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            className="phone-buy-btn"
+                            onClick={() => navigate(currentItem.link || '/catalog')}
+                          >
+                            <span>VIEW</span>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
+
+          {/* Right Column: Editorial Showcase Info Text */}
+          <div className="catalog-text-column">
+            <div className="showcase-header-content">
+              <span className="showcase-eyebrow">EXCLUSIVE LOOKBOOK</span>
+              <h2 className="showcase-title">
+                Catalog <br /><span className="showcase-title-gold">Showcase</span>
+              </h2>
+              <div className="showcase-underline" />
+              <p className="showcase-description">
+                Reel-style stories of every new look. Tap a ring to jump, or let it play.
+              </p>
+            </div>
+            
+            <div className="showcase-action-content">
+              <button
+                type="button"
+                className="showcase-explore-btn"
+                onClick={() => navigate('/catalog')}
+              >
+                <span>EXPLORE ALL REELS</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>

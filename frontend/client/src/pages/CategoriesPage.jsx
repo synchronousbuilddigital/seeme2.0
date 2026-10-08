@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, Link } from 'react-router-dom'
 import { getImageUrl } from '../utils/imageHelper'
@@ -7,8 +7,27 @@ import { cachedFetch } from '../utils/cachedFetch'
 import { getCategoryProducts, isCategoryForAudience } from '../utils/categoryHelper'
 import './CategoriesPage.css'
 
+const cardGradients = [
+  'linear-gradient(145deg, #1b263b 0%, #0d1b2a 100%)',
+  'linear-gradient(145deg, #cbb69d 0%, #a89478 100%)',
+  'linear-gradient(145deg, #2b7a70 0%, #144d46 100%)',
+  'linear-gradient(145deg, #eab308 0%, #ca8a04 100%)',
+  'linear-gradient(145deg, #881337 0%, #4c0519 100%)',
+  'linear-gradient(145deg, #334155 0%, #0f172a 100%)'
+]
+
+const cardEyebrows = [
+  'TIMELESS ELEGANCE',
+  'ELEGANCE FABRIC',
+  'FESTIVAL OCCASION',
+  'HANDLOOM WEAVE',
+  'ROYAL ATELIER',
+  'HERITAGE SILHOUETTE'
+]
+
 const CategoriesPage = () => {
   const navigate = useNavigate()
+  const gridRef = useRef(null)
   const [categoriesList, setCategoriesList] = useState([])
   const [activeProducts, setActiveProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -36,7 +55,7 @@ const CategoriesPage = () => {
         cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
       ])
 
-      const activeProducts = prodData?.success && Array.isArray(prodData.data)
+      const activeProds = prodData?.success && Array.isArray(prodData.data)
         ? prodData.data.filter(p => p.isActive)
         : []
 
@@ -45,11 +64,10 @@ const CategoriesPage = () => {
         rawCategories = settingsData.data.categorySlides.filter(Boolean)
       }
 
-      // Process only admin categories
-      const processedCategories = rawCategories.map((cat) => {
+      const processedCategories = rawCategories.map((cat, idx) => {
         const catTitle = cat?.title || cat?.name || ''
         const catSlug = cat?.slug || catTitle
-        const matching = getCategoryProducts(activeProducts, catSlug)
+        const matching = getCategoryProducts(activeProds, catSlug)
         const matchedProduct = matching[0]
 
         return {
@@ -61,12 +79,14 @@ const CategoriesPage = () => {
           features: cat?.features && cat.features.length > 0 ? cat.features : ['Luxury Tailoring', 'Pure Fabrics'],
           subtitle: cat?.subtitle || 'Seemee Collection',
           description: cat?.description || 'Artisanal heritage creations blending traditional weaves with contemporary grace.',
-          image: cat?.image || (matchedProduct?.images?.[0] || matchedProduct?.image) || ''
+          image: cat?.image || (matchedProduct?.images?.[0] || matchedProduct?.image) || '',
+          gradient: cardGradients[idx % cardGradients.length],
+          eyebrow: cardEyebrows[idx % cardEyebrows.length]
         }
       })
 
       setCategoriesList(processedCategories)
-      setActiveProducts(activeProducts)
+      setActiveProducts(activeProds)
     } catch (error) {
       console.error('Error loading admin categories:', error)
     } finally {
@@ -90,6 +110,37 @@ const CategoriesPage = () => {
     return result
   }, [categoriesList, activeAudience, activeProducts, searchCategoryQuery])
 
+  // Split categories into 3 looping columns for the drifting showcase
+  const { col1, col2, col3 } = useMemo(() => {
+    const list = filteredCategories.length > 0 ? filteredCategories : categoriesList
+    if (list.length === 0) return { col1: [], col2: [], col3: [] }
+
+    const c1 = list.filter((_, i) => i % 3 === 0)
+    const c2 = list.filter((_, i) => i % 3 === 1)
+    const c3 = list.filter((_, i) => i % 3 === 2)
+
+    const fillCol = (arr) => {
+      if (arr.length === 0) return list
+      let res = [...arr]
+      while (res.length < 4) {
+        res = [...res, ...arr]
+      }
+      return [...res, ...res]
+    }
+
+    return {
+      col1: fillCol(c1),
+      col2: fillCol(c2.length ? c2 : c1),
+      col3: fillCol(c3.length ? c3 : c1)
+    }
+  }, [filteredCategories, categoriesList])
+
+  const scrollToGrid = () => {
+    if (gridRef.current) {
+      gridRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   if (loading) {
     return (
       <div className="categories-page-loading">
@@ -101,146 +152,165 @@ const CategoriesPage = () => {
 
   return (
     <div className="all-categories-page">
-      {/* Editorial Top Navigation */}
+      {/* Top Header Bar matching Screenshot */}
       <div className="editorial-top-bar">
         <div className="editorial-top-container">
-          <button onClick={() => navigate(-1)} className="editorial-back-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12"></line>
-              <polyline points="12 19 5 12 12 5"></polyline>
-            </svg>
-            <span>BACK</span>
-          </button>
+          {/* Left Segmented Control Pill: ALL, MEN, WOMEN */}
+          <div className="mockup-audience-pill-container">
+            <button
+              type="button"
+              className={`mockup-pill-btn ${activeAudience === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveAudience('all')}
+            >
+              ALL
+            </button>
+            <button
+              type="button"
+              className={`mockup-pill-btn ${activeAudience === 'men' ? 'active' : ''}`}
+              onClick={() => setActiveAudience('men')}
+            >
+              MEN
+            </button>
+            <button
+              type="button"
+              className={`mockup-pill-btn ${activeAudience === 'women' ? 'active' : ''}`}
+              onClick={() => setActiveAudience('women')}
+            >
+              WOMEN
+            </button>
+          </div>
 
-          <nav className="category-breadcrumbs">
-            <Link to="/">Home</Link>
-            <span className="crumb-sep">/</span>
-            <span className="crumb-current">All Categories</span>
-          </nav>
+          {/* Right Search Input Pill */}
+          <div className="mockup-search-pill-box">
+            <input
+              type="text"
+              placeholder="Search silhouettes & styles..."
+              value={searchCategoryQuery}
+              onChange={(e) => setSearchCategoryQuery(e.target.value)}
+            />
+            {searchCategoryQuery ? (
+              <button className="clear-search-trigger" onClick={() => setSearchCategoryQuery('')}>
+                &times;
+              </button>
+            ) : (
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+              </svg>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* 🌟 LUXURY EDITORIAL CATEGORY SHOWCASE */}
-      <section className="visual-categories-section">
-        <div className="container">
-          {/* Glassmorphic Controls Toolbar */}
-          <div className="section-title-bar">
-            {/* Audience Filter Tabs (ALL, MEN, WOMEN) */}
-            <div className="category-audience-tabs">
-              <button
-                type="button"
-                className={`audience-tab-btn ${activeAudience === 'all' ? 'active' : ''}`}
-                onClick={() => setActiveAudience('all')}
-              >
-                ALL
-              </button>
-              <button
-                type="button"
-                className={`audience-tab-btn ${activeAudience === 'men' ? 'active' : ''}`}
-                onClick={() => setActiveAudience('men')}
-              >
-                MEN
-              </button>
-              <button
-                type="button"
-                className={`audience-tab-btn ${activeAudience === 'women' ? 'active' : ''}`}
-                onClick={() => setActiveAudience('women')}
-              >
-                WOMEN
-              </button>
-            </div>
-
-            {/* Search Categories */}
-            <div className="category-search-box">
-              <input
-                type="text"
-                placeholder="Search silhouettes & styles..."
-                value={searchCategoryQuery}
-                onChange={(e) => setSearchCategoryQuery(e.target.value)}
-              />
-              {searchCategoryQuery ? (
-                <button className="clear-search-trigger" onClick={() => setSearchCategoryQuery('')}>
-                  &times;
-                </button>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-                </svg>
-              )}
-            </div>
+      {/* 🌟 3-COLUMN DRIFTING SHOWCASE HERO (Matching Screenshot) */}
+      <section className="drifting-hero-section">
+        <div className="drifting-hero-container">
+          {/* Left Hero Content */}
+          <div className="hero-left-content">
+            <h1 className="hero-main-heading">
+              Every style,<br />always moving
+            </h1>
+            <div className="hero-heading-line"></div>
+            <p className="hero-subtext">
+              Three columns drift in opposite directions. Hover a column to hold it still.
+            </p>
           </div>
 
-          {/* Category Cards Grid */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeAudience}
-              className="categories-editorial-grid"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-            >
-              {filteredCategories.length === 0 ? (
-                <div className="no-categories-found">
-                  <p>No categories found matching "{searchCategoryQuery}"</p>
-                  <button onClick={() => setSearchCategoryQuery('')}>Reset Search</button>
-                </div>
-              ) : (
-                filteredCategories.map((cat, idx) => {
-                  return (
-                    <motion.div
-                      key={cat._id || cat.slug || idx}
-                      className="editorial-category-card"
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: (idx % 8) * 0.05 }}
-                      onClick={() => navigate(`/category/${cat.slug}`)}
-                    >
-                      {/* Top Image Container */}
-                      <div className="editorial-card-media">
-                        <img
-                          src={getImageUrl(cat.image)}
-                          alt={cat.title}
-                          loading="lazy"
-                          onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
-                        />
+          {/* Right 3-Column Drifting Columns Mosaic */}
+          <div className="hero-right-drift-mosaic">
+            {/* Column 1 - Drifts Up */}
+            <div className="drift-column-wrap">
+              <div className="drift-column-inner col-up">
+                {col1.map((cat, idx) => (
+                  <div
+                    key={`c1-${idx}`}
+                    className="drift-card-item"
+                    style={{
+                      background: cat.image
+                        ? `linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.02) 40%, rgba(0,0,0,0.78) 100%), url(${getImageUrl(cat.image)}) center top / cover no-repeat`
+                        : cat.gradient
+                    }}
+                    onClick={() => navigate(`/category/${cat.slug}`)}
+                  >
+                    <div className="card-top-row">
+                      <span className="card-eyebrow-text">{cat.eyebrow}</span>
+                      <div className="card-arrow-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
                       </div>
+                    </div>
+                    <h3 className="card-bottom-title">{cat.title}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                      {/* Bottom Content Container */}
-                      <div className="editorial-card-content">
-                        <div>
-                          <span className="card-category-eyebrow">
-                            {cat.subtitle ? cat.subtitle.toUpperCase() : 'SEEMEE COLLECTION'}
-                          </span>
-                          <h3 className="card-title-heading">{cat.title}</h3>
-                          <p className="card-description-text">{cat.description}</p>
-                        </div>
-
-                        <div
-                          className="discover-more-cta"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigate(`/category/${cat.slug}`)
-                          }}
-                        >
-                          <span>EXPLORE CATEGORY</span>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
-                          </svg>
-                        </div>
+            {/* Column 2 - Drifts Down */}
+            <div className="drift-column-wrap">
+              <div className="drift-column-inner col-down">
+                {col2.map((cat, idx) => (
+                  <div
+                    key={`c2-${idx}`}
+                    className="drift-card-item"
+                    style={{
+                      background: cat.image
+                        ? `linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.02) 40%, rgba(0,0,0,0.78) 100%), url(${getImageUrl(cat.image)}) center top / cover no-repeat`
+                        : cat.gradient
+                    }}
+                    onClick={() => navigate(`/category/${cat.slug}`)}
+                  >
+                    <div className="card-top-row">
+                      <span className="card-eyebrow-text">{cat.eyebrow}</span>
+                      <div className="card-arrow-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
                       </div>
-                    </motion.div>
-                  )
-                })
-              )}
-            </motion.div>
-          </AnimatePresence>
+                    </div>
+                    <h3 className="card-bottom-title">{cat.title}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Column 3 - Drifts Up */}
+            <div className="drift-column-wrap">
+              <div className="drift-column-inner col-up">
+                {col3.map((cat, idx) => (
+                  <div
+                    key={`c3-${idx}`}
+                    className="drift-card-item"
+                    style={{
+                      background: cat.image
+                        ? `linear-gradient(to bottom, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.02) 40%, rgba(0,0,0,0.78) 100%), url(${getImageUrl(cat.image)}) center top / cover no-repeat`
+                        : cat.gradient
+                    }}
+                    onClick={() => navigate(`/category/${cat.slug}`)}
+                  >
+                    <div className="card-top-row">
+                      <span className="card-eyebrow-text">{cat.eyebrow}</span>
+                      <div className="card-arrow-circle">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                          <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                      </div>
+                    </div>
+                    <h3 className="card-bottom-title">{cat.title}</h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
+
+
       {/* Craftsmanship Banner */}
-      <section className="category-editorial-footer">
+      <section className="category-editorial-footer" ref={gridRef}>
         <div className="editorial-glass-box">
           <span className="editorial-eyebrow">✦ SEEMEE CRAFTSMANSHIP PROMISE</span>
           <h2 className="editorial-title">Artisanal Luxury & Heritage Tailoring</h2>

@@ -1,0 +1,465 @@
+/* ==========================================================================
+   SEEMEE LATEST TRENDS SECTION CSS (Warm Luxury Brand Theme Matching SEEMEE)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Oswald:wght@600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.latest-trends-section {
+  width: 100%;
+  background: #faf7f2;
+  padding: 85px clamp(20px, 5vw, 60px);
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.latest-trends-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  align-items: center;
+}
+
+/* ==========================================================================
+   LEFT COLUMN CONTENT
+   ========================================================================== */
+
+.latest-trends-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+}
+
+.trends-top-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.trends-audience-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #eae5dc;
+  padding: 4px;
+  border-radius: 30px;
+  border: 1px solid rgba(28, 25, 23, 0.06);
+}
+
+.trends-audience-pill {
+  padding: 7px 20px;
+  border-radius: 22px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.trends-audience-pill:hover {
+  color: #1c1917;
+}
+
+.trends-audience-pill.active {
+  background: #ffffff;
+  color: #1c1917;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  font-weight: 800;
+}
+
+/* Explore Collection Pill Tag */
+.trends-pill-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 20px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 30px;
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.trends-pill-tag span {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #a17820;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+/* Giant Headline: LATEST TRENDS */
+.trends-giant-heading {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-heading, 'Cormorant Garamond', 'Playfair Display', serif);
+  font-size: clamp(3.6rem, 6.5vw, 6.0rem);
+  font-weight: 700;
+  line-height: 0.95;
+  color: #1c1917;
+  margin: 0 0 32px 0;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.trends-word.gold-accent {
+  color: #a17820;
+}
+
+/* Dark Charcoal & Gold Discover Now Pill Button */
+.trends-discover-btn {
+  padding: 15px 36px;
+  background: #1c1917;
+  color: #d4af37;
+  border: 1px solid #d4af37;
+  border-radius: 30px;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(28, 25, 23, 0.2);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 0;
+}
+
+.trends-discover-btn:hover {
+  background: #d4af37;
+  color: #1c1917;
+  border-color: #d4af37;
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(212, 175, 55, 0.35);
+}
+
+/* Stories Behind The Drape Box */
+.trends-story-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 480px;
+}
+
+.trends-story-title {
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: 1.65rem;
+  font-weight: 500;
+  color: #1c1917;
+  margin: 0;
+}
+
+.trends-story-desc {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.95rem;
+  color: #78716c;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ==========================================================================
+   RIGHT COLUMN: STACKED BOOK / CARD DECK SLIDER
+   ========================================================================== */
+
+.latest-trends-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.trends-top-drag-hint {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #a17820;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  text-align: center;
+  padding-right: 0;
+}
+
+.stacked-cards-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.stacked-cards-deck {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 1000px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Individual Stacked Card Item */
+.stacked-card-item {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -190px;
+  width: 380px;
+  height: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: -15px 15px 40px rgba(28, 25, 23, 0.15);
+  cursor: pointer;
+  transition: box-shadow 0.3s ease;
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.stacked-card-item:hover {
+  box-shadow: -20px 25px 50px rgba(212, 175, 55, 0.25);
+}
+
+.card-image-box {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #faf8f5;
+}
+
+.card-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.stacked-card-item:hover .card-image-box img {
+  transform: scale(1.06);
+}
+
+/* Hover Content Overlay */
+.card-hover-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 24px 20px;
+  background: linear-gradient(to top, rgba(28, 25, 23, 0.95) 0%, rgba(28, 25, 23, 0.65) 60%, transparent 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.overlay-badge {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+  color: #d4af37;
+  text-transform: uppercase;
+}
+
+.overlay-prod-name {
+  font-family: var(--font-heading, 'Playfair Display', serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.overlay-prod-price {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #d4af37;
+}
+
+/* Bottom Pagination Controls */
+.trends-deck-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 20px;
+  padding-right: 0;
+}
+
+.deck-arrow-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  background: #ffffff;
+  color: #1c1917;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+.deck-arrow-btn:hover {
+  background: #1c1917;
+  color: #d4af37;
+  border-color: #1c1917;
+}
+
+.deck-page-counter {
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1c1917;
+  letter-spacing: 1px;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (TABLET & MOBILE OPTIMIZATION - PRESERVING DESKTOP DESIGN)
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .latest-trends-section {
+    padding: 60px 24px;
+  }
+
+  .latest-trends-container {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .latest-trends-left {
+    align-items: center;
+    text-align: center;
+    width: 100%;
+  }
+
+  .trends-top-controls-row {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .trends-giant-heading {
+    align-items: center;
+    text-align: center;
+    font-size: clamp(3.2rem, 9vw, 4.8rem);
+  }
+
+  .trends-discover-btn {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .trends-story-box {
+    align-items: center;
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .latest-trends-right {
+    align-items: center;
+    width: 100%;
+  }
+
+  .trends-top-drag-hint {
+    align-self: center;
+    padding-right: 0;
+  }
+
+  .stacked-cards-wrapper {
+    max-width: 100%;
+    height: 480px;
+    margin: 0 auto;
+  }
+
+  .stacked-card-item {
+    left: 50%;
+    margin-left: -160px;
+    right: auto;
+    transform: none;
+    width: 320px;
+    height: 450px;
+  }
+
+  .trends-deck-controls {
+    align-self: center;
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  .latest-trends-section {
+    padding: 44px 16px;
+  }
+
+  .trends-top-controls-row {
+    justify-content: center;
+  }
+
+  .trends-audience-pills {
+    width: auto;
+  }
+
+  .trends-audience-pill {
+    padding: 7px 16px;
+    font-size: 0.74rem;
+  }
+
+  .trends-giant-heading {
+    font-size: clamp(2.8rem, 10vw, 3.8rem);
+    margin-bottom: 20px;
+    line-height: 0.9;
+  }
+
+  .trends-discover-btn {
+    padding: 13px 30px;
+    font-size: 0.82rem;
+    margin-bottom: 28px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .trends-story-title {
+    font-size: 1.4rem;
+  }
+
+  .trends-story-desc {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .stacked-cards-wrapper {
+    max-width: 100%;
+    height: 440px;
+  }
+
+  .stacked-card-item {
+    width: 290px;
+    height: 420px;
+    border-radius: 18px;
+    left: 50%;
+    margin-left: -145px;
+    right: auto;
+  }
+
+  .overlay-prod-name {
+    font-size: 1.25rem;
+  }
+
+  .overlay-prod-price {
+    font-size: 1.05rem;
+  }
+}
+
