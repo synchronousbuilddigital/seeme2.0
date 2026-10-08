@@ -1,29 +1,37 @@
 import React, { useState, useEffect } from 'react'
 import './GlobalLoader.css'
 
-const GlobalLoader = ({ duration = 2200, onComplete, forceShow = false }) => {
+const GlobalLoader = ({ duration = 1600, onComplete, forceShow = false }) => {
   const [isVisible, setIsVisible] = useState(() => {
     if (forceShow) return true
     try {
-      return sessionStorage.getItem('seemee_has_loaded') !== 'true'
+      const loadedLocal = localStorage.getItem('seemee_has_loaded') === 'true'
+      const loadedSession = sessionStorage.getItem('seemee_has_loaded') === 'true'
+      if (loadedLocal || loadedSession) {
+        return false
+      }
     } catch (e) {
-      return true
+      return false
     }
+    return true
   })
   const [isHiding, setIsHiding] = useState(false)
 
   useEffect(() => {
     if (!isVisible) return
 
+    // Immediately mark as loaded in storage so it never appears a second time
+    try {
+      localStorage.setItem('seemee_has_loaded', 'true')
+      sessionStorage.setItem('seemee_has_loaded', 'true')
+    } catch (e) {}
+
     const timer = setTimeout(() => {
       setIsHiding(true)
       const hideTimer = setTimeout(() => {
         setIsVisible(false)
-        try {
-          sessionStorage.setItem('seemee_has_loaded', 'true')
-        } catch (e) {}
         if (onComplete) onComplete()
-      }, 550)
+      }, 450)
       return () => clearTimeout(hideTimer)
     }, duration)
 
