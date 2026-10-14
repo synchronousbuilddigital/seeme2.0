@@ -39,62 +39,76 @@ const __dirname = path.dirname(__filename)
 
 const app = express()
 
+// ─── CORS (Must be before routes, caching & limiters) ──────────
+const allowedOrigins = [
+  'https://www.seemee.in',
+  'https://seemee.in',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:5174',
+  'https://seeme2-0-f867.vercel.app',
+  'https://seeme2-0-inue.vercel.app',
+  'https://seeme2-0.vercel.app',
+  process.env.CLIENT_URL,
+  process.env.ADMIN_URL,
+].filter(Boolean)
+
+const isOriginAllowed = (origin) => {
+  if (!origin) return true
+  if (allowedOrigins.includes(origin)) return true
+  if (/^https:\/\/seeme2-0(-[a-z0-9]+)?\.vercel\.app$/.test(origin)) return true
+  if (process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return true
+  }
+  return false
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (isOriginAllowed(origin)) {
+      return callback(null, true)
+    }
+    return callback(null, false)
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
+
 // ─── PERFORMANCE MIDDLEWARES ───────────────────────────
 app.use(compression())
 
 // Cache Control Headers for public GET requests
 app.use('/api', (req, res, next) => {
-  if (req.method === 'GET' && !req.headers.authorization && !req.originalUrl.includes('site-settings')) {
-    res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60')
-  } else if (req.originalUrl.includes('site-settings')) {
+  if (req.originalUrl.includes('site-settings')) {
+    delete req.headers['if-none-match']
+    delete req.headers['if-modified-since']
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
+    res.setHeader('Surrogate-Control', 'no-store')
+  } else if (req.method === 'GET' && !req.headers.authorization) {
+    res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=60')
   }
   next()
 })
 
-
 // ─── SECURITY MIDDLEWARES ──────────────────────────────
-// ─── CORS (Must be before limiters) ──────────────────────
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://localhost:5173', // Common Vite port
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:3001',
-  'http://127.0.0.1:5173',
-  'https://seeme2-0-f867.vercel.app',
-  'https://seeme2-0-inue.vercel.app',
-  process.env.CLIENT_URL,
-  process.env.ADMIN_URL,
-].filter(Boolean)
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // In development, allow all local origins
-    if (!origin || process.env.NODE_ENV !== 'production') {
-      return callback(null, true)
-    }
-
-    // In production, check strictly against allowedOrigins whitelist
-    const isAllowed = allowedOrigins.includes(origin)
-
-    if (isAllowed) {
-      return callback(null, true)
-    }
-    return callback(new Error(`CORS blocked for origin: ${origin}`))
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}))
-
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
       "img-src": ["'self'", "data:", "blob:", "https://*.cloudinary.com", "https://res.cloudinary.com", "https://images.unsplash.com", "https://images.pexels.com", "*.placeholder.com"],
       "media-src": ["'self'", "https://*.cloudinary.com", "https://res.cloudinary.com", "data:", "blob:"],
-      "connect-src": ["'self'", "https://*.cloudinary.com", "https://res.cloudinary.com", "*.vercel.app", "http://localhost:*", "http://127.0.0.1:*"]
+      "connect-src": ["'self'", "https://*.cloudinary.com", "https://res.cloudinary.com", "*.vercel.app", "http://localhost:*", "http://127.0.0.1:*", "https://www.seemee.in", "https://seemee.in"]
     },
   },
   crossOriginResourcePolicy: { policy: "cross-origin" },

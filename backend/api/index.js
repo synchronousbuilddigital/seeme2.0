@@ -7,6 +7,34 @@ import cors from 'cors'
 let cachedDb = null
 let app = null
 
+const allowedOrigins = [
+  'https://www.seemee.in',
+  'https://seemee.in',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+  'http://127.0.0.1:5174',
+  'https://seeme2-0-f867.vercel.app',
+  'https://seeme2-0-inue.vercel.app',
+  'https://seeme2-0.vercel.app',
+  process.env.CLIENT_URL,
+  process.env.ADMIN_URL,
+].filter(Boolean)
+
+function isOriginAllowed(origin) {
+  if (!origin) return false
+  if (allowedOrigins.includes(origin)) return true
+  if (/^https:\/\/seeme2-0(-[a-z0-9]+)?\.vercel\.app$/.test(origin)) return true
+  if (process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+    return true
+  }
+  return false
+}
+
 async function connectToDatabase() {
   // Return if already connected
   if (cachedDb && mongoose.connection.readyState === 1) {
@@ -49,13 +77,35 @@ async function createApp() {
 
   app = express()
 
-  // Middleware
-  app.use(cors({
-    origin: true, // Reflects the request origin, compatible with credentials: true
+  // CORS Middleware - Must be before API routes
+  const corsOptions = {
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin || isOriginAllowed(origin)) {
+        return callback(null, true)
+      }
+      return callback(null, false)
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
-  }))
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+  }
+
+  app.use(cors(corsOptions))
+  app.options('*', cors(corsOptions))
+
+  // Cache Control Headers - Ensure /api/site-settings is never cached with 304
+  app.use('/api', (req, res, next) => {
+    if (req.originalUrl.includes('site-settings')) {
+      delete req.headers['if-none-match']
+      delete req.headers['if-modified-since']
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+      res.setHeader('Pragma', 'no-cache')
+      res.setHeader('Expires', '0')
+      res.setHeader('Surrogate-Control', 'no-store')
+    }
+    next()
+  })
 
   app.use(express.json({ limit: '50mb' }))
   app.use(express.urlencoded({ extended: true, limit: '50mb' }))
@@ -198,16 +248,18 @@ async function createApp() {
 
 // Vercel handler
 export default async function handler(req, res) {
-  // ─── MANUAL CORS HEADERS (Ensures CORS works even on errors) ───
-  const origin = req.headers.origin || '*';
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
+  // ─── MANUAL CORS HEADERS (Ensures CORS works even on errors, never wildcard with credentials) ───
+  const origin = req.headers.origin;
+  if (origin && isOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization, Origin');
+  }
 
   // Handle preflight
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
   }
 
   try {
@@ -232,6 +284,10 @@ export default async function handler(req, res) {
 
     // Make sure we haven't sent headers yet
     if (!res.headersSent) {
+      if (origin && isOriginAllowed(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+      }
       return res.status(500).json({
         success: false,
         message: 'Server initialization error',
@@ -241,3 +297,4 @@ export default async function handler(req, res) {
     }
   }
 }
+

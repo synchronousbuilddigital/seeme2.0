@@ -3,10 +3,15 @@ import asyncHandler from '../utils/asyncHandler.js'
 
 export const getSettings = asyncHandler(async (req, res) => {
   const settings = await siteSettingsService.getSettings()
-  res.json({ success: true, data: settings })
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+  res.setHeader('Surrogate-Control', 'no-store')
+  res.status(200).json({ success: true, data: settings })
 })
 
 export const updateSettings = asyncHandler(async (req, res) => {
   const settings = await siteSettingsService.updateSettings(req.body)
-  res.json({ success: true, data: settings })
+  res.status(200).json({ success: true, data: settings })
 })
+
