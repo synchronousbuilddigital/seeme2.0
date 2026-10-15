@@ -169,12 +169,6 @@ const ShopSection = ({ activeAudience = 'all' }) => {
                     {product.name}
                   </h3>
 
-                  {(product.description || product.shortDescription) && (
-                    <p className="product-card-desc">
-                      {product.description || product.shortDescription}
-                    </p>
-                  )}
-
                   <div className="card-price-group">
                     <span className="price-val">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
                     {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (

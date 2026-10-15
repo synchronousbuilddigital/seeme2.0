@@ -1,9 +1,11 @@
 /* Collections Page - Luxury Atelier Styling */
 .collections-page {
   min-height: 100vh;
+  position: relative;
   background: var(--off-white, #FAF9F6);
   padding-top: 80px;
   color: var(--charcoal, #1C1917);
+  overflow-x: hidden;
 }
 
 /* Spinner & Loading State */
@@ -65,6 +67,8 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px 40px 0;
+  position: relative;
+  z-index: 2;
 }
 
 .editorial-back-container {
@@ -132,6 +136,8 @@
   padding: 40px 20px 30px;
   max-width: 900px;
   margin: 0 auto;
+  position: relative;
+  z-index: 2;
 }
 
 .seal-badge-box {
@@ -425,6 +431,8 @@
   display: flex;
   gap: 22px;
   align-items: flex-start;
+  position: relative;
+  z-index: 2;
 }
 
 .collections-sidebar-panel {
@@ -1882,11 +1890,11 @@
     gap: 10px !important;
   }
 
-  .collections-grid > *:nth-child(3n) {
+  .collections-grid>*:nth-child(3n) {
     grid-column: 1 / -1 !important;
   }
 
-  .collections-grid > *:nth-child(3n) .product-image-wrapper {
+  .collections-grid>*:nth-child(3n) .product-image-wrapper {
     aspect-ratio: 2 / 3 !important;
     height: auto !important;
     max-height: 580px !important;
@@ -1894,7 +1902,7 @@
     padding: 0 !important;
   }
 
-  .collections-grid > *:nth-child(3n) .product-image,
+  .collections-grid>*:nth-child(3n) .product-image,
   .collections-grid .product-image {
     object-fit: cover !important;
     object-position: center top !important;
@@ -1944,11 +1952,11 @@
     gap: 6px !important;
   }
 
-  .collections-grid > *:nth-child(3n) {
+  .collections-grid>*:nth-child(3n) {
     grid-column: 1 / -1 !important;
   }
 
-  .collections-grid > *:nth-child(3n) .product-image-wrapper {
+  .collections-grid>*:nth-child(3n) .product-image-wrapper {
     aspect-ratio: 2 / 3 !important;
     height: auto !important;
     max-height: 580px !important;

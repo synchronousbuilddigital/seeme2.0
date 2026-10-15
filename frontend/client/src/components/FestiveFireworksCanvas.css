@@ -1,0 +1,22 @@
+/* Festive Fireworks (Patake) Background Animation Container */
+.festive-fireworks-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.festive-fireworks-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+  filter: drop-shadow(0 0 2.5px rgba(245, 158, 11, 0.45));
+}

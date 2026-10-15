@@ -15,6 +15,7 @@ import CustomersManager from '../components/CustomersManager'
 import PaymentsManager from '../components/PaymentsManager'
 import ActivityManager from '../components/ActivityManager'
 import HeroCarouselManager from '../components/HeroCarouselManager'
+import BannerManager from '../components/BannerManager'
 import MagazineManager from '../components/MagazineManager'
 import ReelsManager from '../components/ReelsManager'
 import CouponsManager from '../components/CouponsManager'
@@ -260,6 +261,10 @@ const AdminDashboard = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
             <span>Hero Section</span>
           </button>
+          <button className={activeTab === 'banner' ? 'active' : ''} onClick={() => handleTabClick('banner')}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="7" cy="12" r="1.5"></circle><path d="M11 15h7M11 9h4"></path></svg>
+            <span>Promo Banner</span>
+          </button>
           <button className={activeTab === 'magazine' ? 'active' : ''} onClick={() => handleTabClick('magazine')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             <span>Magazine Booklet</span>
@@ -298,6 +303,7 @@ const AdminDashboard = () => {
                 {activeTab === 'categories' && 'Category Slides'}
                 {activeTab === 'brands' && 'Brands Manager'}
                 {activeTab === 'hero' && 'Hero Carousel'}
+                {activeTab === 'banner' && 'Promo Banner Manager'}
                 {activeTab === 'magazine' && 'Magazine Booklet'}
                 {activeTab === 'reels' && 'Catalog Reels Studio'}
                 {activeTab === 'notifications' && 'Notifications History'}
@@ -577,6 +583,12 @@ const AdminDashboard = () => {
               preSelectedProduct={selectedProductForHero}
               onClearPreSelected={() => setSelectedProductForHero(null)}
             />
+          </div>
+        )}
+
+        {visitedTabs.has('banner') && (
+          <div style={{ display: activeTab === 'banner' ? 'block' : 'none' }}>
+            <BannerManager />
           </div>
         )}
 

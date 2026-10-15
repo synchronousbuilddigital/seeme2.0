@@ -27,6 +27,7 @@ import About from './components/About'
 import ShopSection from './components/ShopSection'
 import FabricSection from './components/FabricSection'
 import EthosBanner from './components/EthosBanner'
+import FestiveBanner from './components/FestiveBanner'
 import CatalogSection from './components/CatalogSection'
 
 // Lazy load route pages
@@ -104,6 +105,7 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
       />
       <main className={`homepage-main theme-${activeAudience || 'all'}`}>
         <Hero activeAudience={activeAudience} />
+        <FestiveBanner />
         <CategoryTabs onTabChange={(tab) => setActiveAudience(tab)} />
         <div className="homepage-sections-container">
           <BrandsThatLead activeAudience={activeAudience} />

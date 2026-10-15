@@ -6,7 +6,7 @@
   width: 100%;
   position: relative;
   padding: 1.25rem 0 1.25rem 0;
-  margin-top: -1.75rem;
+  margin-top: 0;
   background-color: #EBDACD; /* Warm tan beige background matching reference image */
   transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
     color 0.45s cubic-bezier(0.16, 1, 0.3, 1);

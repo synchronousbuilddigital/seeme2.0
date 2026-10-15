@@ -177,7 +177,17 @@ export const getSettings = async () => {
           order: 2
         }
       ],
-      magazineStories: defaultMagazineStories
+      magazineStories: defaultMagazineStories,
+      festiveBanner: {
+        image: '',
+        tagline: '',
+        title: '',
+        titleHighlight: '',
+        subtitle: '',
+        buttonText: '',
+        buttonLink: '/collections',
+        isActive: false
+      }
     })
   } else if (!settings.magazineStories || settings.magazineStories.length === 0) {
     settings = await SiteSettings.findOneAndUpdate(
@@ -187,6 +197,39 @@ export const getSettings = async () => {
     ).lean()
   }
 
+  if (!Array.isArray(settings.promoBanners) || settings.promoBanners.length === 0) {
+    if (settings.festiveBanner && settings.festiveBanner.image) {
+      settings.promoBanners = [{
+        image: settings.festiveBanner.image,
+        link: settings.festiveBanner.buttonLink || settings.festiveBanner.link || '/collections',
+        tagline: settings.festiveBanner.tagline || '',
+        title: settings.festiveBanner.title || '',
+        titleHighlight: settings.festiveBanner.titleHighlight || '',
+        subtitle: settings.festiveBanner.subtitle || '',
+        buttonText: settings.festiveBanner.buttonText || '',
+        buttonLink: settings.festiveBanner.buttonLink || '/collections',
+        showOverlay: Boolean(settings.festiveBanner.showOverlay || settings.festiveBanner.title || settings.festiveBanner.tagline),
+        isActive: settings.festiveBanner.isActive !== false,
+        order: 0
+      }]
+    } else {
+      settings.promoBanners = []
+    }
+  }
+
+  if (!settings.festiveBanner) {
+    settings.festiveBanner = {
+      image: '',
+      tagline: '',
+      title: '',
+      titleHighlight: '',
+      subtitle: '',
+      buttonText: '',
+      buttonLink: '/collections',
+      isActive: false
+    }
+  }
+
   const result = settings.toObject ? settings.toObject() : settings
   memorySettingsCache = result
   memorySettingsTimestamp = Date.now()
@@ -194,6 +237,37 @@ export const getSettings = async () => {
 }
 
 export const updateSettings = async (settingsData) => {
+  if (Array.isArray(settingsData.promoBanners) && !settingsData.festiveBanner) {
+    const firstActive = settingsData.promoBanners.find(b => b.isActive && b.image) || settingsData.promoBanners[0]
+    if (firstActive) {
+      settingsData.festiveBanner = {
+        image: firstActive.image || '',
+        link: firstActive.link || firstActive.buttonLink || '/collections',
+        buttonLink: firstActive.buttonLink || firstActive.link || '/collections',
+        title: firstActive.title || '',
+        tagline: firstActive.tagline || '',
+        titleHighlight: firstActive.titleHighlight || '',
+        subtitle: firstActive.subtitle || '',
+        buttonText: firstActive.buttonText || '',
+        showOverlay: Boolean(firstActive.showOverlay),
+        isActive: Boolean(firstActive.isActive)
+      }
+    } else {
+      settingsData.festiveBanner = {
+        image: '',
+        link: '/collections',
+        buttonLink: '/collections',
+        title: '',
+        tagline: '',
+        titleHighlight: '',
+        subtitle: '',
+        buttonText: '',
+        showOverlay: false,
+        isActive: false
+      }
+    }
+  }
+
   const settings = await SiteSettings.findOneAndUpdate(
     {},
     { $set: settingsData },

@@ -35,12 +35,53 @@ const magazineStorySchema = new mongoose.Schema({
   order: { type: Number, default: 0 }
 })
 
+const promoBannerSchema = new mongoose.Schema({
+  image: { type: String, required: true },
+  link: { type: String, default: '/collections' },
+  tagline: { type: String, default: '' },
+  title: { type: String, default: '' },
+  titleHighlight: { type: String, default: '' },
+  subtitle: { type: String, default: '' },
+  buttonText: { type: String, default: '' },
+  buttonLink: { type: String, default: '/collections' },
+  showOverlay: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
+  order: { type: Number, default: 0 }
+}, { timestamps: true })
+
+const festiveBannerSchema = new mongoose.Schema({
+  image: { type: String, default: '' },
+  tagline: { type: String, default: '' },
+  title: { type: String, default: '' },
+  titleHighlight: { type: String, default: '' },
+  subtitle: { type: String, default: '' },
+  buttonText: { type: String, default: '' },
+  buttonLink: { type: String, default: '/collections' },
+  isActive: { type: Boolean, default: false }
+}, { _id: false })
+
 const siteSettingsSchema = new mongoose.Schema({
   logo: { type: String, required: true },
   aboutImage: { type: String, required: true },
   fabrics: [fabricSchema],
   categorySlides: [categorySlideSchema],
-  magazineStories: [magazineStorySchema]
+  magazineStories: [magazineStorySchema],
+  festiveBanner: {
+    type: festiveBannerSchema,
+    default: () => ({
+      image: '',
+      tagline: '',
+      title: '',
+      titleHighlight: '',
+      subtitle: '',
+      buttonText: '',
+      buttonLink: '/collections',
+      isActive: false
+    })
+  },
+  promoBanners: [promoBannerSchema]
 }, { timestamps: true })
 
 export default mongoose.model('SiteSettings', siteSettingsSchema)
+
+

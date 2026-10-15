@@ -5,6 +5,12 @@ import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
 import './ProductsManager.css'
 
+const QUICK_SIZE_SUGGESTIONS = [
+  'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL',
+  'Free Size', 'Custom', 'Semi-Stitched', 'Unstitched',
+  '28', '30', '32', '34', '36', '38', '40', '42', '44'
+]
+
 const ProductsManager = ({ onPromoteToHero }) => {
   const MAX_IMAGE_SIZE_MB = 10
   const MAX_VIDEO_SIZE_MB = 100
@@ -26,6 +32,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
   const [imageUrlInput, setImageUrlInput] = useState('')
   const [tagInput, setTagInput] = useState('')
+  const [customSizeInput, setCustomSizeInput] = useState('')
+  const [customSizeQty, setCustomSizeQty] = useState('0')
   const pageSize = 8
   const [formTab, setFormTab] = useState('general')
   const [formData, setFormData] = useState({
@@ -423,6 +431,77 @@ const ProductsManager = ({ onPromoteToHero }) => {
     setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000)
   }
 
+  const handleAddSize = (sizeToAdd, initialQty) => {
+    const rawInput = (sizeToAdd !== undefined ? sizeToAdd : customSizeInput) || ''
+    const targetSize = String(rawInput).trim()
+    if (!targetSize) {
+      showNotification('Please enter a size name (e.g. 4XL, 38, Custom)', 'error')
+      return
+    }
+
+    const currentList = Array.isArray(formData.sizeStock) ? formData.sizeStock : []
+    const exists = currentList.some(
+      item => String(item.size).trim().toUpperCase() === targetSize.toUpperCase()
+    )
+    if (exists) {
+      showNotification(`Size "${targetSize}" is already in the list`, 'error')
+      return
+    }
+
+    const parsedQty = Math.max(0, parseInt(initialQty !== undefined ? initialQty : customSizeQty) || 0)
+    const updated = [...currentList, { size: targetSize, quantity: parsedQty }]
+    setFormData(prev => ({
+      ...prev,
+      sizeStock: updated,
+      sizes: updated.map(s => s.size)
+    }))
+    setCustomSizeInput('')
+    setCustomSizeQty('0')
+    showNotification(`Added size "${targetSize}"`, 'success')
+  }
+
+  const handleRemoveSize = (indexToRemove) => {
+    const currentList = Array.isArray(formData.sizeStock) ? formData.sizeStock : []
+    const sizeName = currentList[indexToRemove]?.size
+    const updated = currentList.filter((_, idx) => idx !== indexToRemove)
+    setFormData(prev => ({
+      ...prev,
+      sizeStock: updated,
+      sizes: updated.map(s => s.size)
+    }))
+    if (sizeName) {
+      showNotification(`Removed size "${sizeName}"`, 'info')
+    }
+  }
+
+  const handleResetStandardSizes = () => {
+    const standardSizes = [
+      { size: 'XS', quantity: 0 },
+      { size: 'S', quantity: 0 },
+      { size: 'M', quantity: 0 },
+      { size: 'L', quantity: 0 },
+      { size: 'XL', quantity: 0 },
+      { size: 'XXL', quantity: 0 },
+      { size: '3XL', quantity: 0 },
+      { size: 'Free Size', quantity: 0 }
+    ]
+    setFormData(prev => ({
+      ...prev,
+      sizeStock: standardSizes,
+      sizes: standardSizes.map(s => s.size)
+    }))
+    showNotification('Reset to standard sizes (XS - 3XL, Free Size)', 'info')
+  }
+
+  const handleClearAllSizes = () => {
+    setFormData(prev => ({
+      ...prev,
+      sizeStock: [],
+      sizes: []
+    }))
+    showNotification('All sizes cleared', 'info')
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -479,7 +558,11 @@ const ProductsManager = ({ onPromoteToHero }) => {
         stock: totalStock,
         images: formData.images.map(normalizeMediaUrl).filter(Boolean),
         preview3dImages: (formData.preview3dImages || []).map(normalizeMediaUrl).filter(Boolean),
-        sizeStock: formData.sizeStock,
+        sizeStock: (formData.sizeStock || []).map(item => ({
+          size: String(item.size).trim(),
+          quantity: Math.max(0, parseInt(item.quantity) || 0)
+        })),
+        sizes: (formData.sizeStock || []).map(item => String(item.size).trim()).filter(Boolean),
         dimensions: {
           length: parseFloat(formData.dimensions?.length) || 20,
           width: parseFloat(formData.dimensions?.width) || 15,
@@ -605,7 +688,9 @@ const ProductsManager = ({ onPromoteToHero }) => {
         { size: 'M', quantity: 0 },
         { size: 'L', quantity: 0 },
         { size: 'XL', quantity: 0 },
-        { size: 'XXL', quantity: 0 }
+        { size: 'XXL', quantity: 0 },
+        { size: '3XL', quantity: 0 },
+        { size: 'Free Size', quantity: 0 }
       ],
       sizes: [],
       colors: [],
@@ -619,11 +704,15 @@ const ProductsManager = ({ onPromoteToHero }) => {
       seo: { title: '', description: '' }
     })
     setTagInput('')
+    setCustomSizeInput('')
+    setCustomSizeQty('0')
     setEditingProduct(null)
     setShowForm(false)
   }
 
   const startEdit = (product) => {
+    setCustomSizeInput('')
+    setCustomSizeQty('0')
     setFormData({
       name: product.name,
       description: product.description,
@@ -640,14 +729,18 @@ const ProductsManager = ({ onPromoteToHero }) => {
       stock: product.stock.toString(),
       sizeStock: product.sizeStock && product.sizeStock.length > 0
         ? product.sizeStock
-        : [
-          { size: 'XS', quantity: 0 },
-          { size: 'S', quantity: 0 },
-          { size: 'M', quantity: 0 },
-          { size: 'L', quantity: 0 },
-          { size: 'XL', quantity: 0 },
-          { size: 'XXL', quantity: 0 }
-        ],
+        : (product.sizes && product.sizes.length > 0
+          ? product.sizes.map(s => ({ size: s, quantity: 0 }))
+          : [
+            { size: 'XS', quantity: 0 },
+            { size: 'S', quantity: 0 },
+            { size: 'M', quantity: 0 },
+            { size: 'L', quantity: 0 },
+            { size: 'XL', quantity: 0 },
+            { size: 'XXL', quantity: 0 },
+            { size: '3XL', quantity: 0 },
+            { size: 'Free Size', quantity: 0 }
+          ]),
       sizes: product.sizes || [],
       colors: product.colors || [],
       featured: product.featured,
@@ -1164,20 +1257,148 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       </div>
                     </div>
                     <div className="inventory-grid">
-                      <h3>Size-wise Stock Distribution</h3>
-                      <div className="size-stock-grid">
-                        {formData.sizeStock.map((item, index) => (
-                          <div key={item.size} className="size-stock-item">
-                            <label>{item.size}</label>
-                            <input type="number" value={item.quantity} min="0" onChange={(e) => {
-                              const newStock = [...formData.sizeStock];
-                              newStock[index].quantity = parseInt(e.target.value) || 0;
-                              setFormData({ ...formData, sizeStock: newStock });
-                            }} />
-                          </div>
-                        ))}
+                      <div className="size-stock-header-row">
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '700', color: '#111' }}>
+                            Size-wise Stock & Variants
+                          </h3>
+                          <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: '#666' }}>
+                            Manually add custom sizes (e.g. XS, 4XL, 38, Semi-Stitched) and manage inventory per size.
+                          </p>
+                        </div>
+                        <div className="size-stock-actions">
+                          <button
+                            type="button"
+                            className="size-action-link-btn"
+                            onClick={handleResetStandardSizes}
+                            title="Reset to default standard sizes"
+                          >
+                            ↻ Reset Standard Sizes
+                          </button>
+                          {formData.sizeStock && formData.sizeStock.length > 0 && (
+                            <button
+                              type="button"
+                              className="size-action-link-btn danger"
+                              onClick={handleClearAllSizes}
+                              title="Clear all sizes"
+                            >
+                              ✕ Clear All
+                            </button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Manual Add Custom Size Card */}
+                      <div className="manual-size-add-card">
+                        <div className="manual-size-input-row">
+                          <div className="manual-size-field">
+                            <label>Custom Size Name</label>
+                            <input
+                              type="text"
+                              value={customSizeInput}
+                              onChange={(e) => setCustomSizeInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleAddSize()
+                                }
+                              }}
+                              placeholder="e.g. 4XL, 5XL, 38, 40, Custom, Semi-Stitched..."
+                            />
+                          </div>
+                          <div className="manual-size-field qty-field">
+                            <label>Initial Stock Qty</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={customSizeQty}
+                              onChange={(e) => setCustomSizeQty(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleAddSize()
+                                }
+                              }}
+                              placeholder="0"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            className="btn-add-custom-size"
+                            onClick={() => handleAddSize()}
+                          >
+                            + Add Size
+                          </button>
+                        </div>
+
+                        {/* Quick Suggestions Chips */}
+                        <div className="quick-size-suggestions">
+                          <span className="quick-size-label">Quick Suggestions:</span>
+                          <div className="quick-size-chips">
+                            {QUICK_SIZE_SUGGESTIONS.filter(
+                              sz => !(formData.sizeStock || []).some(
+                                item => String(item.size).trim().toUpperCase() === sz.toUpperCase()
+                              )
+                            ).slice(0, 14).map(sz => (
+                              <button
+                                key={sz}
+                                type="button"
+                                className="quick-size-chip"
+                                onClick={() => handleAddSize(sz, 0)}
+                                title={`Click to add size ${sz}`}
+                              >
+                                + {sz}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Size Cards Grid */}
+                      {formData.sizeStock && formData.sizeStock.length > 0 ? (
+                        <div className="size-stock-grid">
+                          {formData.sizeStock.map((item, index) => (
+                            <div key={`${item.size}-${index}`} className="size-stock-item">
+                              <div className="size-stock-card-header">
+                                <span className="size-stock-tag">{item.size}</span>
+                                <button
+                                  type="button"
+                                  className="btn-remove-size"
+                                  onClick={() => handleRemoveSize(index)}
+                                  title={`Remove size ${item.size}`}
+                                  aria-label={`Remove size ${item.size}`}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                              <div className="size-stock-input-wrapper">
+                                <label>Stock Quantity</label>
+                                <input
+                                  type="number"
+                                  value={item.quantity}
+                                  min="0"
+                                  placeholder="0"
+                                  onChange={(e) => {
+                                    const newStock = [...formData.sizeStock]
+                                    newStock[index].quantity = Math.max(0, parseInt(e.target.value) || 0)
+                                    setFormData({ ...formData, sizeStock: newStock })
+                                  }}
+                                />
+                              </div>
+                              <span className={`size-card-status ${item.quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                                {item.quantity > 0 ? `● In Stock (${item.quantity})` : '○ Out of Stock (0)'}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="no-sizes-card">
+                          <p>⚠️ No sizes added for this product yet.</p>
+                          <span>Type a size above and click <strong>"+ Add Size"</strong> or click any of the quick suggestions.</span>
+                        </div>
+                      )}
                     </div>
+
                   </div>
                 )}
 

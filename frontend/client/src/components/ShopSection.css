@@ -291,14 +291,7 @@
 }
 
 .product-card-desc {
-  font-family: var(--font-body, sans-serif);
-  font-size: 0.82rem;
-  color: #78716c;
-  margin: 2px 0 0 0;
-  line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none !important;
 }
 
 .card-price-group {

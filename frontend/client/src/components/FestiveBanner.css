@@ -1,0 +1,291 @@
+/* ==========================================================================
+   PROMOTIONAL BANNERS CAROUSEL (BELOW HERO SECTION)
+   Dynamic Multi-Banner from Admin Panel
+   ========================================================================== */
+
+.festive-promo-banner {
+  position: relative;
+  width: 100%;
+  display: block;
+  overflow: hidden;
+  padding: 0 !important;
+  margin: 0 !important;
+  line-height: 0;
+  background-color: transparent;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .festive-promo-banner {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+/* Clickable Banner Container */
+.festive-banner-link-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  overflow: hidden;
+  line-height: 0;
+  text-decoration: none;
+}
+
+/* Individual Slide Frame */
+.festive-slide-frame {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  line-height: 0;
+  display: block;
+}
+
+/* Banner Image (Uploaded from Admin Panel) */
+.festive-banner-img {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  vertical-align: bottom;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.festive-banner-link-wrapper:hover .festive-banner-img {
+  transform: scale(1.006);
+}
+
+/* Optional Overlay Content (Rendered when text overlay is active) */
+.festive-banner-overlay-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse 65% 85% at 50% 50%,
+      rgba(254, 252, 248, 0.92) 0%,
+      rgba(253, 250, 244, 0.75) 45%,
+      rgba(250, 245, 236, 0.2) 80%,
+      transparent 100%);
+  line-height: normal;
+  pointer-events: none;
+}
+
+.festive-banner-inner {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.festive-banner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 680px;
+  width: 100%;
+}
+
+.festive-bow-motif {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 1px 2px rgba(212, 175, 55, 0.25));
+}
+
+.festive-tagline-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.festive-gold-rule {
+  width: clamp(24px, 4vw, 48px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C5A059, #D4AF37);
+  position: relative;
+}
+
+.festive-gold-rule.right {
+  background: linear-gradient(90deg, #D4AF37, #C5A059, transparent);
+}
+
+.festive-tagline-text {
+  font-family: var(--font-heading), 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(0.72rem, 0.85vw, 0.86rem);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #9A7228;
+}
+
+.festive-main-title {
+  font-family: 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.2rem, 2.2vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #241A12;
+  margin: 2px 0 4px 0;
+  line-height: 1.18;
+}
+
+.festive-italic-highlight {
+  font-family: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 700;
+  background: linear-gradient(135deg, #7A5818 0%, #B8860B 35%, #926A18 70%, #5E430F 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-left: 4px;
+}
+
+.festive-subtext {
+  font-family: var(--font-body), 'Inter', sans-serif;
+  font-size: clamp(0.75rem, 0.95vw, 0.88rem);
+  color: #5C4A3A;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+  letter-spacing: 0.015em;
+  font-style: italic;
+}
+
+.festive-cta-wrapper {
+  margin-top: 4px;
+}
+
+.festive-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: clamp(6px, 0.8vw, 9px) clamp(16px, 1.8vw, 24px);
+  background: #241A12;
+  color: #FBF8F3;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 999px;
+  font-family: var(--font-body), 'Inter', sans-serif;
+  font-size: clamp(0.72rem, 0.8vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: auto;
+  transition: all 0.25s ease;
+}
+
+.festive-btn-arrow {
+  color: #D4AF37;
+  transition: transform 0.25s ease;
+}
+
+.festive-banner-link-wrapper:hover .festive-btn-arrow {
+  transform: translateX(4px);
+}
+
+/* ==========================================================================
+   CAROUSEL NAVIGATION CONTROLS (ARROWS & DOTS)
+   ========================================================================== */
+
+.festive-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  color: #1a1a1a;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 15;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+}
+
+.festive-promo-banner:hover .festive-nav-arrow {
+  opacity: 1;
+}
+
+.festive-nav-arrow.prev {
+  left: 18px;
+}
+
+.festive-nav-arrow.next {
+  right: 18px;
+}
+
+.festive-nav-arrow:hover {
+  background: #241A12;
+  color: #D4AF37;
+  border-color: #D4AF37;
+  transform: translateY(-50%) scale(1.08);
+}
+
+@media (max-width: 768px) {
+  .festive-nav-arrow {
+    opacity: 0.9;
+    width: 34px;
+    height: 34px;
+  }
+
+  .festive-nav-arrow.prev {
+    left: 8px;
+  }
+
+  .festive-nav-arrow.next {
+    right: 8px;
+  }
+}
+
+/* Pagination Dots */
+.festive-dots-wrapper {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 15;
+  background: rgba(15, 23, 42, 0.35);
+  padding: 5px 12px;
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+}
+
+.festive-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s ease;
+}
+
+.festive-dot:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.festive-dot.active {
+  width: 22px;
+  border-radius: 10px;
+  background: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.6);
+}

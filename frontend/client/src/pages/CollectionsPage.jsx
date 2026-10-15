@@ -8,6 +8,7 @@ import { cachedFetch } from '../utils/cachedFetch'
 import { isProductInCategory, getCategoryProducts, belongsToAudience } from '../utils/categoryHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from '../components/AddToCartButton'
+import FestiveFireworksCanvas from '../components/FestiveFireworksCanvas'
 import './CollectionsPage.css'
 
 const CollectionsPage = () => {
@@ -261,6 +262,9 @@ const CollectionsPage = () => {
 
   return (
     <div className="collections-page">
+      {/* Background Patake / Fireworks Animation */}
+      <FestiveFireworksCanvas />
+
       {/* Toast Notification */}
       <AnimatePresence>
         {addedToast && (

@@ -144,8 +144,14 @@ const InventoryManager = () => {
     const currentSizes = Array.isArray(product.sizes) ? product.sizes : []
     const isSizeStockEmpty = Object.keys(sizeMap).length === 0
 
-    // Initialize all standard sizes
-    const initialSizes = ALL_AVAILABLE_SIZES.map(sz => {
+    // Initialize standard sizes plus any custom sizes present on this product
+    const combinedSizes = Array.from(new Set([
+      ...ALL_AVAILABLE_SIZES,
+      ...Object.keys(sizeMap),
+      ...currentSizes
+    ])).filter(Boolean)
+
+    const initialSizes = combinedSizes.map(sz => {
       let qty = 0
       if (sizeMap[sz] !== undefined) {
         qty = sizeMap[sz]
