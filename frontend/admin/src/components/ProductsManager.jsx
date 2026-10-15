@@ -7,7 +7,7 @@ import './ProductsManager.css'
 
 const QUICK_SIZE_SUGGESTIONS = [
   'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL',
-  'Free Size', 'Custom', 'Semi-Stitched', 'Unstitched',
+  'Semi-Stitched', 'Unstitched',
   '28', '30', '32', '34', '36', '38', '40', '42', '44'
 ]
 
@@ -57,8 +57,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       { size: 'L', quantity: 0 },
       { size: 'XL', quantity: 0 },
       { size: 'XXL', quantity: 0 },
-      { size: '3XL', quantity: 0 },
-      { size: 'Free Size', quantity: 0 }
+      { size: '3XL', quantity: 0 }
     ],
     sizes: [],
     colors: [],
@@ -482,15 +481,14 @@ const ProductsManager = ({ onPromoteToHero }) => {
       { size: 'L', quantity: 0 },
       { size: 'XL', quantity: 0 },
       { size: 'XXL', quantity: 0 },
-      { size: '3XL', quantity: 0 },
-      { size: 'Free Size', quantity: 0 }
+      { size: '3XL', quantity: 0 }
     ]
     setFormData(prev => ({
       ...prev,
       sizeStock: standardSizes,
       sizes: standardSizes.map(s => s.size)
     }))
-    showNotification('Reset to standard sizes (XS - 3XL, Free Size)', 'info')
+    showNotification('Reset to standard sizes (XS - 3XL)', 'info')
   }
 
   const handleClearAllSizes = () => {
@@ -689,8 +687,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         { size: 'L', quantity: 0 },
         { size: 'XL', quantity: 0 },
         { size: 'XXL', quantity: 0 },
-        { size: '3XL', quantity: 0 },
-        { size: 'Free Size', quantity: 0 }
+        { size: '3XL', quantity: 0 }
       ],
       sizes: [],
       colors: [],
@@ -738,8 +735,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
             { size: 'L', quantity: 0 },
             { size: 'XL', quantity: 0 },
             { size: 'XXL', quantity: 0 },
-            { size: '3XL', quantity: 0 },
-            { size: 'Free Size', quantity: 0 }
+            { size: '3XL', quantity: 0 }
           ]),
       sizes: product.sizes || [],
       colors: product.colors || [],

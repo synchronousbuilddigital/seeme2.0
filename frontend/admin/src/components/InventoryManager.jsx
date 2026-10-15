@@ -5,7 +5,7 @@ import { apiRequest, withAuthHeader } from '../utils/apiClient'
 import { getImageUrl } from '../utils/imageHelper'
 import './InventoryManager.css'
 
-const ALL_AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size']
+const ALL_AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
 
 const InventoryManager = () => {
   const [inventory, setInventory] = useState({

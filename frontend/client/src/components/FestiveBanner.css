@@ -46,12 +46,26 @@
 .festive-banner-img {
   width: 100%;
   height: auto;
-  max-height: 480px;
+  max-height: 420px;
   object-fit: cover;
-  object-position: center;
+  object-position: center 25%;
   display: block;
   vertical-align: bottom;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 1024px) {
+  .festive-banner-img {
+    max-height: 360px;
+    object-position: center 25%;
+  }
+}
+
+@media (max-width: 768px) {
+  .festive-banner-img {
+    max-height: 300px;
+    object-position: center 25%;
+  }
 }
 
 .festive-banner-link-wrapper:hover .festive-banner-img {
@@ -65,11 +79,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse 65% 85% at 50% 50%,
-      rgba(254, 252, 248, 0.92) 0%,
-      rgba(253, 250, 244, 0.75) 45%,
-      rgba(250, 245, 236, 0.2) 80%,
-      transparent 100%);
+  background: radial-gradient(ellipse 40% 80% at 50% 50%,
+      rgba(254, 252, 248, 0.88) 0%,
+      rgba(253, 250, 244, 0.55) 45%,
+      transparent 85%);
   line-height: normal;
   pointer-events: none;
 }
@@ -193,32 +206,29 @@
 }
 
 /* ==========================================================================
-   CAROUSEL NAVIGATION CONTROLS (ARROWS & DOTS)
+   CAROUSEL SIDE ARROWS (FOR BANNER CHANGE)
    ========================================================================== */
 
 .festive-nav-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.88);
-  color: #1a1a1a;
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: rgba(254, 252, 248, 0.9);
+  color: #241A12;
+  border: 1px solid rgba(212, 175, 55, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 15;
+  z-index: 20;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(4px);
-  opacity: 0;
-}
-
-.festive-promo-banner:hover .festive-nav-arrow {
-  opacity: 1;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0.85;
 }
 
 .festive-nav-arrow.prev {
@@ -229,28 +239,47 @@
   right: 18px;
 }
 
+.festive-promo-banner:hover .festive-nav-arrow {
+  opacity: 1;
+}
+
 .festive-nav-arrow:hover {
   background: #241A12;
   color: #D4AF37;
   border-color: #D4AF37;
   transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  opacity: 1;
+}
+
+.festive-nav-arrow:active {
+  transform: translateY(-50%) scale(0.96);
 }
 
 @media (max-width: 768px) {
   .festive-nav-arrow {
+    width: 36px;
+    height: 36px;
     opacity: 0.9;
-    width: 34px;
-    height: 34px;
   }
 
   .festive-nav-arrow.prev {
-    left: 8px;
+    left: 10px;
   }
 
   .festive-nav-arrow.next {
-    right: 8px;
+    right: 10px;
+  }
+
+  .festive-nav-arrow svg {
+    width: 16px;
+    height: 16px;
   }
 }
+
+/* ==========================================================================
+   CAROUSEL PAGINATION DOTS
+   ========================================================================== */
 
 /* Pagination Dots */
 .festive-dots-wrapper {

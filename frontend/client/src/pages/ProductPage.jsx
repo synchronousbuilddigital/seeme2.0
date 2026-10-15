@@ -65,13 +65,20 @@ const ProductPage = () => {
     }
   }, [currentUser?.email])
 
+  const isExcludedSize = (s) => {
+    if (!s) return true
+    const upper = String(s).trim().toUpperCase()
+    return upper === 'FREE SIZE' || upper === 'FREESIZE' || upper === 'FREE-SIZE' || upper === 'CUSTOM' || upper === 'CUSTOM SIZE' || upper === 'CUSTOM-SIZE'
+  }
+
   const [selectedSize, setSelectedSize] = useState(() => {
     if (passedProduct) {
-      const sizesList = (passedProduct.sizes && passedProduct.sizes.length > 0)
+      const rawList = (passedProduct.sizes && passedProduct.sizes.length > 0)
         ? passedProduct.sizes
         : (passedProduct.sizeStock && passedProduct.sizeStock.length > 0)
           ? passedProduct.sizeStock.map(s => s.size)
           : []
+      const sizesList = rawList.filter(s => !isExcludedSize(s))
       return (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
     }
     return 'S'
@@ -153,13 +160,13 @@ const ProductPage = () => {
       const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}/${id}`)
       if (data.success && data.data && data.data.isActive !== false) {
         setProduct(data.data)
-        const sizesList = (data.data.sizes && data.data.sizes.length > 0)
+        const sizesList = ((data.data.sizes && data.data.sizes.length > 0)
           ? data.data.sizes
           : (data.data.sizeStock && data.data.sizeStock.length > 0)
             ? data.data.sizeStock.map(s => s.size)
-            : []
+            : []).filter(s => !isExcludedSize(s))
         const initialSize = (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
-        setSelectedSize(prev => prev || initialSize)
+        setSelectedSize(prev => (prev && !isExcludedSize(prev)) ? prev : initialSize)
         fetchRelatedProducts(data.data.category, data.data._id)
       } else if (!product) {
         setError('This product is currently inactive or unavailable.')
@@ -188,12 +195,12 @@ const ProductPage = () => {
     return String(slug).replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
   }
 
-  const defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Custom']
-  const availableSizes = (product?.sizes && product.sizes.length > 0)
-    ? product.sizes
+  const defaultSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
+  const availableSizes = ((product?.sizes && product.sizes.length > 0)
+    ? product.sizes.filter(s => !isExcludedSize(s))
     : (product?.sizeStock && product.sizeStock.some(s => s.quantity > 0))
-      ? product.sizeStock.filter(s => s.quantity > 0).map(s => s.size)
-      : defaultSizes
+      ? product.sizeStock.filter(s => s.quantity > 0 && !isExcludedSize(s.size)).map(s => s.size)
+      : defaultSizes).filter(s => !isExcludedSize(s))
 
   const handleAddBag = () => {
     if (!selectedSize) {
@@ -483,16 +490,16 @@ const ProductPage = () => {
               </div>
               <div className="size-pills-row">
                 {(() => {
-                  const defaultOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size']
+                  const defaultOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
                   const sizeSet = new Set()
 
                   if (product?.sizes && Array.isArray(product.sizes) && product.sizes.length > 0) {
-                    product.sizes.forEach(s => s && sizeSet.add(String(s).trim().toUpperCase()))
+                    product.sizes.forEach(s => s && !isExcludedSize(s) && sizeSet.add(String(s).trim().toUpperCase()))
                   }
                   if (product?.sizeStock && Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
-                    product.sizeStock.forEach(s => s?.size && sizeSet.add(String(s.size).trim().toUpperCase()))
+                    product.sizeStock.forEach(s => s?.size && !isExcludedSize(s.size) && sizeSet.add(String(s.size).trim().toUpperCase()))
                   }
-                  if (selectedSize) {
+                  if (selectedSize && !isExcludedSize(selectedSize)) {
                     sizeSet.add(String(selectedSize).trim().toUpperCase())
                   }
 
@@ -880,6 +887,7 @@ const ProductPage = () => {
                     <tr><td>L</td><td>{sizeUnit === 'in' ? '38"' : '96 cm'}</td><td>{sizeUnit === 'in' ? '32"' : '81 cm'}</td><td>{sizeUnit === 'in' ? '42"' : '106 cm'}</td></tr>
                     <tr><td>XL</td><td>{sizeUnit === 'in' ? '40"' : '101 cm'}</td><td>{sizeUnit === 'in' ? '34"' : '86 cm'}</td><td>{sizeUnit === 'in' ? '44"' : '111 cm'}</td></tr>
                     <tr><td>XXL</td><td>{sizeUnit === 'in' ? '42"' : '106 cm'}</td><td>{sizeUnit === 'in' ? '36"' : '91 cm'}</td><td>{sizeUnit === 'in' ? '46"' : '116 cm'}</td></tr>
+                    <tr><td>3XL</td><td>{sizeUnit === 'in' ? '44"' : '112 cm'}</td><td>{sizeUnit === 'in' ? '38"' : '97 cm'}</td><td>{sizeUnit === 'in' ? '48"' : '122 cm'}</td></tr>
                   </tbody>
                 </table>
               </div>
