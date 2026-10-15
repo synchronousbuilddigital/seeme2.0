@@ -122,10 +122,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
     }))
   }
 
-  const getAudienceArray = (val) => {
-    if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase().trim())
+  const getAudienceArray = (val, fallback = ['women']) => {
+    if (Array.isArray(val)) {
+      const cleaned = val.map(v => (v || '').toLowerCase().trim()).filter(Boolean)
+      if (cleaned.length > 0) return cleaned
+    }
     if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
-    return ['women']
+    return fallback
   }
 
   const handleAudienceToggle = (val) => {
@@ -773,40 +776,57 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const checkBelongsToAudience = (product, audience) => {
     if (!product || !audience || audience === 'all') return true
     const target = audience.toLowerCase().trim()
-    const targetAud = getAudienceArray(product.targetAudience)
-    const genderArr = getAudienceArray(product.gender)
-    const allAuds = [...targetAud, ...genderArr]
 
+    const parseAudiences = (val) => {
+      if (Array.isArray(val)) return val.map(v => (v || '').toLowerCase().trim()).filter(Boolean)
+      if (typeof val === 'string' && val.trim()) return [val.toLowerCase().trim()]
+      return []
+    }
+
+    const targetAud = parseAudiences(product.targetAudience)
+    const genderArr = parseAudiences(product.gender)
+    const allAuds = Array.from(new Set([...targetAud, ...genderArr]))
+
+    const specificMenTags = ['men', 'male', 'gents', 'mens', 'him', 'man']
+    const specificWomenTags = ['women', 'female', 'ladies', 'womens', 'her', 'woman']
+
+    const hasExplicitMen = allAuds.some(a => specificMenTags.includes(a))
+    const hasExplicitWomen = allAuds.some(a => specificWomenTags.includes(a))
+
+    // 1. Explicit tagged assignment (Admin tags take top priority)
+    if (hasExplicitMen && !hasExplicitWomen) {
+      return target === 'men'
+    }
+    if (hasExplicitWomen && !hasExplicitMen) {
+      return target === 'women'
+    }
+    if (hasExplicitMen && hasExplicitWomen) {
+      return true
+    }
+
+    // 2. Keyword fallback for products without explicit tags (using word boundary regex to avoid 'women'.includes('men'))
     const pCat = String(product.category || '').toLowerCase().trim()
     const pName = String(product.name || '').toLowerCase().trim()
-    const fullText = `${pCat} ${pName}`
+    const pSub = String(product.subcategory || '').toLowerCase().trim()
+    const pTags = Array.isArray(product.tags) ? product.tags.join(' ').toLowerCase().trim() : ''
+    const fullText = `${pCat} ${pName} ${pSub} ${pTags}`
 
-    const womenKeywords = ['kurti', 'sharara', 'saree', 'lehenga', 'anarkali', 'kaftan', 'gown', 'dupatta', 'suit', 'palazzo', 'women', 'female', 'ladies']
-    const menKeywords = ['sherwani', 'bandhgala', 'nehru jacket', 'waistcoat', 'pathani', 'men kurta', 'kurta pyjama', 'men', 'male', 'gents', 'mens']
+    const menWordRegex = /\b(men|male|gents|mens|sherwani|bandhgala|nehru\s+jacket|waistcoat|pathani|kurta\s+pyjama)\b/i
+    const womenWordRegex = /\b(women|female|ladies|womens|kurti|sharara|saree|lehenga|anarkali|kaftan|gown|dupatta|suit|palazzo|cord-set|co-ord)\b/i
 
-    const isWomenCategory = womenKeywords.some(kw => fullText.includes(kw))
-    const isMenCategory = menKeywords.some(kw => fullText.includes(kw))
-
-    const hasExplicitMen = allAuds.some(a => ['men', 'male', 'gents', 'mens'].includes(a))
-    const hasExplicitWomen = allAuds.some(a => ['women', 'female', 'ladies', 'womens'].includes(a))
-    const isUnisex = allAuds.some(a => ['all', 'unisex'].includes(a)) || (hasExplicitMen && hasExplicitWomen)
-
-    if (isUnisex) return true
+    const isMenText = menWordRegex.test(fullText)
+    const isWomenText = womenWordRegex.test(fullText)
 
     if (target === 'men') {
-      if (hasExplicitMen) return true
-      if (hasExplicitWomen) return false
-      if (isWomenCategory && !isMenCategory) return false
-      if (isMenCategory) return true
-      return false
+      if (isMenText && !isWomenText) return true
+      if (isWomenText) return false
+      return isMenText
     }
 
     if (target === 'women') {
-      if (hasExplicitWomen) return true
-      if (hasExplicitMen) return false
-      if (isMenCategory) return false
-      if (isWomenCategory) return true
-      return !hasExplicitMen && !isMenCategory
+      if (isWomenText && !isMenText) return true
+      if (isMenText) return false
+      return isWomenText
     }
 
     return true

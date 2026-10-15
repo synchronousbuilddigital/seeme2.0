@@ -11,6 +11,28 @@ import AddToCartButton from '../components/AddToCartButton'
 import FestiveFireworksCanvas from '../components/FestiveFireworksCanvas'
 import './CollectionsPage.css'
 
+export const isProductOutOfStock = (product) => {
+  if (!product) return false
+  if (product.status === 'Out of Stock' || product.status === 'archived') return true
+  if (product.inStock === false) return true
+
+  // Check total quantity across sizes if sizeStock is defined
+  if (Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
+    const totalSizeStock = product.sizeStock.reduce(
+      (sum, s) => sum + Math.max(0, Number(s.quantity ?? s.stock ?? 0)),
+      0
+    )
+    if (totalSizeStock <= 0) return true
+  }
+
+  // Check general product.stock
+  if (product.stock !== undefined && product.stock !== null) {
+    if (Number(product.stock) <= 0) return true
+  }
+
+  return false
+}
+
 const CollectionsPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -191,24 +213,39 @@ const CollectionsPage = () => {
       )
     }
 
-    // Sort
-    switch (sortBy) {
-      case 'price-low':
-        result.sort((a, b) => (a.price || 0) - (b.price || 0))
-        break
-      case 'price-high':
-        result.sort((a, b) => (b.price || 0) - (a.price || 0))
-        break
-      case 'newest':
-        result.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        break
-      case 'name':
-        result.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-        break
-      default:
-        // featured
-        break
-    }
+    // Sort: In-stock first (latest on top), Out-of-stock to the bottom
+    result.sort((a, b) => {
+      const aOut = isProductOutOfStock(a)
+      const bOut = isProductOutOfStock(b)
+
+      // 1. In-stock products always come before Out-of-stock products
+      if (aOut !== bOut) {
+        return aOut ? 1 : -1
+      }
+
+      // 2. Within the same stock status tier, apply sort (default is latest/newest first)
+      switch (sortBy) {
+        case 'price-low': {
+          const diff = (a.price || 0) - (b.price || 0)
+          if (diff !== 0) return diff
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        }
+        case 'price-high': {
+          const diff = (b.price || 0) - (a.price || 0)
+          if (diff !== 0) return diff
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        }
+        case 'name': {
+          const comp = (a.name || '').localeCompare(b.name || '')
+          if (comp !== 0) return comp
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+        }
+        case 'newest':
+        case 'featured':
+        default:
+          return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      }
+    })
 
     return result
   }, [audienceProducts, selectedCategory, selectedBrand, searchQuery, priceFilter, maxPrice, selectedSizes, sortBy])
@@ -604,11 +641,12 @@ const CollectionsPage = () => {
               filteredProducts.map((product, index) => {
                 const hasDiscount = (product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price)
                 const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
+                const isOutOfStock = isProductOutOfStock(product)
 
                 return (
                   <motion.div
                     key={product._id || index}
-                    className="collection-product-card"
+                    className={`collection-product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`}
                     initial={{ opacity: 0, y: 25 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
@@ -629,8 +667,6 @@ const CollectionsPage = () => {
                         onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                       />
 
-
-
                       <button
                         className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}
                         onClick={(e) => {
@@ -644,7 +680,7 @@ const CollectionsPage = () => {
                         </svg>
                       </button>
 
-                      {product.stock === 0 && (
+                      {isOutOfStock && (
                         <div className="out-of-stock-badge">Sold Out</div>
                       )}
                     </div>
@@ -737,7 +773,7 @@ const CollectionsPage = () => {
                       )}
                     </div>
 
-                    {selectedProduct.stock > 0 ? (
+                    {!isProductOutOfStock(selectedProduct) ? (
                       <span className="modal-stock in-stock">✦ In Stock</span>
                     ) : (
                       <span className="modal-stock out-stock">✦ Sold Out</span>

@@ -5,69 +5,170 @@ import { cachedFetch } from '../utils/cachedFetch'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import './BrandsThatLead.css'
 
-const CARD_THEMES = [
-  {
-    bgColor: '#FCEEEF',
-    accentColor: '#B35B6D',
-    textColor: '#1C2536',
-    subtextColor: '#5A6578',
-    leafColor: '#E4AAB5'
+// Default fallback brands strictly segregated by audience
+const DEFAULT_BRANDS = {
+  men: [
+    {
+      _id: 'default-gp',
+      name: 'GP',
+      tagline: 'Everyday Fashion, Reimagined',
+      image: '/images/category_card_men.jpg',
+      buttonText: 'Shop Now',
+      targetAudience: ['men']
+    },
+    {
+      _id: 'default-humberto',
+      name: 'HUMBERTO',
+      tagline: 'Classic T-shirts for Modern Living',
+      image: '/images/categories_straight.jpg',
+      buttonText: 'Shop Now',
+      targetAudience: ['men', 'women', 'all']
+    },
+    {
+      _id: 'default-hangup',
+      name: 'HANGUP',
+      tagline: 'Modern Fashion for Everyday Style',
+      image: '/images/all_collection_tab.jpg',
+      buttonText: 'Shop Now',
+      targetAudience: ['men']
+    }
+  ],
+  women: [
+    {
+      _id: 'default-seemee',
+      name: 'SEEMEE',
+      tagline: 'Elegant Ethnic Wear for Every Occasion',
+      image: '/images/ruby_bridal_sharara.png',
+      buttonText: 'Shop Now',
+      targetAudience: ['women', 'all']
+    },
+    {
+      _id: 'default-humberto',
+      name: 'HUMBERTO',
+      tagline: 'Classic T-shirts for Modern Living',
+      image: '/images/categories_straight.jpg',
+      buttonText: 'Shop Now',
+      targetAudience: ['men', 'women', 'all']
+    }
+  ],
+  all: [
+    {
+      _id: 'default-seemee',
+      name: 'SEEMEE',
+      tagline: 'Elegant Ethnic Wear for Every Occasion',
+      image: '/images/ruby_bridal_sharara.png',
+      buttonText: 'Shop Now',
+      targetAudience: ['women', 'all']
+    },
+    {
+      _id: 'default-gp',
+      name: 'GP',
+      tagline: 'Everyday Fashion, Reimagined',
+      image: '/images/category_card_men.jpg',
+      buttonText: 'Shop Now',
+      targetAudience: ['men']
+    },
+    {
+      _id: 'default-humberto',
+      name: 'HUMBERTO',
+      tagline: 'Classic T-shirts for Modern Living',
+      image: '/images/categories_straight.jpg',
+      buttonText: 'Shop Now',
+      targetAudience: ['men', 'women', 'all']
+    },
+    {
+      _id: 'default-hangup',
+      name: 'HANGUP',
+      tagline: 'Modern Fashion for Everyday Style',
+      image: '/images/all_collection_tab.jpg',
+      buttonText: 'Shop Now',
+      targetAudience: ['men']
+    }
+  ]
+}
+
+// Brand aesthetic design themes (matching Bento UI palette)
+const BRAND_PRESET_THEMES = {
+  SEEMEE: {
+    themeClass: 'theme-blush',
+    bgColor: '#FCE3EB',
+    badgeColor: '#9D3B58',
+    btnBg: '#9D3B58',
+    photoBg: '#F0B8C8',
+    fallbackImg: '/images/ruby_bridal_sharara.png'
   },
-  {
-    bgColor: '#EBF3EC',
-    accentColor: '#4D6B50',
-    textColor: '#1C2536',
-    subtextColor: '#5A6578',
-    leafColor: '#9BB69E'
+  GP: {
+    themeClass: 'theme-mint',
+    bgColor: '#D2F5EE',
+    badgeColor: '#385C42',
+    btnBg: '#276749',
+    photoBg: '#C2EAE1',
+    fallbackImg: '/images/category_card_men.jpg'
   },
-  {
-    bgColor: '#F7F1E5',
-    accentColor: '#C29653',
-    textColor: '#1C2536',
-    subtextColor: '#5A6578',
-    leafColor: '#E2CBA3'
+  HUMBERTO: {
+    themeClass: 'theme-sand',
+    bgColor: '#F6F0DB',
+    badgeColor: '#8E6627',
+    btnBg: '#8C5E28',
+    photoBg: '#E9E2C8',
+    fallbackImg: '/images/categories_straight.jpg'
   },
-  {
-    bgColor: '#E8F0F5',
-    accentColor: '#547A8F',
-    textColor: '#1C2536',
-    subtextColor: '#5A6578',
-    leafColor: '#A3C4D6'
+  HANGUP: {
+    themeClass: 'theme-slate',
+    bgColor: '#D8E8F3',
+    badgeColor: '#3D5C76',
+    btnBg: '#3B5B75',
+    photoBg: '#CFE0EC',
+    fallbackImg: '/images/all_collection_tab.jpg'
   }
+}
+
+const FALLBACK_THEME_LIST = [
+  BRAND_PRESET_THEMES.SEEMEE,
+  BRAND_PRESET_THEMES.GP,
+  BRAND_PRESET_THEMES.HUMBERTO,
+  BRAND_PRESET_THEMES.HANGUP
 ]
 
-const DEFAULT_BRANDS = [
-  {
-    _id: 'default-1',
-    name: 'SEEMEE',
-    tagline: 'Elegant Ethnic Wear for Every Occasion',
-    image: '/images/ruby_bridal_sharara.png',
-    buttonText: 'Shop Now'
-  },
-  {
-    _id: 'default-2',
-    name: 'GP',
-    tagline: 'Everyday Fashion, Reimagined',
-    image: '/images/category_card_men.jpg',
-    buttonText: 'Shop Now'
-  },
-  {
-    _id: 'default-3',
-    name: 'HUMBERTO',
-    tagline: 'Classic T-shirts for Modern Living',
-    image: '/images/categories_straight.jpg',
-    buttonText: 'Shop Now'
-  },
-  {
-    _id: 'default-4',
-    name: 'HANGUP',
-    tagline: 'Modern Fashion for Everyday Style',
-    image: '/images/all_collection_tab.jpg',
-    buttonText: 'Shop Now'
+const getBrandTheme = (brand, index) => {
+  const normName = (brand?.name || '').toUpperCase().trim()
+  if (BRAND_PRESET_THEMES[normName]) {
+    return BRAND_PRESET_THEMES[normName]
   }
-]
+  return FALLBACK_THEME_LIST[index % FALLBACK_THEME_LIST.length]
+}
 
-const BrandsThatLead = ({ activeAudience = 'men' }) => {
+export const isBrandForAudience = (brand, audience = 'all') => {
+  if (!brand || brand.isActive === false) return false
+  const aud = (audience || 'all').toLowerCase().trim()
+  if (aud === 'all') return true
+
+  const raw = brand.targetAudience
+  const arr = Array.isArray(raw)
+    ? raw.map(v => (v || '').toLowerCase().trim())
+    : [(raw || '').toLowerCase().trim()]
+
+  const hasMen = arr.includes('men') || arr.includes('male') || arr.includes('gents')
+  const hasWomen = arr.includes('women') || arr.includes('female') || arr.includes('ladies')
+  const hasExplicitAll = arr.includes('all') || arr.includes('unisex')
+
+  if (hasWomen && !hasMen) return aud === 'women'
+  if (hasMen && !hasWomen) return aud === 'men'
+  if (hasExplicitAll || (hasMen && hasWomen)) return true
+
+  return true
+}
+
+const formatButtonText = (text) => {
+  if (!text) return 'Shop Now →'
+  const trimmed = String(text).trim()
+  if (trimmed.includes('→') || trimmed.includes('↗') || trimmed.includes('>')) {
+    return trimmed
+  }
+  return `${trimmed} →`
+}
+
+const BrandsThatLead = ({ activeAudience = 'all' }) => {
   const [brands, setBrands] = useState([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
@@ -77,24 +178,22 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
 
     const fetchBrands = async () => {
       try {
-        if (brands.length === 0) setLoading(true)
+        setLoading(true)
         const targetUrl = `${API_ENDPOINTS.BRANDS}?gender=${encodeURIComponent(activeAudience)}`
-        let res = await cachedFetch(targetUrl, { ttlMs: 60000 })
+        const res = await cachedFetch(targetUrl, { ttlMs: 30000 })
         
-        if (isMounted && res?.success && Array.isArray(res.data) && res.data.length > 0) {
-          setBrands(res.data)
-        } else {
-          // Fallback to fetch all active brands created in Admin Panel
-          const fallbackRes = await cachedFetch(API_ENDPOINTS.BRANDS, { ttlMs: 60000 })
-          if (isMounted && fallbackRes?.success && Array.isArray(fallbackRes.data)) {
-            setBrands(fallbackRes.data)
-          } else if (isMounted) {
-            setBrands([])
-          }
+        if (isMounted) {
+          const rawList = (res?.success && Array.isArray(res.data)) ? res.data : []
+          // Strict filter: only brands that belong to this audience
+          const validList = rawList.filter(b => isBrandForAudience(b, activeAudience))
+          setBrands(validList)
         }
       } catch (err) {
         console.error('Error loading Brands That Lead:', err)
-        if (isMounted) setBrands([])
+        if (isMounted) {
+          // Fall back only to strictly appropriate audience defaults
+          setBrands(DEFAULT_BRANDS[activeAudience] || DEFAULT_BRANDS.all || [])
+        }
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -104,124 +203,126 @@ const BrandsThatLead = ({ activeAudience = 'men' }) => {
     return () => { isMounted = false }
   }, [activeAudience])
 
-  const displayBrands = brands.length > 0 ? brands : DEFAULT_BRANDS
+  // Get displayed brands: exactly the audience brands, without any extra ones
+  const audienceKey = (activeAudience || 'all').toLowerCase().trim()
+  const displayBrands = brands.length > 0 
+    ? brands 
+    : (DEFAULT_BRANDS[audienceKey] || DEFAULT_BRANDS.all || [])
+
+  // If no brands for this audience, hide section completely
+  if (!loading && displayBrands.length === 0) {
+    return null
+  }
+
+  const handleCardClick = (brand) => {
+    if (brand.link && (brand.link.startsWith('/') || brand.link.startsWith('http'))) {
+      navigate(brand.link)
+    } else {
+      navigate(`/collections?brand=${encodeURIComponent(brand.name)}&gender=${activeAudience}`)
+    }
+  }
+
+  const totalCount = displayBrands.length
+
+  // Determine card role based on count and index
+  const getCardRole = (index, total) => {
+    if (total === 4) {
+      if (index === 0) return 'tall'
+      if (index === 3) return 'wide'
+      return 'square'
+    }
+    if (total === 3) {
+      return 'square'
+    }
+    if (total === 2) {
+      return 'wide'
+    }
+    return 'wide'
+  }
 
   return (
     <section className="brands-lead-section" id="brands-that-lead">
-      {/* Corner Background Decorative Arcs */}
-      <svg className="brands-bg-flourish-tl" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="0" cy="0" r="220" stroke="#C29653" strokeWidth="1.2" opacity="0.3" />
-        <circle cx="0" cy="0" r="170" stroke="#C29653" strokeWidth="0.8" opacity="0.2" />
-      </svg>
-      <svg className="brands-bg-flourish-br" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M240 160C160 160 100 100 100 0" stroke="#C29653" strokeWidth="1.2" opacity="0.25" />
-        <path d="M240 200C140 200 80 140 80 0" stroke="#C29653" strokeWidth="0.8" opacity="0.18" />
-      </svg>
-
       <div className="brands-lead-container">
-        {/* Section Header */}
+        {/* Header with Title */}
         <div className="brands-lead-header">
-          <span className="brands-lead-eyebrow">EXPLORE OUR COLLECTIONS</span>
           <h2 className="brands-lead-title">
             Brands That <span className="brands-title-gold">Lead</span>
           </h2>
-          
-          {/* Subtle Lotus Divider */}
-          <div className="brands-header-divider">
-            <span className="divider-line" />
-            <svg className="lotus-emblem-svg" viewBox="0 0 32 20" fill="none">
-              <path d="M16 1C16 1 11 6 11 12C11 16.5 16 19 16 19C16 19 21 16.5 21 12C21 6 16 1Z" fill="none" stroke="#B8941E" strokeWidth="1.4" strokeLinejoin="round"/>
-              <path d="M16 19C16 19 8 16 5 11C3.5 8.5 5 5.5 8 6.5C11 7.5 16 13 16 13" fill="none" stroke="#B8941E" strokeWidth="1.4" strokeLinecap="round"/>
-              <path d="M16 19C16 19 24 16 27 11C28.5 8.5 27 5.5 24 6.5C21 7.5 16 13 16 13" fill="none" stroke="#B8941E" strokeWidth="1.4" strokeLinecap="round"/>
-            </svg>
-            <span className="divider-line" />
-          </div>
-
-          <p className="brands-lead-subtitle">
-            Discover our top fashion brands, handpicked for quality, style and everyday comfort.
-          </p>
         </div>
 
-        {/* Brands Grid */}
-        {loading ? (
-          <div className="brands-skeleton-grid">
-            {Array(4).fill(0).map((_, idx) => (
-              <div key={idx} className="brand-skeleton-card" />
-            ))}
+        {/* Bento Grid */}
+        {loading && brands.length === 0 ? (
+          <div className={`brands-bento-skeleton count-${totalCount || 4}`}>
+            {totalCount === 3 ? (
+              <>
+                <div className="bento-skeleton-item bento-skeleton-square" />
+                <div className="bento-skeleton-item bento-skeleton-square" />
+                <div className="bento-skeleton-item bento-skeleton-square" />
+              </>
+            ) : totalCount === 2 ? (
+              <>
+                <div className="bento-skeleton-item bento-skeleton-square" />
+                <div className="bento-skeleton-item bento-skeleton-square" />
+              </>
+            ) : (
+              <>
+                <div className="bento-skeleton-item bento-skeleton-tall" />
+                <div className="bento-skeleton-item bento-skeleton-square" />
+                <div className="bento-skeleton-item bento-skeleton-square" />
+                <div className="bento-skeleton-item bento-skeleton-wide" />
+              </>
+            )}
           </div>
         ) : (
-          <div className="brands-cards-row">
-            {displayBrands.map((brand, index) => {
-              const theme = CARD_THEMES[index % CARD_THEMES.length]
-              const cardBg = brand.bgColor || theme.bgColor
-              const accentColor = theme.accentColor
-              
+          <div className={`brands-bento-grid count-${totalCount}`}>
+            {displayBrands.map((brand, idx) => {
+              const theme = getBrandTheme(brand, idx)
+              const role = getCardRole(idx, totalCount)
+              const fallbackImg = theme.fallbackImg || '/images/ruby_bridal_sharara.png'
+              const isTall = role === 'tall'
+              const isWide = role === 'wide'
+
               return (
                 <div
-                  key={brand._id || index}
-                  className="brand-card-item"
-                  style={{
-                    '--card-bg': cardBg,
-                    '--card-accent': accentColor
-                  }}
-                  onClick={() => {
-                    const bName = brand.name || ''
-                    navigate(`/collections?brand=${encodeURIComponent(bName)}`)
-                  }}
+                  key={brand._id || brand.name || idx}
+                  className={`bento-card bento-slot-${idx + 1} ${isTall ? 'bento-role-tall' : isWide ? 'bento-role-wide' : 'bento-role-square'} ${theme.themeClass}`}
+                  style={{ backgroundColor: theme.bgColor }}
+                  onClick={() => handleCardClick(brand)}
                 >
-                  {/* Left Side: Photo */}
-                  <div className="brand-card-photo-side">
-                    <img
-                      src={getOptimizedImageUrl(brand.image, 'card')}
-                      alt={brand.name}
-                      className="brand-card-photo-img"
-                      loading="eager"
-                      decoding="async"
-                      onError={(e) => { e.target.src = '/images/home-hero.png' }}
-                    />
-                  </div>
-
-                  {/* Right Side: Details with Swoop Curve */}
-                  <div className="brand-card-info-side">
-                    {/* Organic Swoop Curve Vector */}
-                    <svg className="brand-card-swoop-svg" viewBox="0 0 40 100" preserveAspectRatio="none">
-                      <path d="M40 0 C12 25, 12 75, 40 100 L40 0 Z" fill={cardBg} />
-                    </svg>
-
-                    <div className="brand-details">
-                      <span className="brand-mini-badge" style={{ color: accentColor }}>FEATURED BRAND</span>
-                      <h3 className="brand-name-text">{brand.name}</h3>
-                      <p className="brand-tagline-text">{brand.tagline || 'Everyday Fashion, Reimagined'}</p>
+                  <div className={`bento-card-content-left ${isWide ? 'bento-hangup-content' : ''}`}>
+                    <div className="bento-card-texts">
+                      <span className="bento-brand-badge" style={{ color: theme.badgeColor }}>
+                        FEATURED BRAND
+                      </span>
+                      <h3 className="bento-brand-name">{brand.name}</h3>
+                      <p className="bento-brand-tagline">{brand.tagline}</p>
                     </div>
-
-                    <div className="brand-action-area">
+                    <div className="bento-btn-wrap">
                       <button
                         type="button"
-                        className="brand-pill-button"
-                        style={{ backgroundColor: accentColor }}
+                        className="bento-pill-btn"
+                        style={{ backgroundColor: theme.btnBg }}
                         onClick={(e) => {
                           e.stopPropagation()
-                          const bName = brand.name || ''
-                          navigate(`/collections?brand=${encodeURIComponent(bName)}`)
+                          handleCardClick(brand)
                         }}
                       >
-                        <span>{brand.buttonText || 'Shop Now'}</span>
-                        <span className="button-arrow-circle">
-                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        </span>
+                        {formatButtonText(brand.buttonText)}
                       </button>
                     </div>
-
-                    {/* Corner Delicate Floral Line Art */}
-                    <svg className="brand-card-leaf-art" viewBox="0 0 100 100" fill="none" style={{ color: theme.leafColor }}>
-                      <path d="M85 90C65 85 45 65 30 40" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-                      <path d="M60 70C68 62 78 62 82 70C74 78 64 76 60 70Z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
-                      <path d="M45 50C53 42 63 42 67 50C59 58 49 56 45 50Z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
-                      <path d="M30 35C38 27 48 27 52 35C44 43 34 41 30 35Z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round"/>
-                    </svg>
                   </div>
+
+                  {brand.image && (
+                    <div className={`bento-card-photo-side ${isWide ? 'bento-hangup-photo-side' : ''} ${isTall ? 'bento-tall-photo-side' : ''}`}>
+                      <img
+                        src={getOptimizedImageUrl(brand.image, 'card')}
+                        alt={brand.name}
+                        className="bento-card-photo-img"
+                        loading={idx === 0 ? 'eager' : 'lazy'}
+                        onError={(e) => { e.target.src = fallbackImg }}
+                      />
+                    </div>
+                  )}
                 </div>
               )
             })}

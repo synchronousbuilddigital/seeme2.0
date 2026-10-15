@@ -1,221 +1,101 @@
 /* ==========================================================================
-   BRANDS THAT LEAD COMPONENT — ELEGANT MOCKUP MATCHING USER DESIGN
+   BRANDS THAT LEAD COMPONENT — DYNAMIC AUDIENCE BENTO GRID UI
    ========================================================================== */
 
 .brands-lead-section {
   width: 100%;
-  padding: 5rem 0;
+  padding: 4.5rem 0 5.5rem;
   background-color: #FAF7F2;
   position: relative;
   overflow: hidden;
 }
 
-/* Decorative Background Arcs */
-.brands-bg-flourish-tl {
-  position: absolute;
-  top: -40px;
-  left: -40px;
-  width: 240px;
-  height: 240px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.brands-bg-flourish-br {
-  position: absolute;
-  bottom: -40px;
-  right: -40px;
-  width: 240px;
-  height: 240px;
-  pointer-events: none;
-  z-index: 1;
-}
-
 .brands-lead-container {
-  max-width: 1400px;
+  max-width: 1360px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.8rem;
   position: relative;
   z-index: 2;
 }
 
-/* Header */
+/* ── Section Header ──────────────────────────────────────────────────────── */
 .brands-lead-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 3.5rem;
-}
-
-.brands-lead-eyebrow {
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.32em;
-  color: #A8824B;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  margin-bottom: 2.2rem;
+  padding: 0 0.2rem;
 }
 
 .brands-lead-title {
-  font-family: var(--font-heading, 'Cormorant Garamond', serif);
-  font-size: clamp(2.4rem, 4vw, 3.6rem);
+  font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #1C2536;
   margin: 0;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 .brands-title-gold {
-  font-family: var(--font-heading, 'Cormorant Garamond', serif);
-  font-weight: 700;
-  color: #C29653;
+  font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
   font-style: italic;
+  color: #C29653;
+  font-weight: 600;
 }
 
-/* Lotus Header Divider */
-.brands-header-divider {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin: 0.85rem 0 1.1rem;
-}
-
-.divider-line {
-  width: 48px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #C29653, transparent);
-}
-
-.lotus-emblem-svg {
-  width: 28px;
-  height: 18px;
-}
-
-.brands-lead-subtitle {
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.95rem;
-  font-weight: 400;
-  color: #6B7280;
-  margin: 0;
-  max-width: 620px;
-  line-height: 1.5;
-}
-
-/* Grid of Brand Cards (4 columns on desktop) */
-.brands-cards-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-}
-
-/* Individual Card */
-.brand-card-item {
+/* ── Base Card Styling ───────────────────────────────────────────────────── */
+.bento-card {
   position: relative;
   border-radius: 20px;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  height: 230px;
-  background-color: var(--card-bg, #FCEEEF);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   cursor: pointer;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
-}
-
-.brand-card-item:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
-}
-
-/* Left Photo Side */
-.brand-card-photo-side {
-  width: 46%;
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-  background-color: #E2E8F0;
-}
-
-.brand-card-photo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  transition: transform 0.5s ease;
-}
-
-.brand-card-item:hover .brand-card-photo-img {
-  transform: scale(1.06);
-}
-
-/* Right Info Side with Swoop Arch Curve */
-.brand-card-info-side {
-  width: 54%;
-  padding: 1.25rem 1rem 1rem 0.25rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  z-index: 2;
-  background-color: var(--card-bg);
   box-sizing: border-box;
 }
 
-/* Organic Swoop Vector overlay on left edge of info side */
-.brand-card-swoop-svg {
-  position: absolute;
-  top: 0;
-  left: -30px;
-  bottom: 0;
-  width: 31px;
-  height: 100%;
-  pointer-events: none;
-  z-index: 3;
+.bento-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
 }
 
-/* Content Details */
-.brand-details {
+/* Typography Inside Cards */
+.bento-card-texts {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  position: relative;
-  z-index: 4;
 }
 
-.brand-mini-badge {
+.bento-brand-badge {
   font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.62rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+  margin-bottom: 0.4rem;
+  display: block;
 }
 
-.brand-name-text {
-  font-family: var(--font-heading, 'Cormorant Garamond', serif);
-  font-size: clamp(1.1rem, 2.1vw, 1.55rem);
+.bento-brand-name {
+  font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
+  font-size: clamp(1.35rem, 1.65vw, 1.75rem);
   font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #1C2536;
-  margin: 0;
+  letter-spacing: 0.03em;
+  color: #1A222C;
+  margin: 0 0 0.25rem 0;
   line-height: 1.15;
   text-transform: uppercase;
-  word-break: break-word;
-  overflow-wrap: break-word;
 }
 
-.brand-tagline-text {
+.bento-role-tall .bento-brand-name,
+.bento-role-wide .bento-brand-name {
+  font-size: clamp(1.85rem, 2.3vw, 2.45rem);
+}
+
+.bento-brand-tagline {
   font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.78rem;
-  font-weight: 400;
-  color: #5A6578;
+  font-size: 0.92rem;
+  color: #4A5568;
   margin: 0;
+  font-weight: 400;
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -223,266 +103,535 @@
   overflow: hidden;
 }
 
-/* Action Area & Pill Button */
-.brand-action-area {
-  position: relative;
-  z-index: 4;
-  margin-top: 0.5rem;
-}
-
-.brand-pill-button {
+/* Pill Buttons */
+.bento-pill-btn {
   border: none;
-  padding: 0.45rem 0.9rem 0.45rem 1.1rem;
-  border-radius: 30px;
-  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 0.65rem 1.8rem;
   font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  color: #ffffff;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.button-arrow-circle {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background-color: #FFFFFF;
-  color: var(--card-accent, #1C2536);
-  display: flex;
-  align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease;
+  gap: 6px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
 }
 
-.brand-card-item:hover .brand-pill-button {
-  transform: translateX(3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+.bento-pill-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
-.brand-card-item:hover .button-arrow-circle {
-  transform: translateX(2px);
+.bento-pill-btn:active {
+  transform: translateY(0);
 }
 
-/* Delicate Corner Floral Line Art */
-.brand-card-leaf-art {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 85px;
-  height: 85px;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.8;
+/* ── Role: Default Horizontal Cards (Info Left, Photo on the Side) ───────── */
+.bento-card {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
 }
 
-/* Skeleton Loading State */
-.brands-skeleton-grid {
+.bento-card-content-left {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 1.5rem 0.8rem 1.3rem 1.6rem;
+  box-sizing: border-box;
+}
+
+.bento-hangup-content {
+  padding: 1.5rem 1.8rem 1.5rem 2.2rem;
+}
+
+.bento-card-photo-side {
+  width: 37%;
+  height: 100%;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.bento-hangup-photo-side {
+  width: 220px;
+}
+
+.bento-card-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-card:hover .bento-card-photo-img {
+  transform: scale(1.06);
+}
+
+/* ── Desktop Grid Configurations by Brand Count ──────────────────────────── */
+
+/* 1. Count-4 Bento Grid (All view: SEEMEE, GP, HUMBERTO, HANGUP) */
+.brands-bento-grid.count-4 {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: 1.15fr 1fr 1fr;
+  grid-template-rows: 255px 195px;
+  gap: 1.6rem;
+  align-items: stretch;
+}
+
+/* On large desktop screens, SEEMEE (Slot 1 in 4-card grid) spans 2 rows */
+@media (min-width: 1025px) {
+  .brands-bento-grid.count-4 .bento-slot-1.bento-role-tall {
+    grid-column: 1 / 2;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+  }
+
+  .brands-bento-grid.count-4 .bento-slot-1.bento-role-tall .bento-tall-photo-side {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 290px;
+    height: auto;
+  }
+
+  .brands-bento-grid.count-4 .bento-slot-1.bento-role-tall .bento-card-content-left {
+    width: 100%;
+    flex: 0 0 auto;
+    height: auto;
+    padding: 1.5rem 1.8rem;
+  }
+}
+
+.brands-bento-grid.count-4 .bento-slot-2 {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+
+.brands-bento-grid.count-4 .bento-slot-3 {
+  grid-column: 3 / 4;
+  grid-row: 1 / 2;
+}
+
+.brands-bento-grid.count-4 .bento-slot-4 {
+  grid-column: 2 / 4;
+  grid-row: 2 / 3;
+}
+
+/* 2. Count-3 Grid (Men view: GP, HUMBERTO, HANGUP - 3 equal columns in 1 single row) */
+.brands-bento-grid.count-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
+  align-items: stretch;
 }
 
-.brand-skeleton-card {
-  height: 230px;
+.brands-bento-grid.count-3 .bento-card {
+  height: 235px;
+  min-height: 235px;
+  grid-column: auto !important;
+  grid-row: auto !important;
+}
+
+.brands-bento-grid.count-3 .bento-slot-1,
+.brands-bento-grid.count-3 .bento-slot-2,
+.brands-bento-grid.count-3 .bento-slot-3 {
+  grid-column: auto !important;
+  grid-row: auto !important;
+  height: 235px;
+}
+
+/* 3. Count-2 Grid (Women view: SEEMEE, HUMBERTO - Horizontal cards with photo on the side) */
+.brands-bento-grid.count-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.6rem;
+  align-items: stretch;
+}
+
+.brands-bento-grid.count-2 .bento-card {
+  height: 225px;
+}
+
+/* 4. Count-1 Grid */
+.brands-bento-grid.count-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.brands-bento-grid.count-1 .bento-card {
+  height: 220px;
+}
+
+/* ── Skeleton Loading ────────────────────────────────────────────────────── */
+.brands-bento-skeleton {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr;
+  grid-template-rows: 255px 195px;
+  gap: 1.6rem;
+}
+
+.brands-bento-skeleton.count-3 {
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: 235px;
+}
+
+.brands-bento-skeleton.count-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.bento-skeleton-item {
   border-radius: 20px;
-  background: linear-gradient(90deg, rgba(235, 230, 220, 0.6) 25%, rgba(245, 240, 230, 0.8) 50%, rgba(235, 230, 220, 0.6) 75%);
+  background: linear-gradient(90deg, #EBE6DF 25%, #F5F1EB 50%, #EBE6DF 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: bentoPulse 1.5s infinite;
 }
 
-@keyframes shimmer {
+.bento-skeleton-tall {
+  grid-column: 1 / 2;
+  grid-row: 1 / 3;
+  min-height: 440px;
+}
+
+.bento-skeleton-wide {
+  grid-column: 2 / 4;
+  grid-row: 2 / 3;
+}
+
+@keyframes bentoPulse {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 1200px) {
-  .brands-cards-row,
-  .brands-skeleton-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* ── Responsive Tablet Layout (<= 1024px) ─────────────────────────────────── */
+@media (max-width: 1024px) {
+  .brands-bento-grid.count-4 {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
     gap: 1.25rem;
+  }
+
+  .brands-bento-grid.count-4 .bento-slot-1 {
+    grid-column: 1 / 3;
+    height: 230px;
+    flex-direction: row;
+  }
+
+  .brands-bento-grid.count-4 .bento-slot-2 {
+    grid-column: 1 / 2;
+    height: 230px;
+    flex-direction: row;
+  }
+
+  .brands-bento-grid.count-4 .bento-slot-3 {
+    grid-column: 2 / 3;
+    height: 230px;
+    flex-direction: row;
+  }
+
+  .brands-bento-grid.count-4 .bento-slot-4 {
+    grid-column: 1 / 3;
+    height: 210px;
+    flex-direction: row;
+  }
+
+  .brands-bento-grid.count-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.15rem;
+  }
+
+  .brands-bento-grid.count-3 .bento-card {
+    height: 220px;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    flex-direction: row;
+  }
+
+  .brands-bento-grid.count-3 .bento-slot-1,
+  .brands-bento-grid.count-3 .bento-slot-2,
+  .brands-bento-grid.count-3 .bento-slot-3 {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    height: 220px;
+    flex-direction: row;
+  }
+
+  .brands-bento-grid.count-2 {
+    gap: 1.25rem;
+  }
+
+  .brands-bento-grid.count-2 .bento-card {
+    height: 220px;
+    flex-direction: row;
   }
 }
 
+/* Medium Tablet (769px - 880px): Stack 3-count brands horizontally for maximum luxury elegance */
+@media (max-width: 880px) and (min-width: 769px) {
+  .brands-bento-grid.count-3 {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .brands-bento-grid.count-3 .bento-card {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 190px !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+  }
+}
+
+/* ── Responsive Mobile Layout (<= 768px) ──────────────────────────────────── */
 @media (max-width: 768px) {
   .brands-lead-section {
-    padding: 3rem 0;
+    padding: 2.2rem 0 3.2rem;
   }
 
   .brands-lead-container {
     padding: 0 1rem;
+    box-sizing: border-box;
   }
 
   .brands-lead-header {
-    margin-bottom: 2rem;
-  }
-
-  .brands-lead-eyebrow {
-    font-size: 0.7rem;
+    margin-bottom: 1.35rem;
+    padding: 0 0.15rem;
   }
 
   .brands-lead-title {
-    font-size: 2rem;
+    font-size: clamp(1.95rem, 5.8vw, 2.35rem);
+    font-weight: 500;
   }
 
-  .brands-lead-subtitle {
-    font-size: 0.85rem;
+  /* Full-Width Luxury Stacked Cards Layout (All Audience Counts: 4, 3, 2, 1) */
+  .brands-bento-grid.count-4,
+  .brands-bento-grid.count-3,
+  .brands-bento-grid.count-2,
+  .brands-bento-grid.count-1 {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
   }
 
-  .brands-cards-row,
-  .brands-skeleton-grid {
-    grid-template-columns: repeat(2, 1fr);
+  /* Every card is a full-width horizontal luxury card on mobile */
+  .brands-bento-grid .bento-card {
+    width: 100% !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+    height: auto !important;
+    min-height: 185px;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .brands-bento-grid .bento-card:active {
+    transform: scale(0.985);
+  }
+
+  /* ── 1. Content Left Side (For All Cards on Mobile) ─────────────────────── */
+  /* For role-tall (SEEMEE: .bento-seemee-info-wrap) */
+  .bento-role-tall .bento-seemee-info-wrap {
+    order: 1;
+    width: 58%;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.15rem 0.9rem 1.15rem 1.25rem;
+    box-sizing: border-box;
+    background-color: transparent !important;
+  }
+
+  /* For role-square & role-wide (.bento-card-content-left) */
+  .bento-role-square .bento-card-content-left,
+  .bento-role-wide .bento-card-content-left {
+    order: 1;
+    width: 58%;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.15rem 0.9rem 1.15rem 1.25rem;
+    box-sizing: border-box;
+  }
+
+  /* ── 2. Photo Right Side (For All Cards on Mobile) ──────────────────────── */
+  /* For role-tall (SEEMEE: .bento-seemee-photo-wrap) */
+  .bento-role-tall .bento-seemee-photo-wrap {
+    order: 2;
+    width: 42%;
+    height: auto;
+    min-height: 100%;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .bento-role-tall .bento-seemee-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    transform: none;
+    display: block;
+  }
+
+  /* For role-square & role-wide (.bento-card-photo-side) */
+  .bento-role-square .bento-card-photo-side,
+  .bento-role-wide .bento-card-photo-side {
+    order: 2;
+    width: 42%;
+    height: auto;
+    min-height: 100%;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .bento-role-square .bento-card-photo-img,
+  .bento-role-wide .bento-card-photo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+    transform: none;
+  }
+
+  /* ── 3. Typography & Badges ────────────────────────────────────────────── */
+  .bento-brand-badge {
+    font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    display: block;
+  }
+
+  .bento-brand-name {
+    font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
+    font-size: clamp(1.45rem, 4.6vw, 1.85rem) !important;
+    font-weight: 700;
+    color: #1A222C;
+    margin: 0 0 0.2rem 0;
+    line-height: 1.15;
+    text-transform: uppercase;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    word-break: normal;
+  }
+
+  .bento-brand-tagline {
+    font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+    font-size: 0.8rem;
+    color: #4A5568;
+    margin: 0 0 0.65rem 0;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ── 4. Branded Pill Buttons ───────────────────────────────────────────── */
+  .bento-btn-wrap {
+    margin-top: auto;
+    display: flex;
+    width: 100%;
+  }
+
+  .bento-pill-btn {
+    border: none;
+    border-radius: 9999px;
+    padding: 0.5rem 1.25rem;
+    font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: auto;
+    align-self: flex-start;
+    flex-shrink: 0;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* ── Ultra-compact Mobile Screens (<= 375px) ──────────────────────────────── */
+@media (max-width: 375px) {
+  .brands-lead-container {
+    padding: 0 0.75rem;
+  }
+
+  .brands-bento-grid.count-4,
+  .brands-bento-grid.count-3,
+  .brands-bento-grid.count-2,
+  .brands-bento-grid.count-1 {
     gap: 0.85rem;
   }
 
-  .brand-card-item {
-    height: 180px;
-    border-radius: 16px;
+  .brands-bento-grid .bento-card {
+    min-height: 175px;
   }
 
-  .brand-card-photo-side {
-    width: 44%;
+  .bento-role-tall .bento-seemee-info-wrap,
+  .bento-role-square .bento-card-content-left,
+  .bento-role-wide .bento-card-content-left {
+    width: 60%;
+    padding: 0.95rem 0.75rem 0.95rem 1rem;
   }
 
-  .brand-card-info-side {
-    width: 56%;
-    padding: 1rem 0.85rem 0.85rem 0.25rem;
+  .bento-role-tall .bento-seemee-photo-wrap,
+  .bento-role-square .bento-card-photo-side,
+  .bento-role-wide .bento-card-photo-side {
+    width: 40%;
   }
 
-  .brand-card-swoop-svg {
-    left: -20px;
-    width: 21px;
+  .bento-brand-name {
+    font-size: 1.35rem !important;
   }
 
-  .brand-mini-badge {
-    font-size: 0.52rem;
+  .bento-brand-tagline {
+    font-size: 0.74rem;
   }
 
-  .brand-name-text {
-    font-size: 1.3rem;
-  }
-
-  .brand-tagline-text {
-    font-size: 0.72rem;
-  }
-
-  .brand-pill-button {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.72rem;
-  }
-
-  .button-arrow-circle {
-    width: 18px;
-    height: 18px;
-  }
-
-  .brand-card-leaf-art {
-    width: 60px;
-    height: 60px;
-  }
-}
-
-@media (max-width: 520px) {
-  .brands-lead-section {
-    padding: 2.2rem 0;
-  }
-
-  .brands-lead-container {
-    padding: 0 0.65rem;
-  }
-
-  .brands-lead-header {
-    margin-bottom: 1.5rem;
-  }
-
-  .brands-lead-title {
-    font-size: 1.65rem;
-  }
-
-  .brands-lead-subtitle {
-    font-size: 0.78rem;
-  }
-
-  .brands-cards-row,
-  .brands-skeleton-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.6rem !important;
-  }
-
-  .brand-card-item {
-    height: 165px;
-    border-radius: 14px;
-  }
-
-  .brand-card-photo-side {
-    width: 42%;
-  }
-
-  .brand-card-info-side {
-    width: 58%;
-    padding: 0.65rem 0.5rem 0.5rem 0.15rem;
-  }
-
-  .brand-card-swoop-svg {
-    left: -15px;
-    width: 16px;
-  }
-
-  .brand-mini-badge {
-    font-size: 0.46rem;
-    letter-spacing: 0.08em;
-  }
-
-  .brand-name-text {
-    font-size: 1.05rem;
-    line-height: 1.1;
-  }
-
-  .brand-tagline-text {
-    font-size: 0.62rem;
-    line-height: 1.25;
-  }
-
-  .brand-pill-button {
-    padding: 0.25rem 0.55rem;
-    font-size: 0.62rem;
-    gap: 0.25rem;
-  }
-
-  .button-arrow-circle {
-    width: 14px;
-    height: 14px;
-  }
-
-  .brand-card-leaf-art {
-    width: 40px;
-    height: 40px;
-  }
-}
-
-@media (max-width: 375px) {
-  .brands-cards-row,
-  .brands-skeleton-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.45rem !important;
-  }
-
-  .brand-card-item {
-    height: 155px;
-    border-radius: 12px;
-  }
-
-  .brand-name-text {
-    font-size: 0.95rem;
-  }
-
-  .brand-pill-button {
-    padding: 0.2rem 0.45rem;
-    font-size: 0.58rem;
+  .bento-pill-btn {
+    padding: 0.42rem 0.95rem;
+    font-size: 0.74rem;
   }
 }

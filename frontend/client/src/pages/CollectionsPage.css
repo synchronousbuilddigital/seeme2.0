@@ -1004,13 +1004,28 @@
   top: 15px;
   left: 15px;
   padding: 6px 14px;
-  background: rgba(28, 25, 23, 0.85);
+  background: rgba(28, 25, 23, 0.88);
   color: #f87171;
   border-radius: 20px;
   font-family: var(--font-body, sans-serif);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 1px;
+  z-index: 3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.collection-product-card.is-out-of-stock {
+  opacity: 0.88;
+}
+
+.collection-product-card.is-out-of-stock .product-image {
+  opacity: 0.82;
+  filter: grayscale(15%);
+}
+
+.collection-product-card.is-out-of-stock .product-name {
+  color: #64748b;
 }
 
 .sale-badge-pill {
