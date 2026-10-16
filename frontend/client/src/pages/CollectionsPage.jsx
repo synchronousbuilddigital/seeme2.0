@@ -9,6 +9,7 @@ import { isProductInCategory, getCategoryProducts, belongsToAudience } from '../
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from '../components/AddToCartButton'
 import FestiveFireworksCanvas from '../components/FestiveFireworksCanvas'
+import { getColorHex } from '../utils/colorHelper'
 import './CollectionsPage.css'
 
 export const isProductOutOfStock = (product) => {
@@ -52,6 +53,7 @@ const CollectionsPage = () => {
   const [priceFilter, setPriceFilter] = useState('all')
   const [maxPrice, setMaxPrice] = useState(10000)
   const [selectedSizes, setSelectedSizes] = useState([])
+  const [selectedColors, setSelectedColors] = useState([])
   const [showSidebar, setShowSidebar] = useState(true)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [openSections, setOpenSections] = useState({
@@ -59,6 +61,7 @@ const CollectionsPage = () => {
     categories: true,
     price: true,
     sizes: true,
+    colors: true,
     sort: true
   })
   const [addedToast, setAddedToast] = useState(false)
@@ -76,6 +79,7 @@ const CollectionsPage = () => {
     const catParam = params.get('category')
     const genderParam = params.get('gender')
     const brandParam = params.get('brand')
+    const colorParam = params.get('color')
     if (catParam) {
       setSelectedCategory(catParam.toLowerCase().trim())
     } else if (brandParam) {
@@ -91,6 +95,11 @@ const CollectionsPage = () => {
       setSelectedBrand(brandParam.toLowerCase().trim())
     } else {
       setSelectedBrand('all')
+    }
+    if (colorParam) {
+      setSelectedColors([colorParam.trim()])
+    } else {
+      setSelectedColors([])
     }
     fetchCollectionsAndProducts()
     window.scrollTo(0, 0)
@@ -150,10 +159,47 @@ const CollectionsPage = () => {
     )
   }
 
+  const toggleColorFilter = (colName) => {
+    const target = colName.toLowerCase().trim()
+    setSelectedColors(prev =>
+      prev.some(c => c.toLowerCase() === target)
+        ? prev.filter(c => c.toLowerCase() !== target)
+        : [...prev, colName]
+    )
+  }
+
   const audienceProducts = useMemo(() => {
     if (!selectedAudience || selectedAudience === 'all') return products
     return products.filter(p => belongsToAudience(p, selectedAudience))
   }, [products, selectedAudience])
+
+  // Extract available colours dynamically from active audience products (excluding 'Standard')
+  const availableColors = useMemo(() => {
+    const colorMap = new Map()
+    audienceProducts.forEach(p => {
+      const list = []
+      if (p.color && typeof p.color === 'string' && p.color.trim() && p.color.trim().toLowerCase() !== 'standard') {
+        list.push(p.color.trim())
+      }
+      if (Array.isArray(p.colors)) {
+        p.colors.forEach(c => {
+          if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
+            list.push(c.trim())
+          }
+        })
+      }
+      const uniqueProdColors = Array.from(new Set(list.map(c => c.toLowerCase())))
+      uniqueProdColors.forEach(norm => {
+        const originalName = list.find(c => c.toLowerCase() === norm)
+        if (!colorMap.has(norm)) {
+          colorMap.set(norm, { name: originalName, count: 1 })
+        } else {
+          colorMap.get(norm).count += 1
+        }
+      })
+    })
+    return Array.from(colorMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }, [audienceProducts])
 
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
@@ -213,6 +259,25 @@ const CollectionsPage = () => {
       )
     }
 
+    // Colour Filter
+    if (selectedColors.length > 0) {
+      const targets = selectedColors.map(c => c.toLowerCase().trim())
+      result = result.filter(p => {
+        const prodColors = []
+        if (p.color && typeof p.color === 'string' && p.color.trim() && p.color.trim().toLowerCase() !== 'standard') {
+          prodColors.push(p.color.trim().toLowerCase())
+        }
+        if (Array.isArray(p.colors)) {
+          p.colors.forEach(c => {
+            if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
+              prodColors.push(c.trim().toLowerCase())
+            }
+          })
+        }
+        return targets.some(target => prodColors.includes(target))
+      })
+    }
+
     // Sort: In-stock first (latest on top), Out-of-stock to the bottom
     result.sort((a, b) => {
       const aOut = isProductOutOfStock(a)
@@ -248,7 +313,7 @@ const CollectionsPage = () => {
     })
 
     return result
-  }, [audienceProducts, selectedCategory, selectedBrand, searchQuery, priceFilter, maxPrice, selectedSizes, sortBy])
+  }, [audienceProducts, selectedCategory, selectedBrand, searchQuery, priceFilter, maxPrice, selectedSizes, selectedColors, sortBy])
 
   useEffect(() => {
     if (filteredProducts.length > 0) {
@@ -282,11 +347,12 @@ const CollectionsPage = () => {
     setPriceFilter('all')
     setMaxPrice(10000)
     setSelectedSizes([])
+    setSelectedColors([])
     setSortBy('featured')
     setSearchQuery('')
   }
 
-  const hasActiveFilters = selectedCategory !== 'all' || selectedBrand !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
+  const hasActiveFilters = selectedCategory !== 'all' || selectedBrand !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || selectedColors.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
 
   if (loading) {
     return (
@@ -539,6 +605,48 @@ const CollectionsPage = () => {
               </div>
             </div>
 
+            {/* Colour Filter Widget */}
+            {availableColors.length > 0 && (
+              <div className="sidebar-widget">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <h4 className="widget-title" style={{ margin: 0 }}>COLOURS</h4>
+                  {selectedColors.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedColors([])}
+                      style={{ background: 'none', border: 'none', fontSize: '0.72rem', color: '#dc2626', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                    >
+                      Clear ({selectedColors.length})
+                    </button>
+                  )}
+                </div>
+                <div className="sidebar-color-chips">
+                  {availableColors.map(c => {
+                    const isSelected = selectedColors.some(sel => sel.toLowerCase() === c.name.toLowerCase())
+                    const hex = getColorHex(c.name)
+                    return (
+                      <button
+                        key={c.name}
+                        type="button"
+                        className={`sidebar-color-chip ${isSelected ? 'active' : ''}`}
+                        onClick={() => toggleColorFilter(c.name)}
+                        title={`${c.name} (${c.count})`}
+                      >
+                        <span className="sidebar-color-dot" style={{ backgroundColor: hex }} />
+                        <span className="sidebar-color-name">{c.name}</span>
+                        <span className="sidebar-color-count">{c.count}</span>
+                        {isSelected && (
+                          <svg className="sidebar-color-check" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Size Filter */}
             <div className="sidebar-widget">
               <h4 className="widget-title">SIZES</h4>
@@ -615,6 +723,34 @@ const CollectionsPage = () => {
                   </button>
                 </span>
               )}
+              {selectedColors.map(col => (
+                <span
+                  key={col}
+                  className="color-filter-active-pill"
+                  style={{
+                    background: '#1c1917',
+                    color: '#d4af37',
+                    border: '1px solid rgba(212, 175, 55, 0.4)',
+                    padding: '3px 10px',
+                    borderRadius: '20px',
+                    fontSize: '0.8rem',
+                    fontWeight: 600,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getColorHex(col), display: 'inline-block', border: '1px solid rgba(255,255,255,0.2)' }} />
+                  {col}
+                  <button
+                    style={{ background: 'none', border: 'none', color: '#d4af37', cursor: 'pointer', fontSize: '13px', padding: 0, lineHeight: 1 }}
+                    onClick={() => toggleColorFilter(col)}
+                    title={`Remove ${col} filter`}
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
             </div>
             <button
               className="mobile-filter-trigger-btn"

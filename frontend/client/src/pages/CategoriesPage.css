@@ -1,37 +1,40 @@
 /* ==========================================================================
-   SEEMEE Luxury Categories Directory CSS (Matching Mockup Design)
+   SEEMEE Luxury Categories Directory CSS (Exact Bento Grid Layout)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 .all-categories-page {
   min-height: 100vh;
-  background: #faf8f5;
-  color: #1c1917;
-  padding-top: 90px;
-  padding-bottom: 80px;
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  background-color: #f6f4ee;
+  color: #151917;
+  padding-top: clamp(96px, 11vh, 120px);
+  padding-bottom: 60px;
+  font-family: var(--font-body, 'Plus Jakarta Sans', -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Loading State */
 .categories-page-loading {
-  min-height: 85vh;
+  min-height: 75vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 16px;
   background: #0f0d0c;
   color: #d4af37;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
 }
 
 .glowing-gold-spinner {
-  width: 54px;
-  height: 54px;
-  border: 3px solid rgba(212, 175, 55, 0.15);
+  width: 40px;
+  height: 40px;
+  border: 2.5px solid rgba(212, 175, 55, 0.15);
   border-radius: 50%;
   border-top-color: #d4af37;
-  animation: spinGold 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  animation: spinGold 0.85s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
 }
 
 @keyframes spinGold {
@@ -40,692 +43,728 @@
 }
 
 /* ==========================================================================
-   TOP HEADER CONTROL BAR (Matching Mockup Pill Controls)
+   MAIN WRAPPER
    ========================================================================== */
 
-.editorial-top-bar {
-  max-width: 1400px;
-  margin: 0 auto 30px;
-  padding: 0 clamp(20px, 4vw, 50px);
-}
-
-.editorial-top-container {
+.mockup-categories-wrapper {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 3vw, 36px);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
 }
 
-/* Left Segmented Control Pill: ALL | MEN | WOMEN */
-.mockup-audience-pill-container {
+/* ==========================================================================
+   TOP CONTROLS (Slim Audience Pills + Pill Search)
+   ========================================================================== */
+
+.mockup-top-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-bottom: 4px;
+}
+
+.mockup-audience-pill-bar {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  background: #eae5dc;
-  padding: 5px;
-  border-radius: 30px;
-  border: 1px solid rgba(28, 25, 23, 0.06);
+  background: #e7e2d7;
+  padding: 4px;
+  border-radius: 9999px;
+  gap: 3px;
+  border: 1px solid rgba(21, 25, 23, 0.08);
 }
 
-.mockup-pill-btn {
-  padding: 8px 24px;
-  border-radius: 22px;
+.mockup-filter-btn {
   border: none;
   background: transparent;
-  color: #6b7280;
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.78rem;
+  color: #5d665f;
+  font-family: inherit;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.06em;
+  padding: 6px 16px;
+  border-radius: 9999px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
 }
 
-.mockup-pill-btn:hover {
-  color: #1c1917;
+.mockup-filter-btn:hover:not(.active) {
+  color: #151917;
+  background: rgba(255, 255, 255, 0.5);
 }
 
-.mockup-pill-btn.active {
-  background: #ffffff;
-  color: #000000;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+.mockup-filter-btn.active {
+  background: #151917;
+  color: #ffffff;
   font-weight: 800;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* Right Search Input Pill */
+/* Search Box */
 .mockup-search-pill-box {
   position: relative;
-  min-width: 260px;
-  max-width: 360px;
-  width: 100%;
-}
-
-.mockup-search-pill-box input {
-  width: 100%;
-  height: 42px;
-  padding: 0 40px 0 20px;
-  border: 1px solid rgba(28, 25, 23, 0.12);
-  border-radius: 30px;
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
   background: #ffffff;
-  color: #1c1917;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(21, 25, 23, 0.12);
+  border-radius: 9999px;
+  height: 38px;
+  padding: 0 14px;
+  gap: 8px;
+  width: 100%;
+  max-width: 280px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
-.mockup-search-pill-box input:focus {
-  outline: none;
-  border-color: #1c1917;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+.mockup-search-pill-box:focus-within {
+  border-color: #151917;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-.mockup-search-pill-box svg {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-.clear-search-trigger {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  color: #78716c;
-  cursor: pointer;
-  padding: 2px 6px;
-  line-height: 1;
-}
-
-/* ==========================================================================
-   3-COLUMN VERTICAL DRIFTING HERO SHOWCASE (Matching Mockup)
-   ========================================================================== */
-
-.drifting-hero-section {
-  max-width: 1400px;
-  margin: 0 auto 60px;
-  padding: 0 clamp(20px, 4vw, 50px);
-}
-
-.drifting-hero-container {
-  display: grid;
-  grid-template-columns: 1fr 1.35fr;
-  gap: 40px;
-  align-items: center;
-  min-height: 680px;
-}
-
-/* Left Content */
-.hero-left-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-right: 20px;
-}
-
-.hero-main-heading {
-  font-family: var(--font-heading, 'Playfair Display', serif);
-  font-size: clamp(2.8rem, 4.5vw, 4.2rem);
-  font-weight: 500;
-  color: #1c1917;
-  line-height: 1.15;
-  margin: 0 0 16px 0;
-  letter-spacing: -0.5px;
-}
-
-.hero-heading-line {
-  width: 48px;
-  height: 3px;
-  background: #3b82f6;
-  margin-bottom: 20px;
-  border-radius: 2px;
-}
-
-.hero-subtext {
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 1.05rem;
-  color: #78716c;
-  line-height: 1.6;
-  margin-bottom: 32px;
-  max-width: 420px;
-}
-
-.hero-explore-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 28px;
-  background: transparent;
-  border: 1.5px solid #1c1917;
-  border-radius: 4px;
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #1c1917;
-  cursor: pointer;
-  width: fit-content;
-  transition: all 0.3s ease;
-}
-
-.hero-explore-btn:hover {
-  background: #1c1917;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-}
-
-.hero-explore-btn svg {
-  transition: transform 0.3s ease;
-}
-
-.hero-explore-btn:hover svg {
-  transform: translateX(4px);
-}
-
-/* Right 3-Column Drifting Columns Mosaic */
-.hero-right-drift-mosaic {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  height: 680px;
-  overflow: hidden;
-  position: relative;
-  border-radius: 24px;
-  padding: 10px 0;
-  mask-image: linear-gradient(to bottom, transparent, black 6%, black 94%, transparent);
-  -webkit-mask-image: linear-gradient(to bottom, transparent, black 6%, black 94%, transparent);
-}
-
-.drift-column-wrap {
-  position: relative;
-  height: 100%;
-  overflow: hidden;
-}
-
-.drift-column-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  will-change: transform;
-}
-
-.drift-column-inner.col-up {
-  animation: driftUp 26s linear infinite;
-}
-
-.drift-column-inner.col-down {
-  animation: driftDown 30s linear infinite;
-}
-
-/* Hover Pause Interaction */
-.drift-column-wrap:hover .drift-column-inner {
-  animation-play-state: paused !important;
-}
-
-@keyframes driftUp {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
-}
-
-@keyframes driftDown {
-  0% { transform: translateY(-50%); }
-  100% { transform: translateY(0); }
-}
-
-/* Drifting Card Item Styling (Matching Screenshot) */
-.drift-card-item {
-  height: 310px;
-  border-radius: 20px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  color: #ffffff;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease;
+.mockup-search-icon {
+  color: #3b423d;
   flex-shrink: 0;
 }
 
-.drift-card-item:hover {
-  transform: scale(1.04);
-  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
-  z-index: 5;
-}
-
-.card-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.mockup-search-pill-box input {
+  border: none;
+  background: transparent;
+  outline: none;
   width: 100%;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #151917;
 }
 
-.card-eyebrow-text {
-  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 1.8px;
-  color: #ffffff;
-  text-transform: uppercase;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+.mockup-search-pill-box input::placeholder {
+  color: #7b837d;
+  font-weight: 400;
 }
 
-.card-arrow-circle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  transition: transform 0.3s ease;
+.mockup-search-clear {
+  border: none;
+  background: none;
+  font-size: 1.15rem;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
 }
 
-.drift-card-item:hover .card-arrow-circle {
-  transform: scale(1.1) rotate(-45deg);
-}
-
-.card-bottom-title {
-  font-family: var(--font-heading, 'Playfair Display', serif);
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0;
-  line-height: 1.25;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+.mockup-search-clear:hover {
+  color: #151917;
 }
 
 /* ==========================================================================
-   MAIN EDITORIAL CATEGORY GRID & FOOTER
+   EXACT 3-COLUMN BENTO GRID MATCHING THE MOCKUP IMAGE
    ========================================================================== */
 
-.visual-categories-section {
-  max-width: 1400px;
-  margin: 0 auto 60px;
-  padding: 0 clamp(20px, 4vw, 50px);
-}
-
-.categories-editorial-grid {
+.mockup-bento-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-  gap: 32px;
+  grid-template-columns: 0.95fr 1.55fr 0.95fr;
+  gap: 14px;
+  align-items: stretch;
 }
 
-.no-categories-found {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 80px 20px;
-  background: white;
-  border-radius: 24px;
-  border: 1px dashed rgba(212, 175, 55, 0.3);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+/* --------------------------------------------------------------------------
+   SHARED CARD STYLES
+   -------------------------------------------------------------------------- */
+
+.bento-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.no-categories-found p {
-  font-family: var(--font-body, sans-serif);
-  font-size: 1.1rem;
-  color: #78716c;
-  margin-bottom: 18px;
-}
-
-.no-categories-found button {
-  padding: 10px 24px;
-  background: #1c1917;
-  color: #d4af37;
-  border: none;
-  border-radius: 24px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.editorial-category-card {
-  background: white;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+.bento-card-title-group {
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(231, 229, 228, 0.8);
-  position: relative;
 }
 
-.editorial-category-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 45px rgba(212, 175, 55, 0.2);
-  border-color: rgba(212, 175, 55, 0.5);
+.bento-card-title {
+  font-family: inherit;
+  font-size: clamp(1.18rem, 1.4vw, 1.45rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  margin: 0;
 }
 
-.editorial-card-media {
-  position: relative;
-  width: 100%;
-  height: 310px;
-  overflow: hidden;
-  background: #faf8f5;
+.bento-card-styles {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-top: 2px;
+  letter-spacing: -0.01em;
+  opacity: 0.85;
+}
+
+/* Circular Black Button with White Diagonal Arrow ↗ */
+.bento-arrow-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #151917;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  flex-shrink: 0;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-.editorial-card-media img {
-  max-width: 100%;
-  max-height: 100%;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+.bento-arrow-circle svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.editorial-category-card:hover .editorial-card-media img {
-  transform: scale(1.07);
+/* Hover Micro-interactions */
+.bento-tall-col:hover .bento-arrow-circle,
+.bento-horizontal-card:hover .bento-arrow-circle,
+.bento-compact-card:hover .bento-arrow-circle {
+  transform: scale(1.08);
 }
 
-.editorial-card-content {
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  justify-content: space-between;
-  background: white;
+.bento-tall-col:hover .bento-arrow-circle svg,
+.bento-horizontal-card:hover .bento-arrow-circle svg,
+.bento-compact-card:hover .bento-arrow-circle svg {
+  transform: translate(1.5px, -1.5px);
 }
 
-.card-category-eyebrow {
-  font-family: var(--font-body, sans-serif);
-  font-size: 0.72rem;
-  letter-spacing: 2px;
-  color: #a17820;
-  font-weight: 700;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-}
+/* --------------------------------------------------------------------------
+   INNER IMAGE CONTAINER (Covering the inner card container)
+   -------------------------------------------------------------------------- */
 
-.card-title-heading {
-  font-family: var(--font-heading, serif);
-  font-size: 1.5rem;
-  color: #1c1917;
-  margin-bottom: 10px;
-  font-weight: 400;
-  line-height: 1.25;
-  transition: color 0.3s ease;
-}
-
-.editorial-category-card:hover .card-title-heading {
-  color: #a17820;
-}
-
-.card-description-text {
-  font-family: var(--font-body, sans-serif);
-  font-size: 0.88rem;
-  color: #78716c;
-  line-height: 1.55;
-  margin-bottom: 18px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.bento-inner-box {
+  border-radius: 16px;
   overflow: hidden;
-}
-
-.discover-more-cta {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+/* Images covering the container edge-to-edge with clothes framed properly */
+.bento-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+  border-radius: inherit;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bento-tall-col:hover .bento-card-img,
+.bento-horizontal-card:hover .bento-card-img,
+.bento-compact-card:hover .bento-card-img {
+  transform: scale(1.05);
+}
+
+/* --------------------------------------------------------------------------
+   COLUMN 1: TALL CARD (Cord set - Pink)
+   -------------------------------------------------------------------------- */
+
+.bento-tall-col {
+  border-radius: 22px;
+  padding: clamp(14px, 1.8vw, 18px);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  font-family: var(--font-body, sans-serif);
+  min-height: 490px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.bento-tall-col:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.bento-title-tall {
+  font-size: clamp(1.35rem, 1.8vw, 1.65rem);
+  line-height: 1.05;
+}
+
+.bento-inner-tall {
+  flex: 1;
+  min-height: 360px;
+  margin-top: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   COLUMN 2: MIDDLE STACK (Printed suit set - Yellow, Nehru jacket - Blue)
+   -------------------------------------------------------------------------- */
+
+.bento-middle-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+}
+
+.bento-horizontal-card {
+  border-radius: 22px;
+  padding: clamp(14px, 1.5vw, 16px);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 14px;
+  align-items: stretch;
+  min-height: 238px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.bento-horizontal-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.bento-horizontal-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+
+.bento-horizontal-left .bento-arrow-circle {
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
+.bento-inner-horizontal {
+  height: 100%;
+  min-height: 200px;
+}
+
+/* --------------------------------------------------------------------------
+   COLUMN 3: RIGHT STACK (T shirt - Purple, Sherwani - Peach)
+   -------------------------------------------------------------------------- */
+
+.bento-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+}
+
+.bento-compact-card {
+  border-radius: 22px;
+  padding: clamp(12px, 1.5vw, 16px);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 238px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.bento-compact-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+}
+
+.bento-compact-card .bento-card-header {
+  margin-bottom: 8px;
+}
+
+.bento-inner-compact {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  margin-top: 0;
+}
+
+/* --------------------------------------------------------------------------
+   EXTRA ITEMS GRID (For > 5 items)
+   -------------------------------------------------------------------------- */
+
+.mockup-extra-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
+}
+
+/* Empty State */
+.mockup-empty-state {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 45px 20px;
+  text-align: center;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.03);
+  margin-top: 10px;
+}
+
+.mockup-empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #151917;
+  margin-bottom: 6px;
+}
+
+.mockup-empty-state p {
+  color: #6b7280;
+  font-size: 0.88rem;
+  margin-bottom: 16px;
+}
+
+.mockup-reset-search-btn {
+  background: #151917;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 22px;
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #1c1917;
-  transition: all 0.3s ease;
-  padding-top: 14px;
-  border-top: 1px solid #f5f5f4;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.editorial-category-card:hover .discover-more-cta {
-  color: #a17820;
+.mockup-reset-search-btn:hover {
+  background: #000000;
+  transform: translateY(-2px);
 }
 
-.editorial-category-card:hover .discover-more-cta svg {
-  transform: translateX(5px);
-}
+/* ==========================================================================
+   CRAFTSMANSHIP PROMISE SECTION
+   ========================================================================== */
 
-/* Craftsmanship Banner */
 .category-editorial-footer {
-  max-width: 1400px;
-  margin: 60px auto 0;
-  padding: 0 clamp(20px, 4vw, 50px);
+  max-width: 1240px;
+  margin: 45px auto 0;
+  padding: 0 clamp(16px, 3vw, 36px);
 }
 
 .editorial-glass-box {
-  background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
-  color: white;
-  padding: 50px 36px;
-  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 247, 242, 0.9) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  border-radius: 20px;
+  padding: clamp(24px, 4vw, 36px);
   text-align: center;
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.editorial-glass-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
 }
 
 .editorial-eyebrow {
-  color: #d4af37;
-  font-family: var(--font-body, sans-serif);
-  font-size: 0.76rem;
-  letter-spacing: 2.5px;
-  font-weight: 700;
   display: block;
-  margin-bottom: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: #b8941e;
+  text-transform: uppercase;
+  margin-bottom: 6px;
 }
 
 .editorial-title {
-  font-family: var(--font-heading, serif);
-  font-size: 2.5rem;
-  margin-bottom: 16px;
-  font-weight: 300;
-  line-height: 1.2;
+  font-family: var(--font-heading, 'Cormorant Garamond', serif);
+  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  font-weight: 600;
+  color: #1c1917;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
 }
 
 .editorial-body {
-  font-family: var(--font-body, sans-serif);
-  font-size: 0.98rem;
-  color: #d6d3d1;
   max-width: 680px;
-  margin: 0 auto 28px;
-  line-height: 1.65;
+  margin: 0 auto 20px;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #6b7280;
 }
 
 .editorial-chips-row {
   display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .editorial-chip-item {
-  font-family: var(--font-body, sans-serif);
-  font-size: 0.82rem;
-  color: #d4af37;
-  background: rgba(212, 175, 55, 0.1);
-  border: 1px solid rgba(212, 175, 55, 0.3);
-  padding: 8px 18px;
-  border-radius: 20px;
-  letter-spacing: 1px;
+  display: inline-flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(212, 175, 55, 0.32);
+  color: #2b2b2b;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  padding: 6px 15px;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN (TABLET & MOBILE OPTIMIZATION)
+   RESPONSIVE DESIGN BREAKPOINTS: Mobile Bento with Desktop UI Integrity
    ========================================================================== */
 
-@media (max-width: 992px) {
-  .drifting-hero-container {
-    grid-template-columns: 1fr;
-    gap: 30px;
-  }
-
-  .hero-left-content {
-    padding-right: 0;
-    text-align: center;
-    align-items: center;
-  }
-
-  .hero-subtext {
-    max-width: 100%;
-  }
-
-  .hero-right-drift-mosaic {
-    height: 520px;
-  }
-}
-
-@media (max-width: 768px) {
-  .all-categories-page {
-    padding-top: 80px;
-    padding-bottom: 50px;
-  }
-
-  .editorial-top-bar {
-    padding: 0 16px;
-    margin-bottom: 24px;
-  }
-
-  .editorial-top-container {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 1024px) {
+  .mockup-bento-grid {
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
 
-  .mockup-audience-pill-container {
+  .bento-tall-col {
+    grid-column: span 1;
+    min-height: 420px;
+  }
+
+  .bento-middle-col {
+    grid-column: span 1;
+  }
+
+  .bento-right-col {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .bento-compact-card {
+    min-height: 215px;
+  }
+}
+
+@media (max-width: 680px) {
+  .all-categories-page {
+    padding-top: 82px;
+    padding-bottom: 25px;
+  }
+
+  .mockup-categories-wrapper {
+    padding: 0 10px;
+    gap: 10px;
+  }
+
+  .mockup-top-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .mockup-audience-pill-bar {
+    display: flex;
+    justify-content: center;
     width: 100%;
-    justify-content: space-between;
-    background: #eae5dc;
-    padding: 4px;
-    border-radius: 30px;
     box-sizing: border-box;
   }
 
-  .mockup-pill-btn {
+  .mockup-filter-btn {
     flex: 1;
     text-align: center;
-    padding: 9px 12px;
-    font-size: 0.75rem;
+    padding: 6px 8px;
+    font-size: 0.7rem;
   }
 
   .mockup-search-pill-box {
     max-width: 100%;
-    min-width: 100%;
+    width: 100%;
+    height: 36px;
   }
 
-  .mockup-search-pill-box input {
-    height: 44px;
-    font-size: 0.88rem;
-  }
-
-  .drifting-hero-section {
-    padding: 0 14px;
-    margin-bottom: 40px;
-  }
-
-  .drifting-hero-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    min-height: auto;
-  }
-
-  .hero-main-heading {
-    font-size: clamp(1.4rem, 5.5vw, 1.75rem);
-    line-height: 1.15;
-    margin-bottom: 8px;
-  }
-
-  .hero-heading-line {
-    width: 32px;
-    height: 2px;
-    margin: 0 auto 10px;
-  }
-
-  .hero-subtext {
-    font-size: 0.8rem;
-    line-height: 1.45;
-    max-width: 300px;
-    margin: 0 auto;
-  }
-
-  .hero-right-drift-mosaic {
-    grid-template-columns: repeat(3, 1fr);
+  /* Keep Desktop Bento Structure on Mobile */
+  .mockup-bento-grid {
+    display: flex;
+    flex-direction: column;
     gap: 10px;
-    height: 480px;
-    border-radius: 20px;
   }
 
-  .drift-card-item {
-    height: 220px;
-    padding: 14px;
-    border-radius: 16px;
+  /* 1. Tall Card: Stays a prominent hero vertical card */
+  .bento-tall-col {
+    min-height: 320px;
+    padding: 13px;
+    border-radius: 18px;
   }
 
-  .card-bottom-title {
-    font-size: 1.2rem;
-    line-height: 1.2;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.85);
+  .bento-title-tall {
+    font-size: 1.22rem;
   }
 
-  .card-eyebrow-text {
-    font-size: 0.62rem;
-    letter-spacing: 1.2px;
+  .bento-inner-tall {
+    min-height: 240px;
+    margin-top: 10px;
+    border-radius: 14px;
   }
 
-  .card-arrow-circle {
+  /* 2. Middle Column: True Horizontal Cards (Text Left, Image Right) */
+  .bento-middle-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bento-horizontal-card {
+    display: grid;
+    grid-template-columns: 1.05fr 1.15fr;
+    gap: 10px;
+    align-items: stretch;
+    min-height: 152px;
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .bento-horizontal-card .bento-card-title {
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
+
+  .bento-horizontal-card .bento-card-styles {
+    font-size: 0.68rem;
+    margin-top: 2px;
+  }
+
+  .bento-horizontal-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px 0;
+  }
+
+  .bento-horizontal-left .bento-arrow-circle {
+    align-self: flex-start;
+    margin-top: 8px;
     width: 26px;
     height: 26px;
   }
 
-  .card-arrow-circle svg {
-    width: 12px;
-    height: 12px;
+  .bento-horizontal-left .bento-arrow-circle svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .bento-inner-horizontal {
+    height: 100%;
+    min-height: 135px;
+    border-radius: 13px;
+  }
+
+  /* 3. Right Column: 2-Column Side-by-Side Compact Cards (Top Text, Bottom Image) */
+  .bento-right-col {
+    grid-column: span 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .bento-compact-card {
+    min-height: 190px;
+    padding: 10px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bento-compact-card .bento-card-header {
+    margin-bottom: 6px;
+    gap: 4px;
+  }
+
+  .bento-compact-card .bento-card-title {
+    font-size: 0.9rem;
+    line-height: 1.15;
+  }
+
+  .bento-compact-card .bento-card-styles {
+    font-size: 0.65rem;
+  }
+
+  .bento-compact-card .bento-arrow-circle {
+    width: 24px;
+    height: 24px;
+  }
+
+  .bento-compact-card .bento-arrow-circle svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .bento-inner-compact {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 125px;
+    border-radius: 11px;
+  }
+
+  /* Extra items grid on mobile */
+  .mockup-extra-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .category-editorial-footer {
+    margin-top: 20px;
+    padding: 0 10px;
   }
 
   .editorial-glass-box {
-    padding: 30px 16px;
-    border-radius: 20px;
-  }
-
-  .editorial-title {
-    font-size: 1.6rem;
+    padding: 18px 12px;
   }
 }
 
-@media (max-width: 480px) {
-  .hero-right-drift-mosaic {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    height: 460px;
+@media (max-width: 380px) {
+  .bento-horizontal-card {
+    grid-template-columns: 1fr 1.05fr;
+    gap: 8px;
+    padding: 10px;
+    min-height: 140px;
   }
 
-  .drift-column-wrap:nth-child(3) {
-    display: none;
+  .bento-horizontal-card .bento-card-title {
+    font-size: 0.95rem;
   }
 
-  .drift-card-item {
-    height: 220px;
-    padding: 14px;
+  .bento-right-col {
+    gap: 8px;
   }
 
-  .card-bottom-title {
-    font-size: 1.15rem;
+  .bento-compact-card {
+    padding: 8px;
+    min-height: 175px;
+  }
+
+  .bento-compact-card .bento-card-title {
+    font-size: 0.82rem;
+  }
+
+  .bento-inner-compact {
+    min-height: 112px;
   }
 }
