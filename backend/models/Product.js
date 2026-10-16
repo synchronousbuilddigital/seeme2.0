@@ -103,6 +103,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  colors: [{
+    type: String,
+    trim: true
+  }],
   fabric: {
     type: String,
     trim: true
@@ -184,11 +188,16 @@ const productSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Auto-calculate total stock and sizes array from sizeStock
+// Auto-calculate total stock and sizes array from sizeStock, and sync color/colors
 productSchema.pre('save', function (next) {
   if (this.sizeStock && this.sizeStock.length > 0) {
     this.stock = this.sizeStock.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
     this.sizes = this.sizeStock.map(item => item.size)
+  }
+  if (Array.isArray(this.colors) && this.colors.length > 0) {
+    if (!this.color) this.color = this.colors[0]
+  } else if (this.color && (!this.colors || this.colors.length === 0)) {
+    this.colors = [this.color]
   }
   next()
 })
@@ -211,6 +220,17 @@ productSchema.pre('findOneAndUpdate', function (next) {
       update.stock = totalStock
       update.sizes = sizes
     }
+  }
+
+  // Sync color/colors on update
+  const colors = update.colors || (update.$set && update.$set.colors)
+  const color = update.color || (update.$set && update.$set.color)
+  if (Array.isArray(colors) && colors.length > 0 && !color) {
+    if (update.$set) update.$set.color = colors[0]
+    else update.color = colors[0]
+  } else if (color && (!colors || colors.length === 0)) {
+    if (update.$set) update.$set.colors = [color]
+    else update.colors = [color]
   }
   next()
 })

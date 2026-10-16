@@ -821,12 +821,6 @@ const Hero = ({ activeAudience = 'all' }) => {
             {/* Soft pink glow behind main capsule */}
             <div className="capsule-glow pink-glow" />
 
-            {/* White Bounding Corner Markers framing the capsule from outside (Mockup Exact Detail) */}
-            <div className="capsule-corner marker-tl" />
-            <div className="capsule-corner marker-tr" />
-            <div className="capsule-corner marker-bl" />
-            <div className="capsule-corner marker-br" />
-
             <div className="main-visual-capsule" style={{ position: 'relative' }}>
               <AnimatePresence>
                 <motion.div

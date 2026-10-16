@@ -3,7 +3,7 @@
 .hero-banner {
   position: relative;
   min-height: auto;
-  padding: clamp(5.8rem, 10.5vh, 7.2rem) 0 0;
+  padding: clamp(5.8rem, 10.5vh, 7.2rem) 0 clamp(0.75rem, 1.8vw, 1.5rem);
   overflow: hidden;
   /* Brand-Aligned warm off-white and soft gold-cream royal gradient */
   background:
@@ -462,6 +462,7 @@
 
 /* White Bounding Crop Corner Lines framing the capsule from outside (Mockup Exact Detail) */
 .capsule-corner {
+  display: none !important;
   position: absolute;
   width: 28px;
   height: 28px;
@@ -703,7 +704,7 @@
 
 @media (max-width: 1024px) {
   .hero-banner {
-    padding: 5rem 0 0 !important;
+    padding: 5rem 0 1rem !important;
   }
 
   .hero-shell {
@@ -856,7 +857,7 @@
 
 @media (max-width: 768px) {
   .hero-banner {
-    padding: 4.6rem 0 0.4rem !important;
+    padding: 4.6rem 0 0.85rem !important;
   }
 
   .hero-shell {
@@ -972,7 +973,7 @@
 
 @media (max-width: 480px) {
   .hero-banner {
-    padding: 4.2rem 0 0.4rem !important;
+    padding: 4.2rem 0 0.65rem !important;
   }
 
   .hero-shell {

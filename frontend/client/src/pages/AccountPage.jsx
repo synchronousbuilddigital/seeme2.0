@@ -360,7 +360,7 @@ const AccountPage = () => {
                   <tr>
                     <td>
                       <div style="font-weight:600; color:#000;">${item.name}</div>
-                      <div style="font-size:0.78rem; color:#666;">Size: ${item.size || 'Standard'} • Color: ${item.color || 'Standard'}</div>
+                      <div style="font-size:0.78rem; color:#666;">Size: ${item.size || 'M'}${item.color && item.color.toLowerCase() !== 'standard' ? ` • Color: ${item.color}` : ''}</div>
                     </td>
                     <td style="text-align: center;">₹${Number(item.price || 0).toLocaleString('en-IN')}</td>
                     <td style="text-align: center;">${item.quantity}</td>

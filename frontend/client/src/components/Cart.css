@@ -197,6 +197,31 @@
   color: #8C6D23;
 }
 
+.cart-item-color-tag {
+  font-size: 11px;
+  background: #FAF8F5;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: #555555;
+  font-family: var(--font-body);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cart-item-color-tag strong {
+  color: #8C6D23;
+}
+
+.cart-item-color-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
 .cart-item-quantity {
   display: flex;
   align-items: center;

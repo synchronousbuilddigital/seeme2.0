@@ -1,7 +1,7 @@
 import Product from '../models/Product.js'
 
 export const getAllProducts = async (filters = {}) => {
-  const { category, brand, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 1000, includeInactive, status } = filters
+  const { category, brand, color, featured, inCollection, minPrice, maxPrice, sortBy, page = 1, limit = 1000, includeInactive, status } = filters
   const filter = {}
 
   const shouldIncludeInactive = includeInactive === 'true' || includeInactive === true || includeInactive === '1' || includeInactive === 1
@@ -18,6 +18,21 @@ export const getAllProducts = async (filters = {}) => {
   if (brand && brand !== 'all') {
     const cleanBrand = String(brand).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
     filter.brand = new RegExp(cleanBrand, 'i')
+  }
+  if (color && color !== 'all') {
+    const cleanColor = String(color).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const colorRegex = new RegExp(`^${cleanColor}$`, 'i')
+    const colorCond = {
+      $or: [
+        { color: colorRegex },
+        { colors: { $in: [colorRegex] } }
+      ]
+    }
+    if (filter.$and) {
+      filter.$and.push(colorCond)
+    } else {
+      filter.$and = [colorCond]
+    }
   }
   if (featured) filter.featured = true
   if (inCollection) filter.inCollection = true
@@ -93,6 +108,8 @@ export const searchProducts = async (queryParams) => {
       { subcategory: searchRegex },
       { styleCode: searchRegex },
       { sku: searchRegex },
+      { color: searchRegex },
+      { colors: searchRegex },
       { tags: searchRegex }
     ]
   }

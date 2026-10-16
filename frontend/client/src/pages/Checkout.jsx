@@ -735,7 +735,7 @@ const Checkout = () => {
           price: price, 
           quantity: item.quantity || 1, 
           size: item.selectedSize || item.size || 'M',
-          color: item.color || 'Standard',
+          color: (item.selectedColor && item.selectedColor.toLowerCase() !== 'standard') ? item.selectedColor : ((item.color && item.color.toLowerCase() !== 'standard') ? item.color : ''),
           image: item.images?.[0] || item.image 
         }
       }),
@@ -847,7 +847,7 @@ const Checkout = () => {
                     />
                     <div className="item-details">
                       <h4>{item.name}</h4>
-                      <span>Qty: {item.quantity} | Size: {item.selectedSize || item.size || 'M'}</span>
+                      <span>Qty: {item.quantity} | Size: {item.selectedSize || item.size || 'M'}{((item.selectedColor || item.color) && (item.selectedColor || item.color).toLowerCase() !== 'standard') ? ` | Colour: ${item.selectedColor || item.color}` : ''}</span>
                     </div>
                     <span className="item-price">
                       ₹{((typeof item.price === 'number' ? item.price : parseInt(item.price.replace(/[₹,]/g, '')) || 0) * (item.quantity || 1)).toLocaleString('en-IN')}
@@ -1365,7 +1365,7 @@ const Checkout = () => {
                     <h4>{item.name}</h4>
                     <div className="mini-item-meta">
                       <span className="meta-chip gold">Size: {item.selectedSize || item.size || 'M'}</span>
-                      {item.color && <span className="meta-chip">{item.color}</span>}
+                      {((item.selectedColor || item.color) && (item.selectedColor || item.color).toLowerCase() !== 'standard') && <span className="meta-chip">Colour: {item.selectedColor || item.color}</span>}
                     </div>
                   </div>
                   <div className="mini-item-price">

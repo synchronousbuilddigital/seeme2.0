@@ -334,17 +334,21 @@ export const CartProvider = ({ children }) => {
       const productId = product.id || product._id
       const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
       const productSize = product.selectedSize || product.size || defaultSize
+      const productColor = product.selectedColor || product.color || ''
       const normalizedProduct = {
         ...product,
         id: productId,
         size: productSize,
-        selectedSize: productSize
+        selectedSize: productSize,
+        color: productColor,
+        selectedColor: productColor
       }
 
       const existingIndex = prevCart.findIndex(item => {
         const itemId = item.id || item._id
         const itemSize = item.selectedSize || item.size || 'S'
-        return itemId === productId && itemSize === productSize
+        const itemColor = item.selectedColor || item.color || ''
+        return itemId === productId && itemSize === productSize && itemColor === productColor
       })
 
       const addedQty = Number(product.quantity) || 1
@@ -363,11 +367,14 @@ export const CartProvider = ({ children }) => {
     return true
   }
 
-  const removeFromCart = (productId, size) => {
+  const removeFromCart = (productId, size, color) => {
     const targetItem = cart.find(item => {
       const itemId = item.id || item._id
       const itemSize = item.selectedSize || item.size || 'S'
-      return size ? (itemId === productId && itemSize === size) : (itemId === productId)
+      const itemColor = item.selectedColor || item.color || ''
+      const sizeMatch = size ? itemSize === size : true
+      const colorMatch = color ? itemColor === color : true
+      return itemId === productId && sizeMatch && colorMatch
     })
     if (targetItem) {
       try {
@@ -380,6 +387,10 @@ export const CartProvider = ({ children }) => {
     setCart(prevCart => prevCart.filter(item => {
       const itemId = item.id || item._id
       const itemSize = item.selectedSize || item.size || 'S'
+      const itemColor = item.selectedColor || item.color || ''
+      if (size && color) {
+        return !(itemId === productId && itemSize === size && itemColor === color)
+      }
       if (size) {
         return !(itemId === productId && itemSize === size)
       }
@@ -387,9 +398,9 @@ export const CartProvider = ({ children }) => {
     }))
   }
 
-  const updateQuantity = (productId, quantity, size) => {
+  const updateQuantity = (productId, quantity, size, color) => {
     if (quantity <= 0) {
-      removeFromCart(productId, size)
+      removeFromCart(productId, size, color)
       return
     }
 
@@ -397,7 +408,12 @@ export const CartProvider = ({ children }) => {
       prevCart.map(item => {
         const itemId = item.id || item._id
         const itemSize = item.selectedSize || item.size || 'S'
-        const isMatch = size ? (itemId === productId && itemSize === size) : (itemId === productId)
+        const itemColor = item.selectedColor || item.color || ''
+        const isMatch = (size && color)
+          ? (itemId === productId && itemSize === size && itemColor === color)
+          : size
+            ? (itemId === productId && itemSize === size)
+            : (itemId === productId)
         return isMatch ? { ...item, quantity: Math.max(1, quantity) } : item
       })
     )
@@ -426,11 +442,14 @@ export const CartProvider = ({ children }) => {
     const productSize = selectedSize || product.size || product.selectedSize || defaultSize
     const addedQty = Number(quantity) || 1
 
+    const productColor = product.selectedColor || product.color || ''
     const normalizedProduct = {
       ...product,
       id: productId,
       size: productSize,
       selectedSize: productSize,
+      color: productColor,
+      selectedColor: productColor,
       quantity: addedQty
     }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getImageUrl } from '../utils/imageHelper'
+import { getColorHex, COMMON_COLOR_SUGGESTIONS } from '../utils/colorHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
 import './ProductsManager.css'
@@ -27,6 +28,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [collectionFilter, setCollectionFilter] = useState('all')
   const [stockFilter, setStockFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [colorFilter, setColorFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState(null)
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
@@ -34,6 +36,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [tagInput, setTagInput] = useState('')
   const [customSizeInput, setCustomSizeInput] = useState('')
   const [customSizeQty, setCustomSizeQty] = useState('0')
+  const [customColorInput, setCustomColorInput] = useState('')
   const pageSize = 8
   const [formTab, setFormTab] = useState('general')
   const [formData, setFormData] = useState({
@@ -60,6 +63,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       { size: '3XL', quantity: 0 }
     ],
     sizes: [],
+    color: '',
     colors: [],
     featured: false,
     inCollection: false,
@@ -143,6 +147,47 @@ const ProductsManager = ({ onPromoteToHero }) => {
     })
   }
 
+  const handleAddColor = (colToAdd) => {
+    const clean = String(colToAdd || customColorInput || '').trim()
+    if (!clean) return
+
+    const existing = Array.isArray(formData.colors) ? formData.colors : []
+    if (existing.some(c => c.toLowerCase() === clean.toLowerCase())) {
+      showNotification(`Colour "${clean}" is already in the list`, 'info')
+      return
+    }
+
+    const updated = [...existing, clean]
+    setFormData(prev => ({
+      ...prev,
+      colors: updated,
+      color: prev.color || clean
+    }))
+    setCustomColorInput('')
+    showNotification(`Added colour "${clean}"`, 'success')
+  }
+
+  const handleRemoveColor = (colToRemove) => {
+    const existing = Array.isArray(formData.colors) ? formData.colors : []
+    const updated = existing.filter(c => c.toLowerCase() !== colToRemove.toLowerCase())
+    let nextPrimary = formData.color
+    if (nextPrimary && nextPrimary.toLowerCase() === colToRemove.toLowerCase()) {
+      nextPrimary = updated[0] || ''
+    }
+    setFormData(prev => ({
+      ...prev,
+      colors: updated,
+      color: nextPrimary
+    }))
+  }
+
+  const handleSetPrimaryColor = (colName) => {
+    setFormData(prev => ({ ...prev, color: colName }))
+    showNotification(`Set "${colName}" as primary colour`, 'info')
+  }
+
+
+
   useEffect(() => {
     fetchProducts()
     fetchCategories()
@@ -152,7 +197,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, categoryFilter, audienceFilter, brandFilter, collectionFilter, stockFilter, statusFilter])
+  }, [searchTerm, categoryFilter, audienceFilter, brandFilter, collectionFilter, stockFilter, statusFilter, colorFilter])
 
   const normalizeMediaUrl = (media) => {
     if (!media) return ''
@@ -579,6 +624,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
         length: formData.length,
         careInstructions: formData.careInstructions,
         tags: finalTags,
+        color: formData.color || (formData.colors && formData.colors[0]) || undefined,
+        colors: (formData.colors && formData.colors.length > 0) ? formData.colors : (formData.color ? [formData.color] : []),
         seo: formData.seo,
         featured: formData.featured,
         inCollection: formData.inCollection,
@@ -693,6 +740,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         { size: '3XL', quantity: 0 }
       ],
       sizes: [],
+      color: '',
       colors: [],
       featured: false,
       inCollection: false,
@@ -706,6 +754,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     setTagInput('')
     setCustomSizeInput('')
     setCustomSizeQty('0')
+    setCustomColorInput('')
     setEditingProduct(null)
     setShowForm(false)
   }
@@ -713,6 +762,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const startEdit = (product) => {
     setCustomSizeInput('')
     setCustomSizeQty('0')
+    setCustomColorInput('')
     setFormData({
       name: product.name,
       description: product.description,
@@ -741,7 +791,10 @@ const ProductsManager = ({ onPromoteToHero }) => {
             { size: '3XL', quantity: 0 }
           ]),
       sizes: product.sizes || [],
-      colors: product.colors || [],
+      color: product.color || (product.colors && product.colors[0]) || '',
+      colors: Array.isArray(product.colors) && product.colors.length > 0
+        ? product.colors
+        : (product.color ? [product.color] : []),
       featured: product.featured,
       inCollection: product.inCollection || false,
       isNewArrival: product.isNewArrival || false,
@@ -875,6 +928,16 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
     const matchesAudience = audienceFilter === 'all' || checkBelongsToAudience(product, audienceFilter)
 
+    const matchesColor = colorFilter === 'all' || (() => {
+      const target = colorFilter.toLowerCase().trim()
+      const pCol = String(product.color || '').toLowerCase().trim()
+      if (pCol === target) return true
+      if (Array.isArray(product.colors) && product.colors.some(c => String(c).toLowerCase().trim() === target)) {
+        return true
+      }
+      return false
+    })()
+
     const matchesBrand = brandFilter === 'all' || (product.brand || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '') === brandFilter.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
     const matchesCollection = collectionFilter === 'all'
       || (collectionFilter === 'collection' && product.inCollection)
@@ -886,8 +949,19 @@ const ProductsManager = ({ onPromoteToHero }) => {
       || (statusFilter === 'active' && product.isActive !== false)
       || (statusFilter === 'inactive' && product.isActive === false)
 
-    return matchesSearch && matchesCategory && matchesAudience && matchesBrand && matchesCollection && matchesStock && matchesStatus
+    return matchesSearch && matchesCategory && matchesAudience && matchesBrand && matchesCollection && matchesStock && matchesStatus && matchesColor
   })
+
+  const availableColors = Array.from(new Set(
+    products.flatMap(p => {
+      const list = []
+      if (p.color && typeof p.color === 'string' && p.color.trim()) list.push(p.color.trim())
+      if (Array.isArray(p.colors)) {
+        p.colors.forEach(c => c && typeof c === 'string' && c.trim() && list.push(c.trim()))
+      }
+      return list
+    })
+  )).sort((a, b) => a.localeCompare(b))
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize))
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize)
@@ -954,6 +1028,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
             <option value="active">Active Only (Live on Storefront)</option>
             <option value="inactive">Inactive Only (Hidden on Storefront)</option>
           </select>
+
+          <select className="toolbar-select" value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
+            <option value="all">All Colours {availableColors.length > 0 ? `(${availableColors.length})` : ''}</option>
+            {availableColors.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -977,12 +1058,15 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <button className="close-drawer-btn" onClick={resetForm}>&times;</button>
               </div>
               <div className="form-header-tabs">
-                <button className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
-                <button className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
-                <button className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
-                <button className={formTab === 'features' ? 'active' : ''} onClick={() => setFormTab('features')}>Features & Specs</button>
-                <button className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
-                <button className={formTab === 'tags' ? 'active' : ''} onClick={() => setFormTab('tags')}>Tags & SEO</button>
+                <button type="button" className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
+                <button type="button" className={formTab === 'colors' ? 'active' : ''} onClick={() => setFormTab('colors')}>
+                  🎨 Colours {formData.colors?.length > 0 ? `(${formData.colors.length})` : ''}
+                </button>
+                <button type="button" className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
+                <button type="button" className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
+                <button type="button" className={formTab === 'features' ? 'active' : ''} onClick={() => setFormTab('features')}>Features & Specs</button>
+                <button type="button" className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
+                <button type="button" className={formTab === 'tags' ? 'active' : ''} onClick={() => setFormTab('tags')}>Tags & SEO</button>
               </div>
 
               <form onSubmit={handleSubmit} className="tabbed-form">
@@ -1052,6 +1136,113 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         <label>Subcategory</label>
                         <input type="text" value={formData.subcategory} onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })} placeholder="e.g. Wedding Wear" />
                       </div>
+                    </div>
+
+                    {/* Product Colours Section */}
+                    <div className="form-group mb-4 product-colors-form-block">
+                      <div className="color-section-header">
+                        <label style={{ fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>🎨 Available Colours (Select or Add Colours for this Product)</span>
+                          {formData.color && (
+                            <span className="primary-color-chip-tag" title="Main Primary Colour">
+                              Primary: <strong>{formData.color}</strong>
+                            </span>
+                          )}
+                        </label>
+                      </div>
+
+                      {/* Custom Colour Input Box */}
+                      <div className="color-input-wrapper">
+                        <input
+                          type="text"
+                          placeholder="Type custom colour (e.g. Royal Maroon, Rani Pink, Mint)"
+                          value={customColorInput}
+                          onChange={(e) => setCustomColorInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleAddColor(customColorInput)
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="btn-add-color-pill"
+                          onClick={() => handleAddColor(customColorInput)}
+                        >
+                          + Add Colour
+                        </button>
+                      </div>
+
+                      {/* Quick Suggestions Palette */}
+                      <div className="quick-color-suggestions">
+                        <span className="quick-color-label">Quick Suggestions:</span>
+                        <div className="quick-color-chips">
+                          {COMMON_COLOR_SUGGESTIONS.map(c => {
+                            const isSelected = (formData.colors || []).some(
+                              item => item.toLowerCase() === c.name.toLowerCase()
+                            )
+                            return (
+                              <button
+                                key={c.name}
+                                type="button"
+                                className={`quick-color-chip ${isSelected ? 'active' : ''}`}
+                                onClick={() => {
+                                  if (isSelected) handleRemoveColor(c.name)
+                                  else handleAddColor(c.name)
+                                }}
+                                title={isSelected ? `Click to remove ${c.name}` : `Click to add ${c.name}`}
+                              >
+                                <span className="chip-color-dot" style={{ backgroundColor: c.hex }} />
+                                <span>{c.name}</span>
+                                {isSelected ? ' ✓' : ' +'}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Active Selected Colours Badges */}
+                      {formData.colors && formData.colors.length > 0 ? (
+                        <div className="active-selected-colors-row">
+                          <span className="active-colors-label">Selected Colours ({formData.colors.length}):</span>
+                          <div className="active-color-tags">
+                            {formData.colors.map(col => {
+                              const isPrimary = (formData.color || '').toLowerCase() === col.toLowerCase()
+                              return (
+                                <div key={col} className={`active-color-badge ${isPrimary ? 'primary' : ''}`}>
+                                  <span className="chip-color-dot" style={{ backgroundColor: getColorHex(col) }} />
+                                  <span className="color-name">{col}</span>
+                                  {isPrimary ? (
+                                    <span className="is-primary-label">Primary</span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="btn-set-primary"
+                                      onClick={() => handleSetPrimaryColor(col)}
+                                      title="Set as main/primary colour"
+                                    >
+                                      Make Primary
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="btn-delete-color"
+                                    onClick={() => handleRemoveColor(col)}
+                                    title={`Remove ${col}`}
+                                  >
+                                    &times;
+                                  </button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="no-colors-hint">
+                          <span>ℹ️ Click any quick colour above or type a custom shade to add options to this product.</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="form-group mb-4">
@@ -1153,6 +1344,124 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           </div>
                         </label>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {formTab === 'colors' && (
+                  <div className="form-tab-content">
+                    <div className="form-group mb-4 product-colors-form-block dedicated-tab-mode">
+                      <div className="color-section-header">
+                        <label style={{ fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '1.05rem' }}>🎨 Product Colours & Variants (Multi-Colour Selection)</span>
+                          {formData.color && (
+                            <span className="primary-color-chip-tag" title="Main Primary Colour">
+                              Primary: <strong>{formData.color}</strong>
+                            </span>
+                          )}
+                        </label>
+                        <p style={{ margin: '4px 0 14px', fontSize: '0.84rem', color: '#64748b' }}>
+                          Add all colour options available for this product. Customers on the storefront will see these colour swatches on the individual product page and choose their preferred shade before ordering.
+                        </p>
+                      </div>
+
+                      {/* Custom Colour Input Box */}
+                      <div className="color-input-wrapper">
+                        <input
+                          type="text"
+                          placeholder="Type custom colour (e.g. Royal Maroon, Rani Pink, Wine, Mint)..."
+                          value={customColorInput}
+                          onChange={(e) => setCustomColorInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleAddColor(customColorInput)
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          className="btn-add-color-pill"
+                          onClick={() => handleAddColor(customColorInput)}
+                        >
+                          + Add Colour
+                        </button>
+                      </div>
+
+                      {/* Quick Suggestions Palette */}
+                      <div className="quick-color-suggestions">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span className="quick-color-label" style={{ margin: 0 }}>
+                            ✦ Quick Select from Popular Ethnic & Couture Shades ({COMMON_COLOR_SUGGESTIONS.length}):
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Click to toggle</span>
+                        </div>
+                        <div className="quick-color-chips">
+                          {COMMON_COLOR_SUGGESTIONS.map(c => {
+                            const isSelected = (formData.colors || []).some(
+                              item => item.toLowerCase() === c.name.toLowerCase()
+                            )
+                            return (
+                              <button
+                                key={c.name}
+                                type="button"
+                                className={`quick-color-chip ${isSelected ? 'active' : ''}`}
+                                onClick={() => {
+                                  if (isSelected) handleRemoveColor(c.name)
+                                  else handleAddColor(c.name)
+                                }}
+                                title={isSelected ? `Click to remove ${c.name}` : `Click to add ${c.name}`}
+                              >
+                                <span className="chip-color-dot" style={{ backgroundColor: c.hex }} />
+                                <span>{c.name}</span>
+                                {isSelected ? ' ✓' : ' +'}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Active Selected Colours Badges */}
+                      {formData.colors && formData.colors.length > 0 ? (
+                        <div className="active-selected-colors-row">
+                          <span className="active-colors-label">Selected Colours ({formData.colors.length}):</span>
+                          <div className="active-color-tags">
+                            {formData.colors.map(col => {
+                              const isPrimary = (formData.color || '').toLowerCase() === col.toLowerCase()
+                              return (
+                                <div key={col} className={`active-color-badge ${isPrimary ? 'primary' : ''}`}>
+                                  <span className="chip-color-dot" style={{ backgroundColor: getColorHex(col) }} />
+                                  <span className="color-name">{col}</span>
+                                  {isPrimary ? (
+                                    <span className="is-primary-label">Primary</span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="btn-set-primary"
+                                      onClick={() => handleSetPrimaryColor(col)}
+                                      title="Set as main/primary colour"
+                                    >
+                                      Make Primary
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="btn-delete-color"
+                                    onClick={() => handleRemoveColor(col)}
+                                    title={`Remove ${col}`}
+                                  >
+                                    &times;
+                                  </button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="no-colors-hint">
+                          <span>ℹ️ Click any quick colour above or type a custom shade to add options to this product.</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1272,6 +1581,30 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         <input type="number" value={formData.sizeStock.reduce((s, i) => s + i.quantity, 0)} disabled className="disabled-input" />
                       </div>
                     </div>
+
+                    {/* Colour Variants Overview Strip in Inventory Tab */}
+                    <div style={{ marginBottom: '16px', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '1.15rem' }}>🎨</span>
+                        <div>
+                          <strong style={{ fontSize: '0.88rem', color: '#1e293b' }}>
+                            Colours Selected ({(formData.colors || []).length}):
+                          </strong>
+                          <span style={{ fontSize: '0.82rem', color: '#64748b', marginLeft: '6px' }}>
+                            {formData.colors && formData.colors.length > 0 ? formData.colors.join(', ') : 'None yet (Click button to add colours)'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="size-action-link-btn"
+                        onClick={() => setFormTab('colors')}
+                        style={{ fontSize: '0.8rem', padding: '4px 10px' }}
+                      >
+                        🎨 Manage Colours
+                      </button>
+                    </div>
+
                     <div className="inventory-grid">
                       <div className="size-stock-header-row">
                         <div>
@@ -1725,6 +2058,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
               <tr>
                 <th>Product</th>
                 <th>Category</th>
+                <th>Colour</th>
                 <th>Price</th>
                 <th>Stock Level</th>
                 <th>Tags</th>
@@ -1779,6 +2113,32 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           })
                         })()}
                       </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="product-color-cell">
+                      {product.colors && product.colors.length > 0 ? (
+                        <div className="table-color-chips">
+                          {product.colors.slice(0, 2).map((col, cIdx) => (
+                            <span key={cIdx} className="table-color-pill" title={`Color: ${col}`}>
+                              <span className="color-dot" style={{ backgroundColor: getColorHex(col) }} />
+                              {col}
+                            </span>
+                          ))}
+                          {product.colors.length > 2 && (
+                            <span className="more-colors-count" title={product.colors.slice(2).join(', ')}>
+                              +{product.colors.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      ) : product.color ? (
+                        <span className="table-color-pill" title={`Color: ${product.color}`}>
+                          <span className="color-dot" style={{ backgroundColor: getColorHex(product.color) }} />
+                          {product.color}
+                        </span>
+                      ) : (
+                        <span className="no-color-dash">—</span>
+                      )}
                     </div>
                   </td>
                   <td>
@@ -1902,6 +2262,15 @@ const ProductsManager = ({ onPromoteToHero }) => {
                     </button>
                   </div>
                   <h4 className="mobile-card-title">{product.name}</h4>
+                  {(product.color || (product.colors && product.colors.length > 0)) && (
+                    <div className="mobile-product-color-row">
+                      <span className="mobile-color-label">Colour:</span>
+                      <span className="mobile-color-val">
+                        <span className="color-dot" style={{ backgroundColor: getColorHex(product.color || product.colors[0]) }} />
+                        {product.colors && product.colors.length > 0 ? product.colors.join(', ') : product.color}
+                      </span>
+                    </div>
+                  )}
                   <div className="mobile-card-price-row">
                     <span className="mobile-price">₹{product.price?.toLocaleString('en-IN')}</span>
                     {product.discountPrice > 0 && (
@@ -1949,6 +2318,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
                   <span>Hero</span>
                 </button>
+
                 <button onClick={() => startEdit(product)} className="mobile-action-btn edit">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                   <span>Edit</span>
@@ -2010,6 +2380,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
           </div>
         )}
       </AnimatePresence>
+
+
 
       {/* Toast Notification */}
       <AnimatePresence>

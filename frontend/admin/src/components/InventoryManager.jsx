@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest, withAuthHeader } from '../utils/apiClient'
 import { getImageUrl } from '../utils/imageHelper'
+import { getColorHex } from '../utils/colorHelper'
 import './InventoryManager.css'
 
 const ALL_AVAILABLE_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
@@ -655,6 +656,16 @@ const InventoryManager = () => {
                                 ))}
                               </div>
                             )}
+                            {((product.colors && product.colors.length > 0) || product.color) && (
+                              <div className="table-colors-mini-row" style={{ display: 'flex', gap: '4px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                {(product.colors && product.colors.length > 0 ? product.colors : [product.color]).map((col, idx) => (
+                                  <span key={idx} style={{ fontSize: '11px', background: '#f5f5f4', padding: '1px 6px', borderRadius: '4px', color: '#57534e', border: '1px solid #e7e5e4', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getColorHex(col) }} />
+                                    {col}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -732,6 +743,16 @@ const InventoryManager = () => {
                           {product.sizeStock.filter(st => st.quantity > 0 && st.size !== 'Custom').map((st, idx) => (
                             <span key={idx} className="size-pill-tag in">
                               {st.size}: {st.quantity}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {((product.colors && product.colors.length > 0) || product.color) && (
+                        <div className="table-colors-mini-row" style={{ display: 'flex', gap: '4px', marginTop: '6px', flexWrap: 'wrap' }}>
+                          {(product.colors && product.colors.length > 0 ? product.colors : [product.color]).map((col, idx) => (
+                            <span key={idx} style={{ fontSize: '10.5px', background: '#f5f5f4', padding: '1px 6px', borderRadius: '4px', color: '#57534e', border: '1px solid #e7e5e4', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getColorHex(col) }} />
+                              {col}
                             </span>
                           ))}
                         </div>

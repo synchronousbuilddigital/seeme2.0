@@ -7,6 +7,7 @@ import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
+import { getColorHex } from '../utils/colorHelper'
 import './CartPage.css'
 
 const CartPage = () => {
@@ -124,7 +125,7 @@ const CartPage = () => {
   const handleMoveToWishlist = (item) => {
     const itemId = item.id || item._id
     toggleWishlist(item)
-    removeFromCart(itemId, item.selectedSize || item.size)
+    removeFromCart(itemId, item.selectedSize || item.size, item.selectedColor || item.color)
     showToast(`✦ Moved "${item.name}" to your Wishlist ❤️`)
   }
 
@@ -274,7 +275,8 @@ const CartPage = () => {
                 const itemQuantity = item.quantity || 1
                 const itemLineTotal = itemPrice * itemQuantity
                 const itemSize = item.selectedSize || item.size || 'M'
-                const itemKey = `${itemId}-${itemSize}`
+                const itemColor = item.selectedColor || item.color || ''
+                const itemKey = `${itemId}-${itemSize}-${itemColor}`
                 const inWish = isInWishlist(itemId)
 
                 return (
@@ -302,6 +304,12 @@ const CartPage = () => {
                           <div className="item-category-size-meta">
                             <span className="cat-chip">{item.category || 'Atelier Collection'}</span>
                             <span className="size-chip">Size: <strong>{itemSize}</strong></span>
+                            {itemColor && itemColor.toLowerCase() !== 'standard' && (
+                              <span className="size-chip color-chip" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getColorHex(itemColor), display: 'inline-block', border: '1px solid rgba(0,0,0,0.1)' }} />
+                                Colour: <strong>{itemColor}</strong>
+                              </span>
+                            )}
                           </div>
                           <h3 
                             className="item-name-title" 
@@ -313,7 +321,7 @@ const CartPage = () => {
                         
                         <button 
                           className="item-remove-btn"
-                          onClick={() => removeFromCart(itemId, itemSize)}
+                          onClick={() => removeFromCart(itemId, itemSize, itemColor)}
                           title="Remove from Bag"
                         >
                           ✕
@@ -324,7 +332,7 @@ const CartPage = () => {
                         {/* Quantity Stepper */}
                         <div className="item-quantity-stepper">
                           <button 
-                            onClick={() => updateQuantity(itemId, itemQuantity - 1, itemSize)}
+                            onClick={() => updateQuantity(itemId, itemQuantity - 1, itemSize, itemColor)}
                             disabled={itemQuantity <= 1}
                             title="Decrease quantity"
                           >
@@ -332,7 +340,7 @@ const CartPage = () => {
                           </button>
                           <span className="quantity-val">{itemQuantity}</span>
                           <button 
-                            onClick={() => updateQuantity(itemId, itemQuantity + 1, itemSize)}
+                            onClick={() => updateQuantity(itemId, itemQuantity + 1, itemSize, itemColor)}
                             title="Increase quantity"
                           >
                             +

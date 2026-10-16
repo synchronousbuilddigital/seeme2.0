@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { API_ENDPOINTS } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { trackViewCart, trackBeginCheckout } from '../utils/gtmEcommerce'
+import { getColorHex } from '../utils/colorHelper'
 import './Cart.css'
 
 const Cart = ({ isOpen, onClose }) => {
@@ -109,7 +110,8 @@ const Cart = ({ isOpen, onClose }) => {
                   {cart.map((item) => {
                     const itemId = item.id || item._id
                     const itemSize = item.selectedSize || item.size || 'S'
-                    const itemKey = `${itemId}-${itemSize}`
+                    const itemColor = item.selectedColor || item.color || ''
+                    const itemKey = `${itemId}-${itemSize}-${itemColor}`
                     const itemPrice = typeof item.price === 'number'
                       ? item.price
                       : parseInt(String(item.price || 0).replace(/[₹,]/g, '')) || 0
@@ -135,11 +137,17 @@ const Cart = ({ isOpen, onClose }) => {
                           <div className="cart-item-meta">
                             <span className="cart-item-price">₹{itemPrice.toLocaleString('en-IN')}</span>
                             <span className="cart-item-size-tag">Size: <strong>{itemSize}</strong></span>
+                            {itemColor && itemColor.toLowerCase() !== 'standard' && (
+                              <span className="cart-item-color-tag">
+                                <span className="cart-item-color-dot" style={{ backgroundColor: getColorHex(itemColor) }} />
+                                Colour: <strong>{itemColor}</strong>
+                              </span>
+                            )}
                           </div>
 
                           <div className="cart-item-quantity">
                             <button
-                              onClick={() => updateQuantity(itemId, item.quantity - 1, itemSize)}
+                              onClick={() => updateQuantity(itemId, item.quantity - 1, itemSize, itemColor)}
                               className="qty-btn"
                               title="Decrease quantity"
                             >
@@ -147,7 +155,7 @@ const Cart = ({ isOpen, onClose }) => {
                             </button>
                             <span>{item.quantity}</span>
                             <button
-                              onClick={() => updateQuantity(itemId, item.quantity + 1, itemSize)}
+                              onClick={() => updateQuantity(itemId, item.quantity + 1, itemSize, itemColor)}
                               className="qty-btn"
                               title="Increase quantity"
                             >
@@ -158,7 +166,7 @@ const Cart = ({ isOpen, onClose }) => {
 
                         <button
                           className="cart-item-remove"
-                          onClick={() => removeFromCart(itemId, itemSize)}
+                          onClick={() => removeFromCart(itemId, itemSize, itemColor)}
                           title="Remove item"
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

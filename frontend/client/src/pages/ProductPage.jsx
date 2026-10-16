@@ -7,6 +7,7 @@ import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewItem } from '../utils/gtmEcommerce'
+import { getColorHex } from '../utils/colorHelper'
 import AddToCartButton from '../components/AddToCartButton'
 import './ProductPage.css'
 
@@ -44,7 +45,51 @@ const ProductPage = () => {
   const [error, setError] = useState(null)
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
-  const [selectedColor, setSelectedColor] = useState('Royal Gold')
+
+  const productColors = (() => {
+    const list = []
+    if (Array.isArray(product?.colors) && product.colors.length > 0) {
+      product.colors.forEach(c => {
+        if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
+          const clean = c.trim()
+          if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
+            list.push(clean)
+          }
+        }
+      })
+    }
+    if (product?.color && typeof product.color === 'string' && product.color.trim() && product.color.trim().toLowerCase() !== 'standard') {
+      const clean = product.color.trim()
+      if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
+        list.unshift(clean)
+      }
+    }
+    return list
+  })()
+
+  const [selectedColor, setSelectedColor] = useState(() => {
+    if (passedProduct) {
+      if (Array.isArray(passedProduct.colors) && passedProduct.colors.length > 0) {
+        const valid = passedProduct.colors.find(c => c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard')
+        if (valid) return valid.trim()
+      }
+      if (passedProduct.color && typeof passedProduct.color === 'string' && passedProduct.color.trim() && passedProduct.color.trim().toLowerCase() !== 'standard') {
+        return passedProduct.color.trim()
+      }
+    }
+    return ''
+  })
+
+  useEffect(() => {
+    if (product) {
+      if (productColors.length > 0) {
+        setSelectedColor(prev => prev && productColors.some(c => c.toLowerCase() === prev.toLowerCase()) ? prev : productColors[0])
+      } else {
+        setSelectedColor('')
+      }
+    }
+  }, [product?._id || product?.id, product?.colors, product?.color])
+
   const [offersOpen, setOffersOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
   const [showCouponModal, setShowCouponModal] = useState(false)
@@ -207,7 +252,10 @@ const ProductPage = () => {
       alert('Please select a size to proceed')
       return
     }
-    addToCart({ ...product, selectedSize, quantity }, navigate)
+    const colorToUse = (selectedColor && selectedColor.toLowerCase() !== 'standard')
+      ? selectedColor
+      : (productColors.length > 0 ? productColors[0] : ((product?.color && product.color.toLowerCase() !== 'standard') ? product.color : ''))
+    addToCart({ ...product, selectedSize, selectedColor: colorToUse, color: colorToUse, quantity }, navigate)
     setAddedToast(true)
     setTimeout(() => setAddedToast(false), 2500)
   }
@@ -215,15 +263,18 @@ const ProductPage = () => {
   const handleBuyNow = () => {
     if (!product) return
     const sizeToUse = selectedSize || (availableSizes && availableSizes.length > 0 ? availableSizes[0] : 'S')
+    const colorToUse = (selectedColor && selectedColor.toLowerCase() !== 'standard')
+      ? selectedColor
+      : (productColors.length > 0 ? productColors[0] : ((product?.color && product.color.toLowerCase() !== 'standard') ? product.color : ''))
     const prodId = product._id || product.id
     const inCartQty = getItemQuantity ? getItemQuantity(prodId, sizeToUse) : 0
     const qtyToUse = Math.max(Number(quantity) || 1, inCartQty || 1)
 
     if (buyNow) {
-      const res = buyNow(product, sizeToUse, qtyToUse, navigate)
+      const res = buyNow({ ...product, selectedSize: sizeToUse, selectedColor: colorToUse, color: colorToUse }, sizeToUse, qtyToUse, navigate)
       if (res === false) return
     } else {
-      const res = addToCart({ ...product, selectedSize: sizeToUse, quantity: qtyToUse }, navigate)
+      const res = addToCart({ ...product, selectedSize: sizeToUse, selectedColor: colorToUse, color: colorToUse, quantity: qtyToUse }, navigate)
       if (res === false) return
     }
 
@@ -293,11 +344,16 @@ const ProductPage = () => {
     const productId = product.id || product._id
     const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
     const productSize = selectedSize || product.selectedSize || product.size || defaultSize
+    const colorToUse = (selectedColor && selectedColor.toLowerCase() !== 'standard')
+      ? selectedColor
+      : (productColors.length > 0 ? productColors[0] : '')
     const normalizedProduct = {
       ...product,
       id: productId,
       size: productSize,
-      selectedSize: productSize
+      selectedSize: productSize,
+      color: colorToUse,
+      selectedColor: colorToUse
     }
 
     const existingIndex = (cart || []).findIndex(item => {
@@ -480,6 +536,44 @@ const ProductPage = () => {
 
 
 
+            {/* Colour Selector */}
+            {productColors.length > 0 && (
+              <div className="product-option-section pdp-color-section">
+                <div className="size-option-header">
+                  <span className="option-title-label">
+                    COLOUR: <strong>{selectedColor || productColors[0]}</strong>
+                  </span>
+                  <span className="pdp-color-count-tag">
+                    {productColors.length} {productColors.length === 1 ? 'Colour' : 'Colours Available'}
+                  </span>
+                </div>
+                <div className="color-swatches-row">
+                  {productColors.map((col) => {
+                    const isSelected = (selectedColor || productColors[0] || '').toLowerCase() === col.toLowerCase()
+                    const hex = getColorHex(col)
+                    return (
+                      <button
+                        key={col}
+                        type="button"
+                        className={`pdp-color-chip ${isSelected ? 'active' : ''}`}
+                        onClick={() => setSelectedColor(col)}
+                        title={`Select ${col}`}
+                        aria-label={`Select colour ${col}`}
+                      >
+                        <span className="color-swatch-circle-dot" style={{ backgroundColor: hex }} />
+                        <span className="color-chip-text">{col}</span>
+                        {isSelected && (
+                          <svg className="chip-check-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Size Selector */}
             <div className="product-option-section">
               <div className="size-option-header">
@@ -574,7 +668,12 @@ const ProductPage = () => {
               ) : (
                 <div className="action-buttons-row">
                   <AddToCartButton
-                    product={product}
+                    product={{
+                      ...product,
+                      selectedColor: (selectedColor && selectedColor.toLowerCase() !== 'standard')
+                        ? selectedColor
+                        : (productColors.length > 0 ? productColors[0] : '')
+                    }}
                     selectedSize={selectedSize}
                     label="ADD TO CART"
                     variant="full"
