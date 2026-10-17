@@ -3,12 +3,54 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { API_ENDPOINTS } from '../config/api'
 import { getImageUrl } from '../utils/imageHelper'
+import { cachedFetch } from '../utils/cachedFetch'
 import './FestiveBanner.css'
 
+const LOCAL_STORAGE_KEY = 'seemee_promo_banners'
+
+const parsePromoBanners = (data) => {
+  if (!data) return []
+  const rawList = Array.isArray(data.promoBanners) && data.promoBanners.length > 0
+    ? data.promoBanners
+    : data.festiveBanner?.image
+      ? [data.festiveBanner]
+      : []
+
+  return rawList
+    .filter(b => b && b.isActive !== false && b.image && String(b.image).trim().length > 0)
+    .sort((a, b) => (a.order || 0) - (b.order || 0))
+}
+
 const FestiveBanner = () => {
-  const [banners, setBanners] = useState([])
+  // Initialize from persistent localStorage for instantaneous 0ms first render
+  const [banners, setBanners] = useState(() => {
+    try {
+      const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed
+        }
+      }
+    } catch (e) {
+      console.error('Error reading cached festive banners:', e)
+    }
+    return []
+  })
+
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [loaded, setLoaded] = useState(false)
+  const [loaded, setLoaded] = useState(() => {
+    try {
+      const cached = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (cached) {
+        const parsed = JSON.parse(cached)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return true
+        }
+      }
+    } catch (e) {}
+    return false
+  })
   const [isPaused, setIsPaused] = useState(false)
   const [touchStartX, setTouchStartX] = useState(0)
   const [touchEndX, setTouchEndX] = useState(0)
@@ -20,21 +62,20 @@ const FestiveBanner = () => {
 
     const fetchBanners = async () => {
       try {
-        const res = await fetch(`${API_ENDPOINTS.SITE_SETTINGS}?_t=${Date.now()}`)
-        const response = await res.json()
+        const response = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
         if (isMounted && response?.success && response.data) {
-          const rawList = Array.isArray(response.data.promoBanners) && response.data.promoBanners.length > 0
-            ? response.data.promoBanners
-            : response.data.festiveBanner?.image
-              ? [response.data.festiveBanner]
-              : []
-
-          // Filter for valid and active banners
-          const activeList = rawList
-            .filter(b => b && b.isActive !== false && b.image && String(b.image).trim().length > 0)
-            .sort((a, b) => (a.order || 0) - (b.order || 0))
+          const activeList = parsePromoBanners(response.data)
 
           setBanners(activeList)
+          try {
+            if (activeList.length > 0) {
+              localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(activeList))
+            } else {
+              localStorage.removeItem(LOCAL_STORAGE_KEY)
+            }
+          } catch (e) {
+            console.error('Error saving festive banners to storage:', e)
+          }
         }
       } catch (err) {
         console.error('Promo banners fetch error:', err)
@@ -49,6 +90,18 @@ const FestiveBanner = () => {
       isMounted = false
     }
   }, [])
+
+  // Preload banner images for instantaneous rendering without visual flicker
+  useEffect(() => {
+    if (banners.length > 0) {
+      banners.forEach(b => {
+        if (b?.image) {
+          const img = new Image()
+          img.src = getImageUrl(b.image)
+        }
+      })
+    }
+  }, [banners])
 
   const nextSlide = useCallback(() => {
     if (banners.length <= 1) return
@@ -144,7 +197,7 @@ const FestiveBanner = () => {
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && handleBannerClick(e)}
       >
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={currentBanner._id || currentIndex}
             className="festive-slide-frame"
@@ -158,6 +211,8 @@ const FestiveBanner = () => {
               alt={currentBanner.title || 'Promotional Banner'}
               className="festive-banner-img"
               loading="eager"
+              fetchPriority="high"
+              decoding="async"
             />
 
             {showOverlay && (
