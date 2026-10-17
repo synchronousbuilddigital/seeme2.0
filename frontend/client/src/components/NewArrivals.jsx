@@ -29,7 +29,7 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
       try {
         if (arrivals.length === 0) setLoading(true)
         const genderParam = activeAudience && activeAudience !== 'all' ? `&gender=${activeAudience}` : ''
-        const endpoint = `${API_ENDPOINTS.PRODUCTS}?limit=60${genderParam}`
+        const endpoint = `${API_ENDPOINTS.PRODUCTS}?limit=100${genderParam}`
         const data = await cachedFetch(endpoint, { ttlMs: 300000 })
         if (isMounted && data?.success && Array.isArray(data.data) && data.data.length > 0) {
           const audienceFiltered = data.data.filter(p => belongsToAudience(p, activeAudience))

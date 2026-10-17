@@ -29,6 +29,7 @@ import FabricSection from './components/FabricSection'
 import EthosBanner from './components/EthosBanner'
 import FestiveBanner from './components/FestiveBanner'
 import CatalogSection from './components/CatalogSection'
+import LazySection from './components/LazySection'
 
 // Lazy load route pages
 const ProductPage = lazy(() => import('./pages/ProductPage'))
@@ -98,7 +99,7 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
 
   return (
     <div className={`store-theme-wrapper theme-${activeAudience || 'all'}`}>
-      <GlobalLoader duration={2200} />
+      <GlobalLoader duration={600} />
       <Navbar
         onCartOpen={onCartOpen}
         onWishlistOpen={onWishlistOpen}
@@ -108,14 +109,30 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
         <FestiveBanner />
         <CategoryTabs onTabChange={(tab) => setActiveAudience(tab)} />
         <div className="homepage-sections-container">
-          <BrandsThatLead activeAudience={activeAudience} />
-          <NewArrivals activeAudience={activeAudience} />
-          <ShopSection activeAudience={activeAudience} />
-          <CatalogSection activeAudience={activeAudience} />
-          <CategoriesSlider activeAudience={activeAudience} />
-          <LatestTrendsSection activeAudience={activeAudience} />
-          <EthosBanner />
-          <About />
+          <LazySection minHeight="260px" rootMargin="350px">
+            <BrandsThatLead activeAudience={activeAudience} />
+          </LazySection>
+          <LazySection minHeight="360px" rootMargin="400px">
+            <NewArrivals activeAudience={activeAudience} />
+          </LazySection>
+          <LazySection minHeight="400px" rootMargin="450px">
+            <ShopSection activeAudience={activeAudience} />
+          </LazySection>
+          <LazySection minHeight="420px" rootMargin="450px">
+            <CatalogSection activeAudience={activeAudience} />
+          </LazySection>
+          <LazySection minHeight="360px" rootMargin="450px">
+            <CategoriesSlider activeAudience={activeAudience} />
+          </LazySection>
+          <LazySection minHeight="400px" rootMargin="450px">
+            <LatestTrendsSection activeAudience={activeAudience} />
+          </LazySection>
+          <LazySection minHeight="240px" rootMargin="500px">
+            <EthosBanner />
+          </LazySection>
+          <LazySection minHeight="320px" rootMargin="500px">
+            <About />
+          </LazySection>
         </div>
       </main>
       <Footer />

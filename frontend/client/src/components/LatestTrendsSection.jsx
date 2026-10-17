@@ -103,7 +103,7 @@ const LatestTrendsSection = ({ activeAudience = 'all' }) => {
   const fetchNewArrivalProducts = async () => {
     try {
       setLoading(true)
-      const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=100`)
+      const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=100`, { ttlMs: 300000 })
       const rawList = Array.isArray(data?.data) ? data.data : (Array.isArray(data?.products) ? data.products : [])
       const activeProds = rawList.filter(p => p.isActive !== false)
 

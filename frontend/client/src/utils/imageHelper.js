@@ -26,6 +26,9 @@ export const getImageUrl = (imageData, options = {}) => {
     
     // Check if it's already an absolute URL
     if (imageData.includes('://') || imageData.startsWith('data:')) {
+      if (imageData.includes('cloudinary.com')) {
+        return optimizeCloudinaryUrl(imageData, options)
+      }
       return (options && Object.keys(options).length > 0) ? optimizeCloudinaryUrl(imageData, options) : imageData
     }
 
@@ -50,39 +53,36 @@ export const getImageUrl = (imageData, options = {}) => {
   return defaultFallback
 }
 
-// Optimize Cloudinary URLs with transformations
+// Optimize Cloudinary URLs with automatic smart compression
 const optimizeCloudinaryUrl = (url, options = {}) => {
-  // Default options for optimization
-  const {
-    width = 1000,
-    quality = 'auto',
-    format = 'webp',
-    crop = 'fill',
-    gravity = null,
-    fetchFormat = 'webp',
-    blur = null
-  } = options
+  if (!url || typeof url !== 'string') return url
 
-  // Check if URL already has transformations
-  if (url.includes('/upload/')) {
-    // If it already has transformations (contains comma between /upload/ and /v123/), skip adding more to avoid breaking
-    const hasExistingTransformations = /\/upload\/[^/]+,/.test(url);
-    if (hasExistingTransformations) return url;
+  // Check if URL is Cloudinary
+  if (url.includes('cloudinary.com') && url.includes('/upload/')) {
+    // If it already has transformations, skip adding more to avoid breaking
+    const hasExistingTransformations = /\/upload\/(?:f_auto|q_auto|[^/]+,)/.test(url)
+    if (hasExistingTransformations) return url
 
-    // Insert transformations after /upload/
+    const {
+      width = 800,
+      quality = 'auto',
+      format = 'auto',
+      crop = 'limit',
+      gravity = null,
+      blur = null
+    } = options
+
     const transformations = []
-    if (width) transformations.push(`w_${width}`)
-    if (quality) transformations.push(`q_${quality}`)
     if (format) transformations.push(`f_${format}`)
-    if (crop) transformations.push(`c_${crop}`)
-    if (gravity) transformations.push(`g_${gravity}`)
-    
-    // Add blur if specified
-    if (blur) {
-      transformations.push(`e_blur:${blur}`)
+    if (quality) transformations.push(`q_${quality}`)
+    if (width) {
+      transformations.push(`c_${crop || 'limit'}`)
+      transformations.push(`w_${width}`)
     }
-    
-    // Safety check: only replace the FIRST occurrence of /upload/
+    if (gravity) transformations.push(`g_${gravity}`)
+    if (blur) transformations.push(`e_blur:${blur}`)
+
+    // Safety check: replace the FIRST occurrence of /upload/
     return url.replace('/upload/', `/upload/${transformations.join(',')}/`)
   }
   

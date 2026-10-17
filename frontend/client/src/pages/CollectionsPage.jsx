@@ -43,6 +43,7 @@ const CollectionsPage = () => {
   const [categoriesList, setCategoriesList] = useState([])
   const [adminBrandsList, setAdminBrandsList] = useState([])
   const [loading, setLoading] = useState(true)
+  const [visibleCount, setVisibleCount] = useState(24)
 
   // Filters & Search & Sorting
   const [selectedCategory, setSelectedCategory] = useState('all')
@@ -106,12 +107,12 @@ const CollectionsPage = () => {
   }, [location.search])
 
   const fetchCollectionsAndProducts = async () => {
-    setLoading(true)
+    if (products.length === 0) setLoading(true)
     try {
       const [prodData, settingsData, brandsData] = await Promise.all([
-        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000`),
-        cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true }),
-        cachedFetch(API_ENDPOINTS.BRANDS, { forceRefresh: true }).catch(() => null)
+        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`, { ttlMs: 180000 }),
+        cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 }),
+        cachedFetch(API_ENDPOINTS.BRANDS, { ttlMs: 300000 }).catch(() => null)
       ])
 
       const rawList = Array.isArray(prodData?.data) ? prodData.data : (Array.isArray(prodData?.products) ? prodData.products : [])
@@ -324,6 +325,27 @@ const CollectionsPage = () => {
       }
     }
   }, [filteredProducts.length, selectedCategory])
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(24)
+  }, [selectedCategory, selectedAudience, selectedBrand, sortBy, searchQuery, priceFilter, maxPrice, selectedSizes, selectedColors])
+
+  // Infinite progressive loading on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 700) {
+        setVisibleCount(prev => {
+          if (prev < filteredProducts.length) {
+            return prev + 24
+          }
+          return prev
+        })
+      }
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [filteredProducts.length])
 
   const handleAddToCart = (product, size) => {
     const itemSize = size || selectedSize || product.sizes?.[0] || 'M'
@@ -774,84 +796,110 @@ const CollectionsPage = () => {
                 </button>
               </div>
             ) : (
-              filteredProducts.map((product, index) => {
-                const hasDiscount = (product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price)
-                const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
-                const isOutOfStock = isProductOutOfStock(product)
+              <>
+                {filteredProducts.slice(0, visibleCount).map((product, index) => {
+                  const hasDiscount = (product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price)
+                  const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
+                  const isOutOfStock = isProductOutOfStock(product)
 
-                return (
-                  <motion.div
-                    key={product._id || index}
-                    className={`collection-product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`}
-                    initial={{ opacity: 0, y: 25 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
-                  >
-                    <div
-                      className="product-image-wrapper"
-                      onClick={() => {
-                        try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
-                        navigate(`/product/${product._id}`, { state: { product } })
-                      }}
+                  return (
+                    <motion.div
+                      key={product._id || index}
+                      className={`collection-product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`}
+                      initial={{ opacity: 0, y: 25 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
                     >
-                      <img
-                        src={mainImg}
-                        alt={product.name}
-                        className="product-image"
-                        loading="lazy"
-                        onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
-                      />
-
-                      <button
-                        className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          toggleWishlist(product)
-                        }}
-                        title="Add to Wishlist"
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
-                      </button>
-
-                      {isOutOfStock && (
-                        <div className="out-of-stock-badge">Sold Out</div>
-                      )}
-                    </div>
-
-                    <div className="product-info">
-                      <h3
-                        className="product-name"
+                      <div
+                        className="product-image-wrapper"
                         onClick={() => {
                           try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
                           navigate(`/product/${product._id}`, { state: { product } })
                         }}
                       >
-                        {product.name}
-                      </h3>
-
-                      <div className="product-footer">
-                        <div className="collection-price-group">
-                          <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                          {hasDiscount && (
-                            <span className="product-mrp-crossed">
-                              ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
-                            </span>
-                          )}
-                        </div>
-
-                        <AddToCartButton
-                          product={product}
-                          variant="mini"
-                          label="+ Add"
+                        <img
+                          src={mainImg}
+                          alt={product.name}
+                          className="product-image"
+                          loading="lazy"
+                          onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                         />
+
+                        <button
+                          className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleWishlist(product)
+                          }}
+                          title="Add to Wishlist"
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                          </svg>
+                        </button>
+
+                        {isOutOfStock && (
+                          <div className="out-of-stock-badge">Sold Out</div>
+                        )}
                       </div>
-                    </div>
-                  </motion.div>
-                )
-              })
+
+                      <div className="product-info">
+                        <h3
+                          className="product-name"
+                          onClick={() => {
+                            try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
+                            navigate(`/product/${product._id}`, { state: { product } })
+                          }}
+                        >
+                          {product.name}
+                        </h3>
+
+                        <div className="product-footer">
+                          <div className="collection-price-group">
+                            <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                            {hasDiscount && (
+                              <span className="product-mrp-crossed">
+                                ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
+
+                          <AddToCartButton
+                            product={product}
+                            variant="mini"
+                            label="+ Add"
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+
+                {visibleCount < filteredProducts.length && (
+                  <div style={{ textAlign: 'center', width: '100%', gridColumn: '1 / -1', padding: '36px 0 20px' }}>
+                    <button
+                      type="button"
+                      onClick={() => setVisibleCount(prev => prev + 24)}
+                      style={{
+                        background: '#1c1917',
+                        color: '#d4af37',
+                        border: '1px solid rgba(212, 175, 55, 0.4)',
+                        padding: '12px 32px',
+                        borderRadius: '30px',
+                        fontFamily: 'var(--font-body, sans-serif)',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        letterSpacing: '1px',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)'
+                      }}
+                    >
+                      ✦ LOAD MORE SILHOUETTES ({filteredProducts.length - visibleCount} MORE)
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

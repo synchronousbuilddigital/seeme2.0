@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import './GlobalLoader.css'
 
-const GlobalLoader = ({ duration = 1600, onComplete, forceShow = false }) => {
+const GlobalLoader = ({ duration = 600, onComplete, forceShow = false }) => {
   const [isVisible, setIsVisible] = useState(() => {
     if (forceShow) return true
     try {
@@ -31,7 +31,7 @@ const GlobalLoader = ({ duration = 1600, onComplete, forceShow = false }) => {
       const hideTimer = setTimeout(() => {
         setIsVisible(false)
         if (onComplete) onComplete()
-      }, 450)
+      }, 250)
       return () => clearTimeout(hideTimer)
     }, duration)
 

@@ -52,11 +52,11 @@ const CategoryPage = () => {
   }, [categoryName])
 
   const fetchCategoryDataAndProducts = async () => {
-    setLoading(true)
+    if (products.length === 0) setLoading(true)
     try {
       const [prodData, settingsData] = await Promise.all([
-        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000`),
-        cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
+        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`, { ttlMs: 180000 }),
+        cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
       ])
 
       const rawList = Array.isArray(prodData?.data) ? prodData.data : (Array.isArray(prodData?.products) ? prodData.products : [])

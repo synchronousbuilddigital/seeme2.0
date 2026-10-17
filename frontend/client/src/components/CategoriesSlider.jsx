@@ -37,7 +37,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
     const loadCategories = async () => {
       try {
         const [prodData, settingsData] = await Promise.all([
-          cachedFetch(API_ENDPOINTS.PRODUCTS, { ttlMs: 300000 }),
+          cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=100`, { ttlMs: 300000 }),
           cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
         ])
         const activeProducts = prodData?.success && Array.isArray(prodData.data)
