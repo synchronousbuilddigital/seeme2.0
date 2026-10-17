@@ -12,7 +12,6 @@ import ScrollToTop from './components/ScrollToTop'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
 import { getAdminUrl } from './config/api'
-import GlobalLoader from './components/GlobalLoader'
 import './App.css'
 
 // Lazy load non-critical widgets & drawer overlays (saves ~134 KB on initial page load)
@@ -99,7 +98,6 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
 
   return (
     <div className={`store-theme-wrapper theme-${activeAudience || 'all'}`}>
-      <GlobalLoader duration={600} />
       <Navbar
         onCartOpen={onCartOpen}
         onWishlistOpen={onWishlistOpen}
@@ -193,21 +191,7 @@ function App() {
             <InstallAppWidget />
           </Suspense>
           <div className="app">
-            <Suspense fallback={
-              <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#0a0908',
-                color: '#d4af37',
-                fontFamily: 'var(--font-heading, serif)'
-              }}>
-                <div style={{ fontSize: '1.8rem', fontWeight: 700, letterSpacing: '0.35em', textIndent: '0.35em', color: '#f5f5f4', marginBottom: '6px' }}>SEEMEE</div>
-                <div style={{ fontSize: '0.65rem', color: '#d4af37', letterSpacing: '0.3em', textTransform: 'uppercase', fontFamily: 'var(--font-body, sans-serif)' }}>HAUTE COUTURE • ATELIER</div>
-              </div>
-            }>
+            <Suspense fallback={null}>
               <Routes>
                 {/* Admin Redirects to Standalone App on Port 3001 */}
                 <Route path="/admin" element={<AdminRedirect />} />
