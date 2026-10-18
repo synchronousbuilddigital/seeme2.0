@@ -1032,32 +1032,36 @@
 /* Premium Glassmorphic Mobile Drawer Overlay */
 .mobile-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(15, 13, 11, 0.65);
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: rgba(10, 10, 10, 0.75);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  z-index: 2999;
+  z-index: 10001 !important;
+  pointer-events: auto !important;
+  cursor: pointer;
 }
 
 .mobile-drawer-sheet {
   position: fixed;
   top: 0;
   left: 0;
+  bottom: 0;
   width: 86vw;
   max-width: 380px;
   height: 100vh;
   height: 100dvh;
   background: #080808 !important;
-  z-index: 3000;
+  z-index: 10002 !important;
   display: flex;
   flex-direction: column;
   box-shadow: 15px 0 45px rgba(0, 0, 0, 0.7);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto !important;
 }
 
 .mobile-drawer-sheet .mobile-drawer-header {
@@ -1124,6 +1128,7 @@
   padding: 1rem 0.8rem;
   flex: 1;
   overflow-y: auto;
+  pointer-events: auto !important;
 }
 
 .admin-style-link {
@@ -1143,6 +1148,8 @@
   font-weight: 700;
   cursor: pointer;
   box-sizing: border-box;
+  pointer-events: auto !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .admin-style-link svg {
@@ -1244,16 +1251,32 @@
 }
 
 .mobile-drawer-sheet .mobile-drawer-footer {
-  padding: 1.2rem 1.4rem 75px 1.4rem !important;
+  padding: 1.2rem 1.4rem calc(75px + env(safe-area-inset-bottom, 0px)) 1.4rem !important;
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   background: #0d0d0d !important;
   margin-top: auto;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.mobile-drawer-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
 }
 
 .auth-style-btn {
-  border-color: rgba(212, 175, 55, 0.4) !important;
+  border-color: rgba(212, 175, 55, 0.5) !important;
   background: rgba(212, 175, 55, 0.12) !important;
   color: #ffffff !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
 }
 
 .auth-style-btn svg,
@@ -1262,15 +1285,21 @@
   color: #d4af37 !important;
 }
 
-.auth-style-btn:hover {
-  background: rgba(212, 175, 55, 0.22) !important;
-  border-color: rgba(212, 175, 55, 0.6) !important;
+.auth-style-btn:hover,
+.auth-style-btn:active {
+  background: rgba(212, 175, 55, 0.25) !important;
+  border-color: rgba(212, 175, 55, 0.8) !important;
 }
 
 .logout-style-btn {
-  border-color: rgba(239, 68, 68, 0.3) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
   background: rgba(239, 68, 68, 0.08) !important;
   color: #ef4444 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  width: 100%;
 }
 
 .logout-style-btn svg,
@@ -1279,8 +1308,9 @@
   color: #ef4444 !important;
 }
 
-.logout-style-btn:hover {
-  background: rgba(239, 68, 68, 0.18) !important;
+.logout-style-btn:hover,
+.logout-style-btn:active {
+  background: rgba(239, 68, 68, 0.2) !important;
   border-color: rgba(239, 68, 68, 0.6) !important;
 }
 

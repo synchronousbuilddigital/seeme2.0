@@ -258,9 +258,10 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   const [categoriesOpen, setCategoriesOpen] = useState(false)
 
   const handleNavigation = (path) => {
-    navigate(path)
     setMenuOpen(false)
     setCategoriesOpen(false)
+    document.body.style.overflow = ''
+    navigate(path)
   }
 
   const handleLogout = () => {
@@ -543,174 +544,202 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
             <span></span>
           </button>
         </div>
+      </motion.nav>
 
-        {/* Premium Glassmorphic Mobile Drawer Overlay */}
-        <AnimatePresence>
-          {menuOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                className="mobile-backdrop"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setMenuOpen(false)}
-              />
+      {/* Premium Glassmorphic Mobile Drawer Overlay */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="mobile-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMenuOpen(false)}
+            />
 
-              {/* Mobile Drawer Sheet */}
-              <motion.div
-                className="mobile-drawer-sheet"
-                initial={{ x: '-100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '-100%' }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              >
-                {/* Drawer Header */}
-                <div className="mobile-drawer-header">
-                  <div className="mobile-drawer-brand">
-                    <img src={logo} alt="See Mee Logo" className="drawer-logo-img" onClick={() => handleNavigation('/')} />
-                    <span className="drawer-atelier-title">SEEMEE</span>
-                  </div>
+            {/* Mobile Drawer Sheet */}
+            <motion.div
+              className="mobile-drawer-sheet"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            >
+              {/* Drawer Header */}
+              <div className="mobile-drawer-header">
+                <div className="mobile-drawer-brand">
+                  <img src={logo} alt="See Mee Logo" className="drawer-logo-img" onClick={() => handleNavigation('/')} />
+                  <span className="drawer-atelier-title">SEEMEE</span>
+                </div>
+                <button
+                  className="mobile-drawer-close-btn"
+                  onClick={() => setMenuOpen(false)}
+                  title="Close Menu"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Navigation Links List (Exact Admin Sidebar Drawer Card Style) */}
+              <div className="mobile-drawer-nav-list">
+                <button onClick={() => handleNavigation('/')} className={`admin-style-link ${isActiveRoute('/') ? 'active' : ''}`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                  <span className="link-text">Home</span>
+                  <span className="drawer-arrow">→</span>
+                </button>
+
+                <button onClick={() => handleNavigation('/collections')} className={`admin-style-link ${isActiveRoute('/collections') ? 'active' : ''}`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                  <span className="link-text">Shop Collections</span>
+                  <span className="drawer-arrow">→</span>
+                </button>
+
+                <button onClick={() => handleNavigation('/catalog')} className={`admin-style-link ${isActiveRoute('/catalog') ? 'active' : ''}`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2.5" ry="2.5" /></svg>
+                  <span className="link-text">Catalog Reels</span>
+                  <span className="reels-live-badge">REELS</span>
+                  <span className="drawer-arrow">→</span>
+                </button>
+
+                {/* Categories Collapsible Submenu */}
+                <div className="drawer-submenu-group">
                   <button
-                    className="mobile-drawer-close-btn"
-                    onClick={() => setMenuOpen(false)}
-                    title="Close Menu"
+                    className={`admin-style-link ${isActiveRoute('/categories') ? 'active' : ''}`}
+                    onClick={() => setCategoriesOpen(!categoriesOpen)}
                   >
-                    ✕
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg>
+                    <span className="link-text">Categories</span>
+                    <svg width="14" height="14" viewBox="0 12 12" fill="currentColor" style={{ transform: categoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', marginLeft: 'auto' }}>
+                      <path d="M6 9L1 4h10z" />
+                    </svg>
                   </button>
+
+                  <AnimatePresence>
+                    {categoriesOpen && (
+                      <motion.div
+                        className="drawer-submenu-list"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                      >
+                        {availableCategories.map((cat) => {
+                          const catSlug = cat.slug || cat
+                          return (
+                            <button
+                              key={catSlug}
+                              className={`drawer-sub-link ${location.pathname === `/category/${catSlug}` ? 'active' : ''}`}
+                              onClick={() => handleNavigation(`/category/${catSlug}`)}
+                            >
+                              ✦ {cat.label || getCategoryLabel(cat)}
+                            </button>
+                          )
+                        })}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
-                {/* Navigation Links List (Exact Admin Sidebar Drawer Card Style) */}
-                <div className="mobile-drawer-nav-list">
-                  <button onClick={() => handleNavigation('/')} className={`admin-style-link ${isActiveRoute('/') ? 'active' : ''}`}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    <span className="link-text">Home</span>
-                    <span className="drawer-arrow">→</span>
-                  </button>
+                <button onClick={() => handleNavigation('/fabrics')} className={`admin-style-link ${isActiveRoute('/fabrics') ? 'active' : ''}`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+                  <span className="link-text">Fabrics & Crafts</span>
+                  <span className="drawer-arrow">→</span>
+                </button>
 
-                  <button onClick={() => handleNavigation('/collections')} className={`admin-style-link ${isActiveRoute('/collections') ? 'active' : ''}`}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                    <span className="link-text">Shop Collections</span>
-                    <span className="drawer-arrow">→</span>
-                  </button>
+                <button onClick={() => handleNavigation('/magazine')} className={`admin-style-link ${isActiveRoute('/magazine') ? 'active' : ''}`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
+                  <span className="link-text">Magazine</span>
+                  <span className="drawer-arrow">→</span>
+                </button>
 
-                  <button onClick={() => handleNavigation('/catalog')} className={`admin-style-link ${isActiveRoute('/catalog') ? 'active' : ''}`}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2.5" ry="2.5" /></svg>
-                    <span className="link-text">Catalog Reels</span>
-                    <span className="reels-live-badge">REELS</span>
-                    <span className="drawer-arrow">→</span>
-                  </button>
+                <button onClick={() => handleNavigation('/about')} className={`admin-style-link ${isActiveRoute('/about') ? 'active' : ''}`}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
+                  <span className="link-text">About Atelier</span>
+                  <span className="drawer-arrow">→</span>
+                </button>
 
-                  {/* Categories Collapsible Submenu */}
-                  <div className="drawer-submenu-group">
-                    <button
-                      className={`admin-style-link ${isActiveRoute('/categories') ? 'active' : ''}`}
-                      onClick={() => setCategoriesOpen(!categoriesOpen)}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 17 12 22 22 17" /><polyline points="2 12 12 17 22 12" /></svg>
-                      <span className="link-text">Categories</span>
-                      <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" style={{ transform: categoriesOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease', marginLeft: 'auto' }}>
-                        <path d="M6 9L1 4h10z" />
-                      </svg>
-                    </button>
-
-                    <AnimatePresence>
-                      {categoriesOpen && (
-                        <motion.div
-                          className="drawer-submenu-list"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                        >
-                          {availableCategories.map((cat) => {
-                            const catSlug = cat.slug || cat
-                            return (
-                              <button
-                                key={catSlug}
-                                className={`drawer-sub-link ${location.pathname === `/category/${catSlug}` ? 'active' : ''}`}
-                                onClick={() => handleNavigation(`/category/${catSlug}`)}
-                              >
-                                ✦ {cat.label || getCategoryLabel(cat)}
-                              </button>
-                            )
-                          })}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-
-                  <button onClick={() => handleNavigation('/fabrics')} className={`admin-style-link ${isActiveRoute('/fabrics') ? 'active' : ''}`}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
-                    <span className="link-text">Fabrics & Crafts</span>
-                    <span className="drawer-arrow">→</span>
-                  </button>
-
-                  <button onClick={() => handleNavigation('/magazine')} className={`admin-style-link ${isActiveRoute('/magazine') ? 'active' : ''}`}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-                    <span className="link-text">Magazine</span>
-                    <span className="drawer-arrow">→</span>
-                  </button>
-
-                  <button onClick={() => handleNavigation('/about')} className={`admin-style-link ${isActiveRoute('/about') ? 'active' : ''}`}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
-                    <span className="link-text">About Atelier</span>
-                    <span className="drawer-arrow">→</span>
-                  </button>
-
-                  {user?.role === 'admin' && (
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
-                        const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || localStorage.getItem('adminUser') || '';
-                        window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
-                      }}
-                      className="admin-style-link admin-gold-link"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></svg>
-                      <span className="link-text">Admin Dashboard</span>
-                      <span className="drawer-arrow">→</span>
-                    </button>
-                  )}
-
+                {user?.role === 'admin' && (
                   <button
-                    className="admin-style-link install-gold-link"
                     onClick={() => {
                       setMenuOpen(false);
-                      window.dispatchEvent(new CustomEvent('trigger-app-install'));
+                      const adminToken = token || localStorage.getItem('seemee-token') || localStorage.getItem('adminToken') || '';
+                      const adminUserStr = user ? JSON.stringify(user) : localStorage.getItem('seemee-user') || localStorage.getItem('adminUser') || '';
+                      window.location.href = `${getAdminUrl()}/dashboard?token=${encodeURIComponent(adminToken)}&user=${encodeURIComponent(adminUserStr)}`;
                     }}
+                    className="admin-style-link admin-gold-link"
                   >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="7 10 12 15 17 10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    <span className="link-text">Install Web App</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="9" /><rect x="14" y="3" width="7" height="5" /><rect x="14" y="12" width="7" height="9" /><rect x="3" y="16" width="7" height="5" /></svg>
+                    <span className="link-text">Admin Dashboard</span>
                     <span className="drawer-arrow">→</span>
                   </button>
-                </div>
+                )}
 
-                {/* Drawer Footer Account Info */}
-                <div className="mobile-drawer-footer">
-                  {isAuthenticated() ? (
-                    <button className="admin-style-link logout-style-btn" onClick={handleLogout}>
+                <button
+                  className="admin-style-link install-gold-link"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.dispatchEvent(new CustomEvent('trigger-app-install'));
+                  }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  <span className="link-text">Install Web App</span>
+                  <span className="drawer-arrow">→</span>
+                </button>
+              </div>
+
+              {/* Drawer Footer Account Info */}
+              <div className="mobile-drawer-footer">
+                {isAuthenticated() ? (
+                  <div className="mobile-drawer-footer-actions">
+                    <button
+                      type="button"
+                      className="admin-style-link auth-style-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleNavigation('/account')
+                      }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                      <span className="link-text">{user?.name ? `Account (${user.name.split(' ')[0]})` : 'My Account'}</span>
+                      <span className="drawer-arrow">→</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-style-link logout-style-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleLogout()
+                      }}
+                    >
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                       <span className="link-text">LOGOUT</span>
                       <span className="drawer-arrow">→</span>
                     </button>
-                  ) : (
-                    <button className="admin-style-link auth-style-btn" onClick={() => handleNavigation('/auth')}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                      <span className="link-text">Sign In / Account</span>
-                      <span className="drawer-arrow">→</span>
-                    </button>
-                  )}
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-      </motion.nav>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="admin-style-link auth-style-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleNavigation('/auth')
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                    <span className="link-text">Sign In / Account</span>
+                    <span className="drawer-arrow">→</span>
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Sticky Mobile Bottom Navigation Bar (Admin Style) */}
       <nav className="client-mobile-bottom-nav">

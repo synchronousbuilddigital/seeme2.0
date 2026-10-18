@@ -319,6 +319,21 @@ const Auth = () => {
           transition={{ duration: 1, delay: 0.2 }}
         >
           <div className="auth-form-container">
+            {/* Top Bar for Mobile */}
+            <div className="auth-mobile-top-bar">
+              <button
+                type="button"
+                className="auth-mobile-back-btn"
+                onClick={() => navigate('/')}
+                aria-label="Back to store"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                <span>Store</span>
+              </button>
+            </div>
+
             {/* Mobile Brand Header */}
             <div className="auth-mobile-header">
               <span className="mobile-brand-kicker">EST. 2026 • HAUTE COUTURE</span>
