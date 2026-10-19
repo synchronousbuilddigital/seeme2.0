@@ -857,6 +857,7 @@
 }
 
 .size-btn {
+  position: relative;
   width: 38px;
   height: 38px;
   border-radius: 8px;
@@ -865,6 +866,11 @@
   font-family: var(--cat-body-font);
   font-size: 0.85rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
 .size-btn.active {
@@ -872,6 +878,44 @@
   color: var(--cat-gold);
   border-color: var(--cat-charcoal);
   font-weight: 700;
+}
+
+.size-btn.out-of-stock-chip {
+  opacity: 0.7;
+  border-style: dashed;
+  border-color: #d6d3d1;
+  background: #faf8f5;
+  color: #78716c;
+}
+
+.size-btn.out-of-stock-chip:hover {
+  border-color: #dc2626;
+  opacity: 0.95;
+}
+
+.size-btn.out-of-stock-chip.active {
+  background: #1c1917;
+  color: #ffffff;
+  border-style: solid;
+  border-width: 2px;
+  border-color: #dc2626;
+  opacity: 1;
+}
+
+.size-btn .size-strike-line {
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  width: 80%;
+  height: 2px;
+  background: #dc2626;
+  transform: translateY(-50%) rotate(-25deg);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.size-btn.out-of-stock-chip.active .size-strike-line {
+  background: #fef08a;
 }
 
 .modal-action-buttons {

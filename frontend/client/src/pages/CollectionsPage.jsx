@@ -10,6 +10,7 @@ import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from '../components/AddToCartButton'
 import FestiveFireworksCanvas from '../components/FestiveFireworksCanvas'
 import { getColorHex } from '../utils/colorHelper'
+import { isSizeInStock, getSortedSizesForProduct, getFirstAvailableSize } from '../utils/sizeHelper'
 import './CollectionsPage.css'
 
 export const isProductOutOfStock = (product) => {
@@ -348,7 +349,7 @@ const CollectionsPage = () => {
   }, [filteredProducts.length])
 
   const handleAddToCart = (product, size) => {
-    const itemSize = size || selectedSize || product.sizes?.[0] || 'M'
+    const itemSize = size || selectedSize || getFirstAvailableSize(product, 'M')
     addToCart({ ...product, selectedSize: itemSize })
     setAddedToast(true)
     setTimeout(() => setAddedToast(false), 2500)
@@ -356,7 +357,7 @@ const CollectionsPage = () => {
 
   const openProductModal = (product) => {
     setSelectedProduct(product)
-    setSelectedSize(product.sizes?.[0] || 'M')
+    setSelectedSize(getFirstAvailableSize(product, 'M'))
   }
 
   const closeProductModal = () => {
@@ -867,6 +868,7 @@ const CollectionsPage = () => {
 
                           <AddToCartButton
                             product={product}
+                            selectedSize={getFirstAvailableSize(product, 'M')}
                             variant="mini"
                             label="+ Add"
                           />
@@ -964,22 +966,33 @@ const CollectionsPage = () => {
                     )}
                   </div>
 
-                  {selectedProduct.sizes && selectedProduct.sizes.length > 0 && (
-                    <div className="modal-size-selector">
-                      <label>Select Size:</label>
-                      <div className="size-buttons">
-                        {selectedProduct.sizes.map(sz => (
-                          <button
-                            key={sz}
-                            className={`size-btn ${selectedSize === sz ? 'active' : ''}`}
-                            onClick={() => setSelectedSize(sz)}
-                          >
-                            {sz}
-                          </button>
-                        ))}
+                  {(() => {
+                    const sortedSizes = getSortedSizesForProduct(selectedProduct)
+                    if (!sortedSizes || sortedSizes.length === 0) return null
+                    return (
+                      <div className="modal-size-selector">
+                        <label>Select Size:</label>
+                        <div className="size-buttons">
+                          {sortedSizes.map(sz => {
+                            const isSizeOutOfStock = !isSizeInStock(sz, selectedProduct)
+                            const isSelected = selectedSize === sz
+                            return (
+                              <button
+                                key={sz}
+                                type="button"
+                                className={`size-btn ${isSelected ? 'active' : ''} ${isSizeOutOfStock ? 'out-of-stock-chip' : ''}`}
+                                onClick={() => setSelectedSize(sz)}
+                                title={isSizeOutOfStock ? `${sz} - Out of stock` : `${sz} - In stock`}
+                              >
+                                <span className="size-label-text">{sz}</span>
+                                {isSizeOutOfStock && <span className="size-strike-line" aria-hidden="true" />}
+                              </button>
+                            )
+                          })}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )
+                  })()}
 
                   <div className="modal-actions">
                     <AddToCartButton

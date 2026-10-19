@@ -8,6 +8,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewItem } from '../utils/gtmEcommerce'
 import { getColorHex } from '../utils/colorHelper'
+import { isExcludedSize, getSizeStockQty, getSortedSizesForProduct, getFirstAvailableSize, isSizeInStock } from '../utils/sizeHelper'
 import AddToCartButton from '../components/AddToCartButton'
 import './ProductPage.css'
 
@@ -110,21 +111,9 @@ const ProductPage = () => {
     }
   }, [currentUser?.email])
 
-  const isExcludedSize = (s) => {
-    if (!s) return true
-    const upper = String(s).trim().toUpperCase()
-    return upper === 'FREE SIZE' || upper === 'FREESIZE' || upper === 'FREE-SIZE' || upper === 'CUSTOM' || upper === 'CUSTOM SIZE' || upper === 'CUSTOM-SIZE'
-  }
-
   const [selectedSize, setSelectedSize] = useState(() => {
     if (passedProduct) {
-      const rawList = (passedProduct.sizes && passedProduct.sizes.length > 0)
-        ? passedProduct.sizes
-        : (passedProduct.sizeStock && passedProduct.sizeStock.length > 0)
-          ? passedProduct.sizeStock.map(s => s.size)
-          : []
-      const sizesList = rawList.filter(s => !isExcludedSize(s))
-      return (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
+      return getFirstAvailableSize(passedProduct, 'S')
     }
     return 'S'
   })
@@ -173,8 +162,7 @@ const ProductPage = () => {
     if (!product) return 0
     if (product.sizeStock && Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
       if (!selectedSize) return product.sizeStock.reduce((acc, item) => acc + Number(item.quantity || item.stock || 0), 0)
-      const found = product.sizeStock.find(s => String(s.size).toUpperCase() === String(selectedSize).toUpperCase())
-      return found ? Number(found.quantity || found.stock || 0) : 0
+      return getSizeStockQty(selectedSize, product)
     }
     return product.stock !== undefined && product.stock !== null ? Number(product.stock) : 10
   }
@@ -205,13 +193,14 @@ const ProductPage = () => {
       const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}/${id}`)
       if (data.success && data.data && data.data.isActive !== false) {
         setProduct(data.data)
-        const sizesList = ((data.data.sizes && data.data.sizes.length > 0)
-          ? data.data.sizes
-          : (data.data.sizeStock && data.data.sizeStock.length > 0)
-            ? data.data.sizeStock.map(s => s.size)
-            : []).filter(s => !isExcludedSize(s))
-        const initialSize = (sizesList && sizesList.length > 0) ? sizesList[0] : 'S'
-        setSelectedSize(prev => (prev && !isExcludedSize(prev)) ? prev : initialSize)
+        const firstAvailable = getFirstAvailableSize(data.data, 'S')
+        setSelectedSize(prev => {
+          if (prev && !isExcludedSize(prev)) {
+            const prevStock = getSizeStockQty(prev, data.data)
+            if (prevStock > 0) return prev
+          }
+          return firstAvailable
+        })
         fetchRelatedProducts(data.data.category, data.data._id)
       } else if (!product) {
         setError('This product is currently inactive or unavailable.')
@@ -584,43 +573,12 @@ const ProductPage = () => {
               </div>
               <div className="size-pills-row">
                 {(() => {
-                  const defaultOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
-                  const sizeSet = new Set()
+                  const sortedSizesList = getSortedSizesForProduct(product)
 
-                  if (product?.sizes && Array.isArray(product.sizes) && product.sizes.length > 0) {
-                    product.sizes.forEach(s => s && !isExcludedSize(s) && sizeSet.add(String(s).trim().toUpperCase()))
-                  }
-                  if (product?.sizeStock && Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
-                    product.sizeStock.forEach(s => s?.size && !isExcludedSize(s.size) && sizeSet.add(String(s.size).trim().toUpperCase()))
-                  }
-                  if (selectedSize && !isExcludedSize(selectedSize)) {
-                    sizeSet.add(String(selectedSize).trim().toUpperCase())
-                  }
-
-                  if (sizeSet.size === 0) {
-                    defaultOrder.forEach(s => sizeSet.add(s))
-                  }
-
-                  const allSizesList = Array.from(sizeSet).sort((a, b) => {
-                    const idxA = defaultOrder.indexOf(a)
-                    const idxB = defaultOrder.indexOf(b)
-                    if (idxA !== -1 && idxB !== -1) return idxA - idxB
-                    if (idxA !== -1) return -1
-                    if (idxB !== -1) return 1
-                    return a.localeCompare(b)
-                  })
-
-                  return allSizesList.map(sz => {
-                    const sizeQty = (() => {
-                      if (!product?.sizeStock || !Array.isArray(product.sizeStock)) {
-                        return product?.stock !== undefined ? Number(product.stock) : 10
-                      }
-                      const item = product.sizeStock.find(s => String(s.size).toUpperCase() === String(sz).toUpperCase())
-                      return item ? Number(item.quantity || item.stock || 0) : 0
-                    })()
-
+                  return sortedSizesList.map(sz => {
+                    const sizeQty = getSizeStockQty(sz, product)
                     const isSizeOutOfStock = sizeQty <= 0
-                    const isSelected = selectedSize === sz
+                    const isSelected = String(selectedSize).toUpperCase() === String(sz).toUpperCase()
 
                     return (
                       <button

@@ -8,6 +8,7 @@ import { cachedFetch } from '../utils/cachedFetch'
 import { isProductInCategory, getCategoryProducts, belongsToAudience } from '../utils/categoryHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from '../components/AddToCartButton'
+import { isSizeInStock, getSortedSizesForProduct, getFirstAvailableSize } from '../utils/sizeHelper'
 import './CategoryPage.css'
 
 const CategoryPage = () => {
@@ -228,12 +229,12 @@ const CategoryPage = () => {
     e.stopPropagation()
     setQuickViewProduct(product)
     setQuickViewActiveImage(0)
-    setSelectedSize(product.sizes?.[0] || 'M')
+    setSelectedSize(getFirstAvailableSize(product, 'M'))
   }
 
   const handleQuickAdd = (e, product, sizeOverride) => {
     e.stopPropagation()
-    const size = sizeOverride || product.sizes?.[0] || 'M'
+    const size = sizeOverride || getFirstAvailableSize(product, 'M')
     addToCart({ ...product, selectedSize: size })
     setAddedToast(true)
     setTimeout(() => setAddedToast(false), 2500)
@@ -584,7 +585,7 @@ const CategoryPage = () => {
 
                           <AddToCartButton
                             product={product}
-                            selectedSize={product.sizes?.[0] || 'M'}
+                            selectedSize={getFirstAvailableSize(product, 'M')}
                             variant="mini"
                             label="+ ADD"
                             onAddCallback={() => {
@@ -667,15 +668,22 @@ const CategoryPage = () => {
                   <div className="size-selector-box">
                     <label>Select Tailored Size:</label>
                     <div className="size-buttons-group">
-                      {(quickViewProduct.sizes || ['S', 'M', 'L', 'XL']).map((s) => (
-                        <button
-                          key={s}
-                          className={`size-btn ${selectedSize === s ? 'active' : ''}`}
-                          onClick={() => setSelectedSize(s)}
-                        >
-                          {s}
-                        </button>
-                      ))}
+                      {getSortedSizesForProduct(quickViewProduct).map((s) => {
+                        const isSizeOutOfStock = !isSizeInStock(s, quickViewProduct)
+                        const isSelected = selectedSize === s
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            className={`size-btn ${isSelected ? 'active' : ''} ${isSizeOutOfStock ? 'out-of-stock-chip' : ''}`}
+                            onClick={() => setSelectedSize(s)}
+                            title={isSizeOutOfStock ? `${s} - Out of stock` : `${s} - In stock`}
+                          >
+                            <span className="size-label-text">{s}</span>
+                            {isSizeOutOfStock && <span className="size-strike-line" aria-hidden="true" />}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
 
