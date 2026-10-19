@@ -132,3 +132,43 @@ export const getFirstAvailableSize = (prod, fallback = 'M') => {
   const firstInStock = sorted.find(sz => isSizeInStock(sz, prod))
   return firstInStock || sorted[0] || fallback
 }
+
+/**
+ * Checks whether an entire product has available stock.
+ * Returns false if:
+ * - Product is missing or inactive
+ * - Product status is 'Out of Stock', 'archived', or 'draft'
+ * - Product inStock property is explicitly false
+ * - Product has sizeStock and total quantity across sizes is <= 0
+ * - Product has stock field and value is <= 0
+ */
+export const isProductInStock = (product) => {
+  if (!product) return false
+  if (product.isActive === false) return false
+
+  const statusLower = String(product.status || '').trim().toLowerCase()
+  if (statusLower === 'out of stock' || statusLower === 'archived' || statusLower === 'draft') {
+    return false
+  }
+
+  if (product.inStock === false) return false
+
+  // Check total quantity across sizes if sizeStock is defined
+  if (Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
+    const totalSizeStock = product.sizeStock.reduce(
+      (sum, s) => sum + Math.max(0, Number(s?.quantity ?? s?.stock ?? 0)),
+      0
+    )
+    if (totalSizeStock <= 0) return false
+  } else if (product.stock !== undefined && product.stock !== null) {
+    // If no sizeStock, check generic stock field
+    if (Number(product.stock) <= 0) return false
+  }
+
+  return true
+}
+
+export const isProductOutOfStock = (product) => {
+  return !isProductInStock(product)
+}
+

@@ -8,7 +8,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { trackViewItem } from '../utils/gtmEcommerce'
 import { getColorHex } from '../utils/colorHelper'
-import { isExcludedSize, getSizeStockQty, getSortedSizesForProduct, getFirstAvailableSize, isSizeInStock } from '../utils/sizeHelper'
+import { isExcludedSize, getSizeStockQty, getSortedSizesForProduct, getFirstAvailableSize, isSizeInStock, isProductInStock } from '../utils/sizeHelper'
 import AddToCartButton from '../components/AddToCartButton'
 import './ProductPage.css'
 
@@ -214,11 +214,47 @@ const ProductPage = () => {
 
   const fetchRelatedProducts = async (category, currentId) => {
     try {
-      const data = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?category=${category}&limit=5`)
-      if (data.success) {
-        const filtered = (data.data || []).filter(p => p._id !== currentId)
-        setRelatedProducts(filtered)
+      let candidateProducts = []
+
+      // 1. Fetch from the same category first
+      if (category) {
+        const catUrl = `${API_ENDPOINTS.PRODUCTS}?category=${encodeURIComponent(category)}&limit=24`
+        const catData = await cachedFetch(catUrl)
+        if (catData?.success && Array.isArray(catData.data)) {
+          candidateProducts = catData.data
+        }
       }
+
+      // Filter: exclude currently viewed product, and ensure product is in stock
+      const curIdStr = String(currentId?._id || currentId || '')
+      let inStockRelated = candidateProducts
+        .filter(p => {
+          const pId = String(p._id || p.id || '')
+          return pId && curIdStr && pId !== curIdStr
+        })
+        .filter(p => isProductInStock(p))
+
+      // 2. If fewer than 4 in-stock products found, supplement with store products
+      if (inStockRelated.length < 4) {
+        const fallbackUrl = `${API_ENDPOINTS.PRODUCTS}?limit=30`
+        const fallbackData = await cachedFetch(fallbackUrl)
+        if (fallbackData?.success && Array.isArray(fallbackData.data)) {
+          const existingIds = new Set(inStockRelated.map(p => String(p._id || p.id || '')))
+          if (curIdStr) existingIds.add(curIdStr)
+
+          const extraInStock = fallbackData.data
+            .filter(p => {
+              const pId = String(p._id || p.id || '')
+              return pId && !existingIds.has(pId)
+            })
+            .filter(p => isProductInStock(p))
+
+          inStockRelated = [...inStockRelated, ...extraInStock]
+        }
+      }
+
+      // Display up to 8 in-stock related products
+      setRelatedProducts(inStockRelated.slice(0, 8))
     } catch (err) {
       console.error('Error fetching related products:', err)
     }
@@ -813,63 +849,70 @@ const ProductPage = () => {
         </div>
 
         {/* Related Products Carousel / Grid */}
-        {relatedProducts.length > 0 && (
-          <div className="related-products-section">
-            <h2 className="related-section-title">You May Also Like</h2>
-            <div className="related-products-grid">
-              {relatedProducts.map(rel => {
-                const rPrice = Number(rel.price || 0)
-                const rMrp = (rel.mrp || rel.discountPrice) ? Number(rel.mrp || rel.discountPrice) : null
-                const rHasDiscount = rMrp && rMrp > rPrice
-                const rDiscountPercent = rHasDiscount ? Math.round(((rMrp - rPrice) / rMrp) * 100) : 0
+        {(() => {
+          const visibleRelated = relatedProducts.filter(rel => isProductInStock(rel))
+          if (visibleRelated.length === 0) return null
 
-                return (
-                  <div
-                    key={rel._id}
-                    className="related-product-card"
-                    onClick={() => navigate(`/product/${rel._id}`, { state: { product: rel } })}
-                  >
-                    <div className="related-image-wrapper">
-                      {rHasDiscount && (
-                        <span className="related-discount-pill">{rDiscountPercent}% OFF</span>
-                      )}
-                      <img src={getImageUrl(rel.images?.[0] || rel.image)} alt={rel.name} />
-                    </div>
-                    <div className="related-card-info">
-                      <h4>{rel.name}</h4>
-                      <div className="related-card-prices-row">
-                        <span className="related-card-price">₹{rPrice.toLocaleString('en-IN')}</span>
+          return (
+            <div className="related-products-section">
+              <h2 className="related-section-title">You May Also Like</h2>
+              <div className="related-products-grid">
+                {visibleRelated.map(rel => {
+                  const rPrice = Number(rel.price || 0)
+                  const rMrp = (rel.mrp || rel.discountPrice) ? Number(rel.mrp || rel.discountPrice) : null
+                  const rHasDiscount = rMrp && rMrp > rPrice
+                  const rDiscountPercent = rHasDiscount ? Math.round(((rMrp - rPrice) / rMrp) * 100) : 0
+                  const chosenSize = getFirstAvailableSize(rel, 'M')
+
+                  return (
+                    <div
+                      key={rel._id || rel.id}
+                      className="related-product-card"
+                      onClick={() => navigate(`/product/${rel._id || rel.id}`, { state: { product: rel } })}
+                    >
+                      <div className="related-image-wrapper">
                         {rHasDiscount && (
-                          <span className="related-card-mrp">₹{rMrp.toLocaleString('en-IN')}</span>
+                          <span className="related-discount-pill">{rDiscountPercent}% OFF</span>
                         )}
+                        <img src={getImageUrl(rel.images?.[0] || rel.image)} alt={rel.name} />
                       </div>
-                      <button
-                        type="button"
-                        className="related-add-cart-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          addToCart({
-                            id: rel._id || rel.id,
-                            _id: rel._id || rel.id,
-                            name: rel.name,
-                            price: rel.price,
-                            image: rel.images?.[0] || rel.image,
-                            size: 'M',
-                            quantity: 1
-                          })
-                          setAddedToast(true)
-                          setTimeout(() => setAddedToast(false), 3500)
-                        }}
-                      >
-                        + ADD TO BAG
-                      </button>
+                      <div className="related-card-info">
+                        <h4>{rel.name}</h4>
+                        <div className="related-card-prices-row">
+                          <span className="related-card-price">₹{rPrice.toLocaleString('en-IN')}</span>
+                          {rHasDiscount && (
+                            <span className="related-card-mrp">₹{rMrp.toLocaleString('en-IN')}</span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className="related-add-cart-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            addToCart({
+                              id: rel._id || rel.id,
+                              _id: rel._id || rel.id,
+                              name: rel.name,
+                              price: rel.price,
+                              image: rel.images?.[0] || rel.image,
+                              size: chosenSize,
+                              selectedSize: chosenSize,
+                              quantity: 1
+                            })
+                            setAddedToast(true)
+                            setTimeout(() => setAddedToast(false), 3500)
+                          }}
+                        >
+                          + ADD TO BAG
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
       </div>
 
       {/* Image Zoom Modal */}

@@ -10,30 +10,10 @@ import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from '../components/AddToCartButton'
 import FestiveFireworksCanvas from '../components/FestiveFireworksCanvas'
 import { getColorHex } from '../utils/colorHelper'
-import { isSizeInStock, getSortedSizesForProduct, getFirstAvailableSize } from '../utils/sizeHelper'
+import { isSizeInStock, getSortedSizesForProduct, getFirstAvailableSize, isProductOutOfStock } from '../utils/sizeHelper'
 import './CollectionsPage.css'
 
-export const isProductOutOfStock = (product) => {
-  if (!product) return false
-  if (product.status === 'Out of Stock' || product.status === 'archived') return true
-  if (product.inStock === false) return true
-
-  // Check total quantity across sizes if sizeStock is defined
-  if (Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
-    const totalSizeStock = product.sizeStock.reduce(
-      (sum, s) => sum + Math.max(0, Number(s.quantity ?? s.stock ?? 0)),
-      0
-    )
-    if (totalSizeStock <= 0) return true
-  }
-
-  // Check general product.stock
-  if (product.stock !== undefined && product.stock !== null) {
-    if (Number(product.stock) <= 0) return true
-  }
-
-  return false
-}
+export { isProductOutOfStock }
 
 const CollectionsPage = () => {
   const navigate = useNavigate()
