@@ -5,9 +5,9 @@ import { apiRequest } from '../utils/apiClient'
 import { getImageUrl } from '../utils/imageHelper'
 import './OrdersManager.css'
 
-const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
+const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter = 'all' }) => {
   const [orders, setOrders] = useState([])
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState(initialStatusFilter || 'all')
   const [orderTypeFilter, setOrderTypeFilter] = useState('all')
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -27,6 +27,12 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder }) => {
   const [refunds, setRefunds] = useState([])
   const [refundProcessingId, setRefundProcessingId] = useState(null)
   const [codActionLoading, setCodActionLoading] = useState(false)
+
+  useEffect(() => {
+    if (initialStatusFilter) {
+      setFilter(initialStatusFilter)
+    }
+  }, [initialStatusFilter])
 
   useEffect(() => {
     fetchOrders()

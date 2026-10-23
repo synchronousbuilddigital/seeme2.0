@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
+import {
+  cleanNotificationTitle,
+  cleanNotificationMessage,
+  getNotificationOrderNumber,
+  getNotificationAmount
+} from '../utils/notificationHelper'
 import './NotificationCenter.css'
 
 const timeAgo = (dateString) => {
@@ -235,6 +241,8 @@ const NotificationCenter = ({ onSelectOrder }) => {
               {filteredNotifications.map(n => {
                 const isCancelled = n.type === 'ORDER_CANCELLED' || n.type === 'CANCELLED'
                 const isOrder = n.type === 'NEW_ORDER'
+                const orderNumber = getNotificationOrderNumber(n)
+                const formattedAmount = getNotificationAmount(n)
 
                 return (
                   <motion.div
@@ -253,7 +261,7 @@ const NotificationCenter = ({ onSelectOrder }) => {
                           {isCancelled ? '❌' : isOrder ? '🛍️' : '🔔'}
                         </span>
                         <div>
-                          <h4 className="card-type-title">{n.title}</h4>
+                          <h4 className="card-type-title">{cleanNotificationTitle(n.title)}</h4>
                           <span className="card-category-label">
                             {isCancelled ? 'Order Cancellation' : isOrder ? 'New Customer Order' : 'System Notice'}
                           </span>
@@ -276,15 +284,15 @@ const NotificationCenter = ({ onSelectOrder }) => {
                       </div>
                     </div>
 
-                    <p className="card-message">{n.message}</p>
+                    <p className="card-message">{cleanNotificationMessage(n)}</p>
 
                     <div className="card-bottom-row">
                       <div className="card-meta-tags">
-                        {n.orderNumber && (
-                          <span className="meta-order-number">#{n.orderNumber}</span>
+                        {orderNumber && (
+                          <span className="meta-order-number">#{orderNumber}</span>
                         )}
-                        {n.totalAmount && (
-                          <span className="meta-order-amount">₹{n.totalAmount.toLocaleString('en-IN')}</span>
+                        {formattedAmount && (
+                          <span className="meta-order-amount">₹{formattedAmount}</span>
                         )}
                       </div>
 

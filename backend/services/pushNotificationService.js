@@ -129,13 +129,16 @@ class PushNotificationService {
       const adminUserIds = admins.map(a => a._id)
       const formattedAmount = order.totalAmount?.toLocaleString('en-IN') || order.totalAmount
 
-      let title = '🛍️ New Order Received'
-      let body = `Order #${order.orderNumber} has been placed for ₹${formattedAmount}.`
+      let inAppTitle = 'New Order Received'
+      const customerName = order.customer?.name ? ` by ${order.customer.name}` : ''
+      let inAppMessage = `Order placed${customerName}.`
+      let pushBody = `Order #${order.orderNumber} has been placed for ₹${formattedAmount}.`
       let notifType = 'NEW_ORDER'
 
       if (type === 'ORDER_CANCELLED' || type === 'CANCELLED' || String(type).toLowerCase() === 'cancelled') {
-        title = '❌ Order Cancelled'
-        body = `Order #${order.orderNumber} placed by ${order.customer?.name || 'Customer'} has been cancelled.`
+        inAppTitle = 'Order Cancelled'
+        inAppMessage = `Order placed by ${order.customer?.name || 'Customer'} has been cancelled.`
+        pushBody = `Order #${order.orderNumber} placed by ${order.customer?.name || 'Customer'} has been cancelled.`
         notifType = 'ORDER_CANCELLED'
       }
 
@@ -145,8 +148,8 @@ class PushNotificationService {
           await Notification.create({
             recipient: adminUser._id,
             type: notifType,
-            title,
-            message: body,
+            title: inAppTitle,
+            message: inAppMessage,
             order: order._id,
             orderNumber: order.orderNumber,
             totalAmount: order.totalAmount
@@ -169,8 +172,8 @@ class PushNotificationService {
       const targetUrl = `${adminBaseUrl}/dashboard?orderId=${order._id.toString()}`
 
       const pushPayload = {
-        title,
-        body,
+        title: inAppTitle,
+        body: pushBody,
         icon: '/images/logoSEEMEE1.png',
         badge: '/images/logoSEEMEE1.png',
         tag: `order-${notifType.toLowerCase()}-${order._id.toString()}`,

@@ -866,7 +866,18 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 0.6rem;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .mobile-order-card-footer .payment-badge {
+    font-size: 0.68rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 50px;
+    flex-shrink: 0;
   }
 
   .mobile-manage-btn {
@@ -877,15 +888,18 @@
     background: linear-gradient(135deg, #1f1f1f 0%, #111111 100%);
     color: #ffffff;
     border: 1px solid rgba(212, 175, 55, 0.4);
-    padding: 9px 20px;
+    padding: 7px 16px;
     border-radius: 50px;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.05em;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: auto;
   }
 
   .mobile-manage-btn:active {
@@ -1024,7 +1038,23 @@
   }
 
   .mobile-order-card {
-    padding: 1rem;
+    padding: 0.9rem;
+  }
+
+  .mobile-order-card-footer {
+    gap: 8px;
+    padding-top: 0.65rem;
+  }
+
+  .mobile-manage-btn {
+    padding: 6px 13px;
+    font-size: 0.72rem;
+    gap: 4px;
+  }
+
+  .mobile-order-card-footer .payment-badge {
+    font-size: 0.64rem;
+    padding: 0.22rem 0.55rem;
   }
 
   .ad2ship-buttons-mobile-grid {

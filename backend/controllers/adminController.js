@@ -80,10 +80,28 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     { $group: { 
         _id: '$items.product', 
         name: { $first: '$items.name' },
+        image: { $first: '$items.image' },
         totalSold: { $sum: '$items.quantity' },
         revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
       } 
     },
+    { $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'productDoc'
+      }
+    },
+    { $addFields: {
+        image: {
+          $ifNull: [
+            '$image',
+            { $ifNull: [{ $arrayElemAt: ['$productDoc.images', 0] }, ''] }
+          ]
+        }
+      }
+    },
+    { $project: { productDoc: 0 } },
     { $sort: { totalSold: -1 } },
     { $limit: 5 }
   ])

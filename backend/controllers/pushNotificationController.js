@@ -116,9 +116,56 @@ export const getInAppNotifications = asyncHandler(async (req, res) => {
     Notification.countDocuments({ ...query, isRead: false })
   ])
 
+  const cleanTitle = (t) => t ? t.replace(/^[\p{Extended_Pictographic}\uFE0F\u200D\s\-_–—:]+/u, '').trim() || t : ''
+
+  const cleanMsg = (notif) => {
+    if (!notif || !notif.message) return ''
+    let msg = notif.message.trim()
+    const orderNum = (notif.orderNumber || notif.order?.orderNumber || '').replace(/^#/, '')
+    const totalAmount = notif.totalAmount ?? notif.order?.totalAmount
+    const customerName = notif.order?.customer?.name
+
+    const cancelMatch = msg.match(/(?:Order\s+#?[A-Za-z0-9_-]+\s+)?placed\s+by\s+(.*?)\s+has\s+been\s+cancelled/i)
+    if (cancelMatch) {
+      return `Order placed by ${cancelMatch[1].trim()} has been cancelled.`
+    }
+    if (/cancelled/i.test(msg)) {
+      return customerName ? `Order placed by ${customerName} has been cancelled.` : 'Order has been cancelled.'
+    }
+
+    if (/has\s+been\s+placed/i.test(msg) || notif.type === 'NEW_ORDER') {
+      const placedMatch = msg.match(/placed\s+by\s+([^.]+)/i)
+      if (placedMatch) {
+        return `Order placed by ${placedMatch[1].trim()}.`
+      }
+      if (customerName) {
+        return `Order placed by ${customerName}.`
+      }
+      return 'New customer order has been placed.'
+    }
+
+    if (orderNum) {
+      msg = msg.replace(new RegExp('(?:Order\\s*)?#' + orderNum + '\\s*', 'gi'), '')
+    }
+    if (totalAmount !== undefined && totalAmount !== null) {
+      const formatted = Number(totalAmount).toLocaleString('en-IN')
+      msg = msg.replace(new RegExp('\\s*(?:for\\s*)?(?:₹|Rs\\.?\\s*)(' + formatted + '|' + totalAmount + ')(\\.)?', 'gi'), '$2')
+    }
+    return msg.replace(/\s{2,}/g, ' ').replace(/\s+\./g, '.').trim() || notif.message
+  }
+
+  const cleanedNotifications = notifications.map(item => {
+    const doc = item.toObject ? item.toObject() : { ...item }
+    return {
+      ...doc,
+      title: cleanTitle(doc.title),
+      message: cleanMsg(doc)
+    }
+  })
+
   res.json({
     success: true,
-    data: notifications,
+    data: cleanedNotifications,
     unreadCount,
     pagination: {
       total,

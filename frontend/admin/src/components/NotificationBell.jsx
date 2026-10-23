@@ -2,6 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
+import {
+  cleanNotificationTitle,
+  cleanNotificationMessage,
+  getNotificationOrderNumber,
+  getNotificationAmount
+} from '../utils/notificationHelper'
 import './NotificationBell.css'
 
 const timeAgo = (dateString) => {
@@ -189,58 +195,63 @@ const NotificationBell = ({ onSelectOrder }) => {
                 </div>
               ) : (
                 <div className="notif-list scrollbar-custom">
-                  {notifications.map((n) => (
-                    <div
-                      key={n._id}
-                      className={`notif-item ${!n.isRead ? 'unread' : 'read'}`}
-                      onClick={() => handleNotificationClick(n)}
-                    >
-                      <div className="notif-item-icon">
-                        {n.type === 'NEW_ORDER' ? '🛍️' : n.type === 'PAYMENT_RECEIVED' ? '💳' : n.type === 'ORDER_CANCELLED' ? '❌' : '🔔'}
-                      </div>
-                      <div className="notif-item-content">
-                        <div className="notif-item-top">
-                          <span className="notif-item-title">{n.title}</span>
-                          <div className="notif-item-right">
-                            {!n.isRead && (
+                  {notifications.map((n) => {
+                    const orderNumber = getNotificationOrderNumber(n)
+                    const formattedAmount = getNotificationAmount(n)
+
+                    return (
+                      <div
+                        key={n._id}
+                        className={`notif-item ${!n.isRead ? 'unread' : 'read'}`}
+                        onClick={() => handleNotificationClick(n)}
+                      >
+                        <div className="notif-item-icon">
+                          {n.type === 'NEW_ORDER' ? '🛍️' : n.type === 'PAYMENT_RECEIVED' ? '💳' : n.type === 'ORDER_CANCELLED' ? '❌' : '🔔'}
+                        </div>
+                        <div className="notif-item-content">
+                          <div className="notif-item-top">
+                            <span className="notif-item-title">{cleanNotificationTitle(n.title)}</span>
+                            <div className="notif-item-right">
+                              {!n.isRead && (
+                                <button
+                                  type="button"
+                                  className="btn-dropdown-mark-read"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleMarkSingleRead(n)
+                                  }}
+                                  title="Mark as read"
+                                  aria-label="Mark as read"
+                                >
+                                  ✓
+                                </button>
+                              )}
+                              <span className="notif-item-time">{timeAgo(n.createdAt)}</span>
                               <button
                                 type="button"
-                                className="btn-dropdown-mark-read"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleMarkSingleRead(n)
-                                }}
-                                title="Mark as read"
-                                aria-label="Mark as read"
+                                className="btn-dropdown-delete"
+                                onClick={(e) => handleDeleteNotification(e, n._id)}
+                                title="Delete notification"
+                                aria-label="Delete notification"
                               >
-                                ✓
+                                ✕
                               </button>
-                            )}
-                            <span className="notif-item-time">{timeAgo(n.createdAt)}</span>
-                            <button
-                              type="button"
-                              className="btn-dropdown-delete"
-                              onClick={(e) => handleDeleteNotification(e, n._id)}
-                              title="Delete notification"
-                              aria-label="Delete notification"
-                            >
-                              ✕
-                            </button>
+                            </div>
                           </div>
+                          <p className="notif-item-msg">{cleanNotificationMessage(n)}</p>
+                          {(orderNumber || formattedAmount) && (
+                            <div className="notif-item-footer">
+                              {orderNumber && <span className="order-tag">#{orderNumber}</span>}
+                              {formattedAmount && (
+                                <span className="amount-tag">₹{formattedAmount}</span>
+                              )}
+                            </div>
+                          )}
                         </div>
-                        <p className="notif-item-msg">{n.message}</p>
-                        {n.orderNumber && (
-                          <div className="notif-item-footer">
-                            <span className="order-tag">#{n.orderNumber}</span>
-                            {n.totalAmount && (
-                              <span className="amount-tag">₹{n.totalAmount.toLocaleString('en-IN')}</span>
-                            )}
-                          </div>
-                        )}
+                        {!n.isRead && <span className="unread-dot" title="Unread"></span>}
                       </div>
-                      {!n.isRead && <span className="unread-dot" title="Unread"></span>}
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>

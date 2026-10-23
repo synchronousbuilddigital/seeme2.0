@@ -977,17 +977,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
       </div>
 
       <div className="product-toolbar">
-        <div className="search-box">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input
-            className="toolbar-input"
-            type="search"
-            placeholder="Search products by name, category, description"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
         <div className="filter-selects-group">
           <select className="toolbar-select" value={audienceFilter} onChange={(e) => setAudienceFilter(e.target.value)}>
             <option value="all">All Gender (Men & Women)</option>
