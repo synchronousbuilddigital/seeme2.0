@@ -334,10 +334,13 @@ const Orders = () => {
                       <div className="status-badges">
                         <span className={`status-pill ${statusLower}`}>
                           <span className="status-dot" />
-                          {(isCodOrder || isOfflineStore) && isCodApproved ? 'ORDER HANDOVER' : (isCodOrder || isOfflineStore) ? 'COD PENDING APPROVAL' : statusLower.toUpperCase()}
+                          {isOfflineStore && isCodOrder ? (isCodApproved ? 'ORDER HANDOVER' : 'COD PENDING APPROVAL') : statusLower.toUpperCase()}
                         </span>
                         <span className={`payment-pill ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}`}>
-                          {(order.paymentMethod || 'online').toUpperCase()} • {isCodApproved ? 'PAID / APPROVED' : (order.paymentStatus || 'pending').toUpperCase()}
+                          {isOfflineStore && isCodOrder
+                            ? `COD • ${isCodApproved ? 'PAID / APPROVED' : (order.paymentStatus || 'PENDING').toUpperCase()}`
+                            : (isCodOrder ? 'ONLINE (COD)' : `${(order.paymentMethod || 'online').toUpperCase()} • ${(order.paymentStatus || 'pending').toUpperCase()}`)
+                          }
                         </span>
                       </div>
 
@@ -371,7 +374,7 @@ const Orders = () => {
                               <p>Cancelled prior to warehouse dispatch & pickup.</p>
                             </div>
                           </div>
-                        ) : (isCodOrder || isOfflineStore) ? (
+                        ) : (isOfflineStore && isCodOrder) ? (
                           <div className="cod-handover-banner-box">
                             {isCodApproved ? (
                               <div className="cod-approved-handover">

@@ -26,8 +26,34 @@ router.use((req, res, next) => {
 // GET site settings (public)
 router.get('/', siteSettingsController.getSettings)
 
+// GET online COD status (public, un-cached)
+router.get('/cod-status', async (req, res) => {
+  try {
+    const { getSettings } = await import('../services/siteSettingsService.js')
+    const settings = await getSettings()
+    const isOnlineCodEnabled = settings ? settings.isOnlineCodEnabled !== false : true
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+    res.json({ success: true, isOnlineCodEnabled })
+  } catch (err) {
+    res.json({ success: true, isOnlineCodEnabled: true })
+  }
+})
+
 // UPDATE site settings (admin only)
 router.put('/', protect, admin, siteSettingsController.updateSettings)
+
+// TOGGLE online COD specifically (admin only)
+router.put('/toggle-online-cod', protect, admin, async (req, res) => {
+  try {
+    const { isOnlineCodEnabled } = req.body
+    const enabled = Boolean(isOnlineCodEnabled !== false && isOnlineCodEnabled !== 'false')
+    const { updateSettings } = await import('../services/siteSettingsService.js')
+    const settings = await updateSettings({ isOnlineCodEnabled: enabled })
+    res.json({ success: true, isOnlineCodEnabled: enabled, data: settings })
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message })
+  }
+})
 
 export default router
 

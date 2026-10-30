@@ -1,0 +1,925 @@
+/* ==========================================================================
+   TRY THE LOOK SECTION — Interactive Fashion Lineup Viewer
+   Scoped strictly to .try-the-look-section
+   Uses Seemee's design tokens and theme variables.
+   ========================================================================== */
+
+.try-the-look-section {
+  position: relative;
+  width: 100%;
+  padding: clamp(3.5rem, 7vw, 6.5rem) 0 clamp(3rem, 6vw, 6rem);
+  background-color: var(--theme-bg, #FEFDFB);
+  color: var(--theme-text, #2B2B2B);
+  overflow: hidden;
+  transition: background-color 0.45s ease, color 0.45s ease;
+}
+
+/* Atmosphere background ambient glow */
+.try-the-look-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 40%, rgba(212, 175, 55, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 45% at 80% 65%, rgba(184, 148, 30, 0.06) 0%, transparent 75%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.try-the-look-container {
+  position: relative;
+  width: 100%;
+  max-width: var(--container-width, 1400px);
+  margin: 0 auto;
+  padding: 0 clamp(1.2rem, 4vw, 3.5rem);
+  z-index: 1;
+}
+
+/* 2-Column Grid Layout */
+.try-the-look-grid {
+  display: grid;
+  grid-template-columns: 1.35fr minmax(320px, 400px);
+  gap: clamp(1.8rem, 4vw, 3.5rem);
+  align-items: center;
+}
+
+/* ==========================================================================
+   1. LEFT STAGE & HEADER
+   ========================================================================== */
+
+.try-stage-column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.stage-header {
+  margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+.stage-kicker {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--theme-primary, #B8941E);
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.stage-heading {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 1.8rem + 2vw, 3.8rem);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--theme-text, #2B2B2B);
+  letter-spacing: -0.015em;
+  margin-bottom: 0.65rem;
+}
+
+.gold-accent-text {
+  font-style: italic;
+  font-weight: 500;
+  background: linear-gradient(135deg, #B8941E 0%, #D4AF37 50%, #997300 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  padding: 0 0.15rem;
+}
+
+.stage-subtitle {
+  font-family: var(--font-body);
+  font-size: clamp(0.92rem, 0.88rem + 0.2vw, 1.05rem);
+  line-height: 1.6;
+  color: var(--soft-gray, #6B7280);
+  max-width: 580px;
+}
+
+/* ==========================================================================
+   2. 3D-DEPTH MODEL LINEUP VIEWPORT
+   ========================================================================== */
+
+.lineup-stage-viewport {
+  position: relative;
+  width: 100%;
+  height: clamp(480px, 60vh, 620px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  perspective: 1200px;
+  overflow: visible;
+  padding-bottom: 1.5rem;
+}
+
+.lineup-stage-track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transform-style: preserve-3d;
+}
+
+/* Stage floor radial shadow/glow */
+.stage-floor-glow {
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  right: 5%;
+  height: 36px;
+  background: radial-gradient(ellipse 65% 100% at 50% 50%, rgba(43, 43, 43, 0.24) 0%, rgba(212, 175, 55, 0.14) 45%, transparent 75%);
+  border-radius: 50%;
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Base Model Card — GPU Accelerated 60FPS */
+.lineup-model-card {
+  position: absolute;
+  bottom: 0;
+  height: 96%;
+  aspect-ratio: 2 / 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  transform-origin: bottom center;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+.model-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+.lineup-model-img {
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
+  filter: drop-shadow(0 16px 28px rgba(43, 43, 43, 0.22));
+  transition: transform 0.4s ease;
+}
+
+/* ==========================================================================
+   3. MODEL SLOTS IN 3D DEPTH (TRANSLATE3D & OPACITY ONLY FOR 60FPS SMOOTHNESS)
+   ========================================================================== */
+
+/* 1. Foreground Active Model */
+.lineup-slot-active {
+  z-index: 10;
+  opacity: 1;
+  transform: translate3d(50px, 0, 0) scale(1);
+  pointer-events: auto;
+}
+
+.lineup-slot-active:hover .lineup-model-img {
+  transform: scale(1.02);
+}
+
+/* 2. Queue Slot 1 (Immediately behind foreground) */
+.lineup-slot-1 {
+  z-index: 8;
+  opacity: 0.75;
+  transform: translate3d(-85px, -20px, 0) scale(0.84);
+}
+
+/* 3. Queue Slot 2 (Second in line) */
+.lineup-slot-2 {
+  z-index: 6;
+  opacity: 0.50;
+  transform: translate3d(-185px, -38px, 0) scale(0.70);
+}
+
+/* 4. Queue Slot 3 (Third in line) */
+.lineup-slot-3 {
+  z-index: 4;
+  opacity: 0.28;
+  transform: translate3d(-275px, -54px, 0) scale(0.58);
+}
+
+/* 5. Exited Model (Smoothly walks off to the right) */
+.lineup-slot-exited {
+  z-index: 9;
+  opacity: 0;
+  transform: translate3d(240px, -8px, 0) scale(0.92);
+}
+
+/* 6. Inactive / Far Queue (Hidden on the left ready to enter, instant silent reset) */
+.lineup-slot-hidden {
+  z-index: 1;
+  opacity: 0;
+  transform: translate3d(-340px, -65px, 0) scale(0.48);
+  transition: none !important;
+}
+
+/* ==========================================================================
+   4. INTERACTIVE NUMBERED PINS ON ACTIVE MODEL
+   ========================================================================== */
+
+.model-look-pin {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--charcoal, #2B2B2B);
+  color: #FEFDFB;
+  border: 2px solid var(--theme-primary, #D4AF37);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 10px rgba(212, 175, 55, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  z-index: 20;
+  transform: translate(-50%, -50%);
+  transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+}
+
+.model-look-pin:hover {
+  transform: translate(-50%, -50%) scale(1.18);
+  background: #000000;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35), 0 0 16px rgba(212, 175, 55, 0.7);
+}
+
+.model-look-pin.is-active {
+  background: var(--theme-primary, #D4AF37);
+  color: #2B2B2B;
+  transform: translate(-50%, -50%) scale(1.22);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.8);
+}
+
+.pin-pulse-ring {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--theme-primary, #D4AF37);
+  animation: pin-pulse 2.2s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes pin-pulse {
+  0% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.pin-number {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.pin-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.3rem 0.65rem;
+  background: rgba(43, 43, 43, 0.9);
+  color: #FFFFFF;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  backdrop-filter: blur(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.model-look-pin:hover .pin-tooltip,
+.model-look-pin.is-active .pin-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
+}
+
+/* ==========================================================================
+   5. BOTTOM CONTROLS & SEGMENTED PROGRESS BAR
+   ========================================================================== */
+
+.lineup-controls-bar {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.lineup-nav-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lineup-arrow-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--theme-surface, #FFFFFF);
+  border: 1.5px solid rgba(212, 175, 55, 0.35);
+  color: var(--theme-text, #2B2B2B);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+}
+
+.lineup-arrow-btn:hover:not(:disabled) {
+  background: var(--charcoal, #2B2B2B);
+  color: #FEFDFB;
+  border-color: var(--charcoal, #2B2B2B);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+}
+
+.lineup-arrow-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.lineup-play-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 44px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  color: var(--theme-primary, #B8941E);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s ease;
+}
+
+.lineup-play-toggle:hover {
+  background: rgba(212, 175, 55, 0.18);
+  border-color: var(--theme-primary, #D4AF37);
+  transform: translateY(-1px);
+}
+
+.lineup-progress-cluster {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+/* Segmented progress bar — Pure CSS Animated Fill */
+.progress-segments-track {
+  display: flex;
+  gap: 0.35rem;
+  width: 100%;
+  align-items: center;
+}
+
+.progress-segment-btn {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: left;
+}
+
+.progress-segment-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(212, 175, 55, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+  transition: background 0.25s ease;
+}
+
+.progress-segment-btn:hover .progress-segment-bar {
+  background: rgba(212, 175, 55, 0.4);
+}
+
+.progress-segment-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #D4AF37 0%, #B8941E 100%);
+  border-radius: 999px;
+  will-change: width;
+}
+
+.progress-segment-btn.passed .progress-segment-fill {
+  width: 100%;
+}
+
+.progress-segment-btn.active .progress-segment-fill {
+  animation: segment-bar-fill 5s linear forwards;
+}
+
+.progress-segment-btn.paused .progress-segment-fill {
+  animation-play-state: paused;
+}
+
+@keyframes segment-bar-fill {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.progress-segment-number {
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--soft-gray, #8B8B8B);
+  transition: color 0.2s ease;
+}
+
+.progress-segment-btn.active .progress-segment-number {
+  color: var(--theme-primary, #B8941E);
+}
+
+.active-look-title-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+}
+
+.indicator-counter {
+  font-weight: 700;
+  color: var(--theme-primary, #B8941E);
+}
+
+.indicator-dash {
+  color: var(--soft-gray, #8B8B8B);
+}
+
+.indicator-name {
+  font-weight: 700;
+  color: var(--theme-text, #2B2B2B);
+  letter-spacing: -0.01em;
+}
+
+/* ==========================================================================
+   6. RIGHT: "IN THIS LOOK" SIDEBAR
+   ========================================================================== */
+
+.try-sidebar-column {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.sidebar-card-shell {
+  background: var(--theme-surface, #FFFFFF);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  border-radius: 16px;
+  padding: 1.15rem 1.25rem;
+  box-shadow:
+    0 16px 36px -10px rgba(43, 43, 43, 0.08),
+    0 0 25px rgba(212, 175, 55, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* ==========================================================================
+   6. SINGLE LOOK PRODUCT SHOWCASE (Right Column)
+   ========================================================================== */
+
+.single-look-showcase {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Hero Media Preview & Gallery Strip */
+.single-look-media-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.single-look-image-container {
+  position: relative;
+  width: 100%;
+  height: 270px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #FAF7F2 0%, #F1E9DE 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(212, 175, 55, 0.22);
+  box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.04);
+}
+
+.single-look-hero-img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.single-look-hero-img:hover {
+  transform: scale(1.02);
+}
+
+.single-look-ensemble-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  z-index: 2;
+  background: rgba(35, 35, 35, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #E2BE57;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+.badge-sparkle {
+  color: #D4AF37;
+}
+
+.single-look-gallery-thumbs {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.gallery-thumb-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  padding: 0;
+  background: #F4EBE1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.gallery-thumb-btn:hover {
+  border-color: rgba(212, 175, 55, 0.5);
+}
+
+.gallery-thumb-btn.is-active {
+  border-color: #D4AF37;
+  box-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+}
+
+.gallery-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Product Info Block */
+.single-look-info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.single-look-brand-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.single-look-brand-tag {
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--theme-primary, #B8941E);
+  text-transform: uppercase;
+}
+
+.single-look-cat-tag {
+  font-family: var(--font-body);
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--soft-gray, #8B8B8B);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.single-look-product-title {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--theme-text, #2B2B2B);
+  line-height: 1.25;
+  margin: 0;
+}
+
+/* Size Selection */
+.single-look-size-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.size-header-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+}
+
+.size-title-text {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--soft-gray, #6B7280);
+}
+
+.size-value-indicator {
+  color: var(--theme-text, #2B2B2B);
+}
+
+.size-pills-row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.size-pill-btn {
+  min-width: 34px;
+  height: 30px;
+  padding: 0 0.55rem;
+  border-radius: 6px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: var(--theme-surface, #FFFFFF);
+  color: var(--theme-text, #2B2B2B);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.size-pill-btn:hover {
+  border-color: var(--theme-primary, #B8941E);
+  background: rgba(212, 175, 55, 0.08);
+}
+
+.size-pill-btn.is-active {
+  background: var(--charcoal, #2B2B2B);
+  color: #FEFDFB;
+  border-color: var(--charcoal, #2B2B2B);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Pricing Card */
+.single-look-price-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.price-primary-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.price-main-val {
+  font-family: var(--font-body);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--theme-text, #2B2B2B);
+  letter-spacing: -0.02em;
+}
+
+.price-old-val {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--soft-gray, #8B8B8B);
+  text-decoration: line-through;
+}
+
+.price-discount-tag {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #059669;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.price-tax-note {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  color: var(--soft-gray, #8B8B8B);
+}
+
+/* Primary ADD TO BAG Button */
+.single-look-add-bag-btn {
+  width: 100%;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  background: linear-gradient(135deg, #2B2B2B 0%, #1A1A1A 100%);
+  color: #FEFDFB;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  outline: none;
+  box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.22), 0 0 14px rgba(212, 175, 55, 0.15);
+  transition: all 0.25s ease;
+}
+
+.single-look-add-bag-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #1A1A1A 0%, #000000 100%);
+  box-shadow: 0 12px 24px -5px rgba(0, 0, 0, 0.3), 0 0 20px rgba(212, 175, 55, 0.25);
+}
+
+.single-look-add-bag-btn.is-added {
+  background: #059669;
+  border-color: #059669;
+  color: #FFFFFF;
+}
+
+.single-look-view-product-btn {
+  background: none;
+  border: none;
+  padding: 0.2rem 0;
+  color: var(--theme-primary, #B8941E);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.single-look-view-product-btn:hover {
+  color: var(--theme-text, #2B2B2B);
+  transform: translateX(2px);
+}
+
+/* Laptop & Desktop Screens (min 1025px) */
+@media (min-width: 1025px) {
+  .try-the-look-section {
+    padding-top: clamp(4.5rem, 8vw, 7rem);
+  }
+
+  .try-sidebar-column {
+    margin-top: clamp(2.5rem, 4vw, 3.8rem);
+  }
+}
+
+/* Tablet (max 1024px) */
+@media (max-width: 1024px) {
+  .try-the-look-grid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .lineup-stage-viewport {
+    height: 520px;
+  }
+
+  .lineup-slot-active { transform: translate3d(20px, 0, 0) scale(1); }
+  .lineup-slot-1 { transform: translate3d(-75px, -18px, 0) scale(0.84); }
+  .lineup-slot-2 { transform: translate3d(-160px, -34px, 0) scale(0.70); }
+  .lineup-slot-3 { transform: translate3d(-230px, -48px, 0) scale(0.58); }
+  .lineup-slot-exited { transform: translate3d(180px, -8px, 0) scale(0.92); }
+}
+
+/* Mobile Devices (max 768px) */
+@media (max-width: 768px) {
+  .try-the-look-section {
+    padding: 2.5rem 0 2rem;
+  }
+
+  .try-the-look-container {
+    padding: 0 1rem;
+  }
+
+  .lineup-stage-viewport {
+    height: 420px;
+  }
+
+  .lineup-slot-active { transform: translate3d(10px, 0, 0) scale(1); }
+  .lineup-slot-1 { transform: translate3d(-55px, -16px, 0) scale(0.84); }
+  .lineup-slot-2 { transform: translate3d(-120px, -30px, 0) scale(0.70); }
+  .lineup-slot-3 { transform: translate3d(-175px, -42px, 0) scale(0.58); }
+  .lineup-slot-exited { transform: translate3d(140px, -8px, 0) scale(0.92); }
+
+  .model-look-pin {
+    width: 28px;
+    height: 28px;
+  }
+
+  .pin-number {
+    font-size: 0.68rem;
+  }
+
+  .progress-segments-track {
+    gap: 0.35rem;
+  }
+
+  .progress-segment-number {
+    font-size: 0.62rem;
+  }
+
+  .sidebar-card-shell {
+    padding: 1.25rem;
+  }
+
+  .single-look-image-container {
+    height: 330px;
+  }
+
+  .single-look-add-bag-btn {
+    height: 48px;
+    font-size: 0.82rem;
+  }
+}
+
+/* ==========================================================================
+   9. PREFERS-REDUCED-MOTION OVERRIDES
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .lineup-model-card,
+  .model-active-foreground.stepping-forward,
+  .model-walking-off,
+  .model-slot-1.queue-step-forward,
+  .model-slot-2.queue-step-forward,
+  .model-slot-3.queue-step-forward,
+  .pin-pulse-ring {
+    animation: none !important;
+    transition: opacity 0.3s ease !important;
+  }
+
+  .model-walking-off {
+    opacity: 0 !important;
+  }
+}

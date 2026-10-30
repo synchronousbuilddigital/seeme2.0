@@ -1,14 +1,14 @@
 import express from 'express'
 import * as orderController from '../controllers/orderController.js'
 import * as refundController from '../controllers/refundController.js'
-import { protect, admin } from '../middleware/auth.js'
+import { protect, admin, optionalAuth } from '../middleware/auth.js'
 
 import { orderValidationRules, validate } from '../middleware/validator.js'
 
 const router = express.Router()
 
-// Create order (protected — authenticated customers can place orders)
-router.post('/', protect, orderValidationRules(), validate, orderController.createOrder)
+// Create order (all customers can place orders with or without existing session)
+router.post('/', optionalAuth, orderValidationRules(), validate, orderController.createOrder)
 
 // Get all orders (admin only)
 router.get('/', protect, admin, orderController.getOrders)
@@ -17,8 +17,8 @@ router.get('/', protect, admin, orderController.getOrders)
 router.get('/myorders', protect, orderController.getMyOrders)
 
 // Razorpay & Webhook routes
-router.post('/create-razorpay-order', protect, orderController.createRazorpayOrder)
-router.post('/verify-payment', protect, orderController.verifyPayment)
+router.post('/create-razorpay-order', optionalAuth, orderController.createRazorpayOrder)
+router.post('/verify-payment', optionalAuth, orderController.verifyPayment)
 router.post('/verify-offline-pincode', orderController.verifyOfflinePincode)
 router.post('/razorpay-webhook', refundController.handleRazorpayWebhook)
 
@@ -36,8 +36,8 @@ router.put('/:id/status', protect, admin, orderController.updateOrderStatus)
 router.put('/:id/approve-cod', protect, admin, orderController.approveCodOrder)
 router.put('/:id/reject-cod', protect, admin, orderController.rejectCodOrder)
 
-// Get single order (private — owner or admin)
-router.get('/:id', protect, orderController.getOrder)
+// Get single order (authenticated owner, guest, or admin)
+router.get('/:id', optionalAuth, orderController.getOrder)
 
 export default router
 

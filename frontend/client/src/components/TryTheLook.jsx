@@ -1,0 +1,648 @@
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { LOOKS_DATA } from '../data/tryTheLookData'
+import { useCart } from '../context/CartContext'
+import { cachedFetch } from '../utils/cachedFetch'
+import { API_ENDPOINTS } from '../config/api'
+import { belongsToAudience, interleaveAudiences } from '../utils/categoryHelper'
+import './TryTheLook.css'
+
+const AUTOPLAY_DURATION = 5000 // 5 seconds per look
+const TRANSITION_DURATION = 1000 // 1s coordinated motion
+
+// Helper to convert backend Cloudinary product URLs into transparent cutout model images
+export const getCutoutImageUrl = (url) => {
+  if (!url || typeof url !== 'string') return url
+  if (url.includes('e_background_removal') || url.includes('/images/looks/')) return url
+  if (url.includes('res.cloudinary.com') && url.includes('/image/upload/')) {
+    return url
+      .replace('/image/upload/', '/image/upload/e_background_removal/')
+      .replace(/\.(webp|jpg|jpeg)$/i, '.png')
+  }
+  return url
+}
+
+const TryTheLook = ({ activeAudience = 'all' }) => {
+  const navigate = useNavigate()
+  let cartContext = null
+  try {
+    cartContext = useCart()
+  } catch (err) {
+    // Graceful fallback if rendered outside CartProvider
+  }
+
+  const [looks, setLooks] = useState(LOOKS_DATA)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isAutoplay, setIsAutoplay] = useState(true)
+  const [isHovered, setIsHovered] = useState(false)
+  const [selectedSize, setSelectedSize] = useState('M')
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [addedToCart, setAddedToCart] = useState(false)
+  const [localCartCount, setLocalCartCount] = useState(0)
+  const [loading, setLoading] = useState(false)
+
+  const sectionRef = useRef(null)
+  const autoplayTimerRef = useRef(null)
+
+  // ─── DYNAMICALLY FETCH MODEL IMAGES & PRODUCTS FROM BACKEND ───────────────
+  useEffect(() => {
+    let isCancelled = false
+
+    const fetchBackendLooks = async () => {
+      try {
+        setLoading(true)
+        const resData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=100`, { ttlMs: 300000 })
+        const rawProducts = Array.isArray(resData?.data)
+          ? resData.data
+          : (Array.isArray(resData?.products) ? resData.products : [])
+
+        // Filter active products with real images from the backend database
+        const validProducts = rawProducts.filter(
+          (p) => p && p.isActive !== false && Array.isArray(p.images) && p.images.length > 0 && p.images[0]
+        )
+
+        if (validProducts.length === 0) return
+
+        // Audience matching (men, women, all)
+        let audienceMatched = validProducts
+        if (activeAudience && activeAudience !== 'all') {
+          const filtered = validProducts.filter((p) => belongsToAudience(p, activeAudience))
+          if (filtered.length >= 3) {
+            audienceMatched = filtered
+          }
+        }
+
+        // 1. Latest Trends products (identical algorithm to LatestTrendsSection.jsx)
+        let latestTrendsPool = audienceMatched.filter(p =>
+          p.isNewArrival === true ||
+          p.isFeatured === true ||
+          (Array.isArray(p.tags) && p.tags.some(t => typeof t === 'string' && t.toLowerCase().includes('new')))
+        )
+
+        if (latestTrendsPool.length < 3) {
+          latestTrendsPool = [...audienceMatched].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        } else {
+          latestTrendsPool.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+        }
+        const latestTrendsProducts = latestTrendsPool.slice(0, 10)
+
+        // 2. Shop Section products (identical algorithm to ShopSection.jsx)
+        const featuredShop = audienceMatched.filter(p => p.featured === true || p.inCollection === true)
+        const shopPool = featuredShop.length > 0 ? featuredShop : audienceMatched
+        const interleavedShop = activeAudience === 'all' ? interleaveAudiences(shopPool) : shopPool
+        const shopProducts = interleavedShop.slice(0, 8)
+
+        // 3. Combine both collections cleanly without duplicates (Latest Trends first, then Shop Section)
+        const targetProducts = []
+        const seenIds = new Set()
+
+        // Include all Latest Trends products
+        latestTrendsProducts.forEach((p) => {
+          const id = String(p._id || p.id)
+          if (!seenIds.has(id)) {
+            seenIds.add(id)
+            targetProducts.push(p)
+          }
+        })
+
+        // Include all Shop Section products
+        shopProducts.forEach((p) => {
+          const id = String(p._id || p.id)
+          if (!seenIds.has(id)) {
+            seenIds.add(id)
+            targetProducts.push(p)
+          }
+        })
+
+        // Fallback fill if pool has more items
+        if (targetProducts.length < 5) {
+          audienceMatched.forEach((p) => {
+            const id = String(p._id || p.id)
+            if (!seenIds.has(id)) {
+              seenIds.add(id)
+              targetProducts.push(p)
+            }
+          })
+        }
+
+        // Map backend products dynamically to Look objects with transparent cutout model images
+        const dynamicLooks = targetProducts.map((prod, idx) => {
+          const primaryImg = prod.images[0]
+          const cutoutImg = getCutoutImageUrl(primaryImg)
+          const secondaryImg = prod.images[1] || primaryImg
+          const detailImg = prod.images[2] || secondaryImg || primaryImg
+
+          const price = typeof prod.price === 'number' && prod.price > 0 ? prod.price : 1499
+          const originalPrice = typeof prod.originalPrice === 'number' && prod.originalPrice > price
+            ? prod.originalPrice
+            : Math.round(price * 1.25)
+          const discountPercent = prod.discount || Math.max(10, Math.round(((originalPrice - price) / originalPrice) * 100))
+
+          const cleanName = prod.name || 'Artisanal Ensemble'
+          const shortName = cleanName.length > 38 ? cleanName.slice(0, 35) + '...' : cleanName
+          const catName = prod.category ? prod.category.replace(/[-_]/g, ' ') : 'Atelier'
+          const isSuitOrSet = /set|suit|kurta|cord/i.test(cleanName) || /set|suit/i.test(catName)
+          const isTrending = latestTrendsProducts.some(lt => String(lt._id || lt.id) === String(prod._id || prod.id))
+
+          return {
+            id: prod._id || `backend-look-${idx}`,
+            productId: prod._id,
+            name: shortName,
+            fullName: cleanName,
+            subtitle: isTrending
+              ? `LATEST TREND • ${catName.toUpperCase()}`
+              : `${catName.toUpperCase()} • Handcrafted Collection`,
+            modelImage: cutoutImg,
+            originalImage: primaryImg,
+            images: Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : [primaryImg, secondaryImg, detailImg].filter(Boolean),
+            price: price,
+            originalPrice: originalPrice,
+            discountPercent: discountPercent,
+            category: catName,
+            brand: prod.brand || 'SEEMEE',
+            fabric: prod.fabric || '100% Pure Artisan Cotton',
+            sizes: Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : ['XS', 'S', 'M', 'L', 'XL'],
+            description: prod.description || 'Complete head-to-toe coordinated ensemble crafted with premium artisanal tailoring.',
+            isSuitOrSet: isSuitOrSet,
+            isTrending: isTrending
+          }
+        })
+
+        if (!isCancelled && dynamicLooks.length > 0) {
+          setLooks(dynamicLooks)
+          setActiveIndex(0)
+        }
+      } catch (err) {
+        console.error('Error fetching backend products for TryTheLook:', err)
+      } finally {
+        if (!isCancelled) setLoading(false)
+      }
+    }
+
+    fetchBackendLooks()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [activeAudience])
+
+  // Preload all look images into browser cache to ensure instant smooth display
+  useEffect(() => {
+    if (!looks || looks.length === 0) return
+    looks.forEach((item) => {
+      if (item.modelImage) {
+        const img = new Image()
+        img.src = item.modelImage
+      }
+      if (item.originalImage) {
+        const img = new Image()
+        img.src = item.originalImage
+      }
+    })
+  }, [looks])
+
+  const totalLooks = looks.length
+  const activeLook = looks[activeIndex] || looks[0] || LOOKS_DATA[0]
+
+  // Reset image view & select default size on active look change
+  useEffect(() => {
+    setSelectedImageIndex(0)
+    const currentLook = looks[activeIndex] || looks[0]
+    if (currentLook?.sizes && Array.isArray(currentLook.sizes) && currentLook.sizes.length > 0) {
+      setSelectedSize(currentLook.sizes.includes('M') ? 'M' : currentLook.sizes[0])
+    } else {
+      setSelectedSize('M')
+    }
+  }, [activeIndex, looks])
+
+  // Move to Next Look with instantaneous 60fps CSS transition
+  const handleNext = useCallback(() => {
+    if (isTransitioning || totalLooks <= 1) return
+    setIsTransitioning(true)
+    setActiveIndex((prev) => (prev + 1) % totalLooks)
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 650)
+  }, [isTransitioning, totalLooks])
+
+  // Move to Previous Look
+  const handlePrev = useCallback(() => {
+    if (isTransitioning || totalLooks <= 1) return
+    setIsTransitioning(true)
+    setActiveIndex((prev) => (prev - 1 + totalLooks) % totalLooks)
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 650)
+  }, [isTransitioning, totalLooks])
+
+  // Jump to specific index from progress bar segment
+  const handleSelectLook = (targetIdx) => {
+    if (targetIdx === activeIndex || isTransitioning || targetIdx >= totalLooks) return
+    setIsTransitioning(true)
+    setActiveIndex(targetIdx)
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 650)
+  }
+
+  // Keyboard navigation (ArrowLeft & ArrowRight)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!sectionRef.current) return
+      const rect = sectionRef.current.getBoundingClientRect()
+      const inView = rect.top < window.innerHeight && rect.bottom > 0
+      if (!inView) return
+
+      if (e.key === 'ArrowRight') {
+        handleNext()
+      } else if (e.key === 'ArrowLeft') {
+        handlePrev()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleNext, handlePrev])
+
+  // Autoplay progression timer — pure single timeout per look, no 20/sec re-renders!
+  useEffect(() => {
+    if (!isAutoplay || isHovered) {
+      if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current)
+      return
+    }
+
+    autoplayTimerRef.current = setTimeout(() => {
+      handleNext()
+    }, AUTOPLAY_DURATION)
+
+    return () => {
+      if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current)
+    }
+  }, [isAutoplay, isHovered, activeIndex, handleNext])
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current)
+    }
+  }, [])
+
+  // Calculations for active look pricing & display
+  const activePrice = typeof activeLook?.price === 'number' && activeLook.price > 0
+    ? activeLook.price
+    : (activeLook?.items?.reduce((sum, item) => sum + (item.price || 0), 0) || 1124)
+
+  const activeOriginalPrice = typeof activeLook?.originalPrice === 'number' && activeLook.originalPrice > activePrice
+    ? activeLook.originalPrice
+    : (activeLook?.items?.reduce((sum, item) => sum + (item.oldPrice || Math.round(item.price * 1.25) || 0), 0) || Math.round(activePrice * 1.25))
+
+  const activeDiscount = activeLook?.discountPercent || Math.max(10, Math.round(((activeOriginalPrice - activePrice) / activeOriginalPrice) * 100))
+
+  const lookImages = Array.isArray(activeLook?.images) && activeLook.images.length > 0
+    ? activeLook.images
+    : (activeLook?.items && activeLook.items.length > 0
+        ? activeLook.items.map((it) => it.image).filter(Boolean)
+        : [activeLook?.originalImage || activeLook?.modelImage].filter(Boolean))
+
+  const currentDisplayImage = lookImages[selectedImageIndex] || activeLook?.originalImage || activeLook?.modelImage
+
+  const availableSizes = Array.isArray(activeLook?.sizes) && activeLook.sizes.length > 0
+    ? activeLook.sizes
+    : ['XS', 'S', 'M', 'L', 'XL']
+
+  // Single Add to Cart handler: Adds the complete overall product ensemble to bag
+  const handleAddToCart = () => {
+    if (!activeLook) return
+
+    const productData = {
+      _id: activeLook.productId || activeLook.id,
+      id: activeLook.productId || activeLook.id,
+      name: activeLook.fullName || activeLook.name,
+      price: activePrice,
+      originalPrice: activeOriginalPrice,
+      images: lookImages,
+      category: activeLook.category || 'Suit Set',
+      sizes: availableSizes,
+      size: selectedSize || 'M',
+      selectedSize: selectedSize || 'M',
+      quantity: 1
+    }
+
+    if (cartContext?.addToCart) {
+      cartContext.addToCart(productData, navigate)
+    } else {
+      setLocalCartCount((prev) => prev + 1)
+    }
+
+    setAddedToCart(true)
+    setTimeout(() => setAddedToCart(false), 2400)
+  }
+
+  return (
+    <section
+      id="try-the-look"
+      className="try-the-look-section"
+      aria-label="Try the Look Interactive Fashion Lineup"
+      ref={sectionRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div className="try-the-look-container">
+        <div className="try-the-look-grid">
+          {/* ============================================================ */}
+          {/* LEFT: MAIN STAGE & DEPTH QUEUED MODEL LINEUP                 */}
+          {/* ============================================================ */}
+          <div className="try-stage-column">
+            {/* Stage Header */}
+            <div className="stage-header">
+              <span className="stage-kicker">CURATED ENSEMBLE</span>
+              <h2 className="stage-heading">
+                Try the <span className="gold-accent-text">Look.</span>
+              </h2>
+              <p className="stage-subtitle">
+                Complete head-to-toe styling designed for effortless royalty.
+              </p>
+            </div>
+
+            {/* Lineup Presentation Stage — Persistent 60FPS Hardware-Accelerated Lineup */}
+            <div className="lineup-stage-viewport">
+              <div className="lineup-stage-track">
+                {looks.map((look, idx) => {
+                  const offset = (idx - activeIndex + totalLooks) % totalLooks
+                  let slotClass = 'lineup-slot-hidden'
+                  if (offset === 0) slotClass = 'lineup-slot-active'
+                  else if (offset === 1) slotClass = 'lineup-slot-1'
+                  else if (offset === 2) slotClass = 'lineup-slot-2'
+                  else if (offset === 3) slotClass = 'lineup-slot-3'
+                  else if (offset === totalLooks - 1) slotClass = 'lineup-slot-exited'
+
+                  const isActive = offset === 0
+
+                  return (
+                    <div
+                      key={look.id || idx}
+                      className={`lineup-model-card ${slotClass}`}
+                      aria-hidden={!isActive}
+                    >
+                      <div className="model-img-wrapper">
+                        <img
+                          src={look.modelImage}
+                          alt={isActive ? look.name : ''}
+                          className="lineup-model-img"
+                          loading={offset <= 2 ? 'eager' : 'lazy'}
+                          decoding="async"
+                          onError={(e) => {
+                            if (look.originalImage && e.target.src !== look.originalImage) {
+                              e.target.src = look.originalImage
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Stage Ambient Floor Glow */}
+              <div className="stage-floor-glow" aria-hidden="true" />
+            </div>
+
+            {/* ============================================================ */}
+            {/* BOTTOM CONTROLS & SEGMENTED PROGRESS BAR                     */}
+            {/* ============================================================ */}
+            <div className="lineup-controls-bar">
+              {/* Previous & Next Buttons */}
+              <div className="lineup-nav-group">
+                <button
+                  type="button"
+                  className="lineup-arrow-btn"
+                  onClick={handlePrev}
+                  disabled={isTransitioning}
+                  aria-label="Previous look"
+                  id="try-look-prev-btn"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+
+                {/* Pause / Play Toggle */}
+                <button
+                  type="button"
+                  className="lineup-play-toggle"
+                  onClick={() => setIsAutoplay((prev) => !prev)}
+                  aria-label={isAutoplay ? 'Pause look rotation' : 'Start look rotation'}
+                  title={isAutoplay ? 'Pause auto-play' : 'Resume auto-play'}
+                  id="try-look-play-btn"
+                >
+                  {isAutoplay ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <rect x="6" y="4" width="4" height="16" />
+                      <rect x="14" y="4" width="4" height="16" />
+                    </svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                  )}
+                  <span className="play-toggle-text">{isAutoplay ? 'PAUSE' : 'PLAY'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="lineup-arrow-btn"
+                  onClick={handleNext}
+                  disabled={isTransitioning}
+                  aria-label="Next look"
+                  id="try-look-next-btn"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Segmented Progress Bar with Active Look Name */}
+              <div className="lineup-progress-cluster">
+                <div className="progress-segments-track" role="tablist" aria-label="Look selector">
+                  {looks.map((look, idx) => {
+                    const isActive = idx === activeIndex
+                    const isPassed = idx < activeIndex
+                    const isPaused = !isAutoplay || isHovered
+                    return (
+                      <button
+                        key={look.id || idx}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        aria-label={`Jump to look ${idx + 1}: ${look.name}`}
+                        className={`progress-segment-btn ${isActive ? 'active' : ''} ${isPassed ? 'passed' : ''} ${isPaused ? 'paused' : ''}`}
+                        onClick={() => handleSelectLook(idx)}
+                      >
+                        <div className="progress-segment-bar">
+                          <div
+                            className="progress-segment-fill"
+                            key={`fill-${idx}-${isActive}`}
+                          />
+                        </div>
+                        {looks.length <= 10 && (
+                          <span className="progress-segment-number">
+                            {String(idx + 1).padStart(2, '0')}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="active-look-title-indicator">
+                  <span className="indicator-counter">
+                    {String(activeIndex + 1).padStart(2, '0')} / {String(totalLooks).padStart(2, '0')}
+                  </span>
+                  <span className="indicator-dash">—</span>
+                  <strong className="indicator-name">{activeLook?.name}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ============================================================ */}
+          {/* RIGHT: "IN THIS LOOK" SIDEBAR WITH 3 PIECES & BUNDLE FOOTER  */}
+          {/* ============================================================ */}
+          <div className="try-sidebar-column">
+            <div className="sidebar-card-shell">
+              {/* Single Unified Product Showcase Card */}
+              <div className="single-look-showcase">
+                {/* Hero Media Preview & Gallery Strip */}
+                <div className="single-look-media-card">
+                  <div className="single-look-image-container">
+                    <img
+                      src={currentDisplayImage}
+                      alt={activeLook?.fullName || activeLook?.name}
+                      className="single-look-hero-img"
+                      loading="lazy"
+                    />
+                    <div className="single-look-ensemble-badge">
+                      <span className="badge-sparkle">✦</span>
+                      <span>{activeLook?.isTrending ? 'LATEST TREND' : 'COMPLETE ENSEMBLE'}</span>
+                    </div>
+                  </div>
+
+                  {/* Multi-angle Gallery Thumbnails */}
+                  {lookImages.length > 1 && (
+                    <div className="single-look-gallery-thumbs" role="group" aria-label="Product angles">
+                      {lookImages.slice(0, 4).map((imgUrl, thumbIdx) => (
+                        <button
+                          key={thumbIdx}
+                          type="button"
+                          className={`gallery-thumb-btn ${selectedImageIndex === thumbIdx ? 'is-active' : ''}`}
+                          onClick={() => setSelectedImageIndex(thumbIdx)}
+                          aria-label={`View angle ${thumbIdx + 1}`}
+                        >
+                          <img src={imgUrl} alt="" className="gallery-thumb-img" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Information */}
+                <div className="single-look-info-panel">
+                  <div className="single-look-brand-header">
+                    <span className="single-look-brand-tag">{activeLook?.brand || 'SEEMEE'}</span>
+                    <span className="single-look-cat-tag">{activeLook?.category || 'Atelier Set'}</span>
+                  </div>
+
+                  <h4 className="single-look-product-title">
+                    {activeLook?.fullName || activeLook?.name}
+                  </h4>
+
+                  {/* Size Selection */}
+                  <div className="single-look-size-block">
+                    <div className="size-header-line">
+                      <span className="size-title-text">SELECT SIZE</span>
+                      <span className="size-value-indicator">Size: <strong>{selectedSize}</strong></span>
+                    </div>
+                    <div className="size-pills-row" role="radiogroup" aria-label="Select size">
+                      {availableSizes.map((sz) => (
+                        <button
+                          key={sz}
+                          type="button"
+                          role="radio"
+                          aria-checked={selectedSize === sz}
+                          className={`size-pill-btn ${selectedSize === sz ? 'is-active' : ''}`}
+                          onClick={() => setSelectedSize(sz)}
+                        >
+                          {sz}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price Block */}
+                  <div className="single-look-price-card">
+                    <div className="price-primary-row">
+                      <span className="price-main-val">₹{activePrice.toLocaleString('en-IN')}</span>
+                      {activeOriginalPrice > activePrice && (
+                        <span className="price-old-val">₹{activeOriginalPrice.toLocaleString('en-IN')}</span>
+                      )}
+                      {activeDiscount > 0 && (
+                        <span className="price-discount-tag">{activeDiscount}% OFF</span>
+                      )}
+                    </div>
+                    <span className="price-tax-note">Inclusive of all taxes • Ready to ship</span>
+                  </div>
+
+                  {/* Single Primary Action: ADD TO BAG */}
+                  <button
+                    type="button"
+                    className={`single-look-add-bag-btn ${addedToCart ? 'is-added' : ''}`}
+                    onClick={handleAddToCart}
+                    disabled={addedToCart}
+                    id="try-look-add-to-bag-btn"
+                    aria-label="Add complete look to bag"
+                  >
+                    {addedToCart ? (
+                      <>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>ADDED TO BAG!</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                          <line x1="3" y1="6" x2="21" y2="6" />
+                          <path d="M16 10a4 4 0 0 1-8 0" />
+                        </svg>
+                        <span>ADD TO BAG</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Link to Product Page */}
+                  {activeLook?.productId && (
+                    <button
+                      type="button"
+                      className="single-look-view-product-btn"
+                      onClick={() => navigate(`/product/${activeLook.productId}`)}
+                    >
+                      <span>View Full Product Details &amp; Size Guide</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default TryTheLook

@@ -10,6 +10,7 @@ import { sendOrderEmail } from '../services/emailService.js'
 import shippingService from '../services/shippingService.js'
 import pushNotificationService from '../services/pushNotificationService.js'
 import { validateAndCalculateCoupon, recordCouponUsage, revertCouponUsage } from '../services/couponEngine.js'
+import * as siteSettingsService from '../services/siteSettingsService.js'
 
 // Initialize Razorpay dynamically
 let razorpayInstance = null
@@ -46,10 +47,13 @@ export const createOrder = asyncHandler(async (req, res) => {
   const normalizedOrderType = String(orderType || 'ONLINE').toUpperCase()
   const normalizedPaymentMethod = String(paymentMethod || 'online').toLowerCase()
 
-  // SECURITY RULE: Online Store orders MUST NOT allow COD
+  // ONLINE COD CHECK: Verify if Online Store COD is enabled in SiteSettings
   if (normalizedOrderType === 'ONLINE' && normalizedPaymentMethod === 'cod') {
-    res.status(400)
-    throw new Error('COD payment method is not allowed for Online Store orders. Please use Online Payment.')
+    const siteSettings = await siteSettingsService.getSettings()
+    if (siteSettings && siteSettings.isOnlineCodEnabled === false) {
+      res.status(400)
+      throw new Error('Cash on Delivery (COD) is currently disabled for online store orders. Please proceed with Online Payment.')
+    }
   }
 
   // SECURITY RULE: Offline Store orders MUST validate allowed pincode (122103)
@@ -139,6 +143,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   const finalTotalAmount = Math.max(0, totalAmount - validatedCouponDiscount)
   const isCodOrder = normalizedPaymentMethod === 'cod'
+  const isOfflineOrder = normalizedOrderType === 'OFFLINE'
 
   const order = await Order.create({
     user: req.user?._id || req.body.user || null,
@@ -149,8 +154,8 @@ export const createOrder = asyncHandler(async (req, res) => {
     couponDiscount: validatedCouponDiscount,
     orderType: normalizedOrderType,
     paymentMethod: normalizedPaymentMethod,
-    status: isCodOrder ? 'pending_approval' : 'pending',
-    paymentStatus: isCodOrder ? 'pending_approval' : 'pending'
+    status: (isOfflineOrder && isCodOrder) ? 'pending_approval' : 'pending',
+    paymentStatus: (isOfflineOrder && isCodOrder) ? 'pending_approval' : 'pending'
   })
 
   // Record atomic coupon usage if coupon code was supplied
@@ -184,7 +189,7 @@ export const createOrder = asyncHandler(async (req, res) => {
   }
 
   // Send Order Placed Email via Nodemailer Gmail Service
-  sendOrderEmail(order, isCodOrder ? 'COD_PENDING' : 'Placed').catch(err => console.error('Order email error:', err.message))
+  sendOrderEmail(order, (isOfflineOrder && isCodOrder) ? 'COD_PENDING' : 'Placed').catch(err => console.error('Order email error:', err.message))
 
   // Trigger Native Web Push & In-App Admin Notification
   pushNotificationService.sendNewOrderNotification(order).catch(err => console.error('Order push notification error:', err.message))
@@ -239,14 +244,18 @@ export const getOrder = asyncHandler(async (req, res) => {
     throw new Error('Order not found')
   }
 
-  // Authorization Check: Must be Admin OR Order Owner (matching user ID or customer email)
+  // Authorization Check: Must be Admin, Order Owner, guest order, or direct order receipt lookup
   const isAdmin = req.user && req.user.role === 'admin'
   const isOwner = req.user && (
     (order.user && String(order.user) === String(req.user._id)) ||
     (order.customer?.email && order.customer.email.toLowerCase().trim() === req.user.email.toLowerCase().trim())
   )
+  const isGuestMatch = !order.user || !req.user || (
+    req.query.email && order.customer?.email &&
+    req.query.email.toLowerCase().trim() === order.customer.email.toLowerCase().trim()
+  )
 
-  if (!isAdmin && !isOwner) {
+  if (!isAdmin && !isOwner && !isGuestMatch) {
     res.status(403)
     throw new Error('Not authorized to access this order')
   }
@@ -717,9 +726,14 @@ export const approveCodOrder = asyncHandler(async (req, res) => {
     throw new Error('Order not found')
   }
 
-  if (String(order.orderType || '').toUpperCase() !== 'OFFLINE' || String(order.paymentMethod || '').toLowerCase() !== 'cod') {
+  if (String(order.orderType || 'ONLINE').toUpperCase() !== 'OFFLINE') {
     res.status(400)
-    throw new Error('Only Offline Store COD orders can be approved.')
+    throw new Error('COD approval is only applicable for Offline Store orders.')
+  }
+
+  if (String(order.paymentMethod || '').toLowerCase() !== 'cod') {
+    res.status(400)
+    throw new Error('Only Cash on Delivery (COD) orders can be approved.')
   }
 
   order.paymentStatus = 'paid'
@@ -743,7 +757,7 @@ export const approveCodOrder = asyncHandler(async (req, res) => {
   res.json({ success: true, data: order })
 })
 
-// @desc    Reject COD payment for Offline Store order
+// @desc    Reject COD payment for order
 // @route   PUT /api/orders/:id/reject-cod
 // @access  Admin
 export const rejectCodOrder = asyncHandler(async (req, res) => {
@@ -753,9 +767,14 @@ export const rejectCodOrder = asyncHandler(async (req, res) => {
     throw new Error('Order not found')
   }
 
-  if (String(order.orderType || '').toUpperCase() !== 'OFFLINE' || String(order.paymentMethod || '').toLowerCase() !== 'cod') {
+  if (String(order.orderType || 'ONLINE').toUpperCase() !== 'OFFLINE') {
     res.status(400)
-    throw new Error('Only Offline Store COD orders can be rejected.')
+    throw new Error('COD rejection is only applicable for Offline Store orders.')
+  }
+
+  if (String(order.paymentMethod || '').toLowerCase() !== 'cod') {
+    res.status(400)
+    throw new Error('Only Cash on Delivery (COD) orders can be rejected.')
   }
 
   // Restore inventory stock & coupon usage upon COD rejection

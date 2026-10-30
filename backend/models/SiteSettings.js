@@ -79,7 +79,8 @@ const siteSettingsSchema = new mongoose.Schema({
       isActive: false
     })
   },
-  promoBanners: [promoBannerSchema]
+  promoBanners: [promoBannerSchema],
+  isOnlineCodEnabled: { type: Boolean, default: true }
 }, { timestamps: true })
 
 export default mongoose.model('SiteSettings', siteSettingsSchema)

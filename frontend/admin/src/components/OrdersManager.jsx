@@ -27,6 +27,54 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
   const [refunds, setRefunds] = useState([])
   const [refundProcessingId, setRefundProcessingId] = useState(null)
   const [codActionLoading, setCodActionLoading] = useState(false)
+  const [isOnlineCodEnabled, setIsOnlineCodEnabled] = useState(true)
+  const [togglingCod, setTogglingCod] = useState(false)
+
+  const fetchSiteSettings = async () => {
+    try {
+      const data = await apiRequest(`${API_ENDPOINTS.COD_STATUS}?_t=${Date.now()}`, { bypassCache: true })
+      if (data && typeof data.isOnlineCodEnabled === 'boolean') {
+        setIsOnlineCodEnabled(data.isOnlineCodEnabled)
+      } else {
+        const fullSettings = await apiRequest(`${API_ENDPOINTS.SITE_SETTINGS}?_t=${Date.now()}`, { bypassCache: true })
+        const payload = fullSettings?.data || fullSettings
+        if (payload && payload.isOnlineCodEnabled !== undefined) {
+          setIsOnlineCodEnabled(payload.isOnlineCodEnabled !== false)
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load site settings for COD status:', err.message)
+    }
+  }
+
+  const handleToggleOnlineCod = async () => {
+    const nextState = !isOnlineCodEnabled
+    const confirmMsg = nextState
+      ? 'Are you sure you want to ENABLE Cash on Delivery (COD) for Online Store orders?'
+      : 'Are you sure you want to DISABLE Cash on Delivery (COD) for Online Store orders? (Customers will only be able to pay online)'
+
+    if (!window.confirm(confirmMsg)) return
+
+    setTogglingCod(true)
+    try {
+      const res = await apiRequest(API_ENDPOINTS.TOGGLE_ONLINE_COD, {
+        method: 'PUT',
+        auth: true,
+        body: { isOnlineCodEnabled: nextState }
+      })
+      if (res && (res.success || typeof res.isOnlineCodEnabled === 'boolean')) {
+        const updatedVal = typeof res.isOnlineCodEnabled === 'boolean' ? res.isOnlineCodEnabled : nextState
+        setIsOnlineCodEnabled(updatedVal)
+        showNotification(`Online Store Cash on Delivery (COD) has been ${updatedVal ? 'ENABLED' : 'DISABLED'} successfully!`)
+      } else {
+        showNotification(res.message || 'Failed to update COD settings', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Failed to update COD settings', 'error')
+    } finally {
+      setTogglingCod(false)
+    }
+  }
 
   useEffect(() => {
     if (initialStatusFilter) {
@@ -37,6 +85,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
   useEffect(() => {
     fetchOrders()
     fetchRefunds()
+    fetchSiteSettings()
   }, [])
 
   const handleApproveCod = async (orderId) => {
@@ -539,6 +588,53 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
     <div className="orders-manager">
       {/* Header & KPI Summary Cards */}
       <div className="manager-header">
+        <div className="online-cod-toggle-banner">
+          <div className="cod-toggle-content">
+            <div className="cod-toggle-icon-pill">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+              </svg>
+            </div>
+            <div className="cod-toggle-text-block">
+              <div className="cod-title-row">
+                <span className="cod-main-label">Online Store COD Setting</span>
+                <span className={`cod-status-chip ${isOnlineCodEnabled ? 'enabled' : 'disabled'}`}>
+                  <span className="status-indicator-dot" />
+                  {isOnlineCodEnabled ? 'ACTIVE / ACCEPTING' : 'DISABLED / OFF'}
+                </span>
+              </div>
+              <p className="cod-sub-desc">
+                {isOnlineCodEnabled
+                  ? 'Cash on Delivery is active on the online store checkout.'
+                  : 'Cash on Delivery is turned off on the online store checkout (prepaid only).'}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            className={`cod-toggle-action-btn ${isOnlineCodEnabled ? 'turn-off' : 'turn-on'}`}
+            onClick={handleToggleOnlineCod}
+            disabled={togglingCod}
+            title={isOnlineCodEnabled ? 'Click to disable COD for Online Store' : 'Click to enable COD for Online Store'}
+          >
+            {togglingCod ? (
+              <span>Updating...</span>
+            ) : isOnlineCodEnabled ? (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                <span>Disable Online COD</span>
+              </>
+            ) : (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Enable Online COD</span>
+              </>
+            )}
+          </button>
+        </div>
+
         <div className="header-actions">
           <button className="export-btn" onClick={openExportModal}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
@@ -609,7 +705,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                 onChange={(e) => setOrderTypeFilter(e.target.value)}
               >
                 <option value="all">All Stores ({orders.length})</option>
-                <option value="ONLINE"> Online Store ({orders.filter(o => String(o.orderType || 'ONLINE').toUpperCase() === 'ONLINE').length})</option>
+                <option value="ONLINE"> Online Store ({orders.filter(o => String(o.orderType || 'ONLINE').toUpperCase() === 'ONLINE').length}) {isOnlineCodEnabled ? '• COD Active' : '• COD Disabled'}</option>
                 <option value="OFFLINE">Offline  Store ({orders.filter(o => String(o.orderType || '').toUpperCase() === 'OFFLINE').length})</option>
               </select>
               <span className="select-arrow-icon">▼</span>
@@ -726,15 +822,28 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                     {(() => {
                       const isPaid = String(order.paymentStatus || '').toLowerCase() === 'paid'
                       const isRejected = String(order.paymentStatus || '').toLowerCase() === 'rejected'
-                      const badgeClass = isPaid ? 'paid' : isRejected ? 'rejected' : order.paymentMethod === 'cod' ? 'cod' : 'paid'
+                      const isOffline = String(order.orderType || '').toUpperCase() === 'OFFLINE'
+                      const isCod = String(order.paymentMethod || '').toLowerCase() === 'cod'
+                      const badgeClass = isPaid ? 'paid' : isRejected ? 'rejected' : isCod ? 'cod' : 'paid'
+
+                      let badgeText = ''
+                      if (isOffline) {
+                        badgeText = isCod
+                          ? `COD (${isPaid ? 'PAID' : isRejected ? 'REJECTED' : 'PENDING'})`
+                          : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
+                      } else {
+                        badgeText = isCod
+                          ? 'ONLINE (COD)'
+                          : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
+                      }
 
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           <span className={`payment-badge ${badgeClass}`}>
                             <span className="pay-dot" />
-                            {(order.paymentMethod || 'online').toUpperCase()} ({isPaid ? 'PAID' : isRejected ? 'REJECTED' : 'PENDING'})
+                            {badgeText}
                           </span>
-                          {String(order.orderType || '').toUpperCase() === 'OFFLINE' && String(order.paymentMethod || '').toLowerCase() === 'cod' && (
+                          {isOffline && isCod && (
                             <div>
                               {!isPaid && !isRejected && (
                                 <div style={{ display: 'flex', gap: '4px', marginTop: '4px' }}>
@@ -871,15 +980,25 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
               {(() => {
                 const isPaid = String(order.paymentStatus || '').toLowerCase() === 'paid'
                 const isRejected = String(order.paymentStatus || '').toLowerCase() === 'rejected'
-                const badgeClass = isPaid ? 'paid' : isRejected ? 'rejected' : order.paymentMethod === 'cod' ? 'cod' : 'paid'
+                const isOffline = String(order.orderType || '').toUpperCase() === 'OFFLINE'
+                const isCod = String(order.paymentMethod || '').toLowerCase() === 'cod'
+                const badgeClass = isPaid ? 'paid' : isRejected ? 'rejected' : isCod ? 'cod' : 'paid'
+
+                let badgeText = ''
+                if (isOffline) {
+                  badgeText = isCod
+                    ? `COD (${isPaid ? 'PAID' : isRejected ? 'REJECTED' : 'PENDING'})`
+                    : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
+                } else {
+                  badgeText = isCod
+                    ? 'ONLINE (COD)'
+                    : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
+                }
 
                 return (
                   <span className={`payment-badge ${badgeClass}`}>
                     <span className="pay-dot" />
-                    {order.paymentMethod === 'cod'
-                      ? `COD (${isPaid ? 'PAID' : isRejected ? 'REJECTED' : 'PENDING'})`
-                      : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
-                    }
+                    {badgeText}
                   </span>
                 )
               })()}
@@ -989,13 +1108,13 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                     </div>
                   </section>
 
-                  {/* Offline Store COD Approval Card */}
-                  {String(selectedOrder.orderType || '').toUpperCase() === 'OFFLINE' && String(selectedOrder.paymentMethod || '').toLowerCase() === 'cod' && (
+                  {/* Cash on Delivery (COD) Approval Card (OFFLINE STORE ONLY) */}
+                  {String(selectedOrder.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' && String(selectedOrder.paymentMethod || '').toLowerCase() === 'cod' && (
                     <section className="offline-cod-section" style={{ marginTop: '20px' }}>
-                      <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>🏬 Offline Store COD Management</h3>
+                      <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>🏬 Offline Cash on Delivery (COD) Management</h3>
                       <div style={{ padding: '20px', background: '#1c1917', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #10b981', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', fontSize: '0.88rem' }}>
-                          <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#10b981', marginLeft: '4px', fontWeight: '700' }}>OFFLINE STORE</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#10b981', marginLeft: '4px', fontWeight: '700' }}>OFFLINE</strong></div>
                           <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>COD</strong></div>
                           <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: String(selectedOrder.paymentStatus || '').toLowerCase() === 'paid' ? '#22c55e' : String(selectedOrder.paymentStatus || '').toLowerCase() === 'rejected' ? '#ef4444' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentStatus || 'PENDING').toUpperCase()}</strong></div>
                         </div>
@@ -1056,15 +1175,15 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                     </section>
                   )}
 
-                  {/* Refund Control Card (Only for Online Store orders) */}
+                  {/* Payment & Refund Control Card (Only for Online Store orders) */}
                   {String(selectedOrder.orderType || 'ONLINE').toUpperCase() !== 'OFFLINE' && (
                     <section className="refund-section" style={{ marginTop: '20px' }}>
                       <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>💳 Payment & Refund Control</h3>
                       <div style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
-                          <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.orderType || 'ONLINE').toUpperCase()}</strong></div>
-                          <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentMethod || 'online').toUpperCase()}</strong></div>
-                          <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: selectedOrder.paymentStatus === 'paid' ? '#22c55e' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentStatus || 'pending').toUpperCase()}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>ONLINE</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.paymentMethod === 'cod' ? 'ONLINE (COD)' : (selectedOrder.paymentMethod || 'online').toUpperCase()}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: selectedOrder.paymentStatus === 'paid' ? '#22c55e' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.paymentMethod === 'cod' ? (selectedOrder.paymentStatus === 'paid' ? 'PAID' : 'COD (PAY ON DELIVERY)') : (selectedOrder.paymentStatus || 'pending').toUpperCase()}</strong></div>
                           <div><span style={{ color: '#a3a3a3' }}>Refund Status:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.refundStatus || 'not_refunded').toUpperCase()}</strong></div>
                         </div>
 

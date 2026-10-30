@@ -151,6 +151,37 @@ const Checkout = () => {
 
   const [checkoutCouponCode, setCheckoutCouponCode] = useState('')
   const [checkoutCouponError, setCheckoutCouponError] = useState('')
+  const [isOnlineCodEnabled, setIsOnlineCodEnabled] = useState(true)
+
+  useEffect(() => {
+    const fetchSiteSettings = async () => {
+      try {
+        const res = await fetch(`${API_ENDPOINTS.COD_STATUS || (API_ENDPOINTS.SITE_SETTINGS + '/cod-status')}?_t=${Date.now()}`, { cache: 'no-store' })
+        const data = await res.json()
+        if (data && typeof data.isOnlineCodEnabled === 'boolean') {
+          const codEnabled = data.isOnlineCodEnabled
+          setIsOnlineCodEnabled(codEnabled)
+          if (!codEnabled && formData.paymentMethod === 'cod' && orderType === 'ONLINE') {
+            setFormData(prev => ({ ...prev, paymentMethod: 'online' }))
+          }
+        } else {
+          const fallbackRes = await fetch(`${API_ENDPOINTS.SITE_SETTINGS}?_t=${Date.now()}`, { cache: 'no-store' })
+          const fallbackData = await fallbackRes.json()
+          const payload = fallbackData?.data || fallbackData
+          if (payload && payload.isOnlineCodEnabled !== undefined) {
+            const codEnabled = payload.isOnlineCodEnabled !== false
+            setIsOnlineCodEnabled(codEnabled)
+            if (!codEnabled && formData.paymentMethod === 'cod' && orderType === 'ONLINE') {
+              setFormData(prev => ({ ...prev, paymentMethod: 'online' }))
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load site settings in checkout:', err)
+      }
+    }
+    fetchSiteSettings()
+  }, [orderType])
 
   // Offline Store Pincode Verification State
   const [showOfflineModal, setShowOfflineModal] = useState(false)
@@ -286,49 +317,13 @@ const Checkout = () => {
   const [shippingError, setShippingError] = useState('')
 
   const [placedOrder, setPlacedOrder] = useState(null)
-  const [cancellingId, setCancellingId] = useState(null)
+  const orderCompletedRef = useRef(false)
 
   useEffect(() => {
     if (!user || !token) {
       navigate('/auth', { state: { message: 'Please sign in or create an account to proceed to checkout and buy products.', from: '/checkout' } })
     }
   }, [user, token, navigate])
-
-  useEffect(() => {
-    if (placedOrder) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
-    }
-  }, [placedOrder])
-
-  const handleCancelOrderFromModal = async (orderId) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return
-    setCancellingId(orderId)
-    try {
-      const response = await fetch(API_ENDPOINTS.ORDERS_CANCEL(orderId), {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      const data = await response.json()
-      if (data.success) {
-        setPlacedOrder(prev => prev ? { ...prev, status: 'Cancelled' } : null)
-      } else {
-        alert(data.message || 'Failed to cancel order.')
-      }
-    } catch (err) {
-      console.error('Cancel order error:', err)
-      alert('Failed to cancel order. Please try again.')
-    } finally {
-      setCancellingId(null)
-    }
-  }
 
   // Automatic State & City autofill + Ad2Ship Rate Calculation
   useEffect(() => {
@@ -427,10 +422,13 @@ const Checkout = () => {
   }, [formData.pincode, formData.paymentMethod, cart, getCartTotal])
 
   useEffect(() => {
-    if (cart.length === 0 && !placedOrder) {
+    // If order has been placed, is in progress, or is redirecting, DO NOT redirect to home
+    if (orderCompletedRef.current || placedOrder || loading) return
+
+    if (cart.length === 0) {
       navigate('/')
     }
-  }, [cart, placedOrder, navigate])
+  }, [cart, placedOrder, loading, navigate])
 
   useEffect(() => {
     if (user && token) {
@@ -613,15 +611,25 @@ const Checkout = () => {
         })
         const result = await verifyResponse.json()
         if (result.success) {
-          clearCart()
-          setPlacedOrder(result.data || {
+          orderCompletedRef.current = true
+          const finalOrder = result.data || {
             _id: 'ORD-' + Date.now(),
             customer: orderData.customer,
             items: orderData.items,
             totalAmount: orderData.totalAmount,
             paymentMethod: 'online',
+            orderType: orderData.orderType || 'ONLINE',
             status: 'Placed'
+          }
+          setPlacedOrder(finalOrder)
+          sessionStorage.setItem('seemee_last_placed_order', JSON.stringify(finalOrder))
+          clearCart()
+          const targetSuccessUrl = `/order-success/${finalOrder._id || finalOrder.orderNumber || ''}`
+          navigate(targetSuccessUrl, {
+            state: { order: finalOrder },
+            replace: true
           })
+          return
         } else {
           alert('Payment verification failed: ' + result.message)
         }
@@ -648,6 +656,7 @@ const Checkout = () => {
           })
           const result = await verifyResponse.json()
           if (result.success) {
+            orderCompletedRef.current = true
             try {
               const orderId = result.data?._id || result.data?.orderId || response.razorpay_order_id || Date.now()
               trackPurchase({
@@ -661,14 +670,22 @@ const Checkout = () => {
             } catch (e) {
               console.error('GTM purchase tracking error:', e)
             }
-            clearCart()
-            setPlacedOrder(result.data || {
+            const finalOrder = result.data || {
               _id: 'ORD-' + Date.now(),
               customer: orderData.customer,
               items: orderData.items,
               totalAmount: orderData.totalAmount,
               paymentMethod: 'online',
+              orderType: orderData.orderType || 'ONLINE',
               status: 'Placed'
+            }
+            setPlacedOrder(finalOrder)
+            sessionStorage.setItem('seemee_last_placed_order', JSON.stringify(finalOrder))
+            clearCart()
+            const targetSuccessUrl = `/order-success/${finalOrder._id || finalOrder.orderNumber || ''}`
+            navigate(targetSuccessUrl, {
+              state: { order: finalOrder },
+              replace: true
             })
           } else {
             alert('Payment verification failed. Please contact support.')
@@ -690,6 +707,13 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validateForm()) return
+
+    if (orderType === 'ONLINE' && !isOnlineCodEnabled && formData.paymentMethod === 'cod') {
+      alert('Cash on Delivery (COD) is currently disabled for online store orders. Please proceed with Instant Online Payment.')
+      setFormData(prev => ({ ...prev, paymentMethod: 'online' }))
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -709,7 +733,7 @@ const Checkout = () => {
 
     const orderData = {
       user: user?._id || user?.id || null,
-      orderType: orderType,
+      orderType: orderType || 'ONLINE',
       customer: {
         name: formData.name,
         email: formData.email,
@@ -759,6 +783,7 @@ const Checkout = () => {
         })
         const result = await response.json()
         if (result.success) {
+          orderCompletedRef.current = true
           try {
             const orderId = result.data?._id || result.data?.orderId || Date.now()
             trackPurchase({
@@ -772,15 +797,24 @@ const Checkout = () => {
           } catch (e) {
             console.error('GTM purchase tracking error:', e)
           }
-          clearCart()
-          setPlacedOrder(result.data || {
+          const finalOrder = result.data || {
             _id: 'ORD-' + Date.now(),
             customer: orderData.customer,
             items: orderData.items,
             totalAmount: orderData.totalAmount,
             paymentMethod: orderData.paymentMethod,
+            orderType: orderData.orderType || 'ONLINE',
             status: 'Placed'
+          }
+          setPlacedOrder(finalOrder)
+          sessionStorage.setItem('seemee_last_placed_order', JSON.stringify(finalOrder))
+          clearCart()
+          const targetSuccessUrl = `/order-success/${finalOrder._id || finalOrder.orderNumber || ''}`
+          navigate(targetSuccessUrl, {
+            state: { order: finalOrder },
+            replace: true
           })
+          return
         } else {
           alert('Order failed: ' + (result.message || 'Please try again.'))
         }
@@ -793,7 +827,7 @@ const Checkout = () => {
     }
   }
 
-  if (cart.length === 0 && !placedOrder) return null
+  if (cart.length === 0 && !orderCompletedRef.current && !placedOrder) return null
 
   const totalItemsCount = cart.reduce((acc, item) => acc + (item.quantity || 1), 0)
 
@@ -1191,7 +1225,6 @@ const Checkout = () => {
                   className={`order-type-card ${orderType === 'ONLINE' ? 'active' : ''}`}
                   onClick={() => {
                     setOrderType('ONLINE')
-                    setFormData(prev => ({ ...prev, paymentMethod: 'online' }))
                   }}
                   style={{
                     flex: 1,
@@ -1212,12 +1245,11 @@ const Checkout = () => {
                     checked={orderType === 'ONLINE'} 
                     onChange={() => {
                       setOrderType('ONLINE')
-                      setFormData(prev => ({ ...prev, paymentMethod: 'online' }))
                     }} 
                   />
                   <div>
                     <strong style={{ display: 'block', color: '#1c1917', fontSize: '15px' }}>Online Store</strong>
-                    <span style={{ fontSize: '12px', color: '#78716c' }}>Online Payment Only (Razorpay)</span>
+                    <span style={{ fontSize: '12px', color: '#78716c' }}>Doorstep Delivery (Online or Cash on Delivery)</span>
                   </div>
                 </label>
 
@@ -1256,7 +1288,7 @@ const Checkout = () => {
                 <div>
                   <h3 className="section-title-luxury" style={{ fontSize: '16px' }}>Payment Method</h3>
                   <p className="section-desc">
-                    {orderType === 'ONLINE' ? 'Online Payment Only' : 'Select COD or Online Payment'}
+                    Select Online Payment (Razorpay / UPI / Cards) or Cash on Delivery (COD)
                   </p>
                 </div>
               </div>
@@ -1292,8 +1324,8 @@ const Checkout = () => {
                   </div>
                 </label>
 
-                {/* COD Option — ONLY visible for Offline Store orders */}
-                {orderType === 'OFFLINE' && (
+                {/* COD Option — Only displayed if order is Offline Store or Online COD is enabled */}
+                {(orderType === 'OFFLINE' || isOnlineCodEnabled) && (
                   <label className={`payment-card-luxury ${formData.paymentMethod === 'cod' ? 'active' : ''}`} style={{ marginTop: '16px' }}>
                     <input 
                       type="radio" 
@@ -1307,10 +1339,10 @@ const Checkout = () => {
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
                           <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                         </svg>
-                        <span className="gold-security-badge">✦ Offline Store Exclusive</span>
+                        <span className="gold-security-badge">✦ Cash on Delivery Available</span>
                       </div>
                       <span className="method-title">Cash on Delivery (COD)</span>
-                      <span className="method-desc">Pay cash upon delivery. Subject to admin approval.</span>
+                      <span className="method-desc">Pay cash upon delivery at your doorstep. Verified before dispatch.</span>
                     </div>
                   </label>
                 )}
@@ -1333,7 +1365,7 @@ const Checkout = () => {
               ) : (
                 <span>
                   {formData.paymentMethod === 'cod'
-                    ? `Place Offline COD Order — ₹${calculateTotal().toLocaleString('en-IN')}`
+                    ? `Place Cash on Delivery Order — ₹${calculateTotal().toLocaleString('en-IN')}`
                     : `Proceed to Secure Payment — ₹${calculateTotal().toLocaleString('en-IN')}`
                   }
                 </span>
@@ -1509,175 +1541,11 @@ const Checkout = () => {
             </span>
           ) : (
             <span>
-              Proceed to Pay →
+              {formData.paymentMethod === 'cod' ? 'Place COD Order →' : 'Proceed to Pay →'}
             </span>
           )}
         </button>
       </div>
-
-      {/* Order Placed Confirmation Window Modal */}
-      <AnimatePresence>
-        {placedOrder && (
-          <div className="order-placed-modal-overlay">
-            <motion.div 
-              className="order-placed-card-luxury"
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-            >
-              {(() => {
-                const isCodOrder = String(placedOrder.paymentMethod || '').toLowerCase() === 'cod'
-                const isPendingCod = isCodOrder && (
-                  String(placedOrder.paymentStatus || '').toLowerCase().includes('pending') ||
-                  String(placedOrder.status || '').toLowerCase().includes('pending')
-                )
-
-                if (isPendingCod) {
-                  return (
-                    <div className="placed-header cod-pending-header">
-                      <div className="placed-icon-circle pending-circle">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                      </div>
-                      <span className="editorial-mini-label pending-label">⏳ COD ORDER — AWAITING ADMIN APPROVAL</span>
-                      <h2 className="placed-title">Order Received (Pending Admin Verification)</h2>
-                      <p className="placed-subtitle">
-                        Thank you for choosing SEEMEE. Your Cash on Delivery order has been received and is currently <strong>awaiting Admin verification & approval</strong>. Once approved by Admin, your payment status will be marked as Completed and you will receive email confirmation at <strong>{placedOrder.customer?.email}</strong>.
-                      </p>
-                    </div>
-                  )
-                }
-
-                return (
-                  <div className="placed-header">
-                    <div className="placed-icon-circle">
-                      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
-                        <polyline points="20 6 9 17 4 12"></polyline>
-                      </svg>
-                    </div>
-                    <span className="editorial-mini-label">✦ ORDER CONFIRMED</span>
-                    <h2 className="placed-title">Order Placed Successfully</h2>
-                    <p className="placed-subtitle">
-                      Thank you for choosing SEEMEE Haute Couture. We have received your order and sent a confirmation email to <strong>{placedOrder.customer?.email}</strong>.
-                    </p>
-                  </div>
-                )
-              })()}
-
-              <div className="placed-details-box">
-                <div className="detail-row">
-                  <span>Order Reference ID:</span>
-                  <strong>#{placedOrder._id ? String(placedOrder._id).slice(-8).toUpperCase() : 'SEEMEE'}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Order Status:</span>
-                  <span className={`placed-status-pill ${String(placedOrder.status || 'placed').toLowerCase().replace(/\s+/g, '-')}`}>
-                    {String(placedOrder.status || '').toLowerCase().includes('pending') ? '⏳ Pending Admin Approval' : (placedOrder.status || 'Placed')}
-                  </span>
-                </div>
-                <div className="detail-row">
-                  <span>Payment Method:</span>
-                  <strong>{placedOrder.paymentMethod === 'online' ? 'Online Payment (Razorpay)' : 'Cash on Delivery'}</strong>
-                </div>
-                <div className="detail-row">
-                  <span>Payment Status:</span>
-                  <strong style={{ color: String(placedOrder.paymentStatus || '').toLowerCase() === 'paid' ? '#16a34a' : '#d97706' }}>
-                    {String(placedOrder.paymentStatus || '').toLowerCase() === 'paid' ? '✅ Payment Completed' : '⏳ Pending Admin Approval'}
-                  </strong>
-                </div>
-                <div className="detail-row">
-                  <span>Total Amount:</span>
-                  <strong className="gold-total-text">₹{Number(placedOrder.totalAmount || 0).toLocaleString('en-IN')}.00</strong>
-                </div>
-                {placedOrder.customer?.address && (
-                  <div className="detail-row address-summary">
-                    <span>Shipping Destination:</span>
-                    <p>
-                      <strong>{placedOrder.customer.name}</strong><br/>
-                      {placedOrder.customer.address.street}, {placedOrder.customer.address.city}, {placedOrder.customer.address.state} - {placedOrder.customer.address.pincode}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="placed-items-container">
-                <span className="items-header-title">Ordered Items ({placedOrder.items?.length || 0})</span>
-                <div className="placed-items-list">
-                  {placedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="placed-item-card">
-                      <img 
-                        src={getOptimizedImageUrl(item.image || item.images?.[0], 'thumbnail')} 
-                        alt={item.name} 
-                        onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
-                      />
-                      <div className="item-meta">
-                        <h4>{item.name}</h4>
-                        <span>Qty: {item.quantity} | Size: {item.size || item.selectedSize || 'M'}</span>
-                      </div>
-                      <span className="item-price-val">₹{((item.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="placed-modal-actions">
-                {(() => {
-                  const ordStatus = String(placedOrder.status || '').toLowerCase().trim()
-                  const shipStatus = String(placedOrder.shipping?.status || '').toLowerCase().trim()
-                  const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(ordStatus) ||
-                                    ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(shipStatus) ||
-                                    Boolean(placedOrder.shipping?.awbNumber || placedOrder.trackingNumber) ||
-                                    Boolean(placedOrder.shipping?.pickupAt)
-                  const isCancelled = ordStatus === 'cancelled'
-
-                  if (isCancelled) {
-                    return (
-                      <div className="cancelled-state-notice">
-                        <span className="cancelled-msg">⚠️ This order is cancelled</span>
-                        <button type="button" className="btn-primary-modal-action" onClick={() => navigate('/collections')}>
-                          Continue Shopping
-                        </button>
-                      </div>
-                    )
-                  }
-
-                  return (
-                    <>
-                      {!isShipped && (
-                        <button 
-                          type="button" 
-                          className="btn-cancel-modal-action"
-                          onClick={() => handleCancelOrderFromModal(placedOrder._id)}
-                          disabled={cancellingId === placedOrder._id}
-                        >
-                          {cancellingId === placedOrder._id ? 'Cancelling...' : '🚫 Cancel Order'}
-                        </button>
-                      )}
-                      <button 
-                        type="button" 
-                        className="btn-primary-modal-action"
-                        onClick={() => navigate('/orders')}
-                      >
-                        View Orders in Account
-                      </button>
-                      <button 
-                        type="button" 
-                        className="btn-secondary-modal-action"
-                        onClick={() => navigate('/collections')}
-                      >
-                        Continue Shopping
-                      </button>
-                    </>
-                  )
-                })()}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Offline Store Pincode Verification Modal */}
       {showOfflineModal && (

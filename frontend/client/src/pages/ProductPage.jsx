@@ -690,7 +690,7 @@ const ProductPage = () => {
                 <span className="badge-icon">🚚</span>
                 <div>
                   <strong>Free Shipping</strong>
-                  <p>On orders above ₹499</p>
+                  <p>On all orders</p>
                 </div>
               </div>
               <div className="trust-badge-card">

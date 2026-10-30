@@ -748,7 +748,7 @@ const AccountPage = () => {
                                 <span className="cancelled-icon-badge">🚫</span>
                                 <span className="cancelled-text">This order is cancelled</span>
                               </div>
-                            ) : (isCodOrder || isOfflineStore) ? (
+                            ) : (isOfflineStore && isCodOrder) ? (
                               <div className="cod-handover-banner-box">
                                 {isCodApproved ? (
                                   <div className="cod-approved-handover">

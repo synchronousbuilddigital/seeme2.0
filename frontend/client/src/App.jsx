@@ -29,6 +29,7 @@ import EthosBanner from './components/EthosBanner'
 import FestiveBanner from './components/FestiveBanner'
 import CatalogSection from './components/CatalogSection'
 import LazySection from './components/LazySection'
+import TryTheLook from './components/TryTheLook'
 
 // Lazy load route pages
 const ProductPage = lazy(() => import('./pages/ProductPage'))
@@ -36,6 +37,7 @@ const Auth = lazy(() => import('./pages/Auth'))
 const Orders = lazy(() => import('./pages/Orders'))
 const CartPage = lazy(() => import('./pages/CartPage'))
 const Checkout = lazy(() => import('./pages/Checkout'))
+const OrderPlacedPage = lazy(() => import('./pages/OrderPlacedPage'))
 const MagazinePage = lazy(() => import('./pages/MagazinePage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
 const CategoriesPage = lazy(() => import('./pages/CategoriesPage'))
@@ -124,6 +126,9 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
           </LazySection>
           <LazySection minHeight="400px" rootMargin="450px">
             <LatestTrendsSection activeAudience={activeAudience} />
+          </LazySection>
+          <LazySection minHeight="520px" rootMargin="450px">
+            <TryTheLook activeAudience={activeAudience} />
           </LazySection>
           <LazySection minHeight="240px" rootMargin="500px">
             <EthosBanner />
@@ -214,6 +219,12 @@ function App() {
 
                 {/* Checkout Page */}
                 <Route path="/checkout" element={<PageWithNav><Checkout /></PageWithNav>} />
+
+                {/* Dedicated Order Placed / Confirmation Pages */}
+                <Route path="/order-success/:orderId" element={<PageWithNav><OrderPlacedPage /></PageWithNav>} />
+                <Route path="/order-placed/:orderId" element={<PageWithNav><OrderPlacedPage /></PageWithNav>} />
+                <Route path="/order-success" element={<PageWithNav><OrderPlacedPage /></PageWithNav>} />
+                <Route path="/order-placed" element={<PageWithNav><OrderPlacedPage /></PageWithNav>} />
 
                 {/* Catalog Reels Page */}
                 <Route path="/catalog" element={<PageWithNav><CatalogPage /></PageWithNav>} />

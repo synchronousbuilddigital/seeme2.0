@@ -2,7 +2,7 @@ import SiteSettings from '../models/SiteSettings.js'
 
 let memorySettingsCache = null
 let memorySettingsTimestamp = 0
-const CACHE_TTL_MS = 10 * 60 * 1000 // 10 minutes memory cache
+const CACHE_TTL_MS = 3000 // 3 seconds memory cache
 
 export const clearSettingsCache = () => {
   memorySettingsCache = null
@@ -230,6 +230,10 @@ export const getSettings = async () => {
     }
   }
 
+  if (settings.isOnlineCodEnabled === undefined) {
+    settings.isOnlineCodEnabled = true
+  }
+
   const result = settings.toObject ? settings.toObject() : settings
   memorySettingsCache = result
   memorySettingsTimestamp = Date.now()
@@ -271,7 +275,7 @@ export const updateSettings = async (settingsData) => {
   const settings = await SiteSettings.findOneAndUpdate(
     {},
     { $set: settingsData },
-    { new: true, upsert: true, runValidators: true }
+    { new: true, upsert: true, runValidators: false }
   ).lean()
   clearSettingsCache()
   return settings

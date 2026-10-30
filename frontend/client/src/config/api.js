@@ -89,6 +89,7 @@ export const API_ENDPOINTS = {
 
   // ─── Site Settings ─────────────────────────────
   SITE_SETTINGS: `${API_BASE_URL}/api/site-settings`,
+  COD_STATUS: `${API_BASE_URL}/api/site-settings/cod-status`,
 
   // ─── Upload ────────────────────────────────────
   UPLOAD_IMAGE: `${API_BASE_URL}/api/upload/image`,
