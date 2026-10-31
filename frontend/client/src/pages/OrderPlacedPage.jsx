@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { printOrderInvoice } from '../utils/invoiceHelper'
 import './OrderPlacedPage.css'
 
 const OrderPlacedPage = () => {
@@ -77,7 +78,9 @@ const OrderPlacedPage = () => {
   }
 
   const handlePrint = () => {
-    window.print()
+    if (order) {
+      printOrderInvoice(order)
+    }
   }
 
   if (loading) {
@@ -85,7 +88,10 @@ const OrderPlacedPage = () => {
       <div className="order-placed-page">
         <div className="order-placed-container" style={{ textAlign: 'center', padding: '5rem 0' }}>
           <div className="placed-icon-wrap cod-pending" style={{ margin: '0 auto 1.5rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>⏳</span>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
           </div>
           <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.8rem', color: '#1C1917' }}>
             Retrieving Your Order Details...
@@ -101,12 +107,6 @@ const OrderPlacedPage = () => {
       <div className="order-placed-page">
         <div className="order-placed-container" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
           <div className="placed-hero-card">
-            <div className="placed-icon-wrap success" style={{ margin: '0 auto 1rem' }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-            <span className="placed-kicker success">✦ ORDER PROCESSED</span>
             <h1 className="placed-main-title">Thank You for Your Order</h1>
             <p className="placed-main-subtitle">
               Your order has been recorded successfully. You can review all your purchases and live courier tracking anytime in your account.
@@ -164,30 +164,6 @@ const OrderPlacedPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className={`placed-icon-wrap ${isOffline ? 'offline' : (isCod && !isPaid ? 'cod-pending' : 'success')}`}>
-            {isOffline ? (
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            ) : isCod && !isPaid ? (
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-            ) : (
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            )}
-          </div>
-
-          <span className={`placed-kicker ${isOffline ? 'offline' : (isCod && !isPaid ? 'cod' : 'success')}`}>
-            {isOffline
-              ? (isCod && !isPaid ? '🏬 OFFLINE STORE • COD ORDER RECEIVED' : '🏬 OFFLINE STORE ORDER • CONFIRMED')
-              : (isCod && !isPaid ? '⏳ ONLINE STORE • COD ORDER RECEIVED' : '✦ ONLINE STORE ORDER • CONFIRMED & SECURED')}
-          </span>
-
           <h1 className="placed-main-title">
             {isOffline
               ? (isCod && !isPaid ? 'Your Offline Store Order Has Been Placed!' : 'Your Offline Store Order Is Confirmed!')
@@ -196,21 +172,19 @@ const OrderPlacedPage = () => {
 
           {/* Reference Bar */}
           <div className="placed-ref-bar">
-            <span className="placed-ref-label">Order Reference ID:</span>
-            <span className="placed-ref-id">{orderRefNumber}</span>
-            <button
-              type="button"
-              className="btn-copy-order-id"
-              onClick={() => handleCopyOrderId(orderRefNumber)}
-            >
-              {copied ? '✓ Copied' : 'Copy ID'}
-            </button>
-            <span style={{ color: '#D4AF37', margin: '0 0.25rem' }}>•</span>
-            <span className="placed-channel-badge">
-              {isOffline ? '🏬 Offline Store (122103)' : '🌐 Online Store (Pan-India)'}
+            <span className="placed-ref-item">
+              <span className="placed-ref-label">Order Reference ID:</span>{' '}
+              <span className="placed-ref-id">{orderRefNumber}</span>
             </span>
-            <span style={{ color: '#D4AF37', margin: '0 0.25rem' }}>•</span>
-            <span className="placed-ref-label">Placed On: <strong>{placedDateStr}</strong></span>
+            <span className="placed-ref-divider">•</span>
+            <span className="placed-channel-badge">
+              {isOffline ? 'Offline Store (122103)' : 'Online Store (Pan-India)'}
+            </span>
+            <span className="placed-ref-divider">•</span>
+            <span className="placed-ref-item">
+              <span className="placed-ref-label">Placed On:</span>{' '}
+              <strong>{placedDateStr}</strong>
+            </span>
           </div>
         </motion.div>
 
@@ -226,7 +200,19 @@ const OrderPlacedPage = () => {
           <div className="stepper-header-row">
             <h3 className="stepper-title">Order Status &amp; Timeline</h3>
             <span className="stepper-estimate-badge">
-              <span>{isOffline ? '🏬' : '🚚'}</span>
+              {isOffline ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="3" width="15" height="13" />
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 8" />
+                  <circle cx="5.5" cy="18.5" r="2.5" />
+                  <circle cx="18.5" cy="18.5" r="2.5" />
+                </svg>
+              )}
               <span>
                 {isOffline
                   ? 'Store Fulfillment: Local Service Area (Pincode: 122103)'
@@ -245,18 +231,18 @@ const OrderPlacedPage = () => {
               </span>
             </div>
 
-            {/* Step 2: Quality Check / Verification */}
+            {/* Step 2: Quality Check / Processing */}
             <div className="order-step-node active">
               <div className="step-node-dot">02</div>
               <span className="step-node-label">
                 {isOffline
-                  ? (isCod && !isPaid ? 'Store Verification' : 'Store Preparation')
-                  : (isCod && !isPaid ? 'Admin Verification' : 'Artisan Handcraft')}
+                  ? (isCod && !isPaid ? 'Processing' : 'Store Preparation')
+                  : (isCod && !isPaid ? 'Processing' : 'Artisan Handcraft')}
               </span>
               <span className="step-node-desc">
                 {isOffline
-                  ? (isCod && !isPaid ? 'Store confirmation call' : 'Inspecting & packing outfit')
-                  : (isCod && !isPaid ? 'Verifying for dispatch' : 'Pre-shipment inspection')}
+                  ? (isCod && !isPaid ? 'Processing order for dispatch' : 'Inspecting & packing outfit')
+                  : (isCod && !isPaid ? 'Processing order for dispatch' : 'Pre-shipment inspection')}
               </span>
             </div>
 
@@ -291,7 +277,11 @@ const OrderPlacedPage = () => {
           {/* Left Column: Items Purchased & Price Breakdown */}
           <div className="placed-card-block">
             <h3 className="card-block-title">
-              <span>🛍️</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
               <span>Items in this Order ({items.length})</span>
             </h3>
 
@@ -358,7 +348,10 @@ const OrderPlacedPage = () => {
           {/* Right Column: Delivery Details & Payment Method */}
           <div className="placed-card-block">
             <h3 className="card-block-title">
-              <span>📍</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
               <span>Delivery &amp; Payment Details</span>
             </h3>
 
@@ -368,12 +361,12 @@ const OrderPlacedPage = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
                 {isOffline ? (
                   <>
-                    <span className="channel-tag offline">🏬 Offline Store Order</span>
+                    <span className="channel-tag offline">Offline Store Order</span>
                     <span style={{ fontSize: '0.82rem', color: '#78716C' }}>Local Fulfillment (Pincode: <strong>122103</strong>)</span>
                   </>
                 ) : (
                   <>
-                    <span className="channel-tag online">🌐 Online Store Order</span>
+                    <span className="channel-tag online">Online Store Order</span>
                     <span style={{ fontSize: '0.82rem', color: '#78716C' }}>Pan-India Express Doorstep Delivery</span>
                   </>
                 )}
@@ -406,22 +399,15 @@ const OrderPlacedPage = () => {
                   </span>
                 ) : isCod ? (
                   <span className="badge-payment-status cod-pending">
-                    ⏳ Pay ₹{grandTotal.toLocaleString('en-IN')} Cash on Delivery
+                    Pay ₹{grandTotal.toLocaleString('en-IN')} Cash on Delivery
                   </span>
                 ) : (
                   <span className="badge-payment-status cod-pending">
-                    ⏳ Pending Verification
+                    Processing
                   </span>
                 )}
               </div>
             </div>
-
-            {/* Notification Confirmation Email */}
-            {customerEmail && (
-              <p className="email-notification-notice">
-                ✉️ A detailed confirmation receipt has been sent to <strong>{customerEmail}</strong>.
-              </p>
-            )}
 
             {/* Direct Links */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '0.5rem' }}>
@@ -430,7 +416,12 @@ const OrderPlacedPage = () => {
                 className="btn-placed-ghost"
                 onClick={handlePrint}
               >
-                🖨️ Print / Download Order Receipt
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle', marginRight: '6px' }}>
+                  <polyline points="6 9 6 2 18 2 18 9" />
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                  <rect x="6" y="14" width="12" height="8" />
+                </svg>
+                Print / Download Order Receipt
               </button>
             </div>
           </div>
@@ -441,7 +432,7 @@ const OrderPlacedPage = () => {
         {/* ============================================================ */}
         <div className="placed-actions-strip">
           <Link to="/orders" className="btn-placed-primary">
-            <span>📦 View in My Orders</span>
+            <span>View in My Orders</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -449,7 +440,7 @@ const OrderPlacedPage = () => {
           </Link>
 
           <Link to="/" className="btn-placed-secondary">
-            <span>🛍️ Continue Shopping</span>
+            <span>Continue Shopping</span>
           </Link>
         </div>
       </div>

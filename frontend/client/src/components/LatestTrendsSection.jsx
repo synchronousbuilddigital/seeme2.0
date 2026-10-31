@@ -208,7 +208,7 @@ const LatestTrendsSection = ({ activeAudience = 'all' }) => {
           </h2>
 
           <button
-            className="trends-discover-btn"
+            className="trends-discover-btn desktop-only"
             onClick={() => navigate('/collections')}
           >
             DISCOVER NOW
@@ -308,6 +308,14 @@ const LatestTrendsSection = ({ activeAudience = 'all' }) => {
               </svg>
             </button>
           </div>
+
+          {/* Mobile Discover Button — Positioned below the card image & slider controls */}
+          <button
+            className="trends-discover-btn mobile-only"
+            onClick={() => navigate('/collections')}
+          >
+            DISCOVER NOW
+          </button>
         </div>
       </div>
     </section>

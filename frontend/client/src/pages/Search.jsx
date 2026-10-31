@@ -134,26 +134,61 @@ const Search = () => {
             </div>
           ) : products.length > 0 ? (
             <div className="product-grid">
-              {products.map((product, index) => (
-                <motion.div 
-                  key={product._id}
-                  className="product-card"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
-                >
-                  <div className="product-image">
-                    <img src={product.images[0]} alt={product.name} />
-                    {product.stock <= 0 && <span className="sold-out">Sold Out</span>}
-                  </div>
-                  <div className="product-info">
-                    <span className="category-tag">{product.category}</span>
-                    <h3 className="product-name">{product.name}</h3>
-                    <p className="product-price">₹{product.price.toLocaleString()}</p>
-                  </div>
-                </motion.div>
-              ))}
+              {products.map((product, index) => {
+                const origPrice = Number(product.mrp || product.originalPrice || product.discountPrice || 0)
+                const curPrice = Number(product.price || 0)
+                let discountPct = 0
+                if (origPrice > curPrice && origPrice > 0) {
+                  discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
+                } else if (product.discount && Number(product.discount) > 0) {
+                  discountPct = Math.round(Number(product.discount))
+                }
+
+                return (
+                  <motion.div 
+                    key={product._id}
+                    className="product-card"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    onClick={() => navigate(`/product/${product._id}`, { state: { product } })}
+                  >
+                    <div className="product-image" style={{ position: 'relative' }}>
+                      <img src={product.images[0]} alt={product.name} />
+                      {discountPct > 0 && (
+                        <span style={{
+                          position: 'absolute',
+                          top: '10px',
+                          left: '10px',
+                          background: '#dc2626',
+                          color: '#fff',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          fontSize: '0.72rem',
+                          fontWeight: '800',
+                          zIndex: 2,
+                          boxShadow: '0 2px 8px rgba(220,38,38,0.3)'
+                        }}>
+                          {discountPct}% OFF
+                        </span>
+                      )}
+                      {product.stock <= 0 && <span className="sold-out">Sold Out</span>}
+                    </div>
+                    <div className="product-info">
+                      <span className="category-tag">{product.category}</span>
+                      <h3 className="product-name">{product.name}</h3>
+                      <p className="product-price">
+                        ₹{Number(product.price).toLocaleString()}
+                        {origPrice > curPrice && origPrice > 0 && (
+                          <span style={{ textDecoration: 'line-through', color: '#888', marginLeft: '8px', fontSize: '0.85em' }}>
+                            ₹{origPrice.toLocaleString()}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </motion.div>
+                )
+              })}
             </div>
           ) : (
             <div className="no-results">

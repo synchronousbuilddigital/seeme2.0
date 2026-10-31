@@ -434,6 +434,23 @@
   border: 1px dashed var(--cat-border);
 }
 
+.unique-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.unique-loading-state p {
+  color: #1c1917;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
 .unique-empty-state h3 {
   font-family: var(--cat-heading-font);
   font-size: 1.8rem;
@@ -507,7 +524,8 @@
   height: auto;
   object-fit: contain;
   background: #faf8f5;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
 }
 
 .card-img.secondary {
@@ -517,18 +535,16 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  opacity: 0;
   padding: 6px;
-  background: #faf8f5;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
-}
-
-.unique-product-card:hover .card-img.primary.has-secondary {
+  background: transparent;
+  pointer-events: none;
   opacity: 0;
+  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.unique-product-card:hover .card-img.primary:not(.has-secondary) {
+.unique-product-card:hover .card-img.primary {
   transform: scale(1.08);
+  opacity: 1 !important;
 }
 
 .unique-product-card:hover .card-img.secondary {
@@ -554,29 +570,41 @@
 
 .card-badges-wrapper {
   position: absolute;
-  top: 14px;
-  right: 14px;
+  top: 12px;
+  left: 12px;
   display: flex;
   gap: 6px;
-  z-index: 2;
+  z-index: 5;
+  pointer-events: none;
 }
 
 .card-badge-minimal {
-  padding: 4px 10px;
-  border-radius: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
   font-family: var(--cat-body-font);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
   background: var(--cat-charcoal);
   color: var(--cat-gold);
   border: 1px solid rgba(212, 175, 55, 0.4);
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .card-badge-minimal.sale {
   background: #dc2626;
   color: white;
   border: none;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.card-price-discount-tag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #dc2626;
+  white-space: nowrap;
+  margin-left: 2px;
 }
 
 .card-top-controls {
@@ -588,8 +616,7 @@
   z-index: 3;
 }
 
-.action-btn-heart,
-.action-btn-eye {
+.action-btn-heart {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -604,8 +631,7 @@
   transition: all 0.3s ease;
 }
 
-.action-btn-heart:hover,
-.action-btn-eye:hover {
+.action-btn-heart:hover {
   background: var(--cat-charcoal);
   color: var(--cat-gold);
   transform: scale(1.1);

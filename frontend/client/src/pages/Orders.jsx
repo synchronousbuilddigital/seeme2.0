@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { printOrderInvoice } from '../utils/invoiceHelper'
 import { API_ENDPOINTS } from '../config/api'
 import './Orders.css'
 
@@ -104,85 +105,7 @@ const Orders = () => {
   }
 
   const handlePrint = (order) => {
-    const win = window.open('', '', 'height=800,width=950')
-    win.document.write(`
-      <html>
-        <head>
-          <title>SEE MEE - Order Receipt #${order.orderNumber}</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
-            body { font-family: 'Outfit', sans-serif; padding: 40px; color: #111; background-color: #FFF; line-height: 1.6; }
-            .invoice-wrapper { max-width: 850px; margin: 0 auto; border: 1.5px solid #F0F0F0; padding: 45px; position: relative; }
-            .invoice-wrapper::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #D4AF37 0%, #F3E5AB 50%, #C49A27 100%); }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #F0F0F0; padding-bottom: 25px; margin-bottom: 30px; }
-            .brand-logo h1 { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; letter-spacing: 0.1em; margin: 0; color: #000; text-transform: uppercase; }
-            .brand-logo p { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.25em; margin: 4px 0 0 0; color: #C49A27; font-weight: 600; }
-            .invoice-meta { text-align: right; }
-            .invoice-meta h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 400; margin: 0 0 6px 0; }
-            .grid-details { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 35px; }
-            .table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            .table th { background: #FAF9F6; text-align: left; padding: 12px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #555; }
-            .table td { padding: 14px 12px; border-bottom: 1px solid #F5F5F5; font-size: 0.88rem; }
-            .totals-row { text-align: right; margin-top: 20px; font-size: 1.1rem; font-weight: 700; color: #111; }
-          </style>
-        </head>
-        <body>
-          <div class="invoice-wrapper">
-            <div class="header">
-              <div class="brand-logo">
-                <h1>SEEMEE</h1>
-                <p>HAUTE COUTURE ATELIER</p>
-              </div>
-              <div class="invoice-meta">
-                <h2>INVOICE RECEIPT</h2>
-                <p>Order #: <strong>#${order.orderNumber}</strong></p>
-                <p>Date: <strong>${new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>
-              </div>
-            </div>
-            <div class="grid-details">
-              <div>
-                <h4 style="margin:0 0 8px 0; font-size:0.8rem; text-transform:uppercase; color:#888;">Billed & Delivered To:</h4>
-                <p style="margin:0; font-weight:700;">${order.customer?.name}</p>
-                <p style="margin:2px 0;">${order.customer?.address?.street}</p>
-                <p style="margin:2px 0;">${order.customer?.address?.city}, ${order.customer?.address?.state} - ${order.customer?.address?.pincode}</p>
-                <p style="margin:2px 0;">Phone: ${order.customer?.phone}</p>
-              </div>
-              <div>
-                <h4 style="margin:0 0 8px 0; font-size:0.8rem; text-transform:uppercase; color:#888;">Payment Info:</h4>
-                <p style="margin:0;">Method: <strong>${(order.paymentMethod || 'online').toUpperCase()}</strong></p>
-                <p style="margin:2px 0;">Status: <strong>${(order.paymentStatus || 'pending').toUpperCase()}</strong></p>
-              </div>
-            </div>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Item Description</th>
-                  <th>Size</th>
-                  <th>Quantity</th>
-                  <th style="text-align: right;">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${(order.items || []).map(i => `
-                  <tr>
-                    <td><strong>${i.name}</strong></td>
-                    <td>${i.size || i.selectedSize || 'Standard'}</td>
-                    <td>${i.quantity}</td>
-                    <td style="text-align: right;">₹${(i.price * i.quantity).toLocaleString('en-IN')}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-            <div class="totals-row">
-              Grand Total: <span style="color: #D4AF37;">₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</span>
-            </div>
-          </div>
-        </body>
-      </html>
-    `)
-    win.document.close()
-    win.focus()
-    setTimeout(() => win.print(), 300)
+    printOrderInvoice(order)
   }
 
   // Filter & KPI calculations
@@ -389,9 +312,9 @@ const Orders = () => {
                               <div className="cod-pending-approval">
                                 <div className="handover-icon-circle amber">⏳</div>
                                 <div className="handover-text">
-                                  <span className="handover-mini-tag amber">⏳ PENDING VERIFICATION</span>
-                                  <strong className="handover-main-title amber">AWAITING ADMIN COD APPROVAL</strong>
-                                  <p className="handover-sub">Your Cash on Delivery order is currently awaiting Admin approval. Order Handover will be confirmed upon Admin verification.</p>
+                                  <span className="handover-mini-tag amber">⏳ PROCESSING</span>
+                                  <strong className="handover-main-title amber">ORDER PROCESSING</strong>
+                                  <p className="handover-sub">Your Cash on Delivery order is currently processing. Order Handover will be confirmed shortly.</p>
                                 </div>
                               </div>
                             )}

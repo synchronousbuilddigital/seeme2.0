@@ -41,7 +41,13 @@ const orderSchema = new mongoose.Schema({
     },
     size: String,
     color: String,
-    image: String
+    image: String,
+    weightKg: Number,
+    dimensions: {
+      length: Number,
+      width: Number,
+      height: Number
+    }
   }],
   totalAmount: {
     type: Number,

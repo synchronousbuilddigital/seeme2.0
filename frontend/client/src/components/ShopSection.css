@@ -206,6 +206,26 @@
   background: #FFFFFF;
 }
 
+/* Discount Badge at Top Left of Product */
+.shop-discount-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: #dc2626;
+  color: #ffffff;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  text-transform: uppercase;
+  z-index: 5;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  pointer-events: none;
+}
+
 /* Quick Add Overlay */
 .quick-add-overlay {
   position: absolute;
@@ -316,6 +336,15 @@
   font-weight: 500;
   color: #888888;
   text-decoration: line-through;
+}
+
+.shop-discount-percent-tag {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin-left: 2px;
+  white-space: nowrap;
 }
 
 /* Mobile Add to Bag Option */

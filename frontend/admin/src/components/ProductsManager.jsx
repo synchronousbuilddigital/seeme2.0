@@ -72,6 +72,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
     gallery: [],
     video: '',
     dimensions: { length: '', width: '', height: '' },
+    weightKg: '',
+    weight: '',
     materials: [],
     fabric: '',
     fit: '',
@@ -610,11 +612,17 @@ const ProductsManager = ({ onPromoteToHero }) => {
         })),
         sizes: (formData.sizeStock || []).map(item => String(item.size).trim()).filter(Boolean),
         dimensions: {
-          length: parseFloat(formData.dimensions?.length) || 20,
-          width: parseFloat(formData.dimensions?.width) || 15,
-          height: parseFloat(formData.dimensions?.height) || 5
+          length: (parseFloat(formData.dimensions?.length) > 0) ? parseFloat(formData.dimensions.length) : 20,
+          width: (parseFloat(formData.dimensions?.width) > 0) ? parseFloat(formData.dimensions.width) : 15,
+          height: (parseFloat(formData.dimensions?.height) > 0) ? parseFloat(formData.dimensions.height) : 5
         },
-        weightKg: parseFloat(formData.weightKg || formData.weight?.value || formData.weight) || 0.5,
+        weightKg: (() => {
+          const raw = parseFloat(formData.weightKg || formData.weight?.value || formData.weight)
+          if (!isNaN(raw) && raw > 0) {
+            return raw >= 20 ? Number((raw / 1000).toFixed(3)) : Number(raw.toFixed(3))
+          }
+          return 0.5
+        })(),
         materials: formData.materials,
         fabric: formData.fabric,
         fit: formData.fit,
@@ -748,6 +756,9 @@ const ProductsManager = ({ onPromoteToHero }) => {
       isActive: true,
       images: [],
       video: '',
+      dimensions: { length: '', width: '', height: '' },
+      weightKg: '',
+      weight: '',
       tags: [],
       seo: { title: '', description: '' }
     })
@@ -1049,7 +1060,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
               <div className="form-header-tabs">
                 <button type="button" className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
                 <button type="button" className={formTab === 'colors' ? 'active' : ''} onClick={() => setFormTab('colors')}>
-                  🎨 Colours {formData.colors?.length > 0 ? `(${formData.colors.length})` : ''}
+                   Colours {formData.colors?.length > 0 ? `(${formData.colors.length})` : ''}
                 </button>
                 <button type="button" className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
                 <button type="button" className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
@@ -1131,7 +1142,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                     <div className="form-group mb-4 product-colors-form-block">
                       <div className="color-section-header">
                         <label style={{ fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span>🎨 Available Colours (Select or Add Colours for this Product)</span>
+                          <span>Available Colours (Select or Add Colours for this Product)</span>
                           {formData.color && (
                             <span className="primary-color-chip-tag" title="Main Primary Colour">
                               Primary: <strong>{formData.color}</strong>
@@ -1824,6 +1835,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Length (cm)</label>
                           <input
                             type="number"
+                            step="any"
                             placeholder="e.g. 20"
                             value={formData.dimensions?.length !== undefined ? formData.dimensions.length : ''}
                             onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, length: e.target.value } })}
@@ -1833,6 +1845,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Breadth / Width (cm)</label>
                           <input
                             type="number"
+                            step="any"
                             placeholder="e.g. 15"
                             value={formData.dimensions?.width !== undefined ? formData.dimensions.width : ''}
                             onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, width: e.target.value } })}
@@ -1842,6 +1855,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Height (cm)</label>
                           <input
                             type="number"
+                            step="any"
                             placeholder="e.g. 5"
                             value={formData.dimensions?.height !== undefined ? formData.dimensions.height : ''}
                             onChange={(e) => setFormData({ ...formData, dimensions: { ...formData.dimensions, height: e.target.value } })}

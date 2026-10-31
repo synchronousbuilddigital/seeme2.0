@@ -84,6 +84,23 @@ export const createOrder = asyncHandler(async (req, res) => {
 
     totalAmount += product.price * item.quantity
 
+    const prodDim = product.dimensions || {}
+    let pWeight = null
+    if (typeof product.weightKg === 'number' && product.weightKg > 0) {
+      pWeight = product.weightKg >= 20 ? product.weightKg / 1000 : product.weightKg
+    } else if (typeof product.weightKg === 'string' && parseFloat(product.weightKg) > 0) {
+      const pw = parseFloat(product.weightKg)
+      pWeight = pw >= 20 ? pw / 1000 : pw
+    } else if (typeof product.weight === 'number' && product.weight > 0) {
+      pWeight = product.weight >= 20 ? product.weight / 1000 : product.weight
+    } else if (typeof product.weight === 'string' && parseFloat(product.weight) > 0) {
+      const pw = parseFloat(product.weight)
+      pWeight = pw >= 20 ? pw / 1000 : pw
+    } else if (product.weight?.valueGrams) {
+      pWeight = product.weight.valueGrams / 1000
+    }
+    pWeight = pWeight && pWeight > 0 ? Number(pWeight.toFixed(3)) : 0.5
+
     orderItems.push({
       product: product._id,
       name: product.name,
@@ -91,7 +108,13 @@ export const createOrder = asyncHandler(async (req, res) => {
       quantity: item.quantity,
       size: item.size,
       color: item.color,
-      image: product.images?.[0]
+      image: product.images?.[0],
+      weightKg: pWeight,
+      dimensions: {
+        length: Number(prodDim.length || prodDim.lengthCm || product.lengthCm || 20),
+        width: Number(prodDim.width || prodDim.widthCm || product.widthCm || product.breadth || 15),
+        height: Number(prodDim.height || prodDim.heightCm || product.heightCm || 5)
+      }
     })
 
     // Update specific size stock if it exists
@@ -607,6 +630,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   } else {
     // New Order: Stock has not been deducted yet. Check & deduct stock ONCE.
     let subtotalAmount = 0
+    const verifiedOrderItems = []
     for (const item of items) {
       const product = await Product.findById(item.product)
       if (!product) {
@@ -639,6 +663,39 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       }
       subtotalAmount += product.price * (item.quantity || 1)
       await product.save()
+
+      const prodDim = product.dimensions || {}
+      let pWeight = null
+      if (typeof product.weightKg === 'number' && product.weightKg > 0) {
+        pWeight = product.weightKg >= 20 ? product.weightKg / 1000 : product.weightKg
+      } else if (typeof product.weightKg === 'string' && parseFloat(product.weightKg) > 0) {
+        const pw = parseFloat(product.weightKg)
+        pWeight = pw >= 20 ? pw / 1000 : pw
+      } else if (typeof product.weight === 'number' && product.weight > 0) {
+        pWeight = product.weight >= 20 ? product.weight / 1000 : product.weight
+      } else if (typeof product.weight === 'string' && parseFloat(product.weight) > 0) {
+        const pw = parseFloat(product.weight)
+        pWeight = pw >= 20 ? pw / 1000 : pw
+      } else if (product.weight?.valueGrams) {
+        pWeight = product.weight.valueGrams / 1000
+      }
+      pWeight = pWeight && pWeight > 0 ? Number(pWeight.toFixed(3)) : 0.5
+
+      verifiedOrderItems.push({
+        product: product._id,
+        name: item.name || product.name,
+        price: item.price || product.price,
+        quantity: item.quantity,
+        size: item.size,
+        color: item.color,
+        image: item.image || product.images?.[0],
+        weightKg: pWeight,
+        dimensions: {
+          length: Number(prodDim.length || prodDim.lengthCm || product.lengthCm || 20),
+          width: Number(prodDim.width || prodDim.widthCm || product.widthCm || product.breadth || 15),
+          height: Number(prodDim.height || prodDim.heightCm || product.heightCm || 5)
+        }
+      })
     }
 
     let appliedCouponCode = null
@@ -663,7 +720,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     order = await Order.create({
       user: req.user?._id || req.body.user || null,
       customer,
-      items,
+      items: verifiedOrderItems,
       totalAmount: finalTotalAmount,
       couponCode: appliedCouponCode,
       couponDiscount: validatedCouponDiscount,

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
 import { getImageUrl } from '../utils/imageHelper'
+import { printOrderInvoice } from '../utils/invoiceHelper'
 import './OrdersManager.css'
 
 const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter = 'all' }) => {
@@ -227,7 +228,13 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
         body: {
           deliveryPincode: order.customer.address.pincode,
           paymentType: order.paymentMethod === 'cod' ? 'cod' : 'prepaid',
-          items: order.items.map(i => ({ product: i.product?._id || i.product, quantity: i.quantity, price: i.price })),
+          items: order.items.map(i => ({
+            product: i.product?._id || i.product,
+            quantity: i.quantity,
+            price: i.price,
+            weightKg: i.weightKg || i.product?.weightKg,
+            dimensions: i.dimensions || i.product?.dimensions
+          })),
           invoiceAmount: order.totalAmount
         }
       })
@@ -435,45 +442,11 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
   }
 
   const printInvoice = () => {
-    const printableEl = document.getElementById('invoice-printable')
-    if (!printableEl) {
-      showNotification('Invoice template element not found', 'error')
+    if (!selectedOrder) {
+      showNotification('No order selected to print invoice', 'error')
       return
     }
-
-    const printContent = printableEl.innerHTML
-    const win = window.open('', '_blank', 'height=750,width=950')
-    if (!win) {
-      showNotification('Popup blocked. Please allow popups to print invoice.', 'error')
-      return
-    }
-
-    win.document.write('<!DOCTYPE html><html><head><title>Invoice - SeeMee</title>')
-    win.document.write(`
-      <style>
-        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px; color: #111; background: #fff; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 40px; }
-        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .table th, .table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        .table th { background: #f8f8f8; font-weight: 600; }
-        .total-box { margin-top: 30px; text-align: right; font-size: 16px; }
-        .badge { padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; text-transform: uppercase; background: #eee; }
-        @media print {
-          body { padding: 20px; }
-        }
-      </style>
-    `)
-    win.document.write('</head><body>')
-    win.document.write(printContent)
-    win.document.write('</body></html>')
-    win.document.close()
-    win.focus()
-
-    // Wait for document styles and DOM to render completely before printing
-    setTimeout(() => {
-      win.print()
-      win.close()
-    }, 500)
+    printOrderInvoice(selectedOrder)
   }
 
   const openExportModal = () => {
@@ -1046,47 +1019,6 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
               </div>
 
               <div className="modal-scroll-area">
-                {/* Hidden Printable Invoice */}
-                <div id="invoice-printable" style={{ display: 'none' }}>
-                  <div className="header">
-                    <div>
-                      <h1>SEEMEE</h1>
-                      <p>Order #{selectedOrder.orderNumber}</p>
-                      <p>Date: {new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <h3>Customer</h3>
-                      <p>{selectedOrder.customer.name}</p>
-                      <p>{selectedOrder.customer.email}</p>
-                      <p>{selectedOrder.customer.phone}</p>
-                    </div>
-                  </div>
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th>Item</th>
-                        <th>Qty</th>
-                        <th>Price</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedOrder.items.map((item, idx) => (
-                        <tr key={idx}>
-                          <td>{item.name} (Size: {item.size})</td>
-                          <td>{item.quantity}</td>
-                          <td>₹{item.price}</td>
-                          <td>₹{item.price * item.quantity}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div className="total-box">
-                    <h3>Grand Total: ₹{selectedOrder.totalAmount}</h3>
-                    <p>Status: <span className="badge">{selectedOrder.status}</span></p>
-                  </div>
-                </div>
-
                 <div className="modal-sections">
                   <section className="info-section">
                     <h3>Customer Details</h3>
@@ -1471,7 +1403,11 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                           <img src={getImageUrl(item.image)} alt={item.name} />
                           <div className="pkg-info">
                             <h4>{item.name}</h4>
-                            <p>Size: {item.size} • Qty: {item.quantity}</p>
+                            <p>
+                              Size: {item.size} • Qty: {item.quantity}
+                              {(item.weightKg || item.product?.weightKg) ? ` • ${item.weightKg || item.product?.weightKg} kg` : ''}
+                              {(item.dimensions?.length || item.product?.dimensions?.length) ? ` • ${item.dimensions?.length || item.product?.dimensions?.length}×${item.dimensions?.width || item.product?.dimensions?.width}×${item.dimensions?.height || item.product?.dimensions?.height} cm` : ''}
+                            </p>
                           </div>
                           <div className="pkg-price">₹{(item.price * item.quantity).toLocaleString()}</div>
                         </div>

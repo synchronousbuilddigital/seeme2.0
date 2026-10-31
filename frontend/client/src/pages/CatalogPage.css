@@ -1,3 +1,4 @@
+/* Base Page */
 .catalog-reels-page {
   position: relative;
   width: 100%;
@@ -5,19 +6,49 @@
   background: #FAF7F2;
   color: #1a1a1a;
   font-family: var(--font-body, sans-serif);
-  scroll-snap-type: y proximity;
+}
+
+/* Feed View: Strict Fullscreen App-style Reels Experience */
+.catalog-reels-page.feed-view {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  z-index: 20;
+}
+
+/* Locks outer body scroll and hides footer in Feed mode so the page NEVER scrolls */
+body.catalog-feed-active {
+  overflow: hidden !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  overscroll-behavior: none !important;
+}
+
+body.catalog-feed-active footer {
+  display: none !important;
 }
 
 .catalog-reels-loading {
   min-height: 100vh;
-  background: #FAF7F2;
-  color: #d4af37;
+  background: #ffffff;
+  color: #1c1917;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 16px;
   font-family: var(--font-body, sans-serif);
+}
+
+.catalog-reels-loading p {
+  color: #1c1917;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  margin: 0;
 }
 
 .loading-spinner-gold {
@@ -111,29 +142,53 @@
   color: #1c1917;
 }
 
-/* Snap Scroll Feed Container */
+/* Snap Scroll Feed Container - Only the reels container scrolls */
 .reels-feed-container {
   width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 165px;
-  padding-bottom: 60px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .reels-feed-container::-webkit-scrollbar {
   display: none;
 }
 
+/* Fullscreen Section per Reel for Perfect 1:1 Snap */
+.reel-snap-section {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 145px;
+  padding-bottom: 25px;
+  box-sizing: border-box;
+  position: relative;
+}
+
 .reel-slide {
   position: relative;
   width: 100%;
   max-width: 385px;
-  height: calc(100vh - 190px);
+  height: 100%;
   max-height: 720px;
-  margin-bottom: 24px;
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
   background: #000000;
   display: flex;
   align-items: center;
@@ -143,6 +198,67 @@
   border: 1.5px solid rgba(212, 175, 55, 0.35);
   box-shadow: 0 22px 55px rgba(0, 0, 0, 0.85);
   flex-shrink: 0;
+}
+
+/* Desktop Floating Controls for Fast Reels Browsing */
+.reels-desktop-nav {
+  position: fixed;
+  left: calc(50% + 215px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: rgba(26, 24, 22, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 12px 8px;
+  border-radius: 40px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.45);
+}
+
+.reel-nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  color: #FAF7F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+
+.reel-nav-btn:hover:not(:disabled) {
+  background: #d4af37;
+  color: #1c1917;
+  transform: scale(1.08);
+  border-color: #d4af37;
+}
+
+.reel-nav-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.reel-nav-indicator {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #d4af37;
+  letter-spacing: 0.06em;
+  padding: 2px 4px;
+}
+
+@media (max-width: 900px) {
+  .reels-desktop-nav {
+    display: none;
+  }
 }
 
 .reel-media-wrapper {
@@ -648,30 +764,36 @@
 
 @media (max-width: 600px) {
   .reels-feed-container {
+    padding: 0;
+    margin: 0;
+  }
+  .reel-snap-section {
     padding-top: 60px;
     padding-bottom: 64px;
+    height: 100vh;
+    height: 100dvh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
   .reel-slide {
     width: 100%;
     max-width: 100%;
-    height: calc(100vh - 124px);
-    max-height: calc(100vh - 124px);
-    margin: 0 0 16px 0;
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
     border-radius: 0;
     border-left: none;
     border-right: none;
-    border-top: 1px solid rgba(212, 175, 55, 0.25);
-    border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+    border-top: none;
+    border-bottom: none;
     box-shadow: none;
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
   }
   .catalog-top-bar {
     top: 64px;
     padding: 8px 16px;
   }
   .reel-details-box {
-    bottom: 24px;
+    bottom: 20px;
     left: 16px;
     right: 76px;
   }
@@ -687,7 +809,7 @@
   }
   .reel-right-actions {
     right: 14px;
-    bottom: 24px;
+    bottom: 20px;
     gap: 14px;
   }
   .action-btn-circle {

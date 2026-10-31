@@ -7,7 +7,7 @@
 .latest-trends-section {
   width: 100%;
   background: #faf7f2;
-  padding: 85px clamp(20px, 5vw, 60px);
+  padding: 70px clamp(20px, 5vw, 60px) 25px;
   position: relative;
   overflow: hidden;
   border-top: 1px solid rgba(212, 175, 55, 0.15);
@@ -138,6 +138,14 @@
   border-color: #d4af37;
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(212, 175, 55, 0.35);
+}
+
+.trends-discover-btn.mobile-only {
+  display: none;
+}
+
+.trends-discover-btn.desktop-only {
+  display: inline-block;
 }
 
 /* Stories Behind The Drape Box */
@@ -342,12 +350,12 @@
 
 @media (max-width: 992px) {
   .latest-trends-section {
-    padding: 60px 24px;
+    padding: 50px 24px;
   }
 
   .latest-trends-container {
     grid-template-columns: 1fr;
-    gap: 36px;
+    gap: 24px;
   }
 
   .latest-trends-left {
@@ -359,15 +367,28 @@
   .trends-top-controls-row {
     justify-content: center;
     width: 100%;
+    margin-bottom: 16px;
   }
 
   .trends-giant-heading {
     align-items: center;
     text-align: center;
     font-size: clamp(3.2rem, 9vw, 4.8rem);
+    margin-bottom: 0;
   }
 
-  .trends-discover-btn {
+  /* Hide desktop button in left column on mobile */
+  .trends-discover-btn.desktop-only {
+    display: none !important;
+  }
+
+  /* Show mobile button below cards deck */
+  .trends-discover-btn.mobile-only {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 22px;
+    margin-bottom: 6px;
     margin-left: auto;
     margin-right: auto;
   }
@@ -406,16 +427,22 @@
   .trends-deck-controls {
     align-self: center;
     padding-right: 0;
+    margin-top: 18px;
   }
 }
 
 @media (max-width: 576px) {
   .latest-trends-section {
-    padding: 44px 16px;
+    padding: 36px 16px 20px;
+  }
+
+  .latest-trends-container {
+    gap: 18px;
   }
 
   .trends-top-controls-row {
     justify-content: center;
+    margin-bottom: 14px;
   }
 
   .trends-audience-pills {
@@ -429,14 +456,15 @@
 
   .trends-giant-heading {
     font-size: clamp(2.8rem, 10vw, 3.8rem);
-    margin-bottom: 20px;
+    margin-bottom: 0;
     line-height: 0.9;
   }
 
-  .trends-discover-btn {
-    padding: 13px 30px;
+  .trends-discover-btn.mobile-only {
+    padding: 13px 32px;
     font-size: 0.82rem;
-    margin-bottom: 28px;
+    margin-top: 18px;
+    margin-bottom: 4px;
     margin-left: auto;
     margin-right: auto;
   }
@@ -462,6 +490,10 @@
     left: 50%;
     margin-left: -145px;
     right: auto;
+  }
+
+  .trends-deck-controls {
+    margin-top: 16px;
   }
 
   .overlay-prod-name {

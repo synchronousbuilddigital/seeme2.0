@@ -50,7 +50,61 @@ const CatalogPage = () => {
     }
   }
 
-  // Handle Video Autoplay / Pause based on IntersectionObserver on page scroll
+  // Lock background window scroll in Reels Feed Mode so only the reels container scrolls
+  useEffect(() => {
+    if (viewMode === 'feed' && !loading && reels.length > 0) {
+      document.body.classList.add('catalog-feed-active')
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+      window.scrollTo(0, 0)
+    } else {
+      document.body.classList.remove('catalog-feed-active')
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+
+    return () => {
+      document.body.classList.remove('catalog-feed-active')
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [viewMode, loading, reels.length])
+
+  // Scroll smoothly to target reel index within the feed container
+  const scrollToIndex = (index) => {
+    if (!containerRef.current || index < 0 || index >= reels.length) return
+    const sections = containerRef.current.querySelectorAll('.reel-snap-section')
+    if (sections && sections[index]) {
+      sections[index].scrollIntoView({ behavior: 'smooth', block: 'start' })
+      setCurrentReelIndex(index)
+    }
+  }
+
+  // Keyboard navigation for Desktop (ArrowDown, ArrowUp, PageDown, PageUp)
+  useEffect(() => {
+    if (viewMode !== 'feed' || reels.length === 0) return
+
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return
+
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault()
+        if (currentReelIndex < reels.length - 1) {
+          scrollToIndex(currentReelIndex + 1)
+        }
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault()
+        if (currentReelIndex > 0) {
+          scrollToIndex(currentReelIndex - 1)
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [viewMode, currentReelIndex, reels.length])
+
+  // Handle Video Autoplay / Pause based on IntersectionObserver on reels feed scroll
   useEffect(() => {
     if (viewMode !== 'feed' || reels.length === 0) return
 
@@ -70,11 +124,14 @@ const CatalogPage = () => {
           }
         })
       },
-      { threshold: 0.5 }
+      {
+        root: containerRef.current,
+        threshold: 0.55,
+      }
     )
 
-    const slides = document.querySelectorAll('.reel-slide')
-    slides.forEach((slide) => observer.observe(slide))
+    const sections = containerRef.current?.querySelectorAll('.reel-snap-section') || []
+    sections.forEach((sec) => observer.observe(sec))
 
     return () => observer.disconnect()
   }, [reels, viewMode])
@@ -161,6 +218,9 @@ const CatalogPage = () => {
   const openReelInFeed = (index) => {
     setCurrentReelIndex(index)
     setViewMode('feed')
+    setTimeout(() => {
+      scrollToIndex(index)
+    }, 60)
   }
 
   if (loading) {
@@ -195,7 +255,7 @@ const CatalogPage = () => {
   }
 
   return (
-    <div className="catalog-reels-page">
+    <div className={`catalog-reels-page ${viewMode === 'feed' ? 'feed-view' : 'grid-view'}`}>
       {/* Floating Notification Toast */}
       <AnimatePresence>
         {toastMessage && (
@@ -243,7 +303,8 @@ const CatalogPage = () => {
 
       {/* 1. Feed Mode: Instagram Reels Snap-Scroll View */}
       {viewMode === 'feed' && (
-        <div className="reels-feed-container" ref={containerRef}>
+        <>
+          <div className="reels-feed-container" ref={containerRef}>
           {reels.map((reel, index) => {
             const product = reel.product
             const isLiked = likedReels[reel._id] !== undefined 
@@ -252,146 +313,180 @@ const CatalogPage = () => {
             const mediaImage = reel.coverImage || product?.images?.[0] || product?.image
 
             return (
-              <div key={reel._id || index} className="reel-slide" data-index={index}>
-                {/* Media Player (Video or Full Image) */}
-                <div className="reel-media-wrapper" onClick={() => toggleVideoPlay(index)}>
-                  {reel.videoUrl ? (
-                    <video
-                      ref={el => videoRefs.current[index] = el}
-                      src={reel.videoUrl}
-                      poster={mediaImage ? getOptimizedImageUrl(mediaImage, 'hero') : undefined}
-                      loop
-                      playsInline
-                      muted={isMuted}
-                      className="reel-video-element"
-                    />
-                  ) : (
-                    <div className="reel-image-container">
-                      <img
-                        src={getOptimizedImageUrl(mediaImage || '/images/ruby_bridal_sharara.png', 'hero')}
-                        alt={reel.title}
-                        className="reel-img-element"
+              <div key={reel._id || index} className="reel-snap-section" data-index={index}>
+                <div className="reel-slide">
+                  {/* Media Player (Video or Full Image) */}
+                  <div className="reel-media-wrapper" onClick={() => toggleVideoPlay(index)}>
+                    {reel.videoUrl ? (
+                      <video
+                        ref={el => videoRefs.current[index] = el}
+                        src={reel.videoUrl}
+                        poster={mediaImage ? getOptimizedImageUrl(mediaImage, 'hero') : undefined}
+                        loop
+                        playsInline
+                        muted={isMuted}
+                        className="reel-video-element"
                       />
-                    </div>
-                  )}
-                  <div className="reel-gradient-overlay" />
-                </div>
-
-                {/* Sound Toggle Button (If video present) */}
-                {reel.videoUrl && (
-                  <button 
-                    type="button" 
-                    className="reel-audio-btn"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setIsMuted(!isMuted)
-                    }}
-                    title={isMuted ? "Unmute sound" : "Mute sound"}
-                  >
-                    {isMuted ? (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <line x1="1" y1="1" x2="23" y2="23"></line>
-                        <path d="M9 9l10.5 10.5M15.54 8.46A5 5 0 0 1 19 12M6 15H3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3l5-4v5.58"></path>
-                      </svg>
                     ) : (
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                      </svg>
+                      <div className="reel-image-container">
+                        <img
+                          src={getOptimizedImageUrl(mediaImage || '/images/ruby_bridal_sharara.png', 'hero')}
+                          alt={reel.title}
+                          className="reel-img-element"
+                        />
+                      </div>
                     )}
-                  </button>
-                )}
+                    <div className="reel-gradient-overlay" />
+                  </div>
 
-                {/* Bottom Left Product Card & Caption Info */}
-                <div className="reel-details-box">
-                  <div className="reel-header-tag">✦ SEEMEE ATELIER CATALOG</div>
-                  <h2 className="reel-title">{reel.title}</h2>
-                  {reel.caption && <p className="reel-caption">{reel.caption}</p>}
-
-                  {product && (
-                    <motion.div 
-                      className="reel-product-card"
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
+                  {/* Sound Toggle Button (If video present) */}
+                  {reel.videoUrl && (
+                    <button 
+                      type="button" 
+                      className="reel-audio-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setIsMuted(!isMuted)
+                      }}
+                      title={isMuted ? "Unmute sound" : "Mute sound"}
                     >
-                      <div className="prod-thumb" onClick={() => navigate(`/product/${product._id || product.id}`)} style={{ cursor: 'pointer' }}>
-                        <img 
-                          src={getOptimizedImageUrl(product.images?.[0] || product.image || mediaImage, 'thumbnail')} 
-                          alt={product.name} 
-                        />
-                      </div>
-                      <div className="prod-info" onClick={() => navigate(`/product/${product._id || product.id}`)} style={{ cursor: 'pointer' }}>
-                        <h4>{product.name}</h4>
-                        <span className="prod-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                      </div>
-                      <div className="prod-btn-group">
-                        <AddToCartButton
-                          product={product}
-                          variant="mini"
-                          label="+ Bag"
-                        />
-                        <button 
-                          onClick={() => navigate(`/product/${product._id || product.id}`)} 
-                          className="btn-view"
-                        >
-                          View
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-
-                {/* Right Floating Actions (Like / Wishlist, Bag, Share) */}
-                <div className="reel-right-actions">
-                  <button 
-                    type="button" 
-                    className={`action-btn-circle like-btn ${isLiked ? 'liked' : ''}`}
-                    onClick={() => handleLikeReel(reel)}
-                    title={isLiked ? "In your Wishlist" : "Like & Add to Wishlist"}
-                  >
-                    <svg 
-                      width="20" 
-                      height="20" 
-                      viewBox="0 0 24 24" 
-                      fill={isLiked ? "#D4AF37" : "none"} 
-                      stroke={isLiked ? "#D4AF37" : "#FFFFFF"} 
-                      strokeWidth="2"
-                    >
-                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                    </svg>
-                    <span className="action-count">{reel.likesCount || 0}</span>
-                  </button>
-
-                  {product && (
-                    <AddToCartButton
-                      product={product}
-                      variant="mini"
-                      label="Bag"
-                    />
+                      {isMuted ? (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="1" y1="1" x2="23" y2="23"></line>
+                          <path d="M9 9l10.5 10.5M15.54 8.46A5 5 0 0 1 19 12M6 15H3a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h3l5-4v5.58"></path>
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                      )}
+                    </button>
                   )}
 
-                  <button 
-                    type="button" 
-                    className="action-btn-circle share-btn"
-                    onClick={handleShare}
-                    title="Share Reel"
-                  >
-                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="18" cy="5" r="3"></circle>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="19" r="3"></circle>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    <span className="action-label">Share</span>
-                  </button>
+                  {/* Bottom Left Product Card & Caption Info */}
+                  <div className="reel-details-box">
+                    <div className="reel-header-tag">✦ SEEMEE ATELIER CATALOG</div>
+                    <h2 className="reel-title">{reel.title}</h2>
+                    {reel.caption && <p className="reel-caption">{reel.caption}</p>}
+
+                    {product && (
+                      <motion.div 
+                        className="reel-product-card"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <div className="prod-thumb" onClick={() => navigate(`/product/${product._id || product.id}`)} style={{ cursor: 'pointer' }}>
+                          <img 
+                            src={getOptimizedImageUrl(product.images?.[0] || product.image || mediaImage, 'thumbnail')} 
+                            alt={product.name} 
+                          />
+                        </div>
+                        <div className="prod-info" onClick={() => navigate(`/product/${product._id || product.id}`)} style={{ cursor: 'pointer' }}>
+                          <h4>{product.name}</h4>
+                          <span className="prod-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="prod-btn-group">
+                          <AddToCartButton
+                            product={product}
+                            variant="mini"
+                            label="+ Bag"
+                          />
+                          <button 
+                            onClick={() => navigate(`/product/${product._id || product.id}`)} 
+                            className="btn-view"
+                          >
+                            View
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  {/* Right Floating Actions (Like / Wishlist, Bag, Share) */}
+                  <div className="reel-right-actions">
+                    <button 
+                      type="button" 
+                      className={`action-btn-circle like-btn ${isLiked ? 'liked' : ''}`}
+                      onClick={() => handleLikeReel(reel)}
+                      title={isLiked ? "In your Wishlist" : "Like & Add to Wishlist"}
+                    >
+                      <svg 
+                        width="20" 
+                        height="20" 
+                        viewBox="0 0 24 24" 
+                        fill={isLiked ? "#D4AF37" : "none"} 
+                        stroke={isLiked ? "#D4AF37" : "#FFFFFF"} 
+                        strokeWidth="2"
+                      >
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                      </svg>
+                      <span className="action-count">{reel.likesCount || 0}</span>
+                    </button>
+
+                    {product && (
+                      <AddToCartButton
+                        product={product}
+                        variant="mini"
+                        label="Bag"
+                      />
+                    )}
+
+                    <button 
+                      type="button" 
+                      className="action-btn-circle share-btn"
+                      onClick={handleShare}
+                      title="Share Reel"
+                    >
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                      </svg>
+                      <span className="action-label">Share</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )
           })}
         </div>
-      )}
+
+        {/* Desktop Floating Navigation Controls (Up/Down) */}
+        <div className="reels-desktop-nav">
+          <button 
+            type="button" 
+            className="reel-nav-btn prev-btn"
+            disabled={currentReelIndex === 0}
+            onClick={() => scrollToIndex(currentReelIndex - 1)}
+            title="Previous Reel (Arrow Up)"
+            aria-label="Previous Reel"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="18 15 12 9 6 15"></polyline>
+            </svg>
+          </button>
+          <span className="reel-nav-indicator">
+            {currentReelIndex + 1} / {reels.length}
+          </span>
+          <button 
+            type="button" 
+            className="reel-nav-btn next-btn"
+            disabled={currentReelIndex >= reels.length - 1}
+            onClick={() => scrollToIndex(currentReelIndex + 1)}
+            title="Next Reel (Arrow Down)"
+            aria-label="Next Reel"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+      </>
+    )}
 
       {/* 2. Grid Mode: Instagram Lookbook Gallery View */}
       {viewMode === 'grid' && (

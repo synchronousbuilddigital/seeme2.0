@@ -267,13 +267,13 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F5F5F4; padding-bottom: 15px; margin-bottom: 20px;">
           <div>
             <h3 style="margin: 0; color: #1C1917; font-size: 18px;">Order #${orderId}</h3>
-            <span style="font-size: 12px; color: #78716C;">Status: <strong style="color: ${badgeColor};">${statusStr === 'COD_PENDING' ? 'Awaiting Admin COD Approval' : statusStr === 'COD_APPROVED' ? 'COD Approved & Payment Completed' : statusStr}</strong></span>
+            <span style="font-size: 12px; color: #78716C;">Status: <strong style="color: ${badgeColor};">${statusStr === 'COD_PENDING' ? 'Processing' : statusStr === 'COD_APPROVED' ? 'COD Approved & Payment Completed' : statusStr}</strong></span>
           </div>
         </div>
 
         <p style="color: #57534E; font-size: 14px; line-height: 1.6;">Hello <strong>${customerName}</strong>,</p>
         <p style="color: #57534E; font-size: 14px; line-height: 1.6;">
-          ${statusStr === 'COD_PENDING' ? 'Thank you for your Cash on Delivery order! Your order has been received and is currently <strong>awaiting Admin verification</strong>. You will receive a payment confirmation email as soon as Admin approves your order.' : ''}
+          ${statusStr === 'COD_PENDING' ? 'Thank you for your Cash on Delivery order! Your order has been received and is currently <strong>processing</strong>. You will receive an update as soon as your order is dispatched.' : ''}
           ${statusStr === 'COD_APPROVED' ? '🎉 Great news! Your Cash on Delivery order has been <strong>verified and approved by Admin</strong>. Your payment status is now <strong>Payment Completed / Verified</strong>!' : ''}
           ${statusStr === 'PLACED' ? 'Thank you for your order! Your selection has been placed successfully.' : ''}
           ${statusStr === 'CONFIRMED' ? 'Great news! Your order has been confirmed.' : ''}

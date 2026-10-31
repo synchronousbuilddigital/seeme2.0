@@ -93,18 +93,36 @@ const ShopSection = ({ activeAudience = 'all' }) => {
             FEATURED <span>PRODUCTS</span>
           </h2>
           <div className="shop-gold-divider"></div>
-
-          <p className="shop-subtitle">
-            Curated luxury drapes, tunics, and coordinates crafted with ancestral precision for timeless grace.
-          </p>
         </motion.header>
 
         {/* Product Grid */}
         <div className="shop-products-grid">
           {products.map((product, idx) => {
-            const primaryImg = product.images?.[0] || product.image
-            const secondaryImg = product.images?.[1] || primaryImg
+            const rawShopImages = Array.isArray(product.images) && product.images.length > 0
+              ? product.images
+              : (typeof product.images === 'string' && product.images.trim().length > 0
+                ? (product.images.includes(',') ? product.images.split(',') : [product.images])
+                : (product.image ? [product.image] : []))
+
+            const validShopImages = rawShopImages
+              .map(img => (typeof img === 'string' ? img.trim() : ''))
+              .filter(img => img && img !== 'null' && img !== 'undefined' && img !== '[object Object]')
+
+            const primaryImg = validShopImages[0] || product.image || '/images/categories_straight.jpg'
+            const secondaryImg = (validShopImages.length > 1 && validShopImages[1] !== primaryImg)
+              ? validShopImages[1]
+              : primaryImg
+
             const isHovered = hoveredProductId === product._id
+
+            const origPrice = Number(product.mrp || product.originalPrice || product.discountPrice || 0)
+            const curPrice = Number(product.price || 0)
+            let discountPct = 0
+            if (origPrice > curPrice && origPrice > 0) {
+              discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
+            } else if (product.discount && Number(product.discount) > 0) {
+              discountPct = Math.round(Number(product.discount))
+            }
 
             return (
               <motion.div
@@ -117,7 +135,7 @@ const ShopSection = ({ activeAudience = 'all' }) => {
                 onMouseEnter={() => setHoveredProductId(product._id)}
                 onMouseLeave={() => setHoveredProductId(null)}
               >
-                {/* Clean Product Media (ZERO text overlays on photo) */}
+                {/* Product Media */}
                 <div
                   className="product-media-wrapper"
                   onClick={() => {
@@ -132,6 +150,11 @@ const ShopSection = ({ activeAudience = 'all' }) => {
                       className="product-main-img"
                     />
                   </div>
+
+                  {/* Top Discount Percentage Badge */}
+                  {discountPct > 0 && (
+                    <span className="shop-discount-badge">{discountPct}% OFF</span>
+                  )}
 
                   {/* Wishlist Button */}
                   <button
@@ -171,8 +194,8 @@ const ShopSection = ({ activeAudience = 'all' }) => {
 
                   <div className="card-price-group">
                     <span className="price-val">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                    {(product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price) && (
-                      <span className="mrp-val">₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}</span>
+                    {origPrice > curPrice && origPrice > 0 && (
+                      <span className="mrp-val">₹{origPrice.toLocaleString('en-IN')}</span>
                     )}
                   </div>
 

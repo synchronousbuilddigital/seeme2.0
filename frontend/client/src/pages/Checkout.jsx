@@ -147,7 +147,6 @@ const Checkout = () => {
   const [saveAddress, setSaveAddress] = useState(true)
   const [savingAddress, setSavingAddress] = useState(false)
   const [addressSaveSuccess, setAddressSaveSuccess] = useState('')
-  const [showMobileSummary, setShowMobileSummary] = useState(false)
 
   const [checkoutCouponCode, setCheckoutCouponCode] = useState('')
   const [checkoutCouponError, setCheckoutCouponError] = useState('')
@@ -833,145 +832,6 @@ const Checkout = () => {
 
   return (
     <div className="editorial-checkout">
-      {/* Mobile Collapsible Order Summary Accordion Bar */}
-      <div className="mobile-checkout-summary-bar">
-        <button 
-          type="button" 
-          className="mobile-summary-toggle-btn"
-          onClick={() => setShowMobileSummary(!showMobileSummary)}
-        >
-          <div className="toggle-left">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
-              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <path d="M16 10a4 4 0 0 1-8 0"></path>
-            </svg>
-            <span>{showMobileSummary ? 'Hide Order Summary' : `Show Order Summary (${totalItemsCount} items)`}</span>
-            <svg 
-              width="14" 
-              height="14" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2"
-              style={{ transform: showMobileSummary ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}
-            >
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </div>
-          <span className="mobile-total-val">₹{calculateTotal().toLocaleString('en-IN')}</span>
-        </button>
-
-        <AnimatePresence>
-          {showMobileSummary && (
-            <motion.div 
-              className="mobile-summary-drawer-content"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="mobile-items-list">
-                {cart.map(item => (
-                  <div key={item.id || item._id} className="mobile-mini-item">
-                    <img 
-                      src={getOptimizedImageUrl(item.images?.[0] || item.image, 'thumbnail')} 
-                      alt={item.name} 
-                      onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
-                    />
-                    <div className="item-details">
-                      <h4>{item.name}</h4>
-                      <span>Qty: {item.quantity} | Size: {item.selectedSize || item.size || 'M'}{((item.selectedColor || item.color) && (item.selectedColor || item.color).toLowerCase() !== 'standard') ? ` | Colour: ${item.selectedColor || item.color}` : ''}</span>
-                    </div>
-                    <span className="item-price">
-                      ₹{((typeof item.price === 'number' ? item.price : parseInt(item.price.replace(/[₹,]/g, '')) || 0) * (item.quantity || 1)).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mobile-summary-breakdown">
-                {/* Mobile Coupon Application Block */}
-                <div className="checkout-coupon-box mobile-checkout-coupon">
-                  <span className="checkout-coupon-title">🎁 PROMO / COUPON CODE</span>
-                  {appliedCoupon ? (
-                    <div className="checkout-applied-coupon">
-                      <div className="applied-info">
-                        <span className="gold-code">✦ {appliedCoupon.code} APPLIED</span>
-                        <span className="savings-tag">Savings: ₹{couponDiscount.toLocaleString('en-IN')}</span>
-                      </div>
-                      <button type="button" className="btn-remove-checkout-coupon" onClick={() => removeCoupon()} title="Remove Coupon">
-                        Remove ✕
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      {availableCoupons.length > 0 && (
-                        <div className="checkout-select-wrap">
-                          <select
-                            className="checkout-coupon-select"
-                            value={checkoutCouponCode}
-                            onChange={(e) => {
-                              const val = e.target.value
-                              setCheckoutCouponCode(val)
-                              if (val) {
-                                handleApplyCheckoutCoupon(null, val)
-                              }
-                            }}
-                            disabled={couponLoading}
-                          >
-                            <option value="">-- Select Available Coupon ({availableCoupons.length}) --</option>
-                            {availableCoupons.map(c => (
-                              <option key={c._id || c.code} value={c.code}>
-                                ✦ {c.code} ({c.description || `${c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}`})
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-                      <form onSubmit={handleApplyCheckoutCoupon} className="checkout-coupon-form">
-                        <input
-                          type="text"
-                          placeholder="Or enter coupon code"
-                          value={checkoutCouponCode}
-                          onChange={(e) => setCheckoutCouponCode(e.target.value.toUpperCase())}
-                          disabled={couponLoading}
-                        />
-                        <button type="submit" disabled={couponLoading || !checkoutCouponCode.trim()}>
-                          {couponLoading ? '...' : 'Apply'}
-                        </button>
-                      </form>
-                      {checkoutCouponError && (
-                        <span className="checkout-coupon-error">⚠️ {checkoutCouponError}</span>
-                      )}
-                    </>
-                  )}
-                </div>
-
-                <div className="calc-line">
-                  <span>Subtotal</span>
-                  <span>₹{calculateSubtotal().toLocaleString('en-IN')}</span>
-                </div>
-                {appliedCoupon && (
-                  <div className="calc-line discount-line">
-                    <span>Discount ({appliedCoupon.code})</span>
-                    <span className="gold-text">-₹{couponDiscount.toLocaleString('en-IN')}</span>
-                  </div>
-                )}
-                <div className="calc-line">
-                  <span>Priority Shipping</span>
-                  <span className="green-text">FREE</span>
-                </div>
-                <div className="calc-line grand-total-line">
-                  <span>Total Payable</span>
-                  <span className="gold-text">₹{calculateTotal().toLocaleString('en-IN')}</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
       {/* Main Luxury Header Hero Banner */}
       <header className="checkout-header-luxury">
         <div className="header-container-luxury">
@@ -1002,10 +862,10 @@ const Checkout = () => {
                 </div>
               </div>
               
-              {user && (
+              {user && addresses && addresses.length > 0 && (
                 <div className="saved-addresses-luxury">
                   <div className="saved-addresses-header">
-                    <span className="mini-title">📍 Select Shipping Address</span>
+                    <span className="mini-title">Select Shipping Address</span>
                   </div>
 
                   <div className="address-pills">
@@ -1037,7 +897,7 @@ const Checkout = () => {
                         }))
                       }}
                     >
-                      <span>➕ Add New Address</span>
+                      <span>+ Add New Address</span>
                     </div>
                   </div>
                 </div>
@@ -1147,7 +1007,7 @@ const Checkout = () => {
                     <div className="input-group-luxury">
                       <label htmlFor="checkout-pincode">
                         Pincode *
-                        {pincodeLoading && <span className="pincode-status-text">🔍 Verifying...</span>}
+                        {pincodeLoading && <span className="pincode-status-text">Verifying...</span>}
                       </label>
                       <input 
                         id="checkout-pincode"
@@ -1182,7 +1042,7 @@ const Checkout = () => {
                           onClick={() => saveAddressToBackend()}
                           disabled={savingAddress}
                         >
-                          {savingAddress ? 'Saving...' : '💾 Save Address Now'}
+                          {savingAddress ? 'Saving...' : 'Save Address Now'}
                         </button>
                       )}
                     </div>
@@ -1198,7 +1058,7 @@ const Checkout = () => {
 
               {pincodeError && (
                 <div className="pincode-alert-box error">
-                  <span>⚠️ {pincodeError}</span>
+                  <span>{pincodeError}</span>
                 </div>
               )}
 
@@ -1220,22 +1080,11 @@ const Checkout = () => {
                 </div>
               </div>
 
-              <div className="order-type-selector-luxury" style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+              <div className="order-type-selector-luxury">
                 <label 
                   className={`order-type-card ${orderType === 'ONLINE' ? 'active' : ''}`}
                   onClick={() => {
                     setOrderType('ONLINE')
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '16px 20px',
-                    border: orderType === 'ONLINE' ? '2px solid #d4af37' : '1px solid #e7e5e4',
-                    borderRadius: '12px',
-                    background: orderType === 'ONLINE' ? 'rgba(212, 175, 55, 0.05)' : '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
                   }}
                 >
                   <input 
@@ -1247,26 +1096,15 @@ const Checkout = () => {
                       setOrderType('ONLINE')
                     }} 
                   />
-                  <div>
-                    <strong style={{ display: 'block', color: '#1c1917', fontSize: '15px' }}>Online Store</strong>
-                    <span style={{ fontSize: '12px', color: '#78716c' }}>Doorstep Delivery (Online or Cash on Delivery)</span>
+                  <div className="order-type-info">
+                    <strong className="order-type-title">Online Store</strong>
+                    <span className="order-type-desc">Doorstep Delivery (Online or Cash on Delivery)</span>
                   </div>
                 </label>
 
                 <div 
                   className={`order-type-card ${orderType === 'OFFLINE' ? 'active' : ''}`}
                   onClick={handleOfflineStoreClick}
-                  style={{
-                    flex: 1,
-                    padding: '16px 20px',
-                    border: orderType === 'OFFLINE' ? '2px solid #d4af37' : '1px solid #e7e5e4',
-                    borderRadius: '12px',
-                    background: orderType === 'OFFLINE' ? 'rgba(212, 175, 55, 0.05)' : '#fff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
-                  }}
                 >
                   <input 
                     type="radio" 
@@ -1275,9 +1113,9 @@ const Checkout = () => {
                     checked={orderType === 'OFFLINE'} 
                     onChange={handleOfflineStoreClick} 
                   />
-                  <div>
-                    <strong style={{ display: 'block', color: '#1c1917', fontSize: '15px' }}>Offline Store</strong>
-                    <span style={{ fontSize: '12px', color: orderType === 'OFFLINE' ? '#16a34a' : '#78716c', fontWeight: orderType === 'OFFLINE' ? '600' : 'normal' }}>
+                  <div className="order-type-info">
+                    <strong className="order-type-title">Offline Store</strong>
+                    <span className={`order-type-desc ${orderType === 'OFFLINE' ? 'verified' : ''}`}>
                       {orderType === 'OFFLINE' ? '✓ Verified (Pincode: 122103)' : 'Pincode Verification Required (122103)'}
                     </span>
                   </div>
@@ -1304,14 +1142,13 @@ const Checkout = () => {
                     onChange={handleChange} 
                   />
                   <div className="payment-card-content">
-                    <div className="payment-icon-head">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
+                    <div className="payment-title-group">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" className="payment-method-icon">
                         <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
                         <line x1="1" y1="10" x2="23" y2="10"></line>
                       </svg>
-                      <span className="gold-security-badge">✦ 100% Encrypted Payment</span>
+                      <span className="method-title">Instant Online Payment (Razorpay)</span>
                     </div>
-                    <span className="method-title">Instant Online Payment (Razorpay)</span>
                     <span className="method-desc">UPI (GPay / PhonePe / Paytm / BHIM), Credit & Debit Cards, NetBanking, Wallets</span>
                     <div className="payment-logos-strip">
                       <span className="pay-tag">GPay</span>
@@ -1335,13 +1172,16 @@ const Checkout = () => {
                       onChange={handleChange} 
                     />
                     <div className="payment-card-content">
-                      <div className="payment-icon-head">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2">
-                          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                      <div className="payment-title-group">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="payment-method-icon">
+                          <path d="M6 3h12" />
+                          <path d="M6 8h12" />
+                          <path d="m6 13 8.5 8" />
+                          <path d="M6 13h3" />
+                          <path d="M9 13c6.667 0 6.667-10 0-10" />
                         </svg>
-                        <span className="gold-security-badge">✦ Cash on Delivery Available</span>
+                        <span className="method-title">Cash on Delivery (COD)</span>
                       </div>
-                      <span className="method-title">Cash on Delivery (COD)</span>
                       <span className="method-desc">Pay cash upon delivery at your doorstep. Verified before dispatch.</span>
                     </div>
                   </label>
@@ -1409,7 +1249,7 @@ const Checkout = () => {
 
             {/* Desktop Coupon Application Box */}
             <div className="checkout-coupon-box desktop-checkout-coupon">
-              <span className="checkout-coupon-title">🎁 PROMO / COUPON CODE</span>
+              <span className="checkout-coupon-title">PROMO / COUPON CODE</span>
               {appliedCoupon ? (
                 <div className="checkout-applied-coupon">
                   <div className="applied-info">
@@ -1457,7 +1297,7 @@ const Checkout = () => {
                     </button>
                   </form>
                   {checkoutCouponError && (
-                    <span className="checkout-coupon-error">⚠️ {checkoutCouponError}</span>
+                    <span className="checkout-coupon-error">{checkoutCouponError}</span>
                   )}
                 </>
               )}
@@ -1533,6 +1373,12 @@ const Checkout = () => {
           form="checkout-luxury-form"
           className="mobile-sticky-cta-btn"
           disabled={loading}
+          onClick={() => {
+            const form = document.getElementById('checkout-luxury-form')
+            if (form && !form.checkValidity()) {
+              form.reportValidity()
+            }
+          }}
         >
           {loading ? (
             <span className="btn-loading-state">
@@ -1595,10 +1441,12 @@ const Checkout = () => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 auto 16px auto',
-              fontSize: '24px'
+              margin: '0 auto 16px auto'
             }}>
-              📍
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d4af37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
             </div>
 
             <h3 style={{
@@ -1662,7 +1510,11 @@ const Checkout = () => {
                   justifyContent: 'center',
                   gap: '6px'
                 }}>
-                  <span>⚠️</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
                   <span>{offlinePincodeError}</span>
                 </div>
               )}

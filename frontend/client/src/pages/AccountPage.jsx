@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { fetchPincodeDetails } from '../utils/pincodeService'
+import { printOrderInvoice } from '../utils/invoiceHelper'
 import './AccountPage.css'
 
 const AccountPage = () => {
@@ -282,119 +283,7 @@ const AccountPage = () => {
   }
 
   const handlePrint = (order) => {
-    const orderCustomer = order.customer || {
-      name: user?.name,
-      email: user?.email,
-      phone: profileData.phone || user?.phone || 'N/A',
-      address: order.deliveryAddress || primaryAddress || { street: 'N/A', city: 'N/A', state: 'N/A', pincode: 'N/A' }
-    }
-    
-    const win = window.open('', '', 'height=800,width=950')
-    win.document.write(`
-      <html>
-        <head>
-          <title>SEEMEE - Order Receipt #${order.orderNumber || order._id}</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
-            body { font-family: 'Outfit', sans-serif; padding: 40px; color: #111; background-color: #FFF; line-height: 1.6; }
-            .invoice-wrapper { max-width: 850px; margin: 0 auto; border: 1.5px solid #F0F0F0; padding: 40px; position: relative; }
-            .invoice-wrapper::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #D4AF37 0%, #F3E5AB 50%, #C49A27 100%); }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #F0F0F0; padding-bottom: 25px; margin-bottom: 30px; }
-            .brand-logo h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; letter-spacing: 0.1em; margin: 0; color: #000; text-transform: uppercase; }
-            .brand-logo p { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.25em; margin: 6px 0 0 0; color: #C49A27; font-weight: 600; }
-            .invoice-meta { text-align: right; }
-            .invoice-meta h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 400; margin: 0 0 8px 0; }
-            .invoice-meta p { font-size: 0.85rem; color: #666; margin: 3px 0; }
-            .grid-details { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 35px; }
-            .detail-block h3 { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; border-bottom: 1.5px solid #F0F0F0; padding-bottom: 8px; margin-bottom: 12px; }
-            .detail-block p { font-size: 0.88rem; color: #333; margin: 4px 0; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            th { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; background-color: #FAFAFA; padding: 12px 14px; text-align: left; border-bottom: 1.5px solid #EAEAEA; }
-            td { padding: 14px; font-size: 0.88rem; color: #444; border-bottom: 1px solid #F0F0F0; }
-            .totals-container { display: flex; justify-content: flex-end; margin-top: 20px; }
-            .totals-table { width: 300px; border: none; }
-            .totals-table td { padding: 6px 14px; border: none; }
-            .totals-table tr.grand-total td { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: #C49A27; padding-top: 12px; border-top: 1.5px solid #111; }
-            .footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #777; border-top: 1px solid #F0F0F0; padding-top: 25px; }
-          </style>
-        </head>
-        <body>
-          <div class="invoice-wrapper">
-            <div class="header">
-              <div class="brand-logo">
-                <h1>SEEMEE</h1>
-                <p>Atelier of Heritage & Style</p>
-              </div>
-              <div class="invoice-meta">
-                <h2>Invoice</h2>
-                <p>Order #: <strong>${order.orderNumber || order._id}</strong></p>
-                <p>Date: ${new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                <p>Status: ${(order.status || 'Pending').toUpperCase()}</p>
-              </div>
-            </div>
-            <div class="grid-details">
-              <div class="detail-block">
-                <h3>Delivery Address</h3>
-                <p><strong>${orderCustomer.name || 'Customer'}</strong></p>
-                <p>${orderCustomer.address.street || 'N/A'}</p>
-                <p>${orderCustomer.address.city || ''}, ${orderCustomer.address.state || ''} - ${orderCustomer.address.pincode || ''}</p>
-                <p>T: ${orderCustomer.phone}</p>
-              </div>
-              <div class="detail-block" style="text-align: right;">
-                <h3>Billing & Payment</h3>
-                <p>Payment Method: <strong>${order.paymentMethod === 'online' ? 'Online Card / UPI' : 'Cash on Delivery'}</strong></p>
-                <p>Payment Status: <strong>${(order.paymentStatus || 'pending').toUpperCase()}</strong></p>
-              </div>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Items Ordered</th>
-                  <th style="text-align: center;">Price</th>
-                  <th style="text-align: center;">Qty</th>
-                  <th style="text-align: right;">Subtotal</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${(order.items || []).map(item => `
-                  <tr>
-                    <td>
-                      <div style="font-weight:600; color:#000;">${item.name}</div>
-                      <div style="font-size:0.78rem; color:#666;">Size: ${item.size || 'M'}${item.color && item.color.toLowerCase() !== 'standard' ? ` • Color: ${item.color}` : ''}</div>
-                    </td>
-                    <td style="text-align: center;">₹${Number(item.price || 0).toLocaleString('en-IN')}</td>
-                    <td style="text-align: center;">${item.quantity}</td>
-                    <td style="text-align: right; font-weight: 600;">₹${Number((item.price || 0) * item.quantity).toLocaleString('en-IN')}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
-            <div class="totals-container">
-              <table class="totals-table">
-                <tr>
-                  <td style="color: #666;">Subtotal</td>
-                  <td style="text-align: right; font-weight: 600;">₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</td>
-                </tr>
-                <tr>
-                  <td style="color: #666;">Shipping</td>
-                  <td style="text-align: right; color: #27AE60; font-weight: 600;">Complimentary</td>
-                </tr>
-                <tr class="grand-total">
-                  <td>Total</td>
-                  <td style="text-align: right;">₹${Number(order.totalAmount || 0).toLocaleString('en-IN')}</td>
-                </tr>
-              </table>
-            </div>
-            <div class="footer">
-              <p style="font-family:'Playfair Display', serif; font-style:italic; color:#C49A27; font-size:1.1rem; margin-bottom:6px;">Thank you for your patronage</p>
-              <p>© ${new Date().getFullYear()} SEEMEE Atelier. All rights reserved.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `)
-    win.document.close()
-    win.print()
+    printOrderInvoice(order)
   }
 
   const primaryAddress = addresses.find((addr) => addr.isDefault) || addresses[0] || null
@@ -763,9 +652,9 @@ const AccountPage = () => {
                                   <div className="cod-pending-approval">
                                     <div className="handover-icon-circle amber">⏳</div>
                                     <div className="handover-text">
-                                      <span className="handover-mini-tag amber">⏳ PENDING VERIFICATION</span>
-                                      <strong className="handover-main-title amber">AWAITING ADMIN COD APPROVAL</strong>
-                                      <p className="handover-sub">Your Cash on Delivery order is currently awaiting Admin approval. Order Handover will be confirmed upon Admin verification.</p>
+                                      <span className="handover-mini-tag amber">⏳ PROCESSING</span>
+                                      <strong className="handover-main-title amber">ORDER PROCESSING</strong>
+                                      <p className="handover-sub">Your Cash on Delivery order is currently processing. Order Handover will be confirmed shortly.</p>
                                     </div>
                                   </div>
                                 )}

@@ -779,7 +779,15 @@ const CollectionsPage = () => {
             ) : (
               <>
                 {filteredProducts.slice(0, visibleCount).map((product, index) => {
-                  const hasDiscount = (product.mrp || product.discountPrice) && Number(product.mrp || product.discountPrice) > Number(product.price)
+                  const origPrice = Number(product.mrp || product.discountPrice || product.originalPrice || 0)
+                  const curPrice = Number(product.price || 0)
+                  let discountPct = 0
+                  if (origPrice > curPrice && origPrice > 0) {
+                    discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
+                  } else if (product.discount && Number(product.discount) > 0) {
+                    discountPct = Math.round(Number(product.discount))
+                  }
+                  const hasDiscount = discountPct > 0
                   const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
                   const isOutOfStock = isProductOutOfStock(product)
 
@@ -806,6 +814,10 @@ const CollectionsPage = () => {
                           loading="lazy"
                           onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
                         />
+
+                        {discountPct > 0 && (
+                          <span className="collection-discount-badge">{discountPct}% OFF</span>
+                        )}
 
                         <button
                           className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}

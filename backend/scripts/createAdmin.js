@@ -9,14 +9,14 @@ dotenv.config()
 const createAdmin = async () => {
   try {
     if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is missing in .env')
+      throw new Error('MONGODB_URI environment variable is missing')
     }
 
     const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase()
     const adminPassword = (process.env.ADMIN_PASSWORD || '').trim()
 
     if (!adminEmail || !adminPassword) {
-      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be defined in .env')
+      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables must be defined')
     }
 
     await mongoose.connect(process.env.MONGODB_URI, { family: 4 })

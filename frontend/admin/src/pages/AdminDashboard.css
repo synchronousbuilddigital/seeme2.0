@@ -194,6 +194,8 @@ body {
    ========================================================================== */
 .content-header {
   margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .content-topbar {
@@ -203,17 +205,22 @@ body {
   gap: 20px;
   background: transparent;
   padding: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .topbar-search-area {
-  flex: 1;
+  flex: 0 1 440px;
   max-width: 440px;
+  min-width: 0;
 }
 
 .topbar-actions {
   display: flex;
   align-items: center;
   gap: 16px;
+  margin-left: auto !important;
+  flex-shrink: 0;
 }
 
 .admin-profile-pill {
@@ -1463,8 +1470,9 @@ body {
     flex-direction: row;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 10px;
     flex-shrink: 0;
+    margin-left: auto !important;
   }
 
   .topbar-actions .bell-trigger-btn {
@@ -1474,6 +1482,14 @@ body {
   }
 
   .admin-profile-pill {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 2px 4px !important;
+  }
+
+  .admin-profile-pill .admin-profile-text,
+  .admin-profile-pill .admin-chevron {
     display: none !important;
   }
 

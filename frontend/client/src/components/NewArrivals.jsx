@@ -70,7 +70,6 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
             <div className="accent-line"></div>
           </div>
           <h2 className="premium-title">NEW <span>ARRIVALS</span></h2>
-          <p className="premium-desc">Discover the latest masterpieces from our artisan atelier, where tradition meets contemporary grace.</p>
         </motion.div>
       </div>
 
@@ -88,51 +87,65 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
 
         <div className="arrivals-carousel-viewport" ref={scrollContainerRef}>
           <div className="arrivals-marquee-track">
-            {extendedArrivals.map((item, index) => (
-              <div key={index} className="carousel-card-wrapper">
-                <div
-                  className="arrival-card-modern compact-card"
-                  onClick={() => {
-                    const prodId = item._id || item.id
-                    if (prodId) {
-                      navigate(`/product/${prodId}`, { state: { product: item } })
-                    } else {
-                      navigate('/collections')
-                    }
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="card-media">
-                    <div className="image-zoom-container">
-                      <img
-                        src={getOptimizedImageUrl(item.image || item.images?.[0], 'product')}
-                        alt={item.title || item.name}
-                        loading="lazy"
-                      />
-                    </div>
+            {extendedArrivals.map((item, index) => {
+              const origPrice = Number(item.mrp || item.discountPrice || item.originalPrice || 0)
+              const curPrice = Number(item.price || 0)
+              let discountPct = 0
+              if (origPrice > curPrice && origPrice > 0) {
+                discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
+              } else if (item.discount && Number(item.discount) > 0) {
+                discountPct = Math.round(Number(item.discount))
+              }
 
-                    <button
-                      className={`heart-btn ${isInWishlist(item._id || item.id) ? 'active' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleWishlist(item)
-                      }}
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill={isInWishlist(item._id || item.id) ? "currentColor" : "none"} stroke="currentColor">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                      </svg>
-                    </button>
-                  </div>
-                  <div className="card-content-modern">
-                    <span className="card-category">{item.category}</span>
-                    <h3 className="card-name-modern">{item.title || item.name}</h3>
-                    <div className="card-footer-modern">
-                      <div className="card-price-group">
-                        <span className="card-price">₹{item.price ? Number(item.price).toLocaleString('en-IN') : '7,500'}</span>
-                        {(item.mrp || item.discountPrice || item.originalPrice) && Number(item.mrp || item.discountPrice || item.originalPrice) > Number(item.price || 0) && (
-                          <span className="card-mrp">₹{Number(item.mrp || item.discountPrice || item.originalPrice).toLocaleString('en-IN')}</span>
-                        )}
+              return (
+                <div key={index} className="carousel-card-wrapper">
+                  <div
+                    className="arrival-card-modern compact-card"
+                    onClick={() => {
+                      const prodId = item._id || item.id
+                      if (prodId) {
+                        navigate(`/product/${prodId}`, { state: { product: item } })
+                      } else {
+                        navigate('/collections')
+                      }
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div className="card-media">
+                      <div className="image-zoom-container">
+                        <img
+                          src={getOptimizedImageUrl(item.image || item.images?.[0], 'product')}
+                          alt={item.title || item.name}
+                          loading="lazy"
+                        />
                       </div>
+
+                      {discountPct > 0 && (
+                        <span className="arrival-discount-badge">{discountPct}% OFF</span>
+                      )}
+
+                      <button
+                        className={`heart-btn ${isInWishlist(item._id || item.id) ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleWishlist(item)
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill={isInWishlist(item._id || item.id) ? "currentColor" : "none"} stroke="currentColor">
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="card-content-modern">
+                      <span className="card-category">{item.category}</span>
+                      <h3 className="card-name-modern">{item.title || item.name}</h3>
+                      <div className="card-footer-modern">
+                        <div className="card-price-group">
+                          <span className="card-price">₹{item.price ? Number(item.price).toLocaleString('en-IN') : '7,500'}</span>
+                          {(item.mrp || item.discountPrice || item.originalPrice) && Number(item.mrp || item.discountPrice || item.originalPrice) > Number(item.price || 0) && (
+                            <span className="card-mrp">₹{Number(item.mrp || item.discountPrice || item.originalPrice).toLocaleString('en-IN')}</span>
+                          )}
+                        </div>
                       <AddToCartButton
                         product={item}
                         variant="mini"
@@ -142,7 +155,7 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
 

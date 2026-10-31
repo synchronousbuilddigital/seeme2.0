@@ -164,7 +164,37 @@ function App() {
         onWishlistOpen={() => setIsWishlistOpen(true)}
       />
       <main>
-        <Suspense fallback={<div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>}>
+        <Suspense
+          fallback={
+            <div
+              style={{
+                minHeight: '80vh',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+                background: '#ffffff',
+                color: '#1c1917',
+                paddingTop: '80px',
+              }}
+            >
+              <div className="glowing-gold-spinner" />
+              <p
+                style={{
+                  fontFamily: 'Plus Jakarta Sans, sans-serif',
+                  fontSize: '1.05rem',
+                  fontWeight: 500,
+                  letterSpacing: '0.03em',
+                  color: '#1c1917',
+                  margin: 0,
+                }}
+              >
+                Loading...
+              </p>
+            </div>
+          }
+        >
           {children}
         </Suspense>
       </main>

@@ -490,14 +490,28 @@ const CategoryPage = () => {
           ) : (
             <div className="unique-product-grid">
               {filteredProducts.map((product, index) => {
-                const imagesList = product.images?.length > 0
+                const rawImages = Array.isArray(product.images) && product.images.length > 0
                   ? product.images
-                  : (product.image ? [product.image] : ['/images/categories_straight.jpg'])
+                  : (typeof product.images === 'string' && product.images.trim().length > 0
+                    ? (product.images.includes(',') ? product.images.split(',') : [product.images])
+                    : (product.image ? [product.image] : []))
 
-                const secondImg = imagesList[1]
-                const discountPct = product.originalPrice && product.originalPrice > product.price
-                  ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-                  : 0
+                const validImages = rawImages
+                  .map(img => (typeof img === 'string' ? img.trim() : ''))
+                  .filter(img => img && img !== 'null' && img !== 'undefined' && img !== '[object Object]')
+
+                const primaryImg = validImages[0] || product.image || '/images/categories_straight.jpg'
+                const hasSecondary = validImages.length > 1 && Boolean(validImages[1]) && validImages[1] !== primaryImg
+                const secondImg = hasSecondary ? validImages[1] : null
+
+                const origPrice = Number(product.mrp || product.originalPrice || product.discountPrice || 0)
+                const curPrice = Number(product.price || 0)
+                let discountPct = 0
+                if (origPrice > curPrice && origPrice > 0) {
+                  discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
+                } else if (product.discount && Number(product.discount) > 0) {
+                  discountPct = Math.round(Number(product.discount))
+                }
 
                 // Formatted index number e.g. 01, 02, 03...
                 const formattedIndexNum = String(index + 1).padStart(2, '0')
@@ -523,35 +537,27 @@ const CategoryPage = () => {
                         )}
 
                         <img
-                          src={getOptimizedImageUrl(imagesList[0], 'product')}
+                          src={getOptimizedImageUrl(primaryImg, 'product')}
                           alt={product.name}
-                          className={`card-img primary ${secondImg ? 'has-secondary' : ''}`}
+                          className="card-img primary"
                           loading="lazy"
                           onError={(e) => { e.currentTarget.src = '/images/categories_straight.jpg' }}
                         />
 
-                        {secondImg && (
+                        {hasSecondary && secondImg && (
                           <img
                             src={getOptimizedImageUrl(secondImg, 'product')}
                             alt={`${product.name} preview`}
                             className="card-img secondary"
                             loading="lazy"
-                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                            }}
                           />
                         )}
 
                         {/* Glassmorphic Top Controls */}
                         <div className="card-top-controls">
-                          <button
-                            className="action-btn-eye"
-                            onClick={(e) => openQuickView(e, product)}
-                            title="Quick View"
-                          >
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                              <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                          </button>
                           <button
                             className={`action-btn-heart ${isInWishlist(product._id || product.id) ? 'active' : ''}`}
                             onClick={(e) => {

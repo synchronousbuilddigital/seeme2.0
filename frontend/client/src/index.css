@@ -328,3 +328,22 @@ body::before {
     box-sizing: border-box !important;
   }
 }
+
+/* Global Glowing Gold Spinner */
+.glowing-gold-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(212, 175, 55, 0.22);
+  border-radius: 50%;
+  border-top-color: #D4AF37;
+  animation: spinGold 0.9s linear infinite;
+}
+
+@keyframes spinGold {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

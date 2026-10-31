@@ -28,64 +28,160 @@ export const parseAd2ShipMessage = (msgData) => {
 }
 
 /**
- * Calculates aggregate shipment weight (kg) and dimensions (cm) for an array of cart/order items
+ * Calculates aggregate shipment weight (kg) and dimensions (cm) for an array of cart/order items.
+ * Extracts the ACTUAL dimensions and weight configured on the products or saved on order line-items.
  */
 export const calculateShipmentSpecs = async (items = []) => {
+  if (!Array.isArray(items) || items.length === 0) {
+    return {
+      weight: 0.5,
+      length: 20,
+      breadth: 15,
+      height: 5
+    }
+  }
+
   let totalWeightKg = 0
-  let maxLengthCm = 10
-  let maxBreadthCm = 10
+  let maxLengthCm = 0
+  let maxBreadthCm = 0
   let totalHeightCm = 0
 
   for (const item of items) {
-    const productId = item.product || item.id || item._id
-    const qty = Number(item.quantity) || 1
+    if (!item) continue
+    const qty = Math.max(1, Number(item.quantity) || 1)
 
-    let weightGrams = 500 // default 500g per item
-    let l = 10, b = 10, h = 5
+    // 1. Resolve product object or lookup by ID
+    let prodObj = null
+    let productId = null
 
-    if (productId) {
-      const product = await Product.findById(productId).lean().catch(() => null)
-      if (product) {
-        const dim = product.dimensions || {}
+    if (item.product && typeof item.product === 'object' && item.product._id) {
+      prodObj = item.product
+      productId = item.product._id
+    } else if (item.product && typeof item.product === 'object' && item.product.id) {
+      prodObj = item.product
+      productId = item.product.id
+    } else {
+      productId = item.product || item.id || item._id
+    }
 
-        // Weight (kg to grams)
-        if (typeof product.weightKg === 'number' && product.weightKg > 0) {
-          weightGrams = product.weightKg * 1000
-        } else if (typeof product.weight === 'number' && product.weight > 0) {
-          weightGrams = product.weight < 20 ? product.weight * 1000 : product.weight
+    if (productId && (!prodObj || (!prodObj.dimensions && !prodObj.weightKg))) {
+      try {
+        const dbProduct = await Product.findById(productId).lean()
+        if (dbProduct) {
+          prodObj = { ...dbProduct, ...(prodObj || {}) }
         }
-
-        // Dimensions (Length, Width/Breadth, Height in cm)
-        if (dim.length > 0) l = dim.length
-        else if (product.lengthCm > 0) l = product.lengthCm
-
-        if (dim.width > 0) b = dim.width
-        else if (product.breadth > 0) b = product.breadth
-        else if (product.widthCm > 0) b = product.widthCm
-
-        if (dim.height > 0) h = dim.height
-        else if (product.heightCm > 0) h = product.heightCm
+      } catch (err) {
+        // Query fallback; continue with item data
       }
     }
 
-    totalWeightKg += (weightGrams / 1000) * qty
-    maxLengthCm = Math.max(maxLengthCm, l)
-    maxBreadthCm = Math.max(maxBreadthCm, b)
-    totalHeightCm += h * qty
+    // 2. Resolve Actual Weight (in kg)
+    let itemWeightKg = null
+
+    // Priority A: Order item snapshot (convert grams >= 20 to kg)
+    if (typeof item.weightKg === 'number' && item.weightKg > 0) {
+      itemWeightKg = item.weightKg >= 20 ? (item.weightKg / 1000) : item.weightKg
+    } else if (typeof item.weightKg === 'string' && parseFloat(item.weightKg) > 0) {
+      const parsedKg = parseFloat(item.weightKg)
+      itemWeightKg = parsedKg >= 20 ? (parsedKg / 1000) : parsedKg
+    } else if (typeof item.weight === 'number' && item.weight > 0) {
+      itemWeightKg = item.weight >= 20 ? (item.weight / 1000) : item.weight
+    } else if (typeof item.weight === 'string' && parseFloat(item.weight) > 0) {
+      const parsed = parseFloat(item.weight)
+      itemWeightKg = parsed >= 20 ? (parsed / 1000) : parsed
+    }
+
+    // Priority B: Product definition (convert grams >= 20 to kg)
+    if (itemWeightKg === null && prodObj) {
+      if (typeof prodObj.weightKg === 'number' && prodObj.weightKg > 0) {
+        itemWeightKg = prodObj.weightKg >= 20 ? (prodObj.weightKg / 1000) : prodObj.weightKg
+      } else if (typeof prodObj.weightKg === 'string' && parseFloat(prodObj.weightKg) > 0) {
+        const parsedKg = parseFloat(prodObj.weightKg)
+        itemWeightKg = parsedKg >= 20 ? (parsedKg / 1000) : parsedKg
+      } else if (typeof prodObj.weight === 'number' && prodObj.weight > 0) {
+        itemWeightKg = prodObj.weight >= 20 ? (prodObj.weight / 1000) : prodObj.weight
+      } else if (typeof prodObj.weight === 'string' && parseFloat(prodObj.weight) > 0) {
+        const parsed = parseFloat(prodObj.weight)
+        itemWeightKg = parsed >= 20 ? (parsed / 1000) : parsed
+      } else if (prodObj.weight && typeof prodObj.weight === 'object') {
+        if (typeof prodObj.weight.valueGrams === 'number' && prodObj.weight.valueGrams > 0) {
+          itemWeightKg = prodObj.weight.valueGrams / 1000
+        } else if (typeof prodObj.weight.value === 'number' && prodObj.weight.value > 0) {
+          itemWeightKg = prodObj.weight.value >= 20 ? (prodObj.weight.value / 1000) : prodObj.weight.value
+        }
+      }
+    }
+
+    // Fallback ONLY if product has no weight defined anywhere in system
+    if (itemWeightKg === null || itemWeightKg <= 0) {
+      itemWeightKg = 0.5
+    }
+
+    // 3. Resolve Actual Dimensions (Length, Breadth/Width, Height in cm)
+    let itemL = null
+    let itemB = null
+    let itemH = null
+
+    // Priority A: Line-item snapshot
+    if (item.dimensions) {
+      if (parseFloat(item.dimensions.length) > 0) itemL = parseFloat(item.dimensions.length)
+      if (parseFloat(item.dimensions.width) > 0) itemB = parseFloat(item.dimensions.width)
+      else if (parseFloat(item.dimensions.breadth) > 0) itemB = parseFloat(item.dimensions.breadth)
+      if (parseFloat(item.dimensions.height) > 0) itemH = parseFloat(item.dimensions.height)
+    }
+
+    // Priority B: Product definition
+    if (prodObj) {
+      const dim = prodObj.dimensions || {}
+      if (itemL === null) {
+        if (parseFloat(dim.length) > 0) itemL = parseFloat(dim.length)
+        else if (parseFloat(dim.lengthCm) > 0) itemL = parseFloat(dim.lengthCm)
+        else if (parseFloat(prodObj.lengthCm) > 0) itemL = parseFloat(prodObj.lengthCm)
+        else if (typeof prodObj.length === 'number' && prodObj.length > 0) itemL = prodObj.length
+      }
+      if (itemB === null) {
+        if (parseFloat(dim.width) > 0) itemB = parseFloat(dim.width)
+        else if (parseFloat(dim.widthCm) > 0) itemB = parseFloat(dim.widthCm)
+        else if (parseFloat(dim.breadth) > 0) itemB = parseFloat(dim.breadth)
+        else if (parseFloat(prodObj.breadth) > 0) itemB = parseFloat(prodObj.breadth)
+        else if (parseFloat(prodObj.widthCm) > 0) itemB = parseFloat(prodObj.widthCm)
+      }
+      if (itemH === null) {
+        if (parseFloat(dim.height) > 0) itemH = parseFloat(dim.height)
+        else if (parseFloat(dim.heightCm) > 0) itemH = parseFloat(dim.heightCm)
+        else if (parseFloat(prodObj.heightCm) > 0) itemH = parseFloat(prodObj.heightCm)
+        else if (typeof prodObj.height === 'number' && prodObj.height > 0) itemH = prodObj.height
+      }
+    }
+
+    // Fallbacks ONLY if no actual dimensions exist on the product
+    itemL = itemL !== null && itemL > 0 ? itemL : 20
+    itemB = itemB !== null && itemB > 0 ? itemB : 15
+    itemH = itemH !== null && itemH > 0 ? itemH : 5
+
+    // 4. Aggregate across quantity and items
+    totalWeightKg += itemWeightKg * qty
+    maxLengthCm = Math.max(maxLengthCm, itemL)
+    maxBreadthCm = Math.max(maxBreadthCm, itemB)
+    totalHeightCm += itemH * qty
   }
 
-  // Sanity lower bounds
-  totalWeightKg = Math.max(0.1, Number(totalWeightKg.toFixed(2)))
-  maxLengthCm = Math.max(5, Number(maxLengthCm.toFixed(1)))
-  maxBreadthCm = Math.max(5, Number(maxBreadthCm.toFixed(1)))
-  totalHeightCm = Math.max(5, Number(totalHeightCm.toFixed(1)))
+  // Courier acceptance bounds (min 0.01kg, max 50kg allowed by logistics network)
+  totalWeightKg = Math.min(50, Math.max(0.01, Number(totalWeightKg.toFixed(3))))
+  maxLengthCm = Math.max(1, Number(maxLengthCm.toFixed(1)))
+  maxBreadthCm = Math.max(1, Number(maxBreadthCm.toFixed(1)))
+  totalHeightCm = Math.max(1, Number(totalHeightCm.toFixed(1)))
 
-  return {
+  const specs = {
     weight: totalWeightKg,
     length: maxLengthCm,
     breadth: maxBreadthCm,
     height: totalHeightCm
   }
+
+  console.log(` Ad2Ship Real Shipment Specs: weight=${specs.weight}kg, length=${specs.length}cm, breadth=${specs.breadth}cm, height=${specs.height}cm (${items.length} item(s))`)
+
+  return specs
 }
 
 /**
@@ -199,7 +295,7 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
     throw err
   }
 
-  const order = await Order.findById(orderId).catch(() => null)
+  const order = await Order.findById(orderId).populate('items.product').catch(() => null)
   if (!order) {
     const err = new Error('Order not found.')
     err.statusCode = 404

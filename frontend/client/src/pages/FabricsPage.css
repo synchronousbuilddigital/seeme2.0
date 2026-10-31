@@ -54,12 +54,22 @@
   display: block;
 }
 
-.editorial-title {
-  font-family: var(--font-heading);
+.editorial-title,
+.hero-editorial-content .editorial-title {
+  font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif);
   font-size: clamp(3rem, 8vw, 7rem);
-  line-height: 0.9;
+  line-height: 0.95;
   font-weight: 700;
   letter-spacing: -2px;
+  color: #ffffff !important;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.7), 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.editorial-title .italic,
+.hero-editorial-content .editorial-title .italic {
+  font-style: italic;
+  font-weight: 400;
+  color: #ffffff !important;
 }
 
 .hero-scroll-indicator {

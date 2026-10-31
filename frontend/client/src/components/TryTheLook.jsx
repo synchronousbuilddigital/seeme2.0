@@ -338,6 +338,46 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
     setTimeout(() => setAddedToCart(false), 2400)
   }
 
+  // Quick Add handler for individual piece
+  const handleAddSingleItem = (item) => {
+    if (!item) return
+    const productData = {
+      _id: item.id || activeLook.productId || activeLook.id,
+      id: item.id || activeLook.productId || activeLook.id,
+      name: item.name || activeLook.fullName || activeLook.name,
+      price: item.price || activePrice,
+      originalPrice: item.oldPrice || activeOriginalPrice,
+      images: [item.image || currentDisplayImage],
+      category: item.category || activeLook.category || 'Atelier',
+      sizes: availableSizes,
+      size: selectedSize || 'M',
+      selectedSize: selectedSize || 'M',
+      quantity: 1
+    }
+
+    if (cartContext?.addToCart) {
+      cartContext.addToCart(productData, navigate)
+    } else {
+      setLocalCartCount((prev) => prev + 1)
+    }
+
+    setAddedToCart(true)
+    setTimeout(() => setAddedToCart(false), 2400)
+  }
+
+  // Items to display in mobile UI (either broken down pieces or overall ensemble)
+  const displayItems = (Array.isArray(activeLook?.items) && activeLook.items.length > 0)
+    ? activeLook.items
+    : [{
+        id: activeLook?.productId || activeLook?.id,
+        name: activeLook?.fullName || activeLook?.name,
+        price: activePrice,
+        oldPrice: activeOriginalPrice,
+        discountPercent: activeDiscount,
+        image: currentDisplayImage,
+        brand: activeLook?.brand || 'SEEMEE'
+      }]
+
   return (
     <section
       id="try-the-look"
@@ -355,13 +395,9 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
           <div className="try-stage-column">
             {/* Stage Header */}
             <div className="stage-header">
-              <span className="stage-kicker">CURATED ENSEMBLE</span>
               <h2 className="stage-heading">
                 Try the <span className="gold-accent-text">Look.</span>
               </h2>
-              <p className="stage-subtitle">
-                Complete head-to-toe styling designed for effortless royalty.
-              </p>
             </div>
 
             {/* Lineup Presentation Stage — Persistent 60FPS Hardware-Accelerated Lineup */}
@@ -371,18 +407,23 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                   const offset = (idx - activeIndex + totalLooks) % totalLooks
                   let slotClass = 'lineup-slot-hidden'
                   if (offset === 0) slotClass = 'lineup-slot-active'
-                  else if (offset === 1) slotClass = 'lineup-slot-1'
-                  else if (offset === 2) slotClass = 'lineup-slot-2'
-                  else if (offset === 3) slotClass = 'lineup-slot-3'
-                  else if (offset === totalLooks - 1) slotClass = 'lineup-slot-exited'
+                  else if (offset === 1) slotClass = 'lineup-slot-right-1'
+                  else if (offset === 2) slotClass = 'lineup-slot-right-2'
+                  else if (offset === totalLooks - 1) slotClass = 'lineup-slot-left-1'
+                  else if (offset === totalLooks - 2) slotClass = 'lineup-slot-left-2'
 
                   const isActive = offset === 0
+                  const isClickable = offset === 1 || offset === totalLooks - 1
 
                   return (
                     <div
                       key={look.id || idx}
-                      className={`lineup-model-card ${slotClass}`}
+                      className={`lineup-model-card ${slotClass} ${isClickable ? 'is-clickable' : ''}`}
                       aria-hidden={!isActive}
+                      onClick={() => {
+                        if (!isActive) handleSelectLook(idx)
+                      }}
+                      title={!isActive ? `Switch to ${look.name}` : undefined}
                     >
                       <div className="model-img-wrapper">
                         <img
@@ -424,28 +465,6 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
                     <polyline points="15 18 9 12 15 6" />
                   </svg>
-                </button>
-
-                {/* Pause / Play Toggle */}
-                <button
-                  type="button"
-                  className="lineup-play-toggle"
-                  onClick={() => setIsAutoplay((prev) => !prev)}
-                  aria-label={isAutoplay ? 'Pause look rotation' : 'Start look rotation'}
-                  title={isAutoplay ? 'Pause auto-play' : 'Resume auto-play'}
-                  id="try-look-play-btn"
-                >
-                  {isAutoplay ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                      <rect x="6" y="4" width="4" height="16" />
-                      <rect x="14" y="4" width="4" height="16" />
-                    </svg>
-                  ) : (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                  )}
-                  <span className="play-toggle-text">{isAutoplay ? 'PAUSE' : 'PLAY'}</span>
                 </button>
 
                 <button
@@ -507,10 +526,11 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
           </div>
 
           {/* ============================================================ */}
-          {/* RIGHT: "IN THIS LOOK" SIDEBAR WITH 3 PIECES & BUNDLE FOOTER  */}
+          {/* RIGHT: "IN THIS LOOK" SIDEBAR                                */}
           {/* ============================================================ */}
           <div className="try-sidebar-column">
-            <div className="sidebar-card-shell">
+            {/* DESKTOP VIEW CARD (Hidden on mobile via CSS) */}
+            <div className="sidebar-card-shell desktop-only-card">
               {/* Single Unified Product Showcase Card */}
               <div className="single-look-showcase">
                 {/* Hero Media Preview & Gallery Strip */}
@@ -637,6 +657,122 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* MOBILE VIEW: SLEEK BOTTOM ITEM ROW & FULL LOOK ACTION (MATCHING USER MOCKUP) */}
+            <div className="try-mobile-look-card">
+              <div className="try-mobile-items-slider">
+                {displayItems.map((item, itemIdx) => (
+                  <div key={item.id || itemIdx} className="try-mobile-item-card">
+                    {/* Left: Thumbnail with circle badge 1 */}
+                    <div className="try-mobile-thumb-box">
+                      <img
+                        src={item.image || currentDisplayImage}
+                        alt={item.name}
+                        className="try-mobile-thumb-img"
+                        loading="lazy"
+                        onError={(e) => {
+                          if (activeLook?.originalImage && e.target.src !== activeLook.originalImage) {
+                            e.target.src = activeLook.originalImage
+                          }
+                        }}
+                      />
+                      <span className="try-mobile-pin-tag">{itemIdx + 1}</span>
+                    </div>
+
+                    {/* Middle: Brand, Title, Inline Size Selector, Price */}
+                    <div className="try-mobile-item-details">
+                      <span className="try-mobile-brand-name">{item.brand || activeLook?.brand || 'SEEMEE'}</span>
+                      <h4 className="try-mobile-item-heading" title={item.name}>{item.name}</h4>
+
+                      {/* Compact Size Selector */}
+                      <div className="try-mobile-size-row">
+                        <span className="try-mobile-size-label">Size:</span>
+                        <div className="try-mobile-size-pills">
+                          {availableSizes.map((sz) => (
+                            <button
+                              key={sz}
+                              type="button"
+                              className={`try-mobile-size-btn ${selectedSize === sz ? 'is-active' : ''}`}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedSize(sz)
+                              }}
+                            >
+                              {sz}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Price Line */}
+                      <div className="try-mobile-item-pricing">
+                        <span className="try-mobile-price-cur">₹{Number(item.price || activePrice).toLocaleString('en-IN')}</span>
+                        {(item.oldPrice || activeOriginalPrice) > (item.price || activePrice) && (
+                          <span className="try-mobile-price-mrp">₹{Number(item.oldPrice || activeOriginalPrice).toLocaleString('en-IN')}</span>
+                        )}
+                        {(item.discountPercent || activeDiscount) > 0 && (
+                          <span className="try-mobile-badge-off">{item.discountPercent || activeDiscount}% OFF</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Quick Add + button */}
+                    <button
+                      type="button"
+                      className={`try-mobile-add-single-btn ${addedToCart ? 'is-added' : ''}`}
+                      onClick={() => handleAddSingleItem(item)}
+                      aria-label="Add item to bag"
+                      title="Add to bag"
+                    >
+                      {addedToCart ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : (
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Full Width Action Bar matching User Screenshot: "Add full look — ₹2,099" */}
+              <button
+                type="button"
+                className={`try-mobile-full-look-bar ${addedToCart ? 'is-added' : ''}`}
+                onClick={handleAddToCart}
+                disabled={addedToCart}
+              >
+                {addedToCart ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>ADDED TO BAG!</span>
+                  </>
+                ) : (
+                  <span>Add full look — ₹{activePrice.toLocaleString('en-IN')}</span>
+                )}
+              </button>
+
+              {/* Link to Product Page */}
+              {activeLook?.productId && (
+                <button
+                  type="button"
+                  className="try-mobile-details-link"
+                  onClick={() => navigate(`/product/${activeLook.productId}`)}
+                >
+                  <span>View Full Product Details &amp; Size Guide</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
         </div>

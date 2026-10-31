@@ -96,11 +96,12 @@ const FabricsPage = () => {
           </motion.span>
           <motion.h1
             className="editorial-title"
+            style={{ color: '#ffffff' }}
             initial={{ y: 30, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            Art of the <br /> <span className="italic">Weave</span>
+            Art of the <br /> <span className="italic" style={{ color: '#ffffff' }}>Weave</span>
           </motion.h1>
           <motion.div
             className="hero-scroll-indicator"

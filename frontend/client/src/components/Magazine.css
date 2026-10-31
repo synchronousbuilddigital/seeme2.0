@@ -161,7 +161,7 @@
   font-weight: 700;
 }
 
-.editorial-title {
+.magazine-section .editorial-title {
   font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 3.2rem);
   line-height: 1.1;
