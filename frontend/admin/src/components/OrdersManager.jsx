@@ -1214,39 +1214,51 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
 
                   {String(selectedOrder.orderType || 'ONLINE').toUpperCase() === 'ONLINE' ? (
                     <section className="tracking-section">
-                      <h3>Logistics & Status</h3>
-                      <div className="status-control-card">
-                        <div className="control-group">
-                          <label>Current Stage</label>
-                          <select
-                            value={selectedOrder.status}
-                            onChange={(e) => updateOrderStatus(selectedOrder._id, e.target.value)}
-                          >
-                            <option value="pending">Pending Receipt</option>
-                            <option value="confirmed">Order Confirmed</option>
-                            <option value="processing">Processing & Tailoring</option>
-                            <option value="shipped">Dispatched</option>
-                            <option value="delivered">Delivered Successfully</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
+                        <h3 style={{ margin: 0 }}>Logistics & Shipping</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order Status:</span>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: '20px',
+                            fontSize: '0.78rem',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            background: selectedOrder.status === 'delivered' ? '#dcfce7' : (selectedOrder.status === 'shipped' ? '#dbeafe' : (selectedOrder.status === 'cancelled' ? '#fee2e2' : '#fef9c3')),
+                            color: selectedOrder.status === 'delivered' ? '#166534' : (selectedOrder.status === 'shipped' ? '#1e40af' : (selectedOrder.status === 'cancelled' ? '#991b1b' : '#854d0e')),
+                            border: '1px solid currentColor'
+                          }}>
+                            {selectedOrder.status}
+                          </span>
+                          {selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'delivered' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm('Are you sure you want to cancel this order?')) {
+                                  updateOrderStatus(selectedOrder._id, 'cancelled')
+                                }
+                              }}
+                              style={{
+                                padding: '4px 10px',
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                border: '1px solid #fca5a5',
+                                borderRadius: '6px',
+                                fontSize: '0.75rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                              title="Cancel this order"
+                            >
+                              Cancel Order
+                            </button>
+                          )}
                         </div>
+                      </div>
 
-                        <form className="tracking-form" onSubmit={updateTracking}>
-                          <div className="input-row">
-                            <div className="control-group">
-                              <label>Tracking Number</label>
-                              <input name="trackingNumber" defaultValue={selectedOrder.trackingNumber} placeholder="e.g. SF12345678" />
-                            </div>
-                            <div className="control-group">
-                              <label>Est. Delivery</label>
-                              <input type="date" name="estimatedDelivery" defaultValue={selectedOrder.estimatedDelivery?.split('T')[0]} />
-                            </div>
-                          </div>
-                          <button type="submit" className="update-track-btn">Update Tracking</button>
-                        </form>
-
-                        {/* Ad2Ship Logistics Management Card */}
-                        <div className="ad2ship-fulfillment-card" style={{ marginTop: '20px', padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
+                      {/* 100% Automated Ad2Ship Logistics Management Card */}
+                      <div className="ad2ship-fulfillment-card" style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(212, 175, 55, 0.3)', paddingBottom: '10px' }}>
                             <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#d4af37', fontWeight: '700', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
                               <span>🚚 AD2SHIP LOGISTICS CONTROL</span>
@@ -1367,7 +1379,6 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                             )}
                           </div>
                         </div>
-                      </div>
                     </section>
                   ) : null}
 
