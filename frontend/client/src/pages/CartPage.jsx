@@ -437,10 +437,10 @@ const CartPage = () => {
                           }}
                           disabled={couponLoading}
                         >
-                          <option value="">-- Select an Available Coupon ({availableCoupons.length}) --</option>
+                          <option value="">Select an available coupon ({availableCoupons.length})</option>
                           {availableCoupons.map(c => (
                             <option key={c._id || c.code} value={c.code}>
-                              ✦ {c.code} ({c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}{c.minimumOrder > 0 ? ` - Min. ₹${c.minimumOrder}` : ''})
+                              ✦ {c.code} ({c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}{c.minimumOrder > 0 ? ` — Minimum Order: ₹${c.minimumOrder.toLocaleString('en-IN')}` : ''})
                             </option>
                           ))}
                         </select>

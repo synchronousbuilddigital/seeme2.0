@@ -257,9 +257,9 @@ const CouponsManager = () => {
       {/* Header & Main Controls */}
       <header className="coupons-header-section">
         <div className="header-title-block">
-          <span className="coupons-badge">✦ PROMOTIONS & MARKETING</span>
+          {/* <span className="coupons-badge">✦ PROMOTIONS & MARKETING</span> */}
           <h1 className="coupons-title">Coupon Management</h1>
-          <p className="coupons-subtitle">Create, configure, and monitor customer discount codes & white-glove offer campaigns.</p>
+          {/* <p className="coupons-subtitle">Create, configure, and monitor customer discount codes & white-glove offer campaigns.</p> */}
         </div>
 
         <button className="btn-create-coupon" onClick={handleOpenCreateModal}>
@@ -320,7 +320,7 @@ const CouponsManager = () => {
           </div>
         ) : coupons.length === 0 ? (
           <div className="coupons-empty-box">
-            <span>🎁</span>
+            <span></span>
             <h3>No Coupons Found</h3>
             <p>Create your first discount coupon to launch a promotion campaign.</p>
             <button className="btn-create-coupon inline-empty-btn" onClick={handleOpenCreateModal}>
@@ -356,7 +356,7 @@ const CouponsManager = () => {
                             title="Click to copy code"
                             onClick={() => handleCopyCode(coupon.code)}
                           >
-                            ✦ {coupon.code}
+                            {coupon.code}
                           </span>
                           {coupon.description && <span className="desc-sub">{coupon.description}</span>}
                         </td>
@@ -373,10 +373,10 @@ const CouponsManager = () => {
                           )}
                           {coupon.targetAudience === 'selected' || (coupon.allowedUsers && coupon.allowedUsers.length > 0) ? (
                             <span className="audience-badge selected" title={`Assigned to ${coupon.allowedUsers?.length || 0} customer(s)`}>
-                              🎯 Targeted ({coupon.allowedUsers?.length || 0} Users)
+                              Targeted ({coupon.allowedUsers?.length || 0} Users)
                             </span>
                           ) : (
-                            <span className="audience-badge all">🌐 All Users</span>
+                            <span className="audience-badge all">All Users</span>
                           )}
                         </td>
 
@@ -392,9 +392,8 @@ const CouponsManager = () => {
 
                         <td>
                           <button
-                            className={`status-toggle-badge ${
-                              !coupon.isActive ? 'disabled' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'active'
-                            }`}
+                            className={`status-toggle-badge ${!coupon.isActive ? 'disabled' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'active'
+                              }`}
                             onClick={() => handleToggleStatus(coupon)}
                           >
                             {!coupon.isActive ? 'Disabled' : isExpired ? 'Expired' : isUpcoming ? 'Upcoming' : 'Active ✓'}
@@ -435,7 +434,7 @@ const CouponsManager = () => {
                           title="Tap to copy code"
                           onClick={() => handleCopyCode(coupon.code)}
                         >
-                          ✦ {coupon.code}
+                          {coupon.code}
                         </span>
                         <span className="mobile-discount-badge">
                           {coupon.discountType === 'percentage' && `${coupon.percentage}% OFF`}
@@ -446,9 +445,8 @@ const CouponsManager = () => {
                       </div>
 
                       <button
-                        className={`status-toggle-badge ${
-                          !coupon.isActive ? 'disabled' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'active'
-                        }`}
+                        className={`status-toggle-badge ${!coupon.isActive ? 'disabled' : isExpired ? 'expired' : isUpcoming ? 'upcoming' : 'active'
+                          }`}
                         onClick={() => handleToggleStatus(coupon)}
                       >
                         {!coupon.isActive ? 'Disabled' : isExpired ? 'Expired' : isUpcoming ? 'Upcoming' : 'Active ✓'}
@@ -490,9 +488,9 @@ const CouponsManager = () => {
 
                     <div className="mobile-card-tags">
                       {coupon.targetAudience === 'selected' || (coupon.allowedUsers && coupon.allowedUsers.length > 0) ? (
-                        <span className="m-tag purple">🎯 Targeted ({coupon.allowedUsers?.length || 0} Users)</span>
+                        <span className="m-tag purple">Targeted ({coupon.allowedUsers?.length || 0} Users)</span>
                       ) : (
-                        <span className="m-tag gray">🌐 All Users</span>
+                        <span className="m-tag gray">All Users</span>
                       )}
                       {coupon.freeShipping && <span className="m-tag gold">Free Shipping</span>}
                       {coupon.firstOrderOnly && <span className="m-tag blue">First Order Only</span>}
@@ -556,7 +554,7 @@ const CouponsManager = () => {
                       className={`audience-toggle-btn ${formData.targetAudience === 'all' ? 'active' : ''}`}
                       onClick={() => setFormData({ ...formData, targetAudience: 'all' })}
                     >
-                      <span className="audience-icon">🌐</span>
+                      <span className="audience-icon"></span>
                       <div className="audience-text">
                         <strong>All Customers</strong>
                         <small>Public promo code for all shoppers</small>

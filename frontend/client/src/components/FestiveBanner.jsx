@@ -62,7 +62,11 @@ const FestiveBanner = () => {
 
     const fetchBanners = async () => {
       try {
-        const response = await cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { ttlMs: 300000 })
+        // Always fetch fresh site settings from backend without stale 5-minute cache
+        const response = await cachedFetch(`${API_ENDPOINTS.SITE_SETTINGS}?_t=${Date.now()}`, {
+          forceRefresh: true,
+          ttlMs: 0
+        })
         if (isMounted && response?.success && response.data) {
           const activeList = parsePromoBanners(response.data)
 
@@ -86,8 +90,17 @@ const FestiveBanner = () => {
 
     fetchBanners()
 
+    // Listen for cross-tab or admin storage updates to sync banners instantly
+    const handleStorageChange = (e) => {
+      if (e.key === 'seemee_banners_last_updated' || e.key === LOCAL_STORAGE_KEY) {
+        fetchBanners()
+      }
+    }
+    window.addEventListener('storage', handleStorageChange)
+
     return () => {
       isMounted = false
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
 
@@ -159,7 +172,8 @@ const FestiveBanner = () => {
   if (!currentBanner || !currentBanner.image) return null
 
   const imageUrl = getImageUrl(currentBanner.image)
-  const targetLink = currentBanner.buttonLink || currentBanner.link || '/collections'
+  const rawLink = currentBanner.buttonLink || currentBanner.link
+  const targetLink = (!rawLink || rawLink === '/collections' || rawLink === '/') ? '/sale' : rawLink
 
   const handleBannerClick = (e) => {
     // Prevent click if arrow or dot was clicked
@@ -213,6 +227,11 @@ const FestiveBanner = () => {
               loading="eager"
               fetchPriority="high"
               decoding="async"
+              onError={(e) => {
+                if (currentBanner.image && e.currentTarget.src !== currentBanner.image) {
+                  e.currentTarget.src = currentBanner.image
+                }
+              }}
             />
 
             {showOverlay && (

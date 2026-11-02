@@ -171,6 +171,22 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isSale: {
+    type: Boolean,
+    default: false
+  },
+  onSale: {
+    type: Boolean,
+    default: false
+  },
+  isTryTheLook: {
+    type: Boolean,
+    default: false
+  },
+  tryTheLook: {
+    type: Boolean,
+    default: false
+  },
   status: {
     type: String,
     enum: ['draft', 'published', 'archived'],
@@ -241,6 +257,8 @@ productSchema.index({ isActive: 1, category: 1 })
 productSchema.index({ isActive: 1, featured: 1 })
 productSchema.index({ isActive: 1, inCollection: 1 })
 productSchema.index({ isActive: 1, isNewArrival: 1 })
+productSchema.index({ isActive: 1, isTryTheLook: 1 })
+productSchema.index({ isActive: 1, tryTheLook: 1 })
 productSchema.index({ createdAt: -1 })
 
 // Virtual getters for backwards compatibility with legacy dimension/weight property access

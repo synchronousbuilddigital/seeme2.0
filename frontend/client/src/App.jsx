@@ -40,6 +40,7 @@ const Checkout = lazy(() => import('./pages/Checkout'))
 const OrderPlacedPage = lazy(() => import('./pages/OrderPlacedPage'))
 const MagazinePage = lazy(() => import('./pages/MagazinePage'))
 const CollectionsPage = lazy(() => import('./pages/CollectionsPage'))
+const SalePage = lazy(() => import('./pages/SalePage'))
 const CategoriesPage = lazy(() => import('./pages/CategoriesPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
@@ -265,6 +266,10 @@ function App() {
                 {/* Categories & Collections Page */}
                 <Route path="/categories" element={<PageWithNav><CategoriesPage /></PageWithNav>} />
                 <Route path="/collections" element={<PageWithNav><CollectionsPage /></PageWithNav>} />
+
+                {/* Dedicated Festive Sale Page */}
+                <Route path="/sale" element={<PageWithNav><SalePage /></PageWithNav>} />
+                <Route path="/festive-sale" element={<Navigate to="/sale" replace />} />
 
                 {/* Redirect New Arrivals to Collections */}
                 <Route path="/new-arrivals" element={<Navigate to="/collections" replace />} />

@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
   // ─── Products ──────────────────────────────────
   PRODUCTS: `${API_BASE_URL}/api/products`,
   COLLECTION_PRODUCTS: `${API_BASE_URL}/api/products?inCollection=true`,
+  SALE_PRODUCTS: `${API_BASE_URL}/api/products?onSale=true`,
   TOP_PRODUCTS: `${API_BASE_URL}/api/products/top-three`,
   FEATURED_PRODUCTS: `${API_BASE_URL}/api/products?featured=true`,
   GET_CATEGORIES: `${API_BASE_URL}/api/products/categories/all`,

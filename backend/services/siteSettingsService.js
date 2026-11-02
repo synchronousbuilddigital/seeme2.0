@@ -1,3 +1,4 @@
+import mongoose from 'mongoose'
 import SiteSettings from '../models/SiteSettings.js'
 
 let memorySettingsCache = null
@@ -241,6 +242,36 @@ export const getSettings = async () => {
 }
 
 export const updateSettings = async (settingsData) => {
+  // Helper to sanitize subdocument arrays and strip temporary / invalid client-side IDs
+  const sanitizeSubdocs = (arr) => {
+    if (!Array.isArray(arr)) return arr
+    return arr.map(item => {
+      if (!item || typeof item !== 'object') return item
+      const clean = { ...item }
+      if (clean._id && (
+        String(clean._id).startsWith('temp_') ||
+        String(clean._id).startsWith('default_') ||
+        !mongoose.Types.ObjectId.isValid(String(clean._id))
+      )) {
+        delete clean._id
+      }
+      return clean
+    })
+  }
+
+  if (Array.isArray(settingsData.promoBanners)) {
+    settingsData.promoBanners = sanitizeSubdocs(settingsData.promoBanners)
+  }
+  if (Array.isArray(settingsData.categorySlides)) {
+    settingsData.categorySlides = sanitizeSubdocs(settingsData.categorySlides)
+  }
+  if (Array.isArray(settingsData.fabrics)) {
+    settingsData.fabrics = sanitizeSubdocs(settingsData.fabrics)
+  }
+  if (Array.isArray(settingsData.magazineStories)) {
+    settingsData.magazineStories = sanitizeSubdocs(settingsData.magazineStories)
+  }
+
   if (Array.isArray(settingsData.promoBanners) && !settingsData.festiveBanner) {
     const firstActive = settingsData.promoBanners.find(b => b.isActive && b.image) || settingsData.promoBanners[0]
     if (firstActive) {

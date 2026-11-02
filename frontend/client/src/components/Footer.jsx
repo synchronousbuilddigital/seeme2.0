@@ -165,6 +165,7 @@ const Footer = () => {
             <ul className="column-links">
               <li><button onClick={() => navigate('/about')}>Our Story</button></li>
               <li><button onClick={() => navigate('/craft')}>Artisan Heritage</button></li>
+              <li><button onClick={() => navigate('/fabrics')}>Fabrics & Crafts</button></li>
               <li><button onClick={() => navigate('/magazine')}>Magazine</button></li>
               <li><button onClick={() => navigate('/contact')}>Contact Us</button></li>
             </ul>

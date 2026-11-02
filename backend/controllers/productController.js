@@ -2,7 +2,9 @@ import * as productService from '../services/productService.js'
 import asyncHandler from '../utils/asyncHandler.js'
 
 export const getProducts = asyncHandler(async (req, res) => {
-  if (req.query.status === 'active' || !req.query.includeInactive) {
+  if (req.query._t || req.query.isTryTheLook || req.query.tryTheLook || req.query.includeInactive) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+  } else if (req.query.status === 'active' || !req.query.includeInactive) {
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600')
   }
   const result = await productService.getAllProducts(req.query)

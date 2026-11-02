@@ -36,12 +36,28 @@ export const getAllProducts = async (filters = {}) => {
   }
   if (featured) filter.featured = true
   if (inCollection) filter.inCollection = true
+  if (filters.isTryTheLook === 'true' || filters.isTryTheLook === true || filters.tryTheLook === 'true' || filters.tryTheLook === true) {
+    const tryLookCond = { $or: [{ isTryTheLook: true }, { tryTheLook: true }] }
+    if (filter.$and) {
+      filter.$and.push(tryLookCond)
+    } else {
+      filter.$and = [tryLookCond]
+    }
+  }
+  if (filters.onSale === 'true' || filters.isSale === 'true' || filters.onSale === true || filters.isSale === true) {
+    const saleCond = { $or: [{ isSale: true }, { onSale: true }] }
+    if (filter.$and) {
+      filter.$and.push(saleCond)
+    } else {
+      filter.$and = [saleCond]
+    }
+  }
   if (filters.gender && filters.gender !== 'all') {
     const g = String(filters.gender).toLowerCase().trim()
     const oppositeG = g === 'men' ? 'women' : (g === 'women' ? 'men' : null)
 
     if (oppositeG) {
-      filter.$and = [
+      const genderConds = [
         {
           $or: [
             { gender: g },
@@ -55,13 +71,25 @@ export const getAllProducts = async (filters = {}) => {
           targetAudience: { $nin: [oppositeG] }
         }
       ]
+      if (filter.$and) {
+        filter.$and.push(...genderConds)
+      } else {
+        filter.$and = genderConds
+      }
     } else {
-      filter.$or = [
-        { gender: g },
-        { gender: { $in: [g, 'all', 'unisex'] } },
-        { targetAudience: g },
-        { targetAudience: { $in: [g, 'all', 'unisex'] } }
-      ]
+      const genderCond = {
+        $or: [
+          { gender: g },
+          { gender: { $in: [g, 'all', 'unisex'] } },
+          { targetAudience: g },
+          { targetAudience: { $in: [g, 'all', 'unisex'] } }
+        ]
+      }
+      if (filter.$and) {
+        filter.$and.push(genderCond)
+      } else {
+        filter.$or = genderCond.$or
+      }
     }
   }
 
@@ -215,6 +243,11 @@ export const getProductById = async (id) => {
 
 export const createProduct = async (productData) => {
   clearCategoryCache()
+  if (productData.isTryTheLook !== undefined || productData.tryTheLook !== undefined) {
+    const isTry = Boolean(productData.isTryTheLook ?? productData.tryTheLook)
+    productData.isTryTheLook = isTry
+    productData.tryTheLook = isTry
+  }
   return await Product.create(productData)
 }
 
@@ -222,6 +255,11 @@ export const updateProduct = async (id, productData) => {
   await getProductById(id)
 
   clearCategoryCache()
+  if (productData.isTryTheLook !== undefined || productData.tryTheLook !== undefined) {
+    const isTry = Boolean(productData.isTryTheLook ?? productData.tryTheLook)
+    productData.isTryTheLook = isTry
+    productData.tryTheLook = isTry
+  }
   const updatedProduct = await Product.findByIdAndUpdate(id, productData, { new: true, runValidators: true }).lean()
 
   try {

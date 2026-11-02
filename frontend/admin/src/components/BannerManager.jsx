@@ -8,14 +8,14 @@ import './BannerManager.css'
 const EMPTY_BANNER = {
   _id: '',
   image: '',
-  link: '/collections',
+  link: '/sale',
   showOverlay: false,
   tagline: '',
   title: '',
   titleHighlight: '',
   subtitle: '',
   buttonText: '',
-  buttonLink: '/collections',
+  buttonLink: '/sale',
   isActive: true,
   order: 0
 }
@@ -73,20 +73,26 @@ const BannerManager = () => {
     setSaving(true)
     try {
       // Clean and ensure orders
-      const payloadBanners = updatedList.map((b, idx) => ({
-        _id: b._id || undefined,
-        image: (b.image || '').trim(),
-        link: (b.buttonLink || b.link || '/collections').trim(),
-        buttonLink: (b.buttonLink || b.link || '/collections').trim(),
-        showOverlay: Boolean(b.showOverlay),
-        tagline: (b.tagline || '').trim(),
-        title: (b.title || '').trim(),
-        titleHighlight: (b.titleHighlight || '').trim(),
-        subtitle: (b.subtitle || '').trim(),
-        buttonText: (b.buttonText || '').trim(),
-        isActive: b.isActive !== false,
-        order: idx
-      }))
+      const payloadBanners = updatedList.map((b, idx) => {
+        const item = {
+          image: (b.image || '').trim(),
+          link: (b.buttonLink || b.link || '/sale').trim(),
+          buttonLink: (b.buttonLink || b.link || '/sale').trim(),
+          showOverlay: Boolean(b.showOverlay),
+          tagline: (b.tagline || '').trim(),
+          title: (b.title || '').trim(),
+          titleHighlight: (b.titleHighlight || '').trim(),
+          subtitle: (b.subtitle || '').trim(),
+          buttonText: (b.buttonText || '').trim(),
+          isActive: b.isActive !== false,
+          order: idx
+        }
+        // Only send _id if it's a valid 24-character hexadecimal MongoDB ObjectId
+        if (b._id && typeof b._id === 'string' && /^[0-9a-fA-F]{24}$/.test(b._id)) {
+          item._id = b._id
+        }
+        return item
+      })
 
       const res = await apiRequest(API_ENDPOINTS.SITE_SETTINGS, {
         method: 'PUT',
@@ -100,6 +106,13 @@ const BannerManager = () => {
         } else {
           setBanners(updatedList)
         }
+        try {
+          localStorage.removeItem('seemee_promo_banners')
+          localStorage.setItem('seemee_banners_last_updated', String(Date.now()))
+          Object.keys(localStorage).forEach(k => {
+            if (k.includes('site_settings')) localStorage.removeItem(k)
+          })
+        } catch (e) {}
         showNotification('Banners saved and published successfully!')
       } else {
         showNotification(res.message || 'Failed to save banners', 'error')
@@ -265,13 +278,6 @@ const BannerManager = () => {
 
       {/* Header Bar */}
       <div className="bm-header">
-        <div className="bm-header-title">
-          <h2>Promo Banners Manager</h2>
-          <p>
-            Upload and control multiple banners below the Hero section. Multiple active banners will automatically turn into a luxury sliding carousel on the storefront.
-          </p>
-        </div>
-
         <div className="bm-header-actions">
           <span className="bm-badge-counter">
             {banners.length} {banners.length === 1 ? 'Banner' : 'Banners'} ({activeCount} Active)
@@ -340,7 +346,7 @@ const BannerManager = () => {
                 />
                 {item.showOverlay && (item.title || item.tagline) && (
                   <div className="bm-card-overlay-indicator">
-                    <span>✍️ Overlay Active</span>
+                    {/* <span>Overlay Active</span> */}
                   </div>
                 )}
               </div>

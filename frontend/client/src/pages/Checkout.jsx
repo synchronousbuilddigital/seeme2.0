@@ -144,9 +144,10 @@ const Checkout = () => {
   
   const [addresses, setAddresses] = useState([])
   const [selectedAddressId, setSelectedAddressId] = useState(null)
-  const [saveAddress, setSaveAddress] = useState(true)
+  const [saveAddress, setSaveAddress] = useState(false)
   const [savingAddress, setSavingAddress] = useState(false)
   const [addressSaveSuccess, setAddressSaveSuccess] = useState('')
+  const [addressFormError, setAddressFormError] = useState('')
 
   const [checkoutCouponCode, setCheckoutCouponCode] = useState('')
   const [checkoutCouponError, setCheckoutCouponError] = useState('')
@@ -280,9 +281,19 @@ const Checkout = () => {
         const newest = data.data[data.data.length - 1]
         if (newest) {
           setSelectedAddressId(newest._id)
+          setFormData(prev => ({
+            ...prev,
+            name: newest.name || prev.name,
+            phone: newest.phone || prev.phone,
+            street: newest.street || prev.street,
+            city: newest.city || prev.city,
+            state: newest.state || prev.state,
+            pincode: newest.pincode || prev.pincode
+          }))
         }
         setAddressSaveSuccess('Address saved to your profile!')
-        setTimeout(() => setAddressSaveSuccess(''), 3000)
+        setAddressFormError('')
+        setTimeout(() => setAddressSaveSuccess(''), 3500)
         return newest
       }
     } catch (err) {
@@ -291,6 +302,67 @@ const Checkout = () => {
       setSavingAddress(false)
     }
     return null
+  }
+
+  const handleCancelNewAddress = () => {
+    setAddressFormError('')
+    if (addresses.length > 0) {
+      const defaultOrFirst = addresses.find(a => a.isDefault) || addresses[0]
+      if (defaultOrFirst) {
+        handleAddressSelect(defaultOrFirst)
+      }
+    }
+  }
+
+  const handleManualSaveAddress = async (e) => {
+    if (e) e.preventDefault()
+    setAddressFormError('')
+
+    const name = (formData.name || '').trim()
+    const phone = (formData.phone || '').trim()
+    const street = (formData.street || '').trim()
+    const city = (formData.city || '').trim()
+    const state = (formData.state || '').trim()
+    const pincode = (formData.pincode || '').trim()
+
+    if (!name) {
+      setAddressFormError('Please enter recipient full name.')
+      return
+    }
+    if (!phone || phone.length < 10) {
+      setAddressFormError('Please enter a valid 10-digit phone number.')
+      return
+    }
+    if (!street) {
+      setAddressFormError('Please enter street address / house details.')
+      return
+    }
+    if (!city) {
+      setAddressFormError('Please enter city / district.')
+      return
+    }
+    if (!state) {
+      setAddressFormError('Please select state.')
+      return
+    }
+    if (!pincode || pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
+      setAddressFormError('Please enter a valid 6-digit pincode.')
+      return
+    }
+
+    const saved = await saveAddressToBackend({
+      name,
+      phone,
+      street,
+      city,
+      state,
+      pincode,
+      isDefault: addresses.length === 0
+    })
+
+    if (!saved) {
+      setAddressFormError('Failed to save address. Please check your details and try again.')
+    }
   }
 
   const handleApplyCheckoutCoupon = async (e, codeOverride) => {
@@ -482,6 +554,7 @@ const Checkout = () => {
 
   const handleAddressSelect = (address) => {
     setSelectedAddressId(address._id)
+    setAddressFormError('')
     setFormData(prev => ({
       ...prev,
       name: address.name || prev.name,
@@ -495,6 +568,7 @@ const Checkout = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
+    if (addressFormError) setAddressFormError('')
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -865,7 +939,19 @@ const Checkout = () => {
               {user && addresses && addresses.length > 0 && (
                 <div className="saved-addresses-luxury">
                   <div className="saved-addresses-header">
-                    <span className="mini-title">Select Shipping Address</span>
+                    <span className="mini-title">
+                      {!selectedAddressId ? 'Saved Addresses (Click to choose)' : 'Select Shipping Address'}
+                    </span>
+                    {!selectedAddressId && (
+                      <button 
+                        type="button" 
+                        className="btn-cancel-new-addr"
+                        onClick={handleCancelNewAddress}
+                        title="Cancel and return to saved addresses"
+                      >
+                        ✕ Cancel
+                      </button>
+                    )}
                   </div>
 
                   <div className="address-pills">
@@ -877,6 +963,7 @@ const Checkout = () => {
                       >
                         <div className="pill-top">
                           <span className="pill-text">{addr.name || user.name || 'Saved Address'}</span>
+                          {addr.isDefault && <span className="pill-badge">Default</span>}
                         </div>
                         <span className="pill-sub">
                           {addr.street ? `${addr.street}, ${addr.city || ''}, ${addr.state || ''} ${addr.pincode ? `- ${addr.pincode}` : ''}` : 'Saved Address'}
@@ -884,21 +971,25 @@ const Checkout = () => {
                       </div>
                     ))}
 
-                    <div 
-                      className={`address-pill new ${!selectedAddressId ? 'active' : ''}`} 
-                      onClick={() => {
-                        setSelectedAddressId(null)
-                        setFormData(prev => ({
-                          ...prev,
-                          street: '',
-                          city: '',
-                          state: '',
-                          pincode: ''
-                        }))
-                      }}
-                    >
-                      <span>+ Add New Address</span>
-                    </div>
+                    {/* Hide + Add New Address when form is already open (!selectedAddressId) */}
+                    {selectedAddressId && (
+                      <div 
+                        className="address-pill new" 
+                        onClick={() => {
+                          setSelectedAddressId(null)
+                          setAddressFormError('')
+                          setFormData(prev => ({
+                            ...prev,
+                            street: '',
+                            city: '',
+                            state: '',
+                            pincode: ''
+                          }))
+                        }}
+                      >
+                        <span>+ Add New Address</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -906,6 +997,12 @@ const Checkout = () => {
               {/* Recipient Details & Address Form - ONLY shown when adding new address or no saved address selected */}
               {(!selectedAddressId || addresses.length === 0) && (
                 <div className="new-address-form-box">
+                  {addresses && addresses.length > 0 && (
+                    <div className="new-address-form-header">
+                      <span className="new-address-form-title">Enter New Delivery Address</span>
+                    </div>
+                  )}
+
                   <div className="input-group-luxury">
                     <label htmlFor="checkout-name">Recipient Full Name *</label>
                     <div className="input-with-icon">
@@ -1022,31 +1119,47 @@ const Checkout = () => {
                     </div>
                   </div>
 
-                  {user && (
-                    <div className="save-address-checkbox-row">
-                      <label htmlFor="save-address-toggle" className="save-address-label">
-                        <input
-                          id="save-address-toggle"
-                          type="checkbox"
-                          checked={saveAddress}
-                          onChange={(e) => setSaveAddress(e.target.checked)}
-                          className="save-address-checkbox"
-                        />
-                        <span>Save this address to my profile for future orders</span>
-                      </label>
-
-                      {formData.street && formData.city && formData.pincode && (
-                        <button
-                          type="button"
-                          className="btn-manual-save-addr"
-                          onClick={() => saveAddressToBackend()}
-                          disabled={savingAddress}
-                        >
-                          {savingAddress ? 'Saving...' : 'Save Address Now'}
-                        </button>
-                      )}
+                  {addressFormError && (
+                    <div className="address-form-error-box">
+                      <span>⚠ {addressFormError}</span>
                     </div>
                   )}
+
+                  <div className="address-form-actions">
+                    <button
+                      type="button"
+                      className="btn-save-address-primary"
+                      onClick={handleManualSaveAddress}
+                      disabled={savingAddress}
+                    >
+                      {savingAddress ? (
+                        <>
+                          <span className="btn-spinner-sm"></span>
+                          <span>Saving Address...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          <span>Save Address</span>
+                        </>
+                      )}
+                    </button>
+
+                    {addresses && addresses.length > 0 && (
+                      <button
+                        type="button"
+                        className="btn-cancel-address-secondary"
+                        onClick={handleCancelNewAddress}
+                        disabled={savingAddress}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -1249,7 +1362,12 @@ const Checkout = () => {
 
             {/* Desktop Coupon Application Box */}
             <div className="checkout-coupon-box desktop-checkout-coupon">
-              <span className="checkout-coupon-title">PROMO / COUPON CODE</span>
+              <div className="checkout-coupon-header">
+                <span className="checkout-coupon-title">PROMO / COUPON CODE</span>
+                {availableCoupons.length > 0 && !appliedCoupon && (
+                  <span className="checkout-coupon-badge">{availableCoupons.length} AVAILABLE</span>
+                )}
+              </div>
               {appliedCoupon ? (
                 <div className="checkout-applied-coupon">
                   <div className="applied-info">
@@ -1263,25 +1381,27 @@ const Checkout = () => {
               ) : (
                 <>
                   {availableCoupons.length > 0 && (
-                    <select
-                      className="checkout-coupon-select-dropdown"
-                      value={checkoutCouponCode}
-                      onChange={(e) => {
-                        const code = e.target.value
-                        setCheckoutCouponCode(code)
-                        if (code) {
-                          handleApplyCheckoutCoupon(null, code)
-                        }
-                      }}
-                      disabled={couponLoading}
-                    >
-                      <option value="">-- Select an Available Coupon ({availableCoupons.length}) --</option>
-                      {availableCoupons.map(c => (
-                        <option key={c._id || c.code} value={c.code}>
-                          ✦ {c.code} ({c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}{c.minimumOrder > 0 ? ` - Min. ₹${c.minimumOrder}` : ''})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="checkout-select-wrap">
+                      <select
+                        className="checkout-coupon-select-dropdown"
+                        value={checkoutCouponCode}
+                        onChange={(e) => {
+                          const code = e.target.value
+                          setCheckoutCouponCode(code)
+                          if (code) {
+                            handleApplyCheckoutCoupon(null, code)
+                          }
+                        }}
+                        disabled={couponLoading}
+                      >
+                        <option value="">Select an available coupon ({availableCoupons.length})</option>
+                        {availableCoupons.map(c => (
+                          <option key={c._id || c.code} value={c.code}>
+                            {c.code} ({c.percentage ? `${c.percentage}% OFF` : `₹${c.fixedAmount} OFF`}{c.minimumOrder > 0 ? ` — Minimum Order: ₹${c.minimumOrder.toLocaleString('en-IN')}` : ''})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   )}
 
                   <form onSubmit={handleApplyCheckoutCoupon} className="checkout-coupon-form">

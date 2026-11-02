@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { LOOKS_DATA } from '../data/tryTheLookData'
-import { useCart } from '../context/CartContext'
 import { cachedFetch } from '../utils/cachedFetch'
+import { useCart } from '../context/CartContext'
 import { API_ENDPOINTS } from '../config/api'
 import { belongsToAudience, interleaveAudiences } from '../utils/categoryHelper'
 import './TryTheLook.css'
@@ -52,129 +52,116 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
     const fetchBackendLooks = async () => {
       try {
         setLoading(true)
-        const resData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=100`, { ttlMs: 300000 })
-        const rawProducts = Array.isArray(resData?.data)
-          ? resData.data
-          : (Array.isArray(resData?.products) ? resData.products : [])
 
-        // Filter active products with real images from the backend database
-        const validProducts = rawProducts.filter(
-          (p) => p && p.isActive !== false && Array.isArray(p.images) && p.images.length > 0 && p.images[0]
-        )
+        // Helper to check if a product qualifies for Try The Look
+        const checkIsTryLook = (p) => {
+          if (!p || p.isActive === false) return false
+          const isTry = p.isTryTheLook === true || p.isTryTheLook === 'true' || p.tryTheLook === true || p.tryTheLook === 'true'
+          const hasImage = (Array.isArray(p.images) && p.images.length > 0 && Boolean(p.images[0])) || Boolean(p.image)
+          return Boolean(isTry && hasImage)
+        }
 
-        if (validProducts.length === 0) return
+        // Fetch products: try fresh query with forceRefresh, fallback to cached
+        let rawProducts = []
+        try {
+          const res = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?isTryTheLook=true&limit=100&_t=${Date.now()}`, {
+            forceRefresh: true,
+            ttlMs: 0
+          })
+          rawProducts = Array.isArray(res?.data)
+            ? res.data
+            : (Array.isArray(res?.products) ? res.products : [])
+        } catch (e) {
+          const fallbackRes = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=100`, { ttlMs: 300000 }).catch(() => null)
+          rawProducts = Array.isArray(fallbackRes?.data)
+            ? fallbackRes.data
+            : (Array.isArray(fallbackRes?.products) ? fallbackRes.products : [])
+        }
 
-        // Audience matching (men, women, all)
-        let audienceMatched = validProducts
-        if (activeAudience && activeAudience !== 'all') {
-          const filtered = validProducts.filter((p) => belongsToAudience(p, activeAudience))
-          if (filtered.length >= 3) {
-            audienceMatched = filtered
+        // Filter products with isTryTheLook
+        let tryTheLookProducts = rawProducts.filter(checkIsTryLook)
+
+        // If no products found via query, fetch full catalog and filter in JS
+        if (tryTheLookProducts.length === 0) {
+          try {
+            const allRes = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=250&_t=${Date.now()}`, {
+              forceRefresh: true,
+              ttlMs: 0
+            })
+            const allProds = Array.isArray(allRes?.data) ? allRes.data : (Array.isArray(allRes?.products) ? allRes.products : [])
+            tryTheLookProducts = allProds.filter(checkIsTryLook)
+          } catch (e) {
+            console.warn('Fallback catalog fetch error:', e)
           }
         }
 
-        // 1. Latest Trends products (identical algorithm to LatestTrendsSection.jsx)
-        let latestTrendsPool = audienceMatched.filter(p =>
-          p.isNewArrival === true ||
-          p.isFeatured === true ||
-          (Array.isArray(p.tags) && p.tags.some(t => typeof t === 'string' && t.toLowerCase().includes('new')))
-        )
-
-        if (latestTrendsPool.length < 3) {
-          latestTrendsPool = [...audienceMatched].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        } else {
-          latestTrendsPool.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
-        }
-        const latestTrendsProducts = latestTrendsPool.slice(0, 10)
-
-        // 2. Shop Section products (identical algorithm to ShopSection.jsx)
-        const featuredShop = audienceMatched.filter(p => p.featured === true || p.inCollection === true)
-        const shopPool = featuredShop.length > 0 ? featuredShop : audienceMatched
-        const interleavedShop = activeAudience === 'all' ? interleaveAudiences(shopPool) : shopPool
-        const shopProducts = interleavedShop.slice(0, 8)
-
-        // 3. Combine both collections cleanly without duplicates (Latest Trends first, then Shop Section)
-        const targetProducts = []
-        const seenIds = new Set()
-
-        // Include all Latest Trends products
-        latestTrendsProducts.forEach((p) => {
-          const id = String(p._id || p.id)
-          if (!seenIds.has(id)) {
-            seenIds.add(id)
-            targetProducts.push(p)
+        // If admin has selected Try The Look products, map and display ONLY those!
+        if (tryTheLookProducts.length > 0) {
+          let audienceMatched = tryTheLookProducts
+          if (activeAudience && activeAudience !== 'all') {
+            const filtered = tryTheLookProducts.filter((p) => belongsToAudience(p, activeAudience))
+            if (filtered.length > 0) {
+              audienceMatched = filtered
+            }
           }
-        })
 
-        // Include all Shop Section products
-        shopProducts.forEach((p) => {
-          const id = String(p._id || p.id)
-          if (!seenIds.has(id)) {
-            seenIds.add(id)
-            targetProducts.push(p)
-          }
-        })
+          const targetProducts = audienceMatched
 
-        // Fallback fill if pool has more items
-        if (targetProducts.length < 5) {
-          audienceMatched.forEach((p) => {
-            const id = String(p._id || p.id)
-            if (!seenIds.has(id)) {
-              seenIds.add(id)
-              targetProducts.push(p)
+          const dynamicLooks = targetProducts.map((prod, idx) => {
+            const prodImages = Array.isArray(prod.images) && prod.images.length > 0
+              ? prod.images.filter(Boolean)
+              : (prod.image ? [prod.image] : [])
+            const primaryImg = prodImages[0] || prod.image || ''
+            const cutoutImg = getCutoutImageUrl(primaryImg)
+            const secondaryImg = prodImages[1] || primaryImg
+            const detailImg = prodImages[2] || secondaryImg || primaryImg
+
+            const price = typeof prod.price === 'number' && prod.price > 0 ? prod.price : 1499
+            const originalPrice = typeof prod.originalPrice === 'number' && prod.originalPrice > price
+              ? prod.originalPrice
+              : Math.round(price * 1.25)
+            const discountPercent = prod.discount || Math.max(10, Math.round(((originalPrice - price) / originalPrice) * 100))
+
+            const cleanName = prod.name || 'Artisanal Ensemble'
+            const shortName = cleanName.length > 38 ? cleanName.slice(0, 35) + '...' : cleanName
+            const catName = prod.category ? prod.category.replace(/[-_]/g, ' ') : 'Atelier'
+            const isSuitOrSet = /set|suit|kurta|cord/i.test(cleanName) || /set|suit/i.test(catName)
+
+            return {
+              id: prod._id || `backend-look-${idx}`,
+              productId: prod._id,
+              name: shortName,
+              fullName: cleanName,
+              subtitle: `${catName.toUpperCase()} • Try The Look`,
+              modelImage: cutoutImg,
+              originalImage: primaryImg,
+              images: prodImages.length > 0 ? prodImages : [primaryImg, secondaryImg, detailImg].filter(Boolean),
+              price: price,
+              originalPrice: originalPrice,
+              discountPercent: discountPercent,
+              category: catName,
+              brand: prod.brand || 'SEEMEE',
+              fabric: prod.fabric || '100% Pure Artisan Cotton',
+              sizes: Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : ['XS', 'S', 'M', 'L', 'XL'],
+              description: prod.description || 'Complete head-to-toe coordinated ensemble crafted with premium artisanal tailoring.',
+              isSuitOrSet: isSuitOrSet,
+              isTrending: false
             }
           })
-        }
 
-        // Map backend products dynamically to Look objects with transparent cutout model images
-        const dynamicLooks = targetProducts.map((prod, idx) => {
-          const primaryImg = prod.images[0]
-          const cutoutImg = getCutoutImageUrl(primaryImg)
-          const secondaryImg = prod.images[1] || primaryImg
-          const detailImg = prod.images[2] || secondaryImg || primaryImg
-
-          const price = typeof prod.price === 'number' && prod.price > 0 ? prod.price : 1499
-          const originalPrice = typeof prod.originalPrice === 'number' && prod.originalPrice > price
-            ? prod.originalPrice
-            : Math.round(price * 1.25)
-          const discountPercent = prod.discount || Math.max(10, Math.round(((originalPrice - price) / originalPrice) * 100))
-
-          const cleanName = prod.name || 'Artisanal Ensemble'
-          const shortName = cleanName.length > 38 ? cleanName.slice(0, 35) + '...' : cleanName
-          const catName = prod.category ? prod.category.replace(/[-_]/g, ' ') : 'Atelier'
-          const isSuitOrSet = /set|suit|kurta|cord/i.test(cleanName) || /set|suit/i.test(catName)
-          const isTrending = latestTrendsProducts.some(lt => String(lt._id || lt.id) === String(prod._id || prod.id))
-
-          return {
-            id: prod._id || `backend-look-${idx}`,
-            productId: prod._id,
-            name: shortName,
-            fullName: cleanName,
-            subtitle: isTrending
-              ? `LATEST TREND • ${catName.toUpperCase()}`
-              : `${catName.toUpperCase()} • Handcrafted Collection`,
-            modelImage: cutoutImg,
-            originalImage: primaryImg,
-            images: Array.isArray(prod.images) && prod.images.length > 0 ? prod.images : [primaryImg, secondaryImg, detailImg].filter(Boolean),
-            price: price,
-            originalPrice: originalPrice,
-            discountPercent: discountPercent,
-            category: catName,
-            brand: prod.brand || 'SEEMEE',
-            fabric: prod.fabric || '100% Pure Artisan Cotton',
-            sizes: Array.isArray(prod.sizes) && prod.sizes.length > 0 ? prod.sizes : ['XS', 'S', 'M', 'L', 'XL'],
-            description: prod.description || 'Complete head-to-toe coordinated ensemble crafted with premium artisanal tailoring.',
-            isSuitOrSet: isSuitOrSet,
-            isTrending: isTrending
+          if (!isCancelled && dynamicLooks.length > 0) {
+            setLooks(dynamicLooks)
+            setActiveIndex(0)
           }
-        })
-
-        if (!isCancelled && dynamicLooks.length > 0) {
-          setLooks(dynamicLooks)
-          setActiveIndex(0)
+        } else {
+          // If no products marked yet, fallback to curated looks so homepage is never blank
+          if (!isCancelled) {
+            setLooks(LOOKS_DATA)
+          }
         }
       } catch (err) {
         console.error('Error fetching backend products for TryTheLook:', err)
+        if (!isCancelled) setLooks(LOOKS_DATA)
       } finally {
         if (!isCancelled) setLoading(false)
       }
@@ -182,8 +169,16 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
 
     fetchBackendLooks()
 
+    const handleStorage = (e) => {
+      if (e.key === 'seemee_product_updated') {
+        fetchBackendLooks()
+      }
+    }
+    window.addEventListener('storage', handleStorage)
+
     return () => {
       isCancelled = true
+      window.removeEventListener('storage', handleStorage)
     }
   }, [activeAudience])
 
@@ -286,6 +281,11 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
       if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current)
     }
   }, [])
+
+  // If no products are marked for Try The Look by Admin, do not render this section
+  if (!looks || looks.length === 0 || !activeLook) {
+    return null
+  }
 
   // Calculations for active look pricing & display
   const activePrice = typeof activeLook?.price === 'number' && activeLook.price > 0

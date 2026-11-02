@@ -97,7 +97,7 @@ const ReelsManager = () => {
 
     setUploading(true)
     setUploadProgress(0)
-    showNotification('⚡ Starting fast video upload to Cloudinary...', 'info')
+    showNotification(' Starting fast video upload to Cloudinary...', 'info')
 
     try {
       let uploadedUrl = null
@@ -203,7 +203,7 @@ const ReelsManager = () => {
       if (uploadedUrl) {
         setFormData(prev => ({ ...prev, videoUrl: uploadedUrl }))
         setUploadProgress(100)
-        showNotification('⚡ Video uploaded & saved to Cloudinary successfully!')
+        showNotification('Video uploaded & saved to Cloudinary successfully!')
       } else {
         throw new Error('Could not retrieve uploaded video URL')
       }
@@ -383,7 +383,7 @@ const ReelsManager = () => {
 
       <header className="reels-header">
         <div>
-          <h1 className="reels-title">✦ Catalog Reels Studio</h1>
+          <h1 className="reels-title">Catalog Reels Studio</h1>
           <p className="reels-subtitle">Manage Instagram-style video reels linked with store products</p>
         </div>
         <button onClick={handleOpenAddModal} className="btn-add-reel">

@@ -39,6 +39,24 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [customColorInput, setCustomColorInput] = useState('')
   const pageSize = 8
   const [formTab, setFormTab] = useState('general')
+
+  useEffect(() => {
+    if (showForm) {
+      const prevBodyOverflow = document.body.style.overflow
+      const prevBodyOverflowX = document.body.style.overflowX
+      const prevHtmlOverflowX = document.documentElement.style.overflowX
+
+      document.body.style.overflow = 'hidden'
+      document.body.style.overflowX = 'hidden'
+      document.documentElement.style.overflowX = 'hidden'
+
+      return () => {
+        document.body.style.overflow = prevBodyOverflow
+        document.body.style.overflowX = prevBodyOverflowX
+        document.documentElement.style.overflowX = prevHtmlOverflowX
+      }
+    }
+  }, [showForm])
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -67,6 +85,10 @@ const ProductsManager = ({ onPromoteToHero }) => {
     colors: [],
     featured: false,
     inCollection: false,
+    isSale: false,
+    onSale: false,
+    isTryTheLook: false,
+    tryTheLook: false,
     images: [],
     preview3dImages: [],
     gallery: [],
@@ -236,7 +258,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}?includeInactive=true&limit=1000`, { auth: true })
+      const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}?includeInactive=true&limit=1000&_t=${Date.now()}`, { auth: true, bypassCache: true })
       if (data.success) {
         setProducts(data.data || [])
       }
@@ -276,6 +298,42 @@ const ProductsManager = ({ onPromoteToHero }) => {
         prevProducts.map(p => (p._id === product._id ? { ...p, isActive: !newStatus } : p))
       )
       showNotification('Failed to update product status: ' + error.message, 'error')
+    }
+  }
+
+  const handleToggleTryTheLook = async (product) => {
+    const currentVal = Boolean(product.isTryTheLook || product.tryTheLook)
+    const newVal = !currentVal
+
+    // Optimistically update local admin products state instantly
+    setProducts(prevProducts =>
+      prevProducts.map(p => (p._id === product._id ? { ...p, isTryTheLook: newVal, tryTheLook: newVal } : p))
+    )
+
+    try {
+      const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}/${product._id}`, {
+        method: 'PUT',
+        auth: true,
+        body: { isTryTheLook: newVal, tryTheLook: newVal }
+      })
+
+      if (data.success) {
+        showNotification(newVal ? ` "${product.name}" added to Try The Look!` : `"${product.name}" removed from Try The Look.`)
+        try {
+          localStorage.setItem('seemee_product_updated', Date.now().toString())
+        } catch (e) {}
+        fetchProducts()
+      } else {
+        setProducts(prevProducts =>
+          prevProducts.map(p => (p._id === product._id ? { ...p, isTryTheLook: currentVal, tryTheLook: currentVal } : p))
+        )
+        showNotification(data.message || 'Failed to update Try The Look', 'error')
+      }
+    } catch (error) {
+      setProducts(prevProducts =>
+        prevProducts.map(p => (p._id === product._id ? { ...p, isTryTheLook: currentVal, tryTheLook: currentVal } : p))
+      )
+      showNotification('Failed to update Try The Look: ' + error.message, 'error')
     }
   }
 
@@ -638,6 +696,10 @@ const ProductsManager = ({ onPromoteToHero }) => {
         featured: formData.featured,
         inCollection: formData.inCollection,
         isNewArrival: formData.isNewArrival,
+        isSale: Boolean(formData.isSale || formData.onSale),
+        onSale: Boolean(formData.isSale || formData.onSale),
+        isTryTheLook: Boolean(formData.isTryTheLook),
+        tryTheLook: Boolean(formData.isTryTheLook),
         isActive: formData.isActive !== false
       }
 
@@ -650,6 +712,9 @@ const ProductsManager = ({ onPromoteToHero }) => {
       if (data.success) {
         fetchProducts()
         resetForm()
+        try {
+          localStorage.setItem('seemee_product_updated', Date.now().toString())
+        } catch (e) {}
         showNotification(wasEditing ? 'Product updated successfully!' : 'Product created successfully!')
       } else {
         showNotification(data.message || 'Failed to save product', 'error')
@@ -753,6 +818,10 @@ const ProductsManager = ({ onPromoteToHero }) => {
       featured: false,
       inCollection: false,
       isNewArrival: false,
+      isSale: false,
+      onSale: false,
+      isTryTheLook: false,
+      tryTheLook: false,
       isActive: true,
       images: [],
       video: '',
@@ -809,6 +878,10 @@ const ProductsManager = ({ onPromoteToHero }) => {
       featured: product.featured,
       inCollection: product.inCollection || false,
       isNewArrival: product.isNewArrival || false,
+      isSale: Boolean(product.isSale || product.onSale),
+      onSale: Boolean(product.isSale || product.onSale),
+      isTryTheLook: Boolean(product.isTryTheLook || product.tryTheLook),
+      tryTheLook: Boolean(product.isTryTheLook || product.tryTheLook),
       isActive: product.isActive !== false,
       images: (product.images || []).map(normalizeMediaUrl),
       preview3dImages: (product.preview3dImages || []).map(normalizeMediaUrl),
@@ -952,6 +1025,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
     const matchesBrand = brandFilter === 'all' || (product.brand || '').toLowerCase().trim().replace(/[^a-z0-9]/g, '') === brandFilter.toLowerCase().trim().replace(/[^a-z0-9]/g, '')
     const matchesCollection = collectionFilter === 'all'
       || (collectionFilter === 'collection' && product.inCollection)
+      || (collectionFilter === 'sale' && (product.isSale || product.onSale))
+      || (collectionFilter === 'tryTheLook' && (product.isTryTheLook || product.tryTheLook))
       || (collectionFilter === 'regular' && !product.inCollection)
     const matchesStock = stockFilter === 'all'
       || (stockFilter === 'in-stock' && product.stock > 0)
@@ -1014,6 +1089,8 @@ const ProductsManager = ({ onPromoteToHero }) => {
           <select className="toolbar-select" value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}>
             <option value="all">All products</option>
             <option value="collection">In collection</option>
+            <option value="sale">On Festive Sale</option>
+            <option value="tryTheLook">Try The Look</option>
             <option value="regular">Not in collection</option>
           </select>
 
@@ -1047,26 +1124,28 @@ const ProductsManager = ({ onPromoteToHero }) => {
           <div className="modal-overlay" onClick={resetForm}>
             <motion.div
               className="product-form-drawer"
-              initial={{ opacity: 0, x: 100 }}
+              initial={{ opacity: 0, x: typeof window !== 'undefined' && window.innerWidth <= 768 ? 0 : 30 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 100 }}
+              exit={{ opacity: 0, x: typeof window !== 'undefined' && window.innerWidth <= 768 ? 0 : 30 }}
               transition={{ damping: 25, stiffness: 200 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="drawer-header">
-                <h2>{editingProduct ? 'Edit Product' : 'New Product'}</h2>
-                <button className="close-drawer-btn" onClick={resetForm}>&times;</button>
-              </div>
-              <div className="form-header-tabs">
-                <button type="button" className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
-                <button type="button" className={formTab === 'colors' ? 'active' : ''} onClick={() => setFormTab('colors')}>
-                   Colours {formData.colors?.length > 0 ? `(${formData.colors.length})` : ''}
-                </button>
-                <button type="button" className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
-                <button type="button" className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
-                <button type="button" className={formTab === 'features' ? 'active' : ''} onClick={() => setFormTab('features')}>Features & Specs</button>
-                <button type="button" className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
-                <button type="button" className={formTab === 'tags' ? 'active' : ''} onClick={() => setFormTab('tags')}>Tags & SEO</button>
+              <div className="drawer-top-bar">
+                <div className="drawer-header">
+                  <h2>{editingProduct ? 'Edit Product' : 'New Product'}</h2>
+                  <button className="close-drawer-btn" onClick={resetForm}>&times;</button>
+                </div>
+                <div className="form-header-tabs">
+                  <button type="button" className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
+                  <button type="button" className={formTab === 'colors' ? 'active' : ''} onClick={() => setFormTab('colors')}>
+                     Colours {formData.colors?.length > 0 ? `(${formData.colors.length})` : ''}
+                  </button>
+                  <button type="button" className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
+                  <button type="button" className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
+                  <button type="button" className={formTab === 'features' ? 'active' : ''} onClick={() => setFormTab('features')}>Features & Specs</button>
+                  <button type="button" className={formTab === 'advanced' ? 'active' : ''} onClick={() => setFormTab('advanced')}>Advanced</button>
+                  <button type="button" className={formTab === 'tags' ? 'active' : ''} onClick={() => setFormTab('tags')}>Tags & SEO</button>
+                </div>
               </div>
 
               <form onSubmit={handleSubmit} className="tabbed-form">
@@ -1136,113 +1215,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         <label>Subcategory</label>
                         <input type="text" value={formData.subcategory} onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })} placeholder="e.g. Wedding Wear" />
                       </div>
-                    </div>
-
-                    {/* Product Colours Section */}
-                    <div className="form-group mb-4 product-colors-form-block">
-                      <div className="color-section-header">
-                        <label style={{ fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span>Available Colours (Select or Add Colours for this Product)</span>
-                          {formData.color && (
-                            <span className="primary-color-chip-tag" title="Main Primary Colour">
-                              Primary: <strong>{formData.color}</strong>
-                            </span>
-                          )}
-                        </label>
-                      </div>
-
-                      {/* Custom Colour Input Box */}
-                      <div className="color-input-wrapper">
-                        <input
-                          type="text"
-                          placeholder="Type custom colour (e.g. Royal Maroon, Rani Pink, Mint)"
-                          value={customColorInput}
-                          onChange={(e) => setCustomColorInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault()
-                              handleAddColor(customColorInput)
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          className="btn-add-color-pill"
-                          onClick={() => handleAddColor(customColorInput)}
-                        >
-                          + Add Colour
-                        </button>
-                      </div>
-
-                      {/* Quick Suggestions Palette */}
-                      <div className="quick-color-suggestions">
-                        <span className="quick-color-label">Quick Suggestions:</span>
-                        <div className="quick-color-chips">
-                          {COMMON_COLOR_SUGGESTIONS.map(c => {
-                            const isSelected = (formData.colors || []).some(
-                              item => item.toLowerCase() === c.name.toLowerCase()
-                            )
-                            return (
-                              <button
-                                key={c.name}
-                                type="button"
-                                className={`quick-color-chip ${isSelected ? 'active' : ''}`}
-                                onClick={() => {
-                                  if (isSelected) handleRemoveColor(c.name)
-                                  else handleAddColor(c.name)
-                                }}
-                                title={isSelected ? `Click to remove ${c.name}` : `Click to add ${c.name}`}
-                              >
-                                <span className="chip-color-dot" style={{ backgroundColor: c.hex }} />
-                                <span>{c.name}</span>
-                                {isSelected ? ' ✓' : ' +'}
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Active Selected Colours Badges */}
-                      {formData.colors && formData.colors.length > 0 ? (
-                        <div className="active-selected-colors-row">
-                          <span className="active-colors-label">Selected Colours ({formData.colors.length}):</span>
-                          <div className="active-color-tags">
-                            {formData.colors.map(col => {
-                              const isPrimary = (formData.color || '').toLowerCase() === col.toLowerCase()
-                              return (
-                                <div key={col} className={`active-color-badge ${isPrimary ? 'primary' : ''}`}>
-                                  <span className="chip-color-dot" style={{ backgroundColor: getColorHex(col) }} />
-                                  <span className="color-name">{col}</span>
-                                  {isPrimary ? (
-                                    <span className="is-primary-label">Primary</span>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      className="btn-set-primary"
-                                      onClick={() => handleSetPrimaryColor(col)}
-                                      title="Set as main/primary colour"
-                                    >
-                                      Make Primary
-                                    </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    className="btn-delete-color"
-                                    onClick={() => handleRemoveColor(col)}
-                                    title={`Remove ${col}`}
-                                  >
-                                    &times;
-                                  </button>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="no-colors-hint">
-                          <span>ℹ️ Click any quick colour above or type a custom shade to add options to this product.</span>
-                        </div>
-                      )}
                     </div>
 
                     <div className="form-group mb-4">
@@ -1345,26 +1317,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         </label>
                       </div>
                     </div>
-                  </div>
+
+                    </div>
                 )}
 
                 {formTab === 'colors' && (
                   <div className="form-tab-content">
                     <div className="form-group mb-4 product-colors-form-block dedicated-tab-mode">
-                      <div className="color-section-header">
-                        <label style={{ fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontSize: '1.05rem' }}>🎨 Product Colours & Variants (Multi-Colour Selection)</span>
-                          {formData.color && (
-                            <span className="primary-color-chip-tag" title="Main Primary Colour">
-                              Primary: <strong>{formData.color}</strong>
-                            </span>
-                          )}
-                        </label>
-                        <p style={{ margin: '4px 0 14px', fontSize: '0.84rem', color: '#64748b' }}>
-                          Add all colour options available for this product. Customers on the storefront will see these colour swatches on the individual product page and choose their preferred shade before ordering.
-                        </p>
-                      </div>
-
                       {/* Custom Colour Input Box */}
                       <div className="color-input-wrapper">
                         <input
@@ -1392,7 +1351,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div className="quick-color-suggestions">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                           <span className="quick-color-label" style={{ margin: 0 }}>
-                            ✦ Quick Select from Popular Ethnic & Couture Shades ({COMMON_COLOR_SUGGESTIONS.length}):
+                            Quick Select from Popular Ethnic & Couture Shades ({COMMON_COLOR_SUGGESTIONS.length}):
                           </span>
                           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Click to toggle</span>
                         </div>
@@ -1459,7 +1418,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         </div>
                       ) : (
                         <div className="no-colors-hint">
-                          <span>ℹ️ Click any quick colour above or type a custom shade to add options to this product.</span>
+                          <span> Click any quick colour above or type a custom shade to add options to this product.</span>
                         </div>
                       )}
                     </div>
@@ -1580,29 +1539,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         <label>Total Available Stock</label>
                         <input type="number" value={formData.sizeStock.reduce((s, i) => s + i.quantity, 0)} disabled className="disabled-input" />
                       </div>
-                    </div>
-
-                    {/* Colour Variants Overview Strip in Inventory Tab */}
-                    <div style={{ marginBottom: '16px', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '1.15rem' }}>🎨</span>
-                        <div>
-                          <strong style={{ fontSize: '0.88rem', color: '#1e293b' }}>
-                            Colours Selected ({(formData.colors || []).length}):
-                          </strong>
-                          <span style={{ fontSize: '0.82rem', color: '#64748b', marginLeft: '6px' }}>
-                            {formData.colors && formData.colors.length > 0 ? formData.colors.join(', ') : 'None yet (Click button to add colours)'}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="size-action-link-btn"
-                        onClick={() => setFormTab('colors')}
-                        style={{ fontSize: '0.8rem', padding: '4px 10px' }}
-                      >
-                        🎨 Manage Colours
-                      </button>
                     </div>
 
                     <div className="inventory-grid">
@@ -1742,7 +1678,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         </div>
                       ) : (
                         <div className="no-sizes-card">
-                          <p>⚠️ No sizes added for this product yet.</p>
+                          <p>No sizes added for this product yet.</p>
                           <span>Type a size above and click <strong>"+ Add Size"</strong> or click any of the quick suggestions.</span>
                         </div>
                       )}
@@ -1820,7 +1756,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                     </div>
 
                     <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #cbd5e1', margin: '18px 0' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                      <div className="product-dimensions-grid">
                         <div className="form-group">
                           <label style={{ fontWeight: 600, fontSize: '0.8rem' }}>Weight (kg)</label>
                           <input
@@ -1900,6 +1836,16 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         <input type="checkbox" checked={formData.isNewArrival} onChange={(e) => setFormData({ ...formData, isNewArrival: e.target.checked })} />
                         <span className="checkmark"></span>
                         Set as New Arrival
+                      </label>
+                      <label className="checkbox-container" style={{ color: '#dc2626', fontWeight: '700' }}>
+                        <input type="checkbox" checked={Boolean(formData.isSale || formData.onSale)} onChange={(e) => setFormData({ ...formData, isSale: e.target.checked, onSale: e.target.checked })} />
+                        <span className="checkmark"></span>
+                        Add to Festive Sale (Show in Sale Page)
+                      </label>
+                      <label className="checkbox-container" style={{ color: '#854d0e', fontWeight: '700' }}>
+                        <input type="checkbox" checked={Boolean(formData.isTryTheLook)} onChange={(e) => setFormData({ ...formData, isTryTheLook: e.target.checked })} />
+                        <span className="checkmark"></span>
+                        Show in Try The Look
                       </label>
                     </div>
                   </div>
@@ -2097,7 +2043,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             onClick={() => setBrandFilter(product.brand)}
                             title={`Click to filter products by ${product.brand}`}
                           >
-                            🏢 {product.brand}
+                            {product.brand}
                           </span>
                         )}
                       </div>
@@ -2163,8 +2109,20 @@ const ProductsManager = ({ onPromoteToHero }) => {
                     <div className="status-badges">
                       {product.featured && <span className="mini-badge featured">Featured</span>}
                       {product.inCollection && <span className="mini-badge collection">Collection</span>}
-                      {!product.featured && !product.inCollection && <span className="mini-badge regular">Regular</span>}
+                      {(product.isSale || product.onSale) && <span className="mini-badge sale" style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5', fontWeight: '700' }}>🔥 Sale</span>}
+                      {!product.featured && !product.inCollection && !product.isSale && !product.onSale && !(product.isTryTheLook || product.tryTheLook) && <span className="mini-badge regular">Regular</span>}
                     </div>
+                    <button
+                      type="button"
+                      className={`inline-trylook-toggle ${Boolean(product.isTryTheLook || product.tryTheLook) ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleToggleTryTheLook(product)
+                      }}
+                      title={Boolean(product.isTryTheLook || product.tryTheLook) ? "Click to Remove from Try The Look" : "Click to Add to Try The Look"}
+                    >
+                      {Boolean(product.isTryTheLook || product.tryTheLook) ? '✨ In Try Look' : '+ Try Look'}
+                    </button>
                   </td>
                   <td className="active-toggle-column">
                     <button
@@ -2244,7 +2202,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           className="brand-badge-pill"
                           onClick={() => setBrandFilter(product.brand)}
                         >
-                          🏢 {product.brand}
+                           {product.brand}
                         </span>
                       )}
                     </div>
@@ -2291,8 +2249,20 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <div className="status-badges">
                   {product.featured && <span className="mini-badge featured">Featured</span>}
                   {product.inCollection && <span className="mini-badge collection">Collection</span>}
-                  {!product.featured && !product.inCollection && <span className="mini-badge regular">Regular</span>}
+                  {(product.isSale || product.onSale) && <span className="mini-badge sale" style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5', fontWeight: '700' }}>🔥 Sale</span>}
+                  {!product.featured && !product.inCollection && !product.isSale && !product.onSale && !(product.isTryTheLook || product.tryTheLook) && <span className="mini-badge regular">Regular</span>}
                 </div>
+                <button
+                  type="button"
+                  className={`inline-trylook-toggle mobile-trylook-btn ${Boolean(product.isTryTheLook || product.tryTheLook) ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleToggleTryTheLook(product)
+                  }}
+                  title={Boolean(product.isTryTheLook || product.tryTheLook) ? "Click to Remove from Try The Look" : "Click to Add to Try The Look"}
+                >
+                  {Boolean(product.isTryTheLook || product.tryTheLook) ? '✨ In Try Look' : '+ Add to Try Look'}
+                </button>
               </div>
 
               <div className="mobile-card-actions">

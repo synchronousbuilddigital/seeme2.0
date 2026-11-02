@@ -60,6 +60,9 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
     if (path === '/collections') {
       return location.pathname.startsWith('/collection') || location.pathname.startsWith('/shop')
     }
+    if (path === '/sale') {
+      return location.pathname.startsWith('/sale') || location.pathname.startsWith('/festive-sale')
+    }
     if (path === '/catalog') {
       return location.pathname.startsWith('/catalog')
     }
@@ -170,6 +173,84 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   }, [])
 
   useEffect(() => {
+    let isCancelled = false
+
+    const fetchSaleData = async () => {
+      try {
+        const prodData = await cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=300`, { ttlMs: 60000 }).catch(() => null)
+        const allProds = Array.isArray(prodData?.data) ? prodData.data : (Array.isArray(prodData?.products) ? prodData.products : [])
+        const activeProds = allProds.filter(p => p && p.isActive !== false)
+
+        // Find products marked onSale
+        let salePool = activeProds.filter(p => Boolean(p.isSale === true || p.onSale === true || p.isSale === 'true' || p.onSale === 'true'))
+
+        // Fallback: products with positive discount if none flagged onSale
+        if (salePool.length === 0) {
+          salePool = activeProds.filter(p => {
+            const price = Number(p.price || 0)
+            const mrp = Number(p.mrp || p.discountPrice || 0)
+            return (mrp > price && price > 0) || (p.discount && Number(p.discount) > 0)
+          })
+        }
+
+        if (salePool.length > 0 && !isCancelled) {
+          const productDiscounts = salePool.map(p => {
+            const price = Number(p.price || 0)
+            const mrp = Number(p.mrp || p.discountPrice || p.price || 0)
+            const discPct = mrp > price && price > 0
+              ? Math.round(((mrp - price) / mrp) * 100)
+              : Number(p.discount || 0)
+            return Math.max(0, discPct)
+          })
+
+          const maxFound = Math.max(...productDiscounts, 0)
+          const highestDiscount = maxFound > 0 ? maxFound : 50
+
+          // Generate dynamic candidate steps up to highestDiscount
+          const candidateSteps = [10, 20, 30, 40, 50, 60, 70].filter(step => step <= highestDiscount)
+          if (candidateSteps.length === 0 && highestDiscount >= 5) {
+            candidateSteps.push(10)
+          }
+
+          const dynamicTiers = candidateSteps.map(step => {
+            const count = productDiscounts.filter(d => d >= step).length
+            return {
+              value: String(step),
+              label: `${step}% OFF & Above`,
+              count
+            }
+          })
+
+          setSaleInfo({
+            maxDiscount: highestDiscount,
+            totalSaleCount: salePool.length,
+            tiers: dynamicTiers.length > 0 ? dynamicTiers : [
+              { value: '10', label: '10% OFF & Above', count: salePool.length },
+              { value: '20', label: '20% OFF & Above', count: salePool.length }
+            ]
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching sale data for Navbar:', err)
+      }
+    }
+
+    fetchSaleData()
+
+    const handleStorageUpdate = (e) => {
+      if (e.key === 'seemee_product_updated') {
+        fetchSaleData()
+      }
+    }
+    window.addEventListener('storage', handleStorageUpdate)
+
+    return () => {
+      isCancelled = true
+      window.removeEventListener('storage', handleStorageUpdate)
+    }
+  }, [])
+
+  useEffect(() => {
     let lastScrollPos = 0
     let ticking = false
 
@@ -256,6 +337,18 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   }, [profileMenuOpen])
 
   const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [saleDropdownOpen, setSaleDropdownOpen] = useState(false)
+  const [mobileSaleOpen, setMobileSaleOpen] = useState(false)
+  const [saleInfo, setSaleInfo] = useState({
+    maxDiscount: 50,
+    totalSaleCount: 0,
+    tiers: [
+      { value: '10', label: '10% OFF & Above', count: 0 },
+      { value: '20', label: '20% OFF & Above', count: 0 },
+      { value: '30', label: '30% OFF & Above', count: 0 },
+      { value: '50', label: '50% OFF & Above', count: 0 }
+    ]
+  })
 
   const handleNavigation = (path) => {
     setMenuOpen(false)
@@ -362,6 +455,64 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               </AnimatePresence>
             </div>
 
+            {/* Sale Dropdown */}
+            <div
+              className="nav-dropdown sale-nav-dropdown"
+              onMouseEnter={() => setSaleDropdownOpen(true)}
+              onMouseLeave={() => setSaleDropdownOpen(false)}
+            >
+              <button
+                className={`dropdown-trigger nav-item sale-nav-item ${isActiveRoute('/sale') ? 'active' : ''}`}
+                onClick={() => handleNavigation('/sale')}
+              >
+                Sale
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" className="dropdown-arrow">
+                  <path d="M6 9L1 4h10z" />
+                </svg>
+              </button>
+              <AnimatePresence>
+                {saleDropdownOpen && (
+                  <motion.div
+                    className="dropdown-menu sale-dropdown-menu"
+                    initial={{ opacity: 0, y: 15, x: '-50%', scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
+                    exit={{ opacity: 0, y: 10, x: '-50%', scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                  >
+                    <div className="sale-dropdown-tiers">
+                      <button
+                        className={`sale-tier-btn ${location.pathname === '/sale' && !location.search ? 'active' : ''}`}
+                        onClick={() => handleNavigation('/sale')}
+                      >
+                        <span className="sale-tier-dot">•</span>
+                        <span className="sale-tier-label">All Sale Products</span>
+                        {saleInfo.totalSaleCount > 0 && (
+                          <span className="sale-tier-count">{saleInfo.totalSaleCount} items</span>
+                        )}
+                      </button>
+
+                      {saleInfo.tiers.map((tier) => {
+                        const isTierActive = location.pathname === '/sale' && location.search.includes(`discount=${tier.value}`)
+                        return (
+                          <button
+                            key={tier.value}
+                            className={`sale-tier-btn ${isTierActive ? 'active' : ''}`}
+                            onClick={() => handleNavigation(`/sale?discount=${tier.value}`)}
+                          >
+                            <span className="sale-tier-dot">•</span>
+                            <span className="sale-tier-label">{tier.label}</span>
+                            {tier.count > 0 && (
+                              <span className="sale-tier-count">{tier.count} items</span>
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <button onClick={() => handleNavigation('/collections')} className={`nav-item ${isActiveRoute('/collections') ? 'active' : ''}`}>Shop</button>
             <button onClick={() => handleNavigation('/catalog')} className={`nav-item ${isActiveRoute('/catalog') ? 'active' : ''}`}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: '-2px', marginRight: '5px' }}>
@@ -370,7 +521,6 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               </svg>
               Catalog
             </button>
-            <button onClick={() => handleNavigation('/fabrics')} className={`nav-item ${isActiveRoute('/fabrics') ? 'active' : ''}`}>Fabrics</button>
             <button onClick={() => handleNavigation('/magazine')} className={`nav-item ${isActiveRoute('/magazine') ? 'active' : ''}`}>Magazine</button>
             <button onClick={() => handleNavigation('/about')} className={`nav-item ${isActiveRoute('/about') ? 'active' : ''}`}>About</button>
           </div>
@@ -590,6 +740,57 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                   <span className="drawer-arrow">→</span>
                 </button>
 
+                {/* Sale Collapsible Submenu */}
+                <div className="drawer-submenu-group">
+                  <div className="drawer-sale-link-row">
+                    <button
+                      className={`admin-style-link sale-mobile-link ${isActiveRoute('/sale') ? 'active' : ''}`}
+                      onClick={() => handleNavigation('/sale')}
+                    >
+                      <span className="link-text">Sale</span>
+                    </button>
+                    <button
+                      className="drawer-expand-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setMobileSaleOpen(!mobileSaleOpen)
+                      }}
+                      title="Toggle Sale Discounts"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" style={{ transform: mobileSaleOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}>
+                        <path d="M6 9L1 4h10z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {mobileSaleOpen && (
+                      <motion.div
+                        className="drawer-submenu-list sale-drawer-submenu"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                      >
+                        <button
+                          className={`drawer-sub-link ${location.pathname === '/sale' && !location.search ? 'active' : ''}`}
+                          onClick={() => handleNavigation('/sale')}
+                        >
+                          ✦ All Sale Products {saleInfo.totalSaleCount > 0 ? `(${saleInfo.totalSaleCount} items)` : ''}
+                        </button>
+                        {saleInfo.tiers.map((tier) => (
+                          <button
+                            key={tier.value}
+                            className={`drawer-sub-link ${location.pathname === '/sale' && location.search.includes(`discount=${tier.value}`) ? 'active' : ''}`}
+                            onClick={() => handleNavigation(`/sale?discount=${tier.value}`)}
+                          >
+                            ✦ {tier.label} {tier.count > 0 ? `(${tier.count})` : ''}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 <button onClick={() => handleNavigation('/collections')} className={`admin-style-link ${isActiveRoute('/collections') ? 'active' : ''}`}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                   <span className="link-text">Shop Collections</span>
@@ -640,12 +841,6 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                     )}
                   </AnimatePresence>
                 </div>
-
-                <button onClick={() => handleNavigation('/fabrics')} className={`admin-style-link ${isActiveRoute('/fabrics') ? 'active' : ''}`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
-                  <span className="link-text">Fabrics & Crafts</span>
-                  <span className="drawer-arrow">→</span>
-                </button>
 
                 <button onClick={() => handleNavigation('/magazine')} className={`admin-style-link ${isActiveRoute('/magazine') ? 'active' : ''}`}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
