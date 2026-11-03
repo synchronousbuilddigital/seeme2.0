@@ -5,6 +5,83 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import './Auth.css'
 
+const validateEmailInput = (email) => {
+  if (!email || !email.trim()) {
+    return 'Email address is required'
+  }
+  const clean = email.toLowerCase().trim()
+
+  if (clean.includes('=') || /\s/.test(clean) || /[<>()\[\]\\;:",]/.test(clean)) {
+    return 'Mail is not valid: contains invalid characters (e.g. spaces or "=").'
+  }
+
+  const atParts = clean.split('@')
+  if (atParts.length !== 2 || !atParts[0] || !atParts[1]) {
+    return 'Mail is not valid: please enter a complete Gmail address (e.g. name@gmail.com)'
+  }
+
+  const [localPart, domainPart] = atParts
+
+  const gmailTypos = {
+    'hmail.com': 'gmail.com',
+    'hmail.co': 'gmail.com',
+    'hmail.in': 'gmail.com',
+    'hmsil.com': 'gmail.com',
+    'gmai.com': 'gmail.com',
+    'gmial.com': 'gmail.com',
+    'gamil.com': 'gmail.com',
+    'gmaill.com': 'gmail.com',
+    'gmal.com': 'gmail.com',
+    'gmeil.com': 'gmail.com',
+    'gmaik.com': 'gmail.com',
+    'gmaul.com': 'gmail.com',
+    'gmail.con': 'gmail.com',
+    'gmail.co': 'gmail.com',
+    'gmail.cpm': 'gmail.com',
+    'gmail.om': 'gmail.com',
+    'gmail.cm': 'gmail.com',
+    'gmaii.com': 'gmail.com',
+    'googlemail.con': 'googlemail.com'
+  }
+
+  if (gmailTypos[domainPart]) {
+    return `Mail is not valid: did you mean @${gmailTypos[domainPart]}?`
+  }
+
+  // STRICT REQUIREMENT: Only @gmail.com or @googlemail.com is valid
+  if (domainPart !== 'gmail.com' && domainPart !== 'googlemail.com') {
+    return 'Mail is not valid: only @gmail.com addresses are allowed'
+  }
+
+  const baseLocal = localPart.split('+')[0]
+  if (baseLocal.length < 6) {
+    return `Mail is not valid: Gmail username must be at least 6 characters (currently ${baseLocal.length})`
+  }
+  if (baseLocal.length > 30) {
+    return `Mail is not valid: Gmail username cannot exceed 30 characters (currently ${baseLocal.length})`
+  }
+  if (baseLocal.startsWith('.') || baseLocal.endsWith('.')) {
+    return 'Mail is not valid: Gmail username cannot start or end with a period'
+  }
+  if (baseLocal.includes('..')) {
+    return 'Mail is not valid: Gmail username cannot contain consecutive periods (..)'
+  }
+  if (!/^[a-z0-9.]+$/i.test(baseLocal)) {
+    return 'Mail is not valid: Gmail only allows letters (a-z), numbers (0-9), and periods (.)'
+  }
+  if (/^\d+$/.test(baseLocal.replace(/\./g, ''))) {
+    return 'Mail is not valid: Gmail username cannot consist only of numbers'
+  }
+
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@(gmail\.com|googlemail\.com)$/i
+  if (!emailRegex.test(clean)) {
+    return 'Mail is not valid: please enter a valid Gmail address (e.g. user@gmail.com)'
+  }
+
+  return null
+}
+
+
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true)
   const [logo, setLogo] = useState('/images/logoSEEMEE1.png')
@@ -26,6 +103,14 @@ const Auth = () => {
   const [signupOtpStep, setSignupOtpStep] = useState(false)
   const [signupOtp, setSignupOtp] = useState('')
   const [otpTimer, setOtpTimer] = useState(0)
+  const [emailTouched, setEmailTouched] = useState(false)
+
+  // Real-time inline email validation for signup
+  const rawEmailInput = (formData.email || '').trim()
+  const inlineEmailError = (!isLogin && (emailTouched || rawEmailInput.length > 3))
+    ? validateEmailInput(rawEmailInput)
+    : null
+  const isEmailValid = !isLogin && rawEmailInput.length > 0 && !validateEmailInput(rawEmailInput)
 
   const { user, token, login, signup, sendSignupOtp, forgotPassword, loginWithToken } = useAuth()
   const navigate = useNavigate()
@@ -154,15 +239,11 @@ const Auth = () => {
         setLoading(false)
         return
       }
+      setEmailTouched(true)
       const cleanEmail = (formData.email || '').toLowerCase().trim()
-      if (!cleanEmail) {
-        setError('Email Address is required')
-        setLoading(false)
-        return
-      }
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-      if (!emailRegex.test(cleanEmail)) {
-        setError('Please enter a valid email address (e.g. name@example.com)')
+      const emailValidationError = validateEmailInput(cleanEmail)
+      if (emailValidationError) {
+        setError(emailValidationError)
         setLoading(false)
         return
       }
@@ -240,11 +321,17 @@ const Auth = () => {
 
   const handleResendSignupOtp = async () => {
     if (otpTimer > 0) return
+    const cleanEmail = (formData.email || '').toLowerCase().trim()
+    const emailValidationError = validateEmailInput(cleanEmail)
+    if (emailValidationError) {
+      setError(emailValidationError)
+      return
+    }
     setLoading(true)
     setError('')
     setSuccess('')
     try {
-      const res = await sendSignupOtp(formData.name, formData.email.toLowerCase().trim())
+      const res = await sendSignupOtp(formData.name, cleanEmail)
       if (res.success) {
         setOtpTimer(60)
         setSuccess(`A new verification OTP has been sent to ${formData.email.toLowerCase().trim()}`)
@@ -264,6 +351,7 @@ const Auth = () => {
     setSuccess('')
     setSignupOtpStep(false)
     setSignupOtp('')
+    setEmailTouched(false)
     setFormData({
       name: '',
       email: '',
@@ -432,15 +520,115 @@ const Auth = () => {
               </AnimatePresence>
 
               <div className="input-group-editorial">
-                <label>Email Address</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="name@example.com"
-                  required
-                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label>Gmail Address</label>
+                  {!isLogin && inlineEmailError && (
+                    <span style={{ fontSize: '11px', color: '#dc2626', fontWeight: 600, letterSpacing: '0.5px' }}>
+                      INVALID EMAIL
+                    </span>
+                  )}
+                  {!isLogin && isEmailValid && (
+                    <span style={{ fontSize: '11px', color: '#16a34a', fontWeight: 600, letterSpacing: '0.5px' }}>
+                      ✓ VALID GMAIL
+                    </span>
+                  )}
+                </div>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={(e) => {
+                      handleChange(e)
+                      if (!emailTouched && e.target.value.trim().length > 3) {
+                        setEmailTouched(true)
+                      }
+                    }}
+                    onBlur={() => setEmailTouched(true)}
+                    placeholder="yourname@gmail.com"
+                    required
+                    style={{
+                      borderColor: (!isLogin && inlineEmailError) ? '#dc2626' : ((!isLogin && isEmailValid) ? '#16a34a' : undefined),
+                      boxShadow: (!isLogin && inlineEmailError) ? '0 0 0 1px #dc2626' : ((!isLogin && isEmailValid) ? '0 0 0 1px #16a34a' : undefined),
+                      paddingRight: (!isLogin && (inlineEmailError || isEmailValid)) ? '38px' : undefined
+                    }}
+                  />
+                  {!isLogin && isEmailValid && (
+                    <span style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#16a34a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      pointerEvents: 'none'
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </span>
+                  )}
+                  {!isLogin && inlineEmailError && (
+                    <span style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      color: '#dc2626',
+                      display: 'flex',
+                      alignItems: 'center',
+                      pointerEvents: 'none'
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+                {!isLogin && inlineEmailError && (
+                  <div
+                    className="auth-field-error"
+                    style={{
+                      marginTop: '6px',
+                      fontSize: '12.5px',
+                      color: '#dc2626',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontWeight: 500,
+                      lineHeight: 1.35
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ flexShrink: 0 }}>
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="8" x2="12" y2="12" />
+                      <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <span>{inlineEmailError}</span>
+                  </div>
+                )}
+                {!isLogin && isEmailValid && (
+                  <div
+                    className="auth-field-success"
+                    style={{
+                      marginTop: '6px',
+                      fontSize: '12.5px',
+                      color: '#16a34a',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontWeight: 500
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ flexShrink: 0 }}>
+                      <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <span>Valid Gmail address</span>
+                  </div>
+                )}
               </div>
 
               <div className="input-group-editorial">
@@ -548,9 +736,13 @@ const Auth = () => {
               <motion.button
                 type="submit"
                 className="submit-btn-editorial"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                disabled={loading}
+                whileHover={(!isLogin && !!inlineEmailError) ? {} : { scale: 1.01 }}
+                whileTap={(!isLogin && !!inlineEmailError) ? {} : { scale: 0.99 }}
+                disabled={loading || (!isLogin && !!inlineEmailError)}
+                style={{
+                  opacity: (!isLogin && !!inlineEmailError) ? 0.6 : 1,
+                  cursor: (!isLogin && !!inlineEmailError) ? 'not-allowed' : 'pointer'
+                }}
               >
                 {loading ? (
                   <span className="loading-dots">Processing...</span>

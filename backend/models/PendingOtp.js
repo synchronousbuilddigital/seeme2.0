@@ -19,7 +19,7 @@ const pendingOtpSchema = new mongoose.Schema({
   otpExpires: {
     type: Date,
     required: true,
-    expires: 600 // Auto-delete record 10 minutes (600 seconds) after creation
+    expires: 300 // Auto-delete record 10 minutes (600 seconds) after creation
   },
   otpAttempts: {
     type: Number,

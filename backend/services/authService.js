@@ -1,3 +1,4 @@
+import { validateEmailSyntax, normalizeEmailAddress } from '../utils/emailValidator.js'
 import User from '../models/User.js'
 import jwt from 'jsonwebtoken'
 import { getJwtSecret, getJwtRefreshSecret } from '../config/jwt.js'
@@ -24,10 +25,10 @@ export const verifyRefreshToken = (token) => {
 export const registerUser = async (userData) => {
   const { email, password, name, phone } = userData
 
-  const cleanEmail = String(email || '').toLowerCase().trim()
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-  if (!emailRegex.test(cleanEmail)) {
-    throw new Error('Please enter a valid email address (e.g., user@example.com).')
+  const cleanEmail = normalizeEmailAddress(email)
+  const validation = validateEmailSyntax(cleanEmail)
+  if (!validation.isValid) {
+    throw new Error(validation.error)
   }
 
   const userExists = await User.findOne({ email: cleanEmail })

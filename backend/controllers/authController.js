@@ -5,6 +5,8 @@ import User from '../models/User.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import PendingOtp from '../models/PendingOtp.js'
 import { sendOtpEmail, sendSignupOtpEmail } from '../services/emailService.js'
+import { validateEmail, normalizeEmailAddress } from '../utils/emailValidator.js'
+import { generateSecureOtp, hashOtp, verifyOtpHash } from '../utils/otpHelper.js'
 
 // Helper to set refresh token cookie
 const setRefreshTokenCookie = (res, token) => {
@@ -24,26 +26,28 @@ const setRefreshTokenCookie = (res, token) => {
 export const sendSignupOtp = asyncHandler(async (req, res) => {
   const { email, name } = req.body
 
-  if (!email || !email.trim()) {
+  if (!email || !String(email).trim()) {
     res.status(400)
     throw new Error('Email address is required.')
   }
 
-  const cleanEmail = email.toLowerCase().trim()
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-  if (!emailRegex.test(cleanEmail)) {
+  // 1. Deep validation: Syntax, illegal characters, domain typos, strict @gmail.com only, Gmail username rules, MX records
+  const validation = await validateEmail(email)
+  if (!validation.isValid) {
     res.status(400)
-    throw new Error('Please enter a valid email address (e.g., user@example.com).')
+    throw new Error(validation.error)
   }
 
-  // 1. Check if an account already exists with this email
+  const cleanEmail = validation.cleanEmail
+
+  // 2. Prevent duplicate email registration
   const existingUser = await User.findOne({ email: cleanEmail })
   if (existingUser) {
     res.status(400)
     throw new Error('An account with this email address already exists. Please sign in instead.')
   }
 
-  // 1b. Rate limiting safeguard (60-second cooldown per email)
+  // 3. Rate limiting / Resend cooldown safeguard (60-second cooldown per email)
   const existingPending = await PendingOtp.findOne({ email: cleanEmail })
   if (existingPending && existingPending.updatedAt) {
     const elapsedMs = Date.now() - new Date(existingPending.updatedAt).getTime()
@@ -54,74 +58,114 @@ export const sendSignupOtp = asyncHandler(async (req, res) => {
     }
   }
 
-  // 2. Generate secure 6-digit OTP using CSPRNG
-  const otp = crypto.randomInt(100000, 1000000).toString()
+  // 4. Generate secure random 6-digit OTP using CSPRNG
+  const otp = generateSecureOtp()
 
-  // 3. Upsert pending OTP in database (valid for 10 minutes)
+  // 5. Send OTP using existing email service/SMTP configuration FIRST
+  const emailResult = await sendSignupOtpEmail(cleanEmail, name, otp)
+
+  if (!emailResult || !emailResult.success) {
+    // Delivery failed: clean up any pending record and abort
+    await PendingOtp.deleteMany({ email: cleanEmail })
+    res.status(400)
+
+    const rawError = String(emailResult?.error || '')
+    if (rawError.includes('553') || rawError.includes('550') || rawError.includes('rejected') || rawError.includes('not a valid')) {
+      throw new Error(`The email address "${cleanEmail}" was rejected by the mail server. Please check your email for typos and ensure your account exists.`)
+    }
+    throw new Error(emailResult?.error || `Unable to deliver verification code to "${cleanEmail}". Please check your email address.`)
+  }
+
+  // 6. Store OTP securely using cryptographic hashing (Plain OTP is never stored in DB)
+  const hashedOtp = hashOtp(cleanEmail, otp)
+
+  // 7. Upsert pending OTP in database (Set expiration to exactly 5 minutes)
   await PendingOtp.deleteMany({ email: cleanEmail })
   await PendingOtp.create({
     email: cleanEmail,
     name: name ? name.trim() : 'Valued Customer',
-    otpCode: otp,
-    otpExpires: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes expiry
+    otpCode: hashedOtp,
+    otpExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes validity
     otpAttempts: 0
   })
 
-  console.log(`🔑 [SIGNUP OTP SENT] Verification code sent to: ${cleanEmail}`)
-
-  // 4. Send email
-  await sendSignupOtpEmail(cleanEmail, name, otp)
+  // Secure log: Avoid exposing sensitive OTP information in API responses or logs
+  console.log(`🔑 [SIGNUP OTP SENT] Verification code dispatched to: ${cleanEmail} (Cryptographic hash stored, expires in 5 minutes)`)
 
   res.json({
     success: true,
-    message: `Verification OTP has been sent to ${cleanEmail}. Please enter the 6-digit code to complete registration.`
+    message: `Verification OTP has been sent to ${cleanEmail}. Please enter the 6-digit code (valid for 5 minutes).`
   })
 })
 
 export const register = asyncHandler(async (req, res) => {
-  const { email, otp } = req.body
+  const { email, otp, name, password, phone } = req.body
 
-  if (!otp || !otp.trim()) {
+  if (!email || !String(email).trim()) {
+    res.status(400)
+    throw new Error('Email address is required.')
+  }
+
+  if (!otp || !String(otp).trim()) {
     res.status(400)
     throw new Error('Email Verification OTP code is required.')
   }
 
-  const cleanEmail = String(email || '').toLowerCase().trim()
+  const cleanEmail = normalizeEmailAddress(email)
 
-  // Check pending OTP in database
+  // 1. Prevent duplicate email registrations
+  const existingUser = await User.findOne({ email: cleanEmail })
+  if (existingUser) {
+    res.status(400)
+    throw new Error('An account with this email address already exists. Please sign in instead.')
+  }
+
+  // 2. Ensure OTP verification is linked to the exact email address entered during signup
   const pendingRecord = await PendingOtp.findOne({ email: cleanEmail })
   if (!pendingRecord || !pendingRecord.otpCode || !pendingRecord.otpExpires) {
     res.status(400)
-    throw new Error('No active OTP request found for this email. Please request a new verification code.')
+    throw new Error('No active verification request found for this email address. Please request a new verification code.')
   }
 
-  // Check expiration
+  // 3. Set OTP expiration check (5 minutes)
   if (new Date(pendingRecord.otpExpires).getTime() < Date.now()) {
     await PendingOtp.deleteMany({ email: cleanEmail })
     res.status(400)
-    throw new Error('Verification OTP has expired. Please request a new verification code.')
+    throw new Error('Verification OTP has expired (5-minute limit). Please request a new verification code.')
   }
 
-  // Check OTP attempts limit (max 5)
+  // 4. Limit incorrect OTP attempts (max 5)
   if ((pendingRecord.otpAttempts || 0) >= 5) {
     await PendingOtp.deleteMany({ email: cleanEmail })
     res.status(400)
-    throw new Error('Too many failed OTP verification attempts. Please request a new verification code.')
+    throw new Error('Too many failed OTP verification attempts. This verification code has been invalidated. Please request a new code.')
   }
 
-  // Verify OTP match
-  if (String(pendingRecord.otpCode).trim() !== String(otp).trim()) {
+  // 5. Verify candidate OTP against secure cryptographic hash in constant time
+  const isOtpValid = verifyOtpHash(cleanEmail, otp, pendingRecord.otpCode)
+  if (!isOtpValid) {
     pendingRecord.otpAttempts = (pendingRecord.otpAttempts || 0) + 1
-    await pendingRecord.save()
-    const remaining = 5 - pendingRecord.otpAttempts
-    res.status(400)
-    throw new Error(`Invalid OTP verification code. ${remaining} attempt(s) remaining.`)
+    if (pendingRecord.otpAttempts >= 5) {
+      await PendingOtp.deleteMany({ email: cleanEmail })
+      res.status(400)
+      throw new Error('Invalid OTP verification code. Maximum attempts reached. This verification code has been invalidated.')
+    } else {
+      await pendingRecord.save()
+      const remaining = 5 - pendingRecord.otpAttempts
+      res.status(400)
+      throw new Error(`Invalid OTP verification code. ${remaining} attempt(s) remaining.`)
+    }
   }
 
-  // OTP verified! Create user account
-  const user = await authService.registerUser(req.body)
+  // 6. OTP successfully verified! Create the user's account now (Do not create an active account before successful OTP verification)
+  const userData = {
+    ...req.body,
+    email: cleanEmail,
+    name: (pendingRecord.name && pendingRecord.name !== 'Valued Customer') ? pendingRecord.name : (name || 'Valued Customer')
+  }
+  const user = await authService.registerUser(userData)
 
-  // Clear pending OTP record
+  // 7. Clear pending OTP record
   await PendingOtp.deleteMany({ email: cleanEmail })
 
   const accessToken = authService.generateToken(user._id)

@@ -18,6 +18,15 @@ export const validate = (req, res, next) => {
 }
 
 // Auth Validations
+export const sendSignupOtpValidationRules = () => {
+  return [
+    body('email')
+      .trim()
+      .notEmpty().withMessage('Email address is required')
+      .isEmail().withMessage('Please enter a valid Gmail address')
+  ]
+}
+
 export const registerValidationRules = () => {
   return [
     body('name').notEmpty().withMessage('Name is required').trim(),

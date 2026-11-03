@@ -2,12 +2,12 @@ import express from 'express'
 import * as authController from '../controllers/authController.js'
 import { protect } from '../middleware/auth.js'
 
-import { registerValidationRules, loginValidationRules, validate } from '../middleware/validator.js'
+import { registerValidationRules, loginValidationRules, sendSignupOtpValidationRules, validate } from '../middleware/validator.js'
 
 const router = express.Router()
 
 // Register & Signup OTP Flow
-router.post('/send-signup-otp', authController.sendSignupOtp)
+router.post('/send-signup-otp', sendSignupOtpValidationRules(), validate, authController.sendSignupOtp)
 router.post('/register', registerValidationRules(), validate, authController.register)
 router.post('/signup', registerValidationRules(), validate, authController.register) // Alias
 
