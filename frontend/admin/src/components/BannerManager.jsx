@@ -188,6 +188,7 @@ const BannerManager = () => {
     setUploading(true)
     const formData = new FormData()
     formData.append('image', file)
+    formData.append('folder', 'seemee/banners')
 
     try {
       const response = await apiRequest(API_ENDPOINTS.UPLOAD.IMAGE, {

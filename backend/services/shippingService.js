@@ -603,6 +603,12 @@ export const trackShipment = async ({ awbNumber, orderId }) => {
         if (order.shipping) {
           order.shipping.status = res.CurrentStatus.toLowerCase()
         }
+        if (!order.timeline) order.timeline = []
+        order.timeline.push({
+          status: res.CurrentStatus,
+          note: `Shipment update: ${res.StatusDescription || res.CurrentStatus}`,
+          timestamp: new Date()
+        })
         await order.save()
       }
     }

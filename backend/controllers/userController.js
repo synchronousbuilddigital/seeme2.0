@@ -62,6 +62,13 @@ export const updateAddress = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
   const address = user.addresses.id(req.params.id)
   if (address) {
+    if (req.body.isDefault) {
+      user.addresses.forEach(a => {
+        if (a._id.toString() !== req.params.id) {
+          a.isDefault = false
+        }
+      })
+    }
     Object.assign(address, req.body)
     await user.save()
     res.json({ success: true, data: user.addresses })

@@ -2,10 +2,12 @@ import crypto from 'crypto'
 import mongoose from 'mongoose'
 import Refund from '../models/Refund.js'
 import Order from '../models/Order.js'
+import Product from '../models/Product.js'
 import asyncHandler from '../utils/asyncHandler.js'
 import { getRazorpay } from './orderController.js'
 import shippingService from '../services/shippingService.js'
 import { sendOrderEmail } from '../services/emailService.js'
+import { revertCouponUsage } from '../services/couponEngine.js'
 
 /**
  * Helper to determine if an order has been shipped or picked up from warehouse.
@@ -315,6 +317,30 @@ export const approveRefund = asyncHandler(async (req, res) => {
   if (req.body.adminNote) refund.adminNote = req.body.adminNote
   await refund.save()
 
+  // 6. Revert coupon usage and restore warehouse inventory stock
+  await revertCouponUsage(order._id)
+  if (order.status !== 'cancelled' && order.items && order.items.length > 0) {
+    for (const item of order.items) {
+      if (item.product) {
+        const prod = await Product.findById(item.product)
+        if (prod) {
+          if (prod.sizeStock && prod.sizeStock.length > 0) {
+            const sItem = prod.sizeStock.find(s => s.size === item.size)
+            if (sItem) {
+              sItem.quantity += (item.quantity || 1)
+              prod.stock = prod.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+            } else {
+              prod.stock += (item.quantity || 1)
+            }
+          } else {
+            prod.stock += (item.quantity || 1)
+          }
+          await prod.save()
+        }
+      }
+    }
+  }
+
   order.refundStatus = orderRefundStatusVal
   order.paymentStatus = 'refunded'
   order.refundedAmount = order.totalAmount
@@ -408,23 +434,16 @@ export const rejectRefund = asyncHandler(async (req, res) => {
 // @access  Public (Signature Verified)
 export const handleRazorpayWebhook = asyncHandler(async (req, res) => {
   const webhookSecret = (process.env.RAZORPAY_WEBHOOK_SECRET || process.env.RAZORPAY_KEY_SECRET || '').trim()
-
-  if (!webhookSecret) {
-    res.status(500)
-    throw new Error('Razorpay webhook secret is not configured on the server')
-  }
-
   const signature = req.headers['x-razorpay-signature']
-  if (!signature) {
-    res.status(400)
-    throw new Error('Missing X-Razorpay-Signature header')
+
+  if (!webhookSecret || !signature) {
+    return res.status(400).json({ success: false, message: 'Missing webhook configuration' })
   }
 
-  // Calculate HMAC SHA256 signature over request body
-  const bodyString = typeof req.body === 'string' ? req.body : JSON.stringify(req.body)
+  // Compute HMAC over the exact raw body byte buffer
   const expectedSignature = crypto
     .createHmac('sha256', webhookSecret)
-    .update(bodyString)
+    .update(req.rawBody || (typeof req.body === 'string' ? req.body : JSON.stringify(req.body)))
     .digest('hex')
 
   if (expectedSignature !== signature) {
@@ -432,10 +451,30 @@ export const handleRazorpayWebhook = asyncHandler(async (req, res) => {
     throw new Error('Invalid Razorpay webhook signature')
   }
 
-  const event = req.body?.event
-  const payload = req.body?.payload
+  const { event, payload } = req.body || {}
 
-  if (event === 'refund.processed') {
+  // Handle customer disconnect scenario (e.g. mobile UPI tab closed before redirect)
+  if (event === 'payment.captured' || event === 'order.paid') {
+    const paymentEntity = payload?.payment?.entity
+    const orderId = paymentEntity?.order_id || payload?.order?.entity?.id
+    const paymentId = paymentEntity?.id
+    if (orderId) {
+      let order = await Order.findOne({ 'paymentDetails.orderId': orderId })
+      if (order && order.paymentStatus !== 'paid') {
+        order.paymentStatus = 'paid'
+        order.status = 'confirmed'
+        if (paymentId) {
+          if (!order.paymentDetails) order.paymentDetails = {}
+          order.paymentDetails.paymentId = paymentId
+        }
+        await order.save()
+
+        try {
+          sendOrderEmail(order, 'Placed').catch(err => console.error('Webhook order email error:', err.message))
+        } catch (e) {}
+      }
+    }
+  } else if (event === 'refund.processed') {
     const refundEntity = payload?.refund?.entity
     if (refundEntity?.id) {
       const refund = await Refund.findOne({ gatewayRefundId: refundEntity.id })

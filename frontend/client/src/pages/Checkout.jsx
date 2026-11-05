@@ -144,6 +144,7 @@ const Checkout = () => {
   
   const [addresses, setAddresses] = useState([])
   const [selectedAddressId, setSelectedAddressId] = useState(null)
+  const [editingAddressId, setEditingAddressId] = useState(null)
   const [saveAddress, setSaveAddress] = useState(false)
   const [savingAddress, setSavingAddress] = useState(false)
   const [addressSaveSuccess, setAddressSaveSuccess] = useState('')
@@ -306,11 +307,153 @@ const Checkout = () => {
 
   const handleCancelNewAddress = () => {
     setAddressFormError('')
+    setEditingAddressId(null)
     if (addresses.length > 0) {
       const defaultOrFirst = addresses.find(a => a.isDefault) || addresses[0]
       if (defaultOrFirst) {
         handleAddressSelect(defaultOrFirst)
       }
+    }
+  }
+
+  const handleStartEditAddress = (addr) => {
+    setEditingAddressId(addr._id)
+    setSelectedAddressId(addr._id)
+    setAddressFormError('')
+    setFormData(prev => ({
+      ...prev,
+      name: addr.name || user?.name || prev.name || '',
+      phone: addr.phone || user?.phone || prev.phone || '',
+      street: addr.street || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      pincode: addr.pincode || ''
+    }))
+  }
+
+  const handleCancelAddressEdit = () => {
+    setEditingAddressId(null)
+    setAddressFormError('')
+    if (selectedAddressId) {
+      const current = addresses.find(a => a._id === selectedAddressId)
+      if (current) {
+        setFormData(prev => ({
+          ...prev,
+          name: current.name || prev.name,
+          phone: current.phone || prev.phone,
+          street: current.street || '',
+          city: current.city || '',
+          state: current.state || '',
+          pincode: current.pincode || ''
+        }))
+      }
+    }
+  }
+
+  const handleSaveEditedAddress = async (e) => {
+    if (e) e.preventDefault()
+    setAddressFormError('')
+
+    const name = (formData.name || '').trim()
+    const phone = (formData.phone || '').trim()
+    const street = (formData.street || '').trim()
+    const city = (formData.city || '').trim()
+    const state = (formData.state || '').trim()
+    const pincode = (formData.pincode || '').trim()
+
+    if (!name) {
+      setAddressFormError('Please enter recipient full name.')
+      return
+    }
+    if (!phone || phone.length < 10) {
+      setAddressFormError('Please enter a valid 10-digit phone number.')
+      return
+    }
+    if (!street) {
+      setAddressFormError('Please enter street address / house details.')
+      return
+    }
+    if (!city) {
+      setAddressFormError('Please enter city / district.')
+      return
+    }
+    if (!state) {
+      setAddressFormError('Please select state.')
+      return
+    }
+    if (!pincode || pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
+      setAddressFormError('Please enter a valid 6-digit pincode.')
+      return
+    }
+
+    const payload = {
+      name,
+      phone,
+      street,
+      city,
+      state,
+      pincode
+    }
+
+    const isMongoId = editingAddressId && /^[0-9a-fA-F]{24}$/.test(editingAddressId)
+
+    try {
+      setSavingAddress(true)
+
+      let res, data
+      if (isMongoId) {
+        res = await fetch(`${API_ENDPOINTS.USERS_ADDRESSES}/${editingAddressId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        })
+        data = await res.json()
+      } else {
+        res = await fetch(API_ENDPOINTS.USERS_ADDRESSES, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ ...payload, isDefault: true })
+        })
+        data = await res.json()
+      }
+
+      if (data && data.success && Array.isArray(data.data)) {
+        setAddresses(data.data)
+        const updated = isMongoId
+          ? data.data.find(a => a._id === editingAddressId) || data.data[0]
+          : data.data[data.data.length - 1]
+
+        if (updated) {
+          setSelectedAddressId(updated._id)
+          setFormData(prev => ({
+            ...prev,
+            name: updated.name || prev.name,
+            phone: updated.phone || prev.phone,
+            street: updated.street || prev.street,
+            city: updated.city || prev.city,
+            state: updated.state || prev.state,
+            pincode: updated.pincode || prev.pincode
+          }))
+        }
+
+        setEditingAddressId(null)
+        setAddressSaveSuccess('Address updated successfully!')
+        setAddressFormError('')
+        setTimeout(() => setAddressSaveSuccess(''), 3500)
+      } else {
+        setAddressFormError(data?.message || 'Failed to update address. Please try again.')
+      }
+    } catch (err) {
+      console.error('Error updating address:', err)
+      setAddressFormError('Failed to update address. Please try again.')
+    } finally {
+      setSavingAddress(false)
     }
   }
 
@@ -435,7 +578,7 @@ const Checkout = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               deliveryPincode: rawPin,
-              paymentType: 'prepaid',
+              paymentType: formData.paymentMethod === 'cod' ? 'cod' : 'prepaid',
               items: cart.map(i => ({ product: i.id || i._id, quantity: i.quantity, price: i.price })),
               invoiceAmount: calculateTotal()
             })
@@ -554,6 +697,7 @@ const Checkout = () => {
 
   const handleAddressSelect = (address) => {
     setSelectedAddressId(address._id)
+    setEditingAddressId(null)
     setAddressFormError('')
     setFormData(prev => ({
       ...prev,
@@ -633,6 +777,11 @@ const Checkout = () => {
     if (orderType === 'OFFLINE' && trimmedPincode !== '122103') {
       alert('Offline store is not available in your area.')
       setOrderType('ONLINE')
+      return false
+    }
+
+    if (orderType === 'ONLINE' && (!shippingPartners || shippingPartners.length === 0 || shippingError)) {
+      alert('Your delivery pincode is not serviceable by our courier partners. Please provide a different address.')
       return false
     }
 
@@ -940,9 +1089,20 @@ const Checkout = () => {
                 <div className="saved-addresses-luxury">
                   <div className="saved-addresses-header">
                     <span className="mini-title">
-                      {!selectedAddressId ? 'Saved Addresses (Click to choose)' : 'Select Shipping Address'}
+                      {editingAddressId
+                        ? 'Editing Delivery Address'
+                        : (!selectedAddressId ? 'Saved Addresses (Click to choose)' : 'Select Shipping Address')}
                     </span>
-                    {!selectedAddressId && (
+                    {editingAddressId ? (
+                      <button 
+                        type="button" 
+                        className="btn-cancel-new-addr"
+                        onClick={handleCancelAddressEdit}
+                        title="Cancel editing address"
+                      >
+                        ✕ Cancel Edit
+                      </button>
+                    ) : !selectedAddressId && (
                       <button 
                         type="button" 
                         className="btn-cancel-new-addr"
@@ -958,12 +1118,29 @@ const Checkout = () => {
                     {addresses.map(addr => (
                       <div 
                         key={addr._id} 
-                        className={`address-pill ${selectedAddressId === addr._id ? 'active' : ''}`}
+                        className={`address-pill ${selectedAddressId === addr._id ? 'active' : ''} ${editingAddressId === addr._id ? 'editing' : ''}`}
                         onClick={() => handleAddressSelect(addr)}
                       >
                         <div className="pill-top">
                           <span className="pill-text">{addr.name || user.name || 'Saved Address'}</span>
-                          {addr.isDefault && <span className="pill-badge">Default</span>}
+                          <div className="pill-actions">
+                            {addr.isDefault && <span className="pill-badge">Default</span>}
+                            <button
+                              type="button"
+                              className="btn-pill-edit"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleStartEditAddress(addr)
+                              }}
+                              title="Edit this address"
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                              <span>Edit</span>
+                            </button>
+                          </div>
                         </div>
                         <span className="pill-sub">
                           {addr.street ? `${addr.street}, ${addr.city || ''}, ${addr.state || ''} ${addr.pincode ? `- ${addr.pincode}` : ''}` : 'Saved Address'}
@@ -971,12 +1148,13 @@ const Checkout = () => {
                       </div>
                     ))}
 
-                    {/* Hide + Add New Address when form is already open (!selectedAddressId) */}
-                    {selectedAddressId && (
+                    {/* Hide + Add New Address when form is already open or editing */}
+                    {selectedAddressId && !editingAddressId && (
                       <div 
                         className="address-pill new" 
                         onClick={() => {
                           setSelectedAddressId(null)
+                          setEditingAddressId(null)
                           setAddressFormError('')
                           setFormData(prev => ({
                             ...prev,
@@ -994,12 +1172,17 @@ const Checkout = () => {
                 </div>
               )}
 
-              {/* Recipient Details & Address Form - ONLY shown when adding new address or no saved address selected */}
-              {(!selectedAddressId || addresses.length === 0) && (
+              {/* Recipient Details & Address Form - shown when adding new address, editing address, or no saved address */}
+              {(!selectedAddressId || editingAddressId || addresses.length === 0) && (
                 <div className="new-address-form-box">
                   {addresses && addresses.length > 0 && (
                     <div className="new-address-form-header">
-                      <span className="new-address-form-title">Enter New Delivery Address</span>
+                      <span className="new-address-form-title">
+                        {editingAddressId ? 'Edit Delivery Address' : 'Enter New Delivery Address'}
+                      </span>
+                      {editingAddressId && (
+                        <span className="edit-address-badge-hint">Updating Saved Address</span>
+                      )}
                     </div>
                   )}
 
@@ -1129,13 +1312,13 @@ const Checkout = () => {
                     <button
                       type="button"
                       className="btn-save-address-primary"
-                      onClick={handleManualSaveAddress}
+                      onClick={editingAddressId ? handleSaveEditedAddress : handleManualSaveAddress}
                       disabled={savingAddress}
                     >
                       {savingAddress ? (
                         <>
                           <span className="btn-spinner-sm"></span>
-                          <span>Saving Address...</span>
+                          <span>{editingAddressId ? 'Updating Address...' : 'Saving Address...'}</span>
                         </>
                       ) : (
                         <>
@@ -1144,7 +1327,7 @@ const Checkout = () => {
                             <polyline points="17 21 17 13 7 13 7 21"></polyline>
                             <polyline points="7 3 7 8 15 8"></polyline>
                           </svg>
-                          <span>Save Address</span>
+                          <span>{editingAddressId ? 'Update Address' : 'Save Address'}</span>
                         </>
                       )}
                     </button>
@@ -1153,7 +1336,7 @@ const Checkout = () => {
                       <button
                         type="button"
                         className="btn-cancel-address-secondary"
-                        onClick={handleCancelNewAddress}
+                        onClick={editingAddressId ? handleCancelAddressEdit : handleCancelNewAddress}
                         disabled={savingAddress}
                       >
                         Cancel

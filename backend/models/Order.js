@@ -163,11 +163,11 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Generate order number
+// Generate guaranteed unique order number
 orderSchema.pre('save', async function() {
   if (!this.orderNumber) {
-    const count = await mongoose.model('Order').countDocuments()
-    this.orderNumber = `SM${Date.now()}${count + 1}`
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000)
+    this.orderNumber = `SM${Date.now()}${randomSuffix}`
   }
 })
 

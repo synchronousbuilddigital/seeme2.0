@@ -10,14 +10,17 @@ const saveImageFile = async (file, folder = 'seemee/images') => {
   // Check if Cloudinary environment variables are configured
   if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
     return new Promise((resolve, reject) => {
+      const isBanner = folder.includes('banner') || (file.originalname && /banner|festive|promo|hero/i.test(file.originalname))
+      const uploadOptions = {
+        folder,
+        resource_type: 'image',
+        ...(isBanner
+          ? { quality: 'auto:best' } // Preserve master artwork resolution and fidelity for banners without harsh compression
+          : { format: 'webp', quality: 'auto', fetch_format: 'webp' }
+        )
+      }
       const stream = cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: 'image',
-          format: 'webp',
-          quality: 'auto',
-          fetch_format: 'webp'
-        },
+        uploadOptions,
         (error, result) => {
           if (result) resolve({ url: result.secure_url, public_id: result.public_id })
           else reject(error)

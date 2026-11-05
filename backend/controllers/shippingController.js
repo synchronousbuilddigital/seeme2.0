@@ -1,6 +1,7 @@
 import asyncHandler from '../utils/asyncHandler.js'
 import shippingService from '../services/shippingService.js'
 import Order from '../models/Order.js'
+import { mapAd2ShipStatusToOrder } from '../utils/shippingStatuses.js'
 
 // Helper error wrapper for shipping actions
 const handleShippingAction = async (res, actionFn) => {
@@ -233,6 +234,82 @@ export const cancelOrder = asyncHandler(async (req, res) => {
   })
 })
 
+// @desc    Ad2Ship Logistics Webhook for automatic delivery lifecycle updates
+// @route   POST /api/shipping/webhook
+// @access  Public (Webhook / Courier callback)
+export const handleShippingWebhook = asyncHandler(async (req, res) => {
+  const payload = req.body || {}
+  
+  // Extract identifiers from various potential Ad2Ship webhook payload formats
+  const awb = payload.awbNumber || payload.awb || payload.AWB || payload.Awb || payload.data?.awb
+  const ad2shipOrderId = payload.ad2shipOrderId || payload.order_id || payload.OrderId || payload.orderId
+  const orderNumber = payload.orderNumber || payload.OrderNumber || payload.data?.orderNumber
+  const currentStatus = payload.currentStatus || payload.CurrentStatus || payload.status || payload.Status || payload.data?.status
+  const statusDescription = payload.statusDescription || payload.StatusDescription || payload.activity || payload.remark || payload.message || currentStatus
+
+  if (!awb && !ad2shipOrderId && !orderNumber) {
+    return res.status(400).json({ success: false, message: 'Missing tracking or order identifiers in webhook payload' })
+  }
+
+  // Find order in database
+  const query = {
+    $or: [
+      ...(awb ? [{ 'shipping.awbNumber': awb }, { trackingNumber: awb }] : []),
+      ...(ad2shipOrderId ? [{ 'shipping.ad2shipOrderId': String(ad2shipOrderId) }] : []),
+      ...(orderNumber ? [{ orderNumber: String(orderNumber) }] : [])
+    ]
+  }
+
+  const order = await Order.findOne(query)
+  if (!order) {
+    console.warn('⚠️ [AD2SHIP WEBHOOK] Order not found for webhook payload:', { awb, ad2shipOrderId, orderNumber })
+    return res.status(200).json({ success: true, message: 'Webhook received but order not found' })
+  }
+
+  if (currentStatus) {
+    const rawStatus = String(currentStatus).trim()
+    const mappedStatus = mapAd2ShipStatusToOrder(rawStatus)
+
+    if (!order.shipping) order.shipping = {}
+    order.shipping.status = rawStatus.toLowerCase()
+
+    const statusChanged = mappedStatus && mappedStatus !== order.status
+    if (statusChanged) {
+      order.status = mappedStatus
+
+      // If delivered via COD, mark payment as paid
+      if (mappedStatus === 'delivered' && order.paymentMethod === 'cod') {
+        order.paymentStatus = 'paid'
+      }
+
+      // Append milestone entry to timeline
+      if (!order.timeline) order.timeline = []
+      order.timeline.push({
+        status: rawStatus,
+        note: `Ad2Ship webhook: ${statusDescription}`,
+        timestamp: new Date()
+      })
+
+      await order.save()
+
+      // Trigger automatic customer notification email
+      if (mappedStatus === 'delivered' || mappedStatus === 'shipped') {
+        try {
+          const { sendOrderEmail } = await import('../services/emailService.js')
+          sendOrderEmail(order, mappedStatus === 'delivered' ? 'Delivered' : 'Shipped')
+            .catch(err => console.error('Webhook order notification email error:', err.message))
+        } catch (e) {}
+      }
+
+      console.log(`✅ [AD2SHIP WEBHOOK] Order #${order.orderNumber} status updated to ${mappedStatus} (${rawStatus})`)
+    } else {
+      await order.save()
+    }
+  }
+
+  res.json({ success: true, message: 'Webhook processed successfully' })
+})
+
 export default {
   calculateRate,
   createOrder,
@@ -242,5 +319,6 @@ export default {
   generateInvoice,
   trackOrder,
   trackOrderById,
-  cancelOrder
+  cancelOrder,
+  handleShippingWebhook
 }

@@ -110,7 +110,7 @@ const FestiveBanner = () => {
       banners.forEach(b => {
         if (b?.image) {
           const img = new Image()
-          img.src = getImageUrl(b.image)
+          img.src = getImageUrl(b.image, { isBanner: true, width: 2560, quality: 'auto:best' })
         }
       })
     }
@@ -171,7 +171,9 @@ const FestiveBanner = () => {
   const currentBanner = banners[currentIndex] || banners[0]
   if (!currentBanner || !currentBanner.image) return null
 
-  const imageUrl = getImageUrl(currentBanner.image)
+  const imageUrl = getImageUrl(currentBanner.image, { isBanner: true, width: 2560, quality: 'auto:best' })
+  const imageMobileUrl = getImageUrl(currentBanner.image, { isBanner: true, width: 1080, quality: 'auto:best' })
+  const imageTabletUrl = getImageUrl(currentBanner.image, { isBanner: true, width: 1600, quality: 'auto:best' })
   const rawLink = currentBanner.buttonLink || currentBanner.link
   const targetLink = (!rawLink || rawLink === '/collections' || rawLink === '/') ? '/sale' : rawLink
 
@@ -189,9 +191,10 @@ const FestiveBanner = () => {
   }
 
   const showOverlay = Boolean(
-    currentBanner.showOverlay ||
-    (currentBanner.title && currentBanner.title.trim().length > 0) ||
-    (currentBanner.tagline && currentBanner.tagline.trim().length > 0)
+    currentBanner.showOverlay &&
+    ((currentBanner.title && currentBanner.title.trim().length > 0) ||
+     (currentBanner.tagline && currentBanner.tagline.trim().length > 0) ||
+     (currentBanner.buttonText && currentBanner.buttonText.trim().length > 0))
   )
 
   return (
@@ -222,6 +225,8 @@ const FestiveBanner = () => {
           >
             <img
               src={imageUrl}
+              srcSet={`${imageMobileUrl} 768w, ${imageTabletUrl} 1440w, ${imageUrl} 2560w`}
+              sizes="100vw"
               alt={currentBanner.title || 'Promotional Banner'}
               className="festive-banner-img"
               loading="eager"

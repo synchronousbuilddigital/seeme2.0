@@ -25,4 +25,7 @@ router.post('/track-by-id', protect, admin, shippingController.trackOrderById)
 // Cancellation (Protected)
 router.post('/cancel', protect, shippingController.cancelOrder)
 
+// Ad2Ship Logistics Webhook (Public courier push updates)
+router.post('/webhook', shippingController.handleShippingWebhook)
+
 export default router

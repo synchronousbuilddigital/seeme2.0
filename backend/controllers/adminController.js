@@ -5,6 +5,7 @@ import asyncHandler from '../utils/asyncHandler.js'
 import shippingService from '../services/shippingService.js'
 import { sendOrderEmail } from '../services/emailService.js'
 import pushNotificationService from '../services/pushNotificationService.js'
+import { revertCouponUsage } from '../services/couponEngine.js'
 
 // @desc    Get quick dashboard summary
 // @route   GET /api/admin/dashboard-summary
@@ -222,18 +223,51 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error('Order not found')
   }
 
+  // Synchronize cancellation with Ad2Ship if order status is set to cancelled
+  if (String(status || '').toLowerCase() === 'cancelled') {
+    if (order.shipping?.ad2shipOrderId) {
+      try {
+        await shippingService.cancelShipment(order._id)
+      } catch (shipErr) {
+        res.status(400)
+        throw new Error(`Cannot cancel order: ${shipErr.message}`)
+      }
+    }
+
+    // Restore inventory stock & coupon usage if not already cancelled
+    if (String(order.status || '').toLowerCase() !== 'cancelled') {
+      try {
+        await revertCouponUsage(order._id)
+        if (order.items && order.items.length > 0) {
+          for (const item of order.items) {
+            if (item.product) {
+              const prod = await Product.findById(item.product)
+              if (prod) {
+                if (prod.sizeStock && prod.sizeStock.length > 0) {
+                  const sItem = prod.sizeStock.find(s => s.size === item.size)
+                  if (sItem) {
+                    sItem.quantity += (item.quantity || 1)
+                    prod.stock = prod.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+                  } else {
+                    prod.stock += (item.quantity || 1)
+                  }
+                } else {
+                  prod.stock += (item.quantity || 1)
+                }
+                await prod.save()
+              }
+            }
+          }
+        }
+      } catch (stockErr) {
+        console.warn(`⚠️ Stock restoration error during admin cancellation for #${order.orderNumber}:`, stockErr.message)
+      }
+    }
+  }
+
   order.status = status || order.status
   if (trackingNumber) order.trackingNumber = trackingNumber
   if (estimatedDelivery) order.estimatedDelivery = estimatedDelivery
-
-  // Synchronize cancellation with Ad2Ship if order status is set to cancelled
-  if (String(status || '').toLowerCase() === 'cancelled' && order.shipping?.ad2shipOrderId) {
-    try {
-      await shippingService.cancelShipment(order._id)
-    } catch (shipErr) {
-      console.warn(`⚠️ Ad2Ship cancellation notice for #${order.orderNumber}:`, shipErr.message)
-    }
-  }
 
   order.timeline.push({
     status: order.status,

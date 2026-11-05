@@ -3,20 +3,38 @@
  * Generates an identical, elegant, print-ready Tax Invoice across Admin and Client applications.
  */
 
+/**
+ * Escapes HTML characters to prevent Stored Cross-Site Scripting (XSS) / DOM injection
+ */
+const escapeHtml = (text) => {
+  if (text == null) return ''
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 export const generateOrderInvoiceHtml = (order = {}) => {
   const customer = order.customer || {}
-  const customerName = customer.name || order.deliveryAddress?.name || order.user?.name || 'Valued Client'
-  const customerEmail = customer.email || order.deliveryAddress?.email || order.user?.email || 'N/A'
-  const customerPhone = customer.phone || order.deliveryAddress?.phone || order.user?.phone || 'N/A'
+  const rawCustomerName = customer.name || order.deliveryAddress?.name || order.user?.name || 'Valued Client'
+  const rawCustomerEmail = customer.email || order.deliveryAddress?.email || order.user?.email || 'N/A'
+  const rawCustomerPhone = customer.phone || order.deliveryAddress?.phone || order.user?.phone || 'N/A'
+
+  const customerName = escapeHtml(rawCustomerName)
+  const customerEmail = escapeHtml(rawCustomerEmail)
+  const customerPhone = escapeHtml(rawCustomerPhone)
 
   const addressObj = customer.address || order.deliveryAddress || order.billingAddress || {}
-  const street = addressObj.street || addressObj.addressLine1 || addressObj.line1 || ''
-  const city = addressObj.city || ''
-  const state = addressObj.state || ''
-  const pincode = addressObj.pincode || addressObj.postalCode || addressObj.zip || ''
-  const country = addressObj.country || 'India'
+  const street = escapeHtml(addressObj.street || addressObj.addressLine1 || addressObj.line1 || '')
+  const city = escapeHtml(addressObj.city || '')
+  const state = escapeHtml(addressObj.state || '')
+  const pincode = escapeHtml(addressObj.pincode || addressObj.postalCode || addressObj.zip || '')
+  const country = escapeHtml(addressObj.country || 'India')
 
-  const orderNum = order.orderNumber || (order._id ? `SM${String(order._id).slice(-10).toUpperCase()}` : 'SEEMEE-ORDER')
+  const rawOrderNum = order.orderNumber || (order._id ? `SM${String(order._id).slice(-10).toUpperCase()}` : 'SEEMEE-ORDER')
+  const orderNum = escapeHtml(rawOrderNum)
   const orderDate = order.createdAt ? new Date(order.createdAt) : new Date()
 
   const formattedDate = orderDate.toLocaleDateString('en-IN', {
@@ -32,22 +50,22 @@ export const generateOrderInvoiceHtml = (order = {}) => {
   })
 
   const isOffline = String(order.orderType || '').toUpperCase() === 'OFFLINE'
-  const orderChannel = isOffline ? 'Atelier Offline Store' : 'Online Store (Pan-India)'
+  const orderChannel = escapeHtml(isOffline ? 'Atelier Offline Store' : 'Online Store (Pan-India)')
 
   const isCod = String(order.paymentMethod || '').toLowerCase() === 'cod'
   const isPaid = String(order.paymentStatus || '').toLowerCase() === 'paid'
 
-  const paymentMethodLabel = isCod ? 'Cash on Delivery (COD)' : 'Instant Online Payment (Razorpay / UPI / Cards)'
-  const paymentStatusLabel = isPaid
+  const paymentMethodLabel = escapeHtml(isCod ? 'Cash on Delivery (COD)' : 'Instant Online Payment (Razorpay / UPI / Cards)')
+  const paymentStatusLabel = escapeHtml(isPaid
     ? 'PAID'
     : isCod
     ? 'PAYABLE AT DOORSTEP'
-    : 'PROCESSING'
+    : 'PROCESSING')
 
   const rawStatus = String(order.status || 'processing').toLowerCase()
-  const displayStatus = rawStatus === 'pending_approval' || rawStatus === 'pending'
+  const displayStatus = escapeHtml(rawStatus === 'pending_approval' || rawStatus === 'pending'
     ? 'PROCESSING'
-    : rawStatus.toUpperCase()
+    : rawStatus.toUpperCase())
 
   const items = Array.isArray(order.items) ? order.items : []
   const subtotal = items.reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 1)), 0)
@@ -55,9 +73,9 @@ export const generateOrderInvoiceHtml = (order = {}) => {
   const grandTotal = Number(order.totalAmount != null ? order.totalAmount : Math.max(0, subtotal - discount))
 
   const itemsRowsHtml = items.length > 0 ? items.map((item, index) => {
-    const name = item.name || item.product?.name || 'Haute Couture Ensemble'
-    const size = item.size || item.selectedSize || 'Standard'
-    const color = item.color || item.selectedColor || ''
+    const name = escapeHtml(item.name || item.product?.name || 'Haute Couture Ensemble')
+    const size = escapeHtml(item.size || item.selectedSize || 'Standard')
+    const color = escapeHtml(item.color || item.selectedColor || '')
     const qty = Number(item.quantity || 1)
     const price = Number(item.price || 0)
     const lineTotal = price * qty
@@ -591,7 +609,7 @@ export const generateOrderInvoiceHtml = (order = {}) => {
         <p><strong>Payment Status:</strong> 
           <span class="payment-tag ${isPaid ? 'paid' : 'pending'}">${paymentStatusLabel}</span>
         </p>
-        ${order.paymentDetails?.paymentId ? `<p style="margin-top: 4px; font-size: 0.78rem; color: #666;"><strong>Ref ID:</strong> ${order.paymentDetails.paymentId}</p>` : ''}
+        ${order.paymentDetails?.paymentId ? `<p style="margin-top: 4px; font-size: 0.78rem; color: #666;"><strong>Ref ID:</strong> ${escapeHtml(order.paymentDetails.paymentId)}</p>` : ''}
         <p style="margin-top: 8px; font-size: 0.78rem; color: #78716C;">
           All deliveries verified prior to dispatch.
         </p>
@@ -625,7 +643,7 @@ export const generateOrderInvoiceHtml = (order = {}) => {
         </div>
         ${discount > 0 ? `
           <div class="summary-row discount-row">
-            <span>Special Atelier Discount ${order.couponCode ? `(${order.couponCode})` : ''}</span>
+            <span>Special Atelier Discount ${order.couponCode ? `(${escapeHtml(order.couponCode)})` : ''}</span>
             <span>-₹${discount.toLocaleString('en-IN')}</span>
           </div>
         ` : ''}

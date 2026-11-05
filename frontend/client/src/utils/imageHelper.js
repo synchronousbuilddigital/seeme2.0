@@ -63,9 +63,19 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
     const hasExistingTransformations = /\/upload\/(?:f_auto|q_auto|[^/]+,)/.test(url)
     if (hasExistingTransformations) return url
 
+    const isBanner = Boolean(
+      options.isBanner ||
+      options.preset === 'banner' ||
+      (typeof url === 'string' && (
+        url.toLowerCase().includes('banner') ||
+        url.toLowerCase().includes('festive') ||
+        url.toLowerCase().includes('promo')
+      ))
+    )
+
     const {
-      width = 800,
-      quality = 'auto',
+      width = isBanner ? 2560 : 800,
+      quality = isBanner ? 'auto:best' : 'auto',
       format = 'auto',
       crop = 'limit',
       gravity = null,
@@ -92,6 +102,28 @@ const optimizeCloudinaryUrl = (url, options = {}) => {
 // Specific optimization presets
 export const getOptimizedImageUrl = (imageData, preset = 'default', customOptions = {}) => {
   const presets = {
+    // High-resolution panoramic banners (Festive, Seasonal, Promo)
+    banner: {
+      width: 2560,
+      quality: 'auto:best',
+      format: 'auto',
+      crop: 'limit',
+      isBanner: true
+    },
+    'banner-desktop': {
+      width: 1920,
+      quality: 'auto:best',
+      format: 'auto',
+      crop: 'limit',
+      isBanner: true
+    },
+    'banner-mobile': {
+      width: 1080,
+      quality: 'auto:best',
+      format: 'auto',
+      crop: 'limit',
+      isBanner: true
+    },
     // Hero/Carousel images - Optimized for actual display size
     hero: {
       width: 1200,
@@ -172,4 +204,13 @@ export const getVideoUrl = (videoData) => {
   }
   
   return null
+}
+// Specialized helper for razor-sharp banner images
+export const getBannerImageUrl = (imageData, targetWidth = 2560) => {
+  return getImageUrl(imageData, {
+    isBanner: true,
+    width: targetWidth,
+    quality: 'auto:best',
+    crop: 'limit'
+  })
 }

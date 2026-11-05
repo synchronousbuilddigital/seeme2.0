@@ -9,7 +9,7 @@ import './Orders.css'
 
 const Orders = () => {
   const navigate = useNavigate()
-  const { user, token } = useAuth()
+  const { user, token, logout } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedOrder, setExpandedOrder] = useState(null)
@@ -42,6 +42,11 @@ const Orders = () => {
           'Authorization': `Bearer ${token}`
         }
       })
+      if (response.status === 401) {
+        logout()
+        window.location.href = '/auth?expired=true'
+        return
+      }
       const data = await response.json()
       if (data.success) {
         setOrders(data.data)
@@ -89,6 +94,11 @@ const Orders = () => {
           'Authorization': `Bearer ${token}`
         }
       })
+      if (response.status === 401) {
+        logout()
+        window.location.href = '/auth?expired=true'
+        return
+      }
       const data = await response.json()
       if (data.success) {
         alert('Order cancelled successfully.')

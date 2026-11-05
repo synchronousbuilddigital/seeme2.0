@@ -78,14 +78,21 @@ export const cachedFetch = async (url, options = {}) => {
         timestamp: Date.now()
       })
 
-      // Save to localStorage persistent cache
+      // Save to localStorage persistent cache (only store responses under 100KB to protect 5MB quota)
       if (typeof window !== 'undefined' && window.localStorage) {
         try {
-          localStorage.setItem(lsKey, JSON.stringify({
-            data,
-            timestamp: Date.now()
-          }))
-        } catch (e) { }
+          const payload = JSON.stringify({ data, timestamp: Date.now() })
+          if (payload.length < 100 * 1024) {
+            localStorage.setItem(lsKey, payload)
+          }
+        } catch (e) {
+          // Quota reached: clean up cached keys to protect user tokens & cart data
+          try {
+            Object.keys(localStorage).forEach(k => {
+              if (k.startsWith('seemee_cache_')) localStorage.removeItem(k)
+            })
+          } catch (cleanErr) { }
+        }
       }
 
       return data

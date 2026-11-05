@@ -141,7 +141,7 @@ const CategoriesPage = () => {
     setLoading(true)
     try {
       const [prodData, settingsData] = await Promise.all([
-        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=10000`),
+        cachedFetch(`${API_ENDPOINTS.PRODUCTS}?limit=1000`),
         cachedFetch(API_ENDPOINTS.SITE_SETTINGS, { forceRefresh: true })
       ])
 

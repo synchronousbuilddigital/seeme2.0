@@ -45,7 +45,7 @@ const CategoriesPage = lazy(() => import('./pages/CategoriesPage'))
 const CategoryPage = lazy(() => import('./pages/CategoryPage'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const AccountPage = lazy(() => import('./pages/AccountPage'))
-const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const Search = lazy(() => import('./pages/Search'))
 const WishlistPage = lazy(() => import('./pages/WishlistPage'))
@@ -237,7 +237,8 @@ function App() {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/login" element={<Auth />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/reset-password/:token" element={<Navigate to="/forgot-password" replace />} />
+                <Route path="/reset-password" element={<Navigate to="/forgot-password" replace />} />
 
                 {/* Orders Page */}
                 <Route path="/orders" element={<PageWithNav><Orders /></PageWithNav>} />

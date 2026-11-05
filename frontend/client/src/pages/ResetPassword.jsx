@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
@@ -8,6 +8,11 @@ const ResetPassword = () => {
   const { token } = useParams()
   const navigate = useNavigate()
   const { resetPassword } = useAuth()
+  
+  // Legacy route guard: Immediately redirect to modern OTP verification flow
+  useEffect(() => {
+    navigate('/forgot-password', { replace: true })
+  }, [navigate])
   
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')

@@ -47,11 +47,17 @@
 .festive-banner-img {
   width: 100%;
   height: auto;
-  max-height: 370px;
+  max-height: 480px;
   object-fit: cover;
   object-position: center 25%;
   display: block;
   vertical-align: bottom;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
+  image-rendering: crisp-edges;
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -87,10 +93,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse 40% 80% at 50% 50%,
-      rgba(254, 252, 248, 0.88) 0%,
-      rgba(253, 250, 244, 0.55) 45%,
-      transparent 85%);
+  background: radial-gradient(ellipse 55% 75% at 50% 50%,
+      rgba(254, 252, 248, 0.65) 0%,
+      rgba(253, 250, 244, 0.25) 45%,
+      transparent 80%);
   line-height: normal;
   pointer-events: none;
 }

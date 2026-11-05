@@ -69,6 +69,11 @@ export const AuthProvider = ({ children }) => {
             'Authorization': `Bearer ${token}`
           }
         })
+        if (response.status === 401) {
+          logout()
+          window.location.href = '/auth?expired=true'
+          return
+        }
         const data = await response.json()
         if (isMounted && response.ok && data.success && data.data) {
           setUser(prev => ({
@@ -196,6 +201,23 @@ export const AuthProvider = ({ children }) => {
     setUser(newUser)
   }
 
+  // Centrally handle authenticated requests and intercept 401 token expiration
+  const authFetch = async (url, options = {}) => {
+    const headers = {
+      ...(options.headers || {})
+    }
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+    const response = await fetch(url, { ...options, headers })
+    if (response.status === 401) {
+      logout()
+      window.location.href = '/auth?expired=true'
+      throw new Error('Session expired. Please log in again.')
+    }
+    return response
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -206,6 +228,7 @@ export const AuthProvider = ({ children }) => {
         sendSignupOtp,
         logout,
         loginWithToken,
+        authFetch,
         isAuthenticated,
         updateUser,
         forgotPassword: async (email) => {

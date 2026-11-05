@@ -69,6 +69,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   let totalAmount = 0
   const orderItems = []
+  const plannedDeductions = []
 
   for (const item of items) {
     const product = await Product.findById(item.product)
@@ -117,7 +118,8 @@ export const createOrder = asyncHandler(async (req, res) => {
       }
     })
 
-    // Update specific size stock if it exists
+    // Pre-check sizeStock availability without mutating DB yet
+    let targetSize = null
     if (product.sizeStock && product.sizeStock.length > 0) {
       const sizeItem = product.sizeStock.find(s => s.size === item.size)
       if (sizeItem) {
@@ -125,25 +127,19 @@ export const createOrder = asyncHandler(async (req, res) => {
           res.status(400)
           throw new Error(`Insufficient stock for size ${item.size} of ${product.name}`)
         }
-        sizeItem.quantity -= item.quantity
-        product.stock = product.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-      } else {
-        if (product.stock < item.quantity) {
-          res.status(400)
-          throw new Error(`Insufficient stock for ${product.name}`)
-        }
-        product.stock -= item.quantity
-      }
-    } else {
-      // Fallback to general stock
-      if (product.stock < item.quantity) {
+        targetSize = item.size
+      } else if (product.stock < item.quantity) {
         res.status(400)
         throw new Error(`Insufficient stock for ${product.name}`)
       }
-      product.stock -= item.quantity
     }
 
-    await product.save()
+    plannedDeductions.push({
+      product,
+      productId: product._id,
+      size: targetSize,
+      quantity: item.quantity
+    })
   }
 
   // Server-side Coupon Validation & Discount Calculation
@@ -168,18 +164,60 @@ export const createOrder = asyncHandler(async (req, res) => {
   const isCodOrder = normalizedPaymentMethod === 'cod'
   const isOfflineOrder = normalizedOrderType === 'OFFLINE'
 
-  const order = await Order.create({
-    user: req.user?._id || req.body.user || null,
-    customer,
-    items: orderItems,
-    totalAmount: finalTotalAmount,
-    couponCode: appliedCouponCode,
-    couponDiscount: validatedCouponDiscount,
-    orderType: normalizedOrderType,
-    paymentMethod: normalizedPaymentMethod,
-    status: (isOfflineOrder && isCodOrder) ? 'pending_approval' : 'pending',
-    paymentStatus: (isOfflineOrder && isCodOrder) ? 'pending_approval' : 'pending'
-  })
+  // Atomic Stock Deduction & Order Creation with Automatic Rollback Guard
+  const decrementedOperations = []
+  let order = null
+
+  try {
+    for (const op of plannedDeductions) {
+      if (op.size && op.product.sizeStock && op.product.sizeStock.length > 0) {
+        const sizeItem = op.product.sizeStock.find(s => s.size === op.size)
+        if (sizeItem) {
+          sizeItem.quantity -= op.quantity
+          op.product.stock = op.product.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+        } else {
+          op.product.stock -= op.quantity
+        }
+      } else {
+        op.product.stock -= op.quantity
+      }
+      await op.product.save()
+      decrementedOperations.push(op)
+    }
+
+    order = await Order.create({
+      user: req.user?._id || req.body.user || null,
+      customer,
+      items: orderItems,
+      totalAmount: finalTotalAmount,
+      couponCode: appliedCouponCode,
+      couponDiscount: validatedCouponDiscount,
+      orderType: normalizedOrderType,
+      paymentMethod: normalizedPaymentMethod,
+      status: (isOfflineOrder && isCodOrder) ? 'pending_approval' : 'pending',
+      paymentStatus: (isOfflineOrder && isCodOrder) ? 'pending_approval' : 'pending'
+    })
+  } catch (checkoutErr) {
+    // Rollback any decremented stock immediately to prevent inventory leak
+    for (const op of decrementedOperations) {
+      try {
+        const p = await Product.findById(op.productId)
+        if (p) {
+          if (op.size && p.sizeStock && p.sizeStock.length > 0) {
+            const sizeItem = p.sizeStock.find(s => s.size === op.size)
+            if (sizeItem) sizeItem.quantity += op.quantity
+            p.stock = p.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+          } else {
+            p.stock += op.quantity
+          }
+          await p.save()
+        }
+      } catch (rErr) {
+        console.error(`CRITICAL: Stock rollback failed for product ${op.productId}:`, rErr.message)
+      }
+    }
+    throw checkoutErr
+  }
 
   // Record atomic coupon usage if coupon code was supplied
   if (req.body.couponCode) {
@@ -205,9 +243,35 @@ export const createOrder = asyncHandler(async (req, res) => {
         order.shipping.provider = 'ad2ship'
         order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
         order.shipping.status = 'pending'
+        await order.save()
       }
     } catch (shipErr) {
       console.warn(`⚠️ Ad2Ship auto-creation notice for #${order.orderNumber}:`, shipErr.message)
+      if (!order.shipping) order.shipping = {}
+      order.shipping.error = shipErr.message || 'Logistics auto-creation failed'
+
+      if (isCodOrder && shipErr.message && (shipErr.message.toLowerCase().includes('serviceable') || shipErr.message.toLowerCase().includes('pincode'))) {
+        // Rollback decremented stock
+        for (const op of plannedDeductions) {
+          try {
+            const p = await Product.findById(op.productId)
+            if (p) {
+              if (op.size && p.sizeStock && p.sizeStock.length > 0) {
+                const sizeItem = p.sizeStock.find(s => s.size === op.size)
+                if (sizeItem) sizeItem.quantity += op.quantity
+                p.stock = p.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+              } else {
+                p.stock += op.quantity
+              }
+              await p.save()
+            }
+          } catch (rErr) {}
+        }
+        await Order.findByIdAndDelete(order._id)
+        res.status(400)
+        throw new Error(`Delivery pincode is not serviceable by our courier partners: ${shipErr.message}`)
+      }
+      await order.save()
     }
   }
 
@@ -602,6 +666,12 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     throw new Error('Mock payments are not allowed in production')
   }
 
+  // 3. Prevent replay attacks (check if paymentId was already used)
+  const existingPayment = await Order.findOne({ 'paymentDetails.paymentId': razorpay_payment_id })
+  if (existingPayment) {
+    return res.json({ success: true, data: existingPayment })
+  }
+
   // Check if order already exists (created via createOrder or prior attempt)
   let order = await Order.findOne({
     $or: [
@@ -609,6 +679,72 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       { _id: req.body.orderId || req.body._id }
     ].filter(Boolean)
   })
+
+  // Calculate authoritative server total amount from DB products & validated coupons
+  let subtotalAmount = 0
+  const productDocMap = new Map()
+
+  if (order) {
+    subtotalAmount = order.totalAmount
+  } else {
+    for (const item of items) {
+      const product = await Product.findById(item.product)
+      if (!product) {
+        res.status(404)
+        throw new Error(`Product ${item.product} not found`)
+      }
+      productDocMap.set(String(product._id), product)
+      subtotalAmount += product.price * (item.quantity || 1)
+    }
+  }
+
+  let appliedCouponCode = null
+  let validatedCouponDiscount = 0
+
+  if (!order && req.body.couponCode) {
+    const couponValidation = await validateAndCalculateCoupon({
+      code: req.body.couponCode,
+      cartItems: items,
+      userId: req.user?._id,
+      userEmail: customer.email
+    })
+
+    if (couponValidation.isValid) {
+      appliedCouponCode = couponValidation.coupon.code
+      validatedCouponDiscount = couponValidation.discountAmount
+    }
+  }
+
+  const finalTotalAmount = order ? order.totalAmount : Math.max(0, subtotalAmount - validatedCouponDiscount)
+
+  // Razorpay Gateway Verification
+  const razorpay = getRazorpay()
+  if (!razorpay_order_id.startsWith('order_mock_')) {
+    if (!razorpay) {
+      res.status(500)
+      throw new Error('Payment gateway is currently unavailable')
+    }
+    // 1. Fetch the real payment object directly from Razorpay
+    const paymentRecord = await razorpay.payments.fetch(razorpay_payment_id)
+
+    if (!paymentRecord || paymentRecord.status !== 'captured') {
+      res.status(400)
+      throw new Error(`Payment is not captured. Current status: ${paymentRecord?.status || 'unknown'}`)
+    }
+
+    // 2. Enforce strict payment amount verification
+    const expectedPaise = Math.round(finalTotalAmount * 100)
+    if (paymentRecord.amount !== expectedPaise || paymentRecord.currency !== 'INR') {
+      res.status(400)
+      throw new Error(`Payment amount mismatch: Expected ₹${finalTotalAmount}, but received ₹${paymentRecord.amount / 100}`)
+    }
+
+    // Ensure payment belongs to the specified Razorpay order
+    if (paymentRecord.order_id && paymentRecord.order_id !== razorpay_order_id) {
+      res.status(400)
+      throw new Error(`Payment order mismatch: Payment ${razorpay_payment_id} does not belong to order ${razorpay_order_id}`)
+    }
+  }
 
   if (order) {
     if (order.paymentStatus === 'paid') {
@@ -628,16 +764,23 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     }
     await order.save()
   } else {
-    // New Order: Stock has not been deducted yet. Check & deduct stock ONCE.
-    let subtotalAmount = 0
+    // New Order: Pre-validate all items, then atomically deduct with rollback guard
     const verifiedOrderItems = []
+    const plannedDeductions = []
+
     for (const item of items) {
-      const product = await Product.findById(item.product)
+      const product = productDocMap.get(String(item.product)) || (await Product.findById(item.product))
       if (!product) {
         res.status(404)
         throw new Error(`Product ${item.product} not found`)
       }
 
+      if (product.stock < item.quantity) {
+        res.status(400)
+        throw new Error(`Insufficient stock for ${product.name}`)
+      }
+
+      let targetSize = null
       if (product.sizeStock && product.sizeStock.length > 0) {
         const sizeItem = product.sizeStock.find(s => s.size === item.size)
         if (sizeItem) {
@@ -645,24 +788,12 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             res.status(400)
             throw new Error(`Insufficient stock for size ${item.size} of ${product.name}`)
           }
-          sizeItem.quantity -= item.quantity
-          product.stock = product.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-        } else {
-          if (product.stock < item.quantity) {
-            res.status(400)
-            throw new Error(`Insufficient stock for ${product.name}`)
-          }
-          product.stock -= item.quantity
-        }
-      } else {
-        if (product.stock < item.quantity) {
+          targetSize = item.size
+        } else if (product.stock < item.quantity) {
           res.status(400)
           throw new Error(`Insufficient stock for ${product.name}`)
         }
-        product.stock -= item.quantity
       }
-      subtotalAmount += product.price * (item.quantity || 1)
-      await product.save()
 
       const prodDim = product.dimensions || {}
       let pWeight = null
@@ -684,7 +815,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       verifiedOrderItems.push({
         product: product._id,
         name: item.name || product.name,
-        price: item.price || product.price,
+        price: product.price,
         quantity: item.quantity,
         size: item.size,
         color: item.color,
@@ -696,42 +827,71 @@ export const verifyPayment = asyncHandler(async (req, res) => {
           height: Number(prodDim.height || prodDim.heightCm || product.heightCm || 5)
         }
       })
-    }
 
-    let appliedCouponCode = null
-    let validatedCouponDiscount = 0
-
-    if (req.body.couponCode) {
-      const couponValidation = await validateAndCalculateCoupon({
-        code: req.body.couponCode,
-        cartItems: items,
-        userId: req.user?._id,
-        userEmail: customer.email
+      plannedDeductions.push({
+        product,
+        productId: product._id,
+        size: targetSize,
+        quantity: item.quantity
       })
-
-      if (couponValidation.isValid) {
-        appliedCouponCode = couponValidation.coupon.code
-        validatedCouponDiscount = couponValidation.discountAmount
-      }
     }
 
-    const finalTotalAmount = Math.max(0, subtotalAmount - validatedCouponDiscount)
+    // Atomic Stock Deduction & Order Creation with Rollback Guard
+    const decrementedOperations = []
 
-    order = await Order.create({
-      user: req.user?._id || req.body.user || null,
-      customer,
-      items: verifiedOrderItems,
-      totalAmount: finalTotalAmount,
-      couponCode: appliedCouponCode,
-      couponDiscount: validatedCouponDiscount,
-      orderType: normalizedOrderType,
-      paymentMethod: 'online',
-      paymentStatus: 'paid',
-      paymentDetails: {
-        orderId: razorpay_order_id,
-        paymentId: razorpay_payment_id || 'mock_pay_id'
+    try {
+      for (const op of plannedDeductions) {
+        if (op.size && op.product.sizeStock && op.product.sizeStock.length > 0) {
+          const sizeItem = op.product.sizeStock.find(s => s.size === op.size)
+          if (sizeItem) {
+            sizeItem.quantity -= op.quantity
+            op.product.stock = op.product.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+          } else {
+            op.product.stock -= op.quantity
+          }
+        } else {
+          op.product.stock -= op.quantity
+        }
+        await op.product.save()
+        decrementedOperations.push(op)
       }
-    })
+
+      order = await Order.create({
+        user: req.user?._id || req.body.user || null,
+        customer,
+        items: verifiedOrderItems,
+        totalAmount: finalTotalAmount,
+        couponCode: appliedCouponCode,
+        couponDiscount: validatedCouponDiscount,
+        orderType: normalizedOrderType,
+        paymentMethod: 'online',
+        paymentStatus: 'paid',
+        paymentDetails: {
+          orderId: razorpay_order_id,
+          paymentId: razorpay_payment_id || 'mock_pay_id'
+        }
+      })
+    } catch (orderCreateErr) {
+      // Rollback any decremented stock immediately to prevent inventory leak
+      for (const op of decrementedOperations) {
+        try {
+          const p = await Product.findById(op.productId)
+          if (p) {
+            if (op.size && p.sizeStock && p.sizeStock.length > 0) {
+              const sizeItem = p.sizeStock.find(s => s.size === op.size)
+              if (sizeItem) sizeItem.quantity += op.quantity
+              p.stock = p.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+            } else {
+              p.stock += op.quantity
+            }
+            await p.save()
+          }
+        } catch (rErr) {
+          console.error(`CRITICAL: Stock rollback failed for product ${op.productId}:`, rErr.message)
+        }
+      }
+      throw orderCreateErr
+    }
   }
 
   // Record atomic coupon usage if coupon code was supplied
@@ -764,9 +924,13 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         order.shipping.provider = 'ad2ship'
         order.shipping.ad2shipOrderId = shipResult.ad2shipOrderId
         order.shipping.status = 'pending'
+        await order.save()
       }
     } catch (shipErr) {
       console.warn(`⚠️ Ad2Ship online order creation notice for #${order.orderNumber}:`, shipErr.message)
+      if (!order.shipping) order.shipping = {}
+      order.shipping.error = shipErr.message || 'Logistics order creation failed'
+      await order.save()
     }
   }
 

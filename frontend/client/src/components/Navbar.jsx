@@ -464,10 +464,23 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               <button
                 className={`dropdown-trigger nav-item sale-nav-item ${isActiveRoute('/sale') ? 'active' : ''}`}
                 onClick={() => handleNavigation('/sale')}
+                aria-label="Sale"
               >
-                Sale
-                <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor" className="dropdown-arrow">
-                  <path d="M6 9L1 4h10z" />
+                <span className="sale-live-indicator" aria-hidden="true">
+                  <span className="sale-live-pulse"></span>
+                  <span className="sale-live-dot"></span>
+                </span>
+                <span className="sale-cursive-text">Sale</span>
+                <svg
+                  width="8"
+                  height="6"
+                  viewBox="0 0 10 8"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="sale-dropdown-arrow"
+                  aria-hidden="true"
+                >
+                  <path d="M5 7.5L0.67 0.75L9.33 0.75L5 7.5Z" fill="#F87171" />
                 </svg>
               </button>
               <AnimatePresence>
@@ -746,19 +759,25 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                     <button
                       className={`admin-style-link sale-mobile-link ${isActiveRoute('/sale') ? 'active' : ''}`}
                       onClick={() => handleNavigation('/sale')}
+                      aria-label="Sale"
                     >
-                      <span className="link-text">Sale</span>
+                      <span className="sale-live-indicator" aria-hidden="true">
+                        <span className="sale-live-pulse"></span>
+                        <span className="sale-live-dot"></span>
+                      </span>
+                      <span className="sale-cursive-text">Sale</span>
                     </button>
                     <button
-                      className="drawer-expand-btn"
+                      className="drawer-expand-btn sale-drawer-expand-btn"
                       onClick={(e) => {
                         e.stopPropagation()
                         setMobileSaleOpen(!mobileSaleOpen)
                       }}
                       title="Toggle Sale Discounts"
+                      aria-label="Toggle Sale Discounts"
                     >
-                      <svg width="14" height="14" viewBox="0 0 12 12" fill="currentColor" style={{ transform: mobileSaleOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}>
-                        <path d="M6 9L1 4h10z" />
+                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none" style={{ transform: mobileSaleOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}>
+                        <path d="M5 7.5L0.67 0.75L9.33 0.75L5 7.5Z" fill="#F87171" />
                       </svg>
                     </button>
                   </div>

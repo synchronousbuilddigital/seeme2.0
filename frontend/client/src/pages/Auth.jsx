@@ -131,14 +131,19 @@ const Auth = () => {
     return () => clearInterval(interval)
   }, [otpTimer])
 
-  // Handle Google OAuth callback redirect parameters
+  // Handle Google OAuth callback and session expiration redirect parameters
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
     const oauthToken = searchParams.get('token')
     const oauthUserStr = searchParams.get('user')
     const oauthError = searchParams.get('error')
+    const isExpired = searchParams.get('expired') === 'true'
 
-    if (oauthError) {
+    if (isExpired) {
+      setError('Your session has expired. Please log in again to continue.')
+      setIsLogin(true)
+      window.history.replaceState({}, document.title, window.location.pathname)
+    } else if (oauthError) {
       setError(decodeURIComponent(oauthError))
       window.history.replaceState({}, document.title, window.location.pathname)
     } else if (oauthToken && oauthUserStr) {
