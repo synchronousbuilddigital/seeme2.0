@@ -5081,12 +5081,20 @@
 }
 
 .ux-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.76rem;
   color: #D4D4D8;
   background: rgba(255, 255, 255, 0.08);
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ux-meta-pill svg {
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .ux-meta-pill.success {
@@ -5121,6 +5129,9 @@
 }
 
 .ux-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   padding: 10px 18px;
   background: rgba(255, 255, 255, 0.1);
   color: #FFFFFF;
@@ -5130,6 +5141,10 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s ease;
+}
+
+.ux-btn-secondary svg {
+  flex-shrink: 0;
 }
 
 .ux-btn-secondary:hover {
@@ -5290,12 +5305,24 @@
 }
 
 .ux-text-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   background: none;
   border: none;
   color: #B8860B;
   font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.ux-text-btn:hover {
+  color: #996515;
+}
+
+.ux-text-btn svg {
+  flex-shrink: 0;
 }
 
 .ux-dossier-grid {

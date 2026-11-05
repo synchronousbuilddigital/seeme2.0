@@ -301,7 +301,12 @@ const Orders = () => {
                         {/* Horizontal Tracking Timeline or COD Handover Banner */}
                         {isCancelled ? (
                           <div className="timeline-cancelled-banner">
-                            <span className="cancelled-icon-badge">🚫</span>
+                            <span className="cancelled-icon-badge">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="10"/>
+                                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                                </svg>
+                              </span>
                             <div className="cancelled-text">
                               <strong>This Order Has Been Cancelled</strong>
                               <p>Cancelled prior to warehouse dispatch & pickup.</p>
@@ -311,7 +316,13 @@ const Orders = () => {
                           <div className="cod-handover-banner-box">
                             {isCodApproved ? (
                               <div className="cod-approved-handover">
-                                <div className="handover-icon-circle green">🛍️</div>
+                                <div className="handover-icon-circle green">
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                                    <line x1="3" y1="6" x2="21" y2="6"/>
+                                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                                  </svg>
+                                </div>
                                 <div className="handover-text">
                                   <span className="handover-mini-tag">✦ ADMIN APPROVED</span>
                                   <strong className="handover-main-title">ORDER HANDOVER</strong>
@@ -320,9 +331,14 @@ const Orders = () => {
                               </div>
                             ) : (
                               <div className="cod-pending-approval">
-                                <div className="handover-icon-circle amber">⏳</div>
+                                <div className="handover-icon-circle amber">
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                  </svg>
+                                </div>
                                 <div className="handover-text">
-                                  <span className="handover-mini-tag amber">⏳ PROCESSING</span>
+                                  <span className="handover-mini-tag amber">PROCESSING</span>
                                   <strong className="handover-main-title amber">ORDER PROCESSING</strong>
                                   <p className="handover-sub">Your Cash on Delivery order is currently processing. Order Handover will be confirmed shortly.</p>
                                 </div>
@@ -369,10 +385,21 @@ const Orders = () => {
                           <div className="delivery-section">
                             <h4>Delivery Address</h4>
                             <div className="address-block">
-                              <p className="customer-name">📍 {order.customer?.name}</p>
+                              <p className="customer-name" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                  <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                <span>{order.customer?.name}</span>
+                              </p>
                               <p>{order.customer?.address?.street}</p>
                               <p>{order.customer?.address?.city}, {order.customer?.address?.state} - {order.customer?.address?.pincode}</p>
-                              <p className="customer-phone">📞 T: {order.customer?.phone}</p>
+                              <p className="customer-phone" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                                </svg>
+                                <span>T: {order.customer?.phone}</span>
+                              </p>
                             </div>
 
                             <div className="payment-info">
@@ -393,7 +420,13 @@ const Orders = () => {
                                     </div>
                                   ) : (isCancelled || ['refund_requested', 'refund_processing', 'refund_approved'].includes(order.refundStatus)) ? (
                                     <div className="refund-text warning">
-                                      <div className="refund-title">💳 Refund Status: <strong>Refund Initiated</strong></div>
+                                      <div className="refund-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                            <line x1="1" y1="10" x2="23" y2="10"/>
+                                          </svg>
+                                          <span>Refund Status: <strong>Refund Initiated</strong></span>
+                                        </div>
                                       <div className="refund-sub">
                                         Your refund of <strong>₹{Number(order.totalAmount).toLocaleString('en-IN')}</strong> will be credited to your original payment method within <strong>5-7 working days</strong>.
                                       </div>
@@ -410,7 +443,15 @@ const Orders = () => {
                             {/* Logistics & Live Tracking Card */}
                             {(order.shipping?.awbNumber || order.trackingNumber || order.shipping?.ad2shipOrderId) && (
                               <div className="tracking-info-box">
-                                <h4>🚚 Logistics Checkpoint</h4>
+                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="1" y="3" width="15" height="13"/>
+                                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                                    <circle cx="5.5" cy="18.5" r="2.5"/>
+                                    <circle cx="18.5" cy="18.5" r="2.5"/>
+                                  </svg>
+                                  <span>Logistics Checkpoint</span>
+                                </h4>
                                 {order.shipping?.courierName && <p>Courier: <strong>{order.shipping.courierName}</strong></p>}
                                 {(order.shipping?.awbNumber || order.trackingNumber) && (
                                   <p>AWB Tracking #: <strong>{order.shipping?.awbNumber || order.trackingNumber}</strong></p>

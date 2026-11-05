@@ -139,10 +139,10 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="categories-title">
-            Signature <span>Categories</span>
+            <span>Categories</span>
           </h2>
           <div className="categories-header-line">
-            <span className="line-diamond">✦</span>
+            <span className="line-diamond"></span>
           </div>
 
           {/* Interactive Audience Filter Pills */}
@@ -152,7 +152,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
               className={`cat-pill-btn ${selectedAudience === 'all' ? 'active' : ''}`}
               onClick={() => setSelectedAudience('all')}
             >
-              <span className="pill-text-desktop">ALL SILHOUETTES</span>
+              <span className="pill-text-desktop">ALL Collections</span>
               <span className="pill-text-mobile">ALL</span>
             </button>
             <button
@@ -160,7 +160,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
               className={`cat-pill-btn ${selectedAudience === 'men' ? 'active' : ''}`}
               onClick={() => setSelectedAudience('men')}
             >
-              <span className="pill-text-desktop">MEN'S COUTURE</span>
+              <span className="pill-text-desktop">MEN'S Collections</span>
               <span className="pill-text-mobile">MEN</span>
             </button>
             <button
@@ -168,7 +168,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
               className={`cat-pill-btn ${selectedAudience === 'women' ? 'active' : ''}`}
               onClick={() => setSelectedAudience('women')}
             >
-              <span className="pill-text-desktop">WOMEN'S COUTURE</span>
+              <span className="pill-text-desktop">WOMEN'S Collections</span>
               <span className="pill-text-mobile">WOMEN</span>
             </button>
           </div>
@@ -235,7 +235,7 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
             whileTap={{ scale: 0.97 }}
             onClick={() => navigate('/categories')}
           >
-            <span className="btn-sparkle">✦</span>
+            <span className="btn-sparkle"></span>
             <span className="btn-text">EXPLORE ALL CATEGORIES</span>
             <div className="btn-arrow-circle">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

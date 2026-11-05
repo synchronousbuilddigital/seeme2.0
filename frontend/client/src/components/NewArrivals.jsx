@@ -66,7 +66,7 @@ const NewArrivals = ({ activeAudience = 'all' }) => {
           transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="header-top">
-            <span className="premium-subtitle">Curated Selection</span>
+            {/* <span className="premium-subtitle">Curated Selection</span> */}
             <div className="accent-line"></div>
           </div>
           <h2 className="premium-title">NEW <span>ARRIVALS</span></h2>

@@ -463,7 +463,7 @@ const Auth = () => {
 
             {authNotice && (
               <div className="auth-notice-banner">
-                <span>🔒 {authNotice}</span>
+                <span> {authNotice}</span>
               </div>
             )}
 
