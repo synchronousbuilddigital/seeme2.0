@@ -70,6 +70,9 @@ const Orders = () => {
       const data = await response.json()
       if (data.success) {
         setActiveTrackingData(data.data)
+        if (data.order) {
+          setOrders(prev => prev.map(o => (o._id === data.order._id ? data.order : o)))
+        }
       } else {
         alert(data.message || 'Tracking information unavailable at the moment.')
       }
@@ -156,6 +159,281 @@ const Orders = () => {
     return { total, active, delivered, investment }
   }, [orders])
 
+  const orderTimelineSteps = ['pending', 'confirmed', 'processing', 'shipped', 'delivered']
+
+  const renderOrderCard = (order) => {
+    const statusLower = (order.status || 'pending').toLowerCase()
+    const isCancelled = statusLower === 'cancelled'
+    const isExpanded = expandedOrder === order._id
+    const isCodOrder = String(order.paymentMethod || '').toLowerCase() === 'cod'
+    const isOfflineStore = String(order.orderType || '').toUpperCase() === 'OFFLINE'
+    const isCodApproved = (order.paymentStatus || '').toLowerCase() === 'paid' || statusLower === 'confirmed' || statusLower === 'approved' || statusLower === 'processing' || statusLower === 'cod approved'
+    const currentStepIdx = orderTimelineSteps.indexOf(statusLower)
+    const isShippedOrDispatched = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(statusLower) ||
+      ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(String(order.shipping?.status || '').toLowerCase()) ||
+      Boolean(order.shipping?.awbNumber || order.trackingNumber) ||
+      Boolean(order.shipping?.pickupAt)
+
+    return (
+      <div key={order._id} className={`order-card-luxury ${isCancelled ? 'cancelled-card' : ''}`}>
+        {/* Card Header Header Strip */}
+        <div
+          className="order-card-header"
+          onClick={() => setExpandedOrder(isExpanded ? null : order._id)}
+        >
+          <div className="order-main-info">
+            <div className="order-num-row">
+              <span className="order-number">ORDER #{order.orderNumber}</span>
+              <span className="order-date">
+                {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+            </div>
+
+            {/* Items Preview Strip */}
+            <div className="items-preview-strip">
+              {(order.items || []).slice(0, 3).map((item, idx) => (
+                <div key={idx} className="preview-item">
+                  <img src={getOptimizedImageUrl(item.image, 'thumbnail')} alt={item.name} />
+                  <span className="preview-title">{item.name}</span>
+                </div>
+              ))}
+              {(order.items || []).length > 3 && (
+                <span className="more-count">+{(order.items || []).length - 3} more</span>
+              )}
+            </div>
+          </div>
+
+          <div className="order-status-group">
+            <div className="status-badges">
+              <span className={`status-pill ${statusLower}`}>
+                <span className="status-dot" />
+                {isOfflineStore && isCodOrder ? (isCodApproved ? 'ORDER HANDOVER' : 'COD PENDING APPROVAL') : statusLower.toUpperCase()}
+              </span>
+              <span className={`payment-pill ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}`}>
+                {isOfflineStore && isCodOrder
+                  ? `COD • ${isCodApproved ? 'PAID / APPROVED' : (order.paymentStatus || 'PENDING').toUpperCase()}`
+                  : (isCodOrder ? 'ONLINE (COD)' : `${(order.paymentMethod || 'online').toUpperCase()} • ${(order.paymentStatus || 'pending').toUpperCase()}`)
+                }
+              </span>
+            </div>
+
+            <div className="order-total-block">
+              <span className="total-label">Total Amount</span>
+              <span className="total-val">₹{Number(order.totalAmount).toLocaleString('en-IN')}</span>
+            </div>
+
+            <button className="expand-toggle-btn">
+              {isExpanded ? 'Hide Details ▲' : 'View Details ▼'}
+            </button>
+          </div>
+        </div>
+
+        {/* Expanded Card Body */}
+        <AnimatePresence>
+          {isExpanded && (
+            <motion.div
+              className="order-card-details"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Horizontal Tracking Timeline or COD Handover Banner */}
+              {isCancelled ? (
+                <div className="timeline-cancelled-banner">
+                  <span className="cancelled-icon-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                    </svg>
+                  </span>
+                  <div className="cancelled-text">
+                    <strong>This Order Has Been Cancelled</strong>
+                    <p>Cancelled prior to warehouse dispatch & pickup.</p>
+                  </div>
+                </div>
+              ) : (isOfflineStore && isCodOrder) ? (
+                <div className="cod-handover-banner-box">
+                  {isCodApproved ? (
+                    <div className="cod-approved-handover">
+                      <div className="handover-icon-circle green">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                          <line x1="3" y1="6" x2="21" y2="6"/>
+                          <path d="M16 10a4 4 0 0 1-8 0"/>
+                        </svg>
+                      </div>
+                      <div className="handover-text">
+                        <span className="handover-mini-tag">✦ ADMIN APPROVED</span>
+                        <strong className="handover-main-title">ORDER HANDOVER</strong>
+                        <p className="handover-sub">COD Payment verified & approved by Admin. Item handed over to customer.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="cod-pending-approval">
+                      <div className="handover-icon-circle amber">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/>
+                          <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                      </div>
+                      <div className="handover-text">
+                        <span className="handover-mini-tag amber">PROCESSING</span>
+                        <strong className="handover-main-title amber">ORDER PROCESSING</strong>
+                        <p className="handover-sub">Your Cash on Delivery order is currently processing. Order Handover will be confirmed shortly.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="tracking-timeline-horizontal">
+                  {orderTimelineSteps.map((step, idx) => (
+                    <div key={step} className={`timeline-step ${idx <= currentStepIdx ? 'active' : ''} ${idx === currentStepIdx ? 'current' : ''}`}>
+                      <div className="step-dot" />
+                      <span className="step-label">{step}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div className="details-grid">
+                {/* Items Section */}
+                <div className="items-section">
+                  <h4>Ordered Atelier Items</h4>
+                  {(order.items || []).map((item, idx) => (
+                    <div key={idx} className="order-item-row">
+                      <div className="item-thumb">
+                        <img src={getOptimizedImageUrl(item.image, 'thumbnail')} alt={item.name} />
+                      </div>
+                      <div className="item-info">
+                        <h5>{item.name}</h5>
+                        <p>Size: <strong>{item.size || item.selectedSize || 'Standard'}</strong> | Qty: <strong>{item.quantity}</strong></p>
+                      </div>
+                      <div className="item-price">
+                        ₹{(item.price * item.quantity).toLocaleString('en-IN')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Delivery & Payment Info */}
+                <div className="delivery-section">
+                  <h4>Delivery Address</h4>
+                  <div className="address-block">
+                    <p className="customer-name" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                      </svg>
+                      <span>{order.customer?.name}</span>
+                    </p>
+                    <p>{order.customer?.address?.street}</p>
+                    <p>{order.customer?.address?.city}, {order.customer?.address?.state} - {order.customer?.address?.pincode}</p>
+                    <p className="customer-phone" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                      </svg>
+                      <span>T: {order.customer?.phone}</span>
+                    </p>
+                  </div>
+
+                  <div className="payment-info">
+                    <h4>Payment & Financial Notice</h4>
+                    <p>Method: <strong>{(order.paymentMethod || 'online').toUpperCase()}</strong></p>
+                    <p>Payment Status: <strong className={`pay-status ${(order.paymentStatus || 'pending').toLowerCase()}`}>{(order.paymentStatus || 'pending').toUpperCase()}</strong></p>
+
+                    {/* Refund Notice Banner */}
+                    {order.paymentMethod === 'online' && (
+                      <div className="refund-status-box">
+                        {order.refundStatus === 'refunded' ? (
+                          <div className="refund-text success">
+                            ✓ Refund Status: <strong>Refunded</strong> (₹{Number(order.refundedAmount || order.totalAmount).toLocaleString('en-IN')})
+                          </div>
+                        ) : order.refundStatus === 'refund_rejected' ? (
+                          <div className="refund-text danger">
+                            ✕ Refund Status: <strong>Refund Rejected</strong>
+                          </div>
+                        ) : (isCancelled || ['refund_requested', 'refund_processing', 'refund_approved'].includes(order.refundStatus)) ? (
+                          <div className="refund-text warning">
+                            <div className="refund-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                <line x1="1" y1="10" x2="23" y2="10"/>
+                              </svg>
+                              <span>Refund Status: <strong>Refund Initiated</strong></span>
+                            </div>
+                            <div className="refund-sub">
+                              Your refund of <strong>₹{Number(order.totalAmount).toLocaleString('en-IN')}</strong> will be credited to your original payment method within <strong>5-7 working days</strong>.
+                            </div>
+                          </div>
+                        ) : (['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(statusLower) || Boolean(order.shipping?.awbNumber)) ? (
+                          <p className="refund-sub info">
+                            <em>Refund is not available because this order has already been shipped from the warehouse.</em>
+                          </p>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Logistics & Live Tracking Card */}
+                  {(order.shipping?.awbNumber || order.trackingNumber || order.shipping?.ad2shipOrderId) && (
+                    <div className="tracking-info-box">
+                      <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="1" y="3" width="15" height="13"/>
+                          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                          <circle cx="5.5" cy="18.5" r="2.5"/>
+                          <circle cx="18.5" cy="18.5" r="2.5"/>
+                        </svg>
+                        <span>Logistics Checkpoint</span>
+                      </h4>
+                      {order.shipping?.courierName && <p>Courier: <strong>{order.shipping.courierName}</strong></p>}
+                      {(order.shipping?.awbNumber || order.trackingNumber) && (
+                        <p>AWB Tracking #: <strong>{order.shipping?.awbNumber || order.trackingNumber}</strong></p>
+                      )}
+                      {order.estimatedDelivery && <p>Est. Arrival: <strong>{new Date(order.estimatedDelivery).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}
+
+                      <button
+                        type="button"
+                        className="track-live-btn"
+                        onClick={() => handleFetchTracking(order)}
+                        disabled={trackingLoading}
+                      >
+                        {trackingLoading ? 'Retrieving Checkpoints...' : 'View Live Tracking Logs'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Footer */}
+              <div className="order-footer-actions">
+                {!isCancelled && !isShippedOrDispatched && (
+                  <button
+                    className="cancel-order-action-btn"
+                    onClick={() => handleCancelOrder(order._id)}
+                    disabled={cancellingId === order._id}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    {cancellingId === order._id ? 'Cancelling...' : 'Cancel Order'}
+                  </button>
+                )}
+                <button className="invoice-btn" onClick={() => handlePrint(order)}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+                  Print Invoice
+                </button>
+                <button className="support-btn" onClick={() => window.location.href = 'mailto:bizseemee@gmail.com?subject=SEEMEE%20Customer%20Support%20Inquiry'}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  Contact Support (bizseemee@gmail.com)
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="luxury-orders-loading">
@@ -226,287 +504,7 @@ const Orders = () => {
         ) : (
           /* Luxury Orders Grid */
           <div className="orders-list-luxury">
-            {filteredOrders.map((order) => {
-              const statusLower = (order.status || 'pending').toLowerCase()
-              const isCancelled = statusLower === 'cancelled'
-              const isExpanded = expandedOrder === order._id
-              const isCodOrder = String(order.paymentMethod || '').toLowerCase() === 'cod'
-              const isOfflineStore = String(order.orderType || '').toUpperCase() === 'OFFLINE'
-              const isCodApproved = (order.paymentStatus || '').toLowerCase() === 'paid' || statusLower === 'confirmed' || statusLower === 'approved' || statusLower === 'processing' || statusLower === 'cod approved'
-
-              return (
-                <div key={order._id} className={`order-card-luxury ${isCancelled ? 'cancelled-card' : ''}`}>
-                  {/* Card Header Header Strip */}
-                  <div 
-                    className="order-card-header"
-                    onClick={() => setExpandedOrder(isExpanded ? null : order._id)}
-                  >
-                    <div className="order-main-info">
-                      <div className="order-num-row">
-                        <span className="order-number">ORDER #{order.orderNumber}</span>
-                        <span className="order-date">
-                          {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </span>
-                      </div>
-                      
-                      {/* Items Preview Strip */}
-                      <div className="items-preview-strip">
-                        {(order.items || []).slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="preview-item">
-                            <img src={getOptimizedImageUrl(item.image, 'thumbnail')} alt={item.name} />
-                            <span className="preview-title">{item.name}</span>
-                          </div>
-                        ))}
-                        {(order.items || []).length > 3 && (
-                          <span className="more-count">+{(order.items || []).length - 3} more</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="order-status-group">
-                      <div className="status-badges">
-                        <span className={`status-pill ${statusLower}`}>
-                          <span className="status-dot" />
-                          {isOfflineStore && isCodOrder ? (isCodApproved ? 'ORDER HANDOVER' : 'COD PENDING APPROVAL') : statusLower.toUpperCase()}
-                        </span>
-                        <span className={`payment-pill ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}`}>
-                          {isOfflineStore && isCodOrder
-                            ? `COD • ${isCodApproved ? 'PAID / APPROVED' : (order.paymentStatus || 'PENDING').toUpperCase()}`
-                            : (isCodOrder ? 'ONLINE (COD)' : `${(order.paymentMethod || 'online').toUpperCase()} • ${(order.paymentStatus || 'pending').toUpperCase()}`)
-                          }
-                        </span>
-                      </div>
-
-                      <div className="order-total-block">
-                        <span className="total-label">Total Amount</span>
-                        <span className="total-val">₹{Number(order.totalAmount).toLocaleString('en-IN')}</span>
-                      </div>
-
-                      <button className="expand-toggle-btn">
-                        {isExpanded ? 'Hide Details ▲' : 'View Details ▼'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Expanded Card Body */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div 
-                        className="order-card-details"
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {/* Horizontal Tracking Timeline or COD Handover Banner */}
-                        {isCancelled ? (
-                          <div className="timeline-cancelled-banner">
-                            <span className="cancelled-icon-badge">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <circle cx="12" cy="12" r="10"/>
-                                  <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-                                </svg>
-                              </span>
-                            <div className="cancelled-text">
-                              <strong>This Order Has Been Cancelled</strong>
-                              <p>Cancelled prior to warehouse dispatch & pickup.</p>
-                            </div>
-                          </div>
-                        ) : (isOfflineStore && isCodOrder) ? (
-                          <div className="cod-handover-banner-box">
-                            {isCodApproved ? (
-                              <div className="cod-approved-handover">
-                                <div className="handover-icon-circle green">
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                                    <line x1="3" y1="6" x2="21" y2="6"/>
-                                    <path d="M16 10a4 4 0 0 1-8 0"/>
-                                  </svg>
-                                </div>
-                                <div className="handover-text">
-                                  <span className="handover-mini-tag">✦ ADMIN APPROVED</span>
-                                  <strong className="handover-main-title">ORDER HANDOVER</strong>
-                                  <p className="handover-sub">COD Payment verified & approved by Admin. Item handed over to customer.</p>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="cod-pending-approval">
-                                <div className="handover-icon-circle amber">
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12 6 12 12 16 14"/>
-                                  </svg>
-                                </div>
-                                <div className="handover-text">
-                                  <span className="handover-mini-tag amber">PROCESSING</span>
-                                  <strong className="handover-main-title amber">ORDER PROCESSING</strong>
-                                  <p className="handover-sub">Your Cash on Delivery order is currently processing. Order Handover will be confirmed shortly.</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="tracking-timeline-horizontal">
-                            {['pending', 'confirmed', 'processing', 'shipped', 'delivered'].map((step, idx, arr) => {
-                              const currentStepIdx = arr.indexOf(statusLower)
-                              const isCompleted = idx <= currentStepIdx
-                              const isCurrent = idx === currentStepIdx
-                              return (
-                                <div key={step} className={`timeline-step ${isCompleted ? 'active' : ''} ${isCurrent ? 'current' : ''}`}>
-                                  <div className="step-dot" />
-                                  <span className="step-label">{step}</span>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        )}
-
-                        <div className="details-grid">
-                          {/* Items Section */}
-                          <div className="items-section">
-                            <h4>Ordered Atelier Items</h4>
-                            {(order.items || []).map((item, idx) => (
-                              <div key={idx} className="order-item-row">
-                                <div className="item-thumb">
-                                  <img src={getOptimizedImageUrl(item.image, 'thumbnail')} alt={item.name} />
-                                </div>
-                                <div className="item-info">
-                                  <h5>{item.name}</h5>
-                                  <p>Size: <strong>{item.size || item.selectedSize || 'Standard'}</strong> | Qty: <strong>{item.quantity}</strong></p>
-                                </div>
-                                <div className="item-price">
-                                  ₹{(item.price * item.quantity).toLocaleString('en-IN')}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Delivery & Payment Info */}
-                          <div className="delivery-section">
-                            <h4>Delivery Address</h4>
-                            <div className="address-block">
-                              <p className="customer-name" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                  <circle cx="12" cy="10" r="3"/>
-                                </svg>
-                                <span>{order.customer?.name}</span>
-                              </p>
-                              <p>{order.customer?.address?.street}</p>
-                              <p>{order.customer?.address?.city}, {order.customer?.address?.state} - {order.customer?.address?.pincode}</p>
-                              <p className="customer-phone" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                                </svg>
-                                <span>T: {order.customer?.phone}</span>
-                              </p>
-                            </div>
-
-                            <div className="payment-info">
-                              <h4>Payment & Financial Notice</h4>
-                              <p>Method: <strong>{(order.paymentMethod || 'online').toUpperCase()}</strong></p>
-                              <p>Payment Status: <strong className={`pay-status ${(order.paymentStatus || 'pending').toLowerCase()}`}>{(order.paymentStatus || 'pending').toUpperCase()}</strong></p>
-
-                              {/* Refund Notice Banner */}
-                              {order.paymentMethod === 'online' && (
-                                <div className="refund-status-box">
-                                  {order.refundStatus === 'refunded' ? (
-                                    <div className="refund-text success">
-                                      ✓ Refund Status: <strong>Refunded</strong> (₹{Number(order.refundedAmount || order.totalAmount).toLocaleString('en-IN')})
-                                    </div>
-                                  ) : order.refundStatus === 'refund_rejected' ? (
-                                    <div className="refund-text danger">
-                                      ✕ Refund Status: <strong>Refund Rejected</strong>
-                                    </div>
-                                  ) : (isCancelled || ['refund_requested', 'refund_processing', 'refund_approved'].includes(order.refundStatus)) ? (
-                                    <div className="refund-text warning">
-                                      <div className="refund-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                                            <line x1="1" y1="10" x2="23" y2="10"/>
-                                          </svg>
-                                          <span>Refund Status: <strong>Refund Initiated</strong></span>
-                                        </div>
-                                      <div className="refund-sub">
-                                        Your refund of <strong>₹{Number(order.totalAmount).toLocaleString('en-IN')}</strong> will be credited to your original payment method within <strong>5-7 working days</strong>.
-                                      </div>
-                                    </div>
-                                  ) : (['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(statusLower) || Boolean(order.shipping?.awbNumber)) ? (
-                                    <p className="refund-sub info">
-                                      <em>Refund is not available because this order has already been shipped from the warehouse.</em>
-                                    </p>
-                                  ) : null}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Logistics & Live Tracking Card */}
-                            {(order.shipping?.awbNumber || order.trackingNumber || order.shipping?.ad2shipOrderId) && (
-                              <div className="tracking-info-box">
-                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <rect x="1" y="3" width="15" height="13"/>
-                                    <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
-                                    <circle cx="5.5" cy="18.5" r="2.5"/>
-                                    <circle cx="18.5" cy="18.5" r="2.5"/>
-                                  </svg>
-                                  <span>Logistics Checkpoint</span>
-                                </h4>
-                                {order.shipping?.courierName && <p>Courier: <strong>{order.shipping.courierName}</strong></p>}
-                                {(order.shipping?.awbNumber || order.trackingNumber) && (
-                                  <p>AWB Tracking #: <strong>{order.shipping?.awbNumber || order.trackingNumber}</strong></p>
-                                )}
-                                {order.estimatedDelivery && <p>Est. Arrival: <strong>{new Date(order.estimatedDelivery).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></p>}
-
-                                <button 
-                                  type="button"
-                                  className="track-live-btn"
-                                  onClick={() => handleFetchTracking(order)}
-                                  disabled={trackingLoading}
-                                >
-                                  {trackingLoading ? 'Retrieving Checkpoints...' : 'View Live Tracking Logs'}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Action Footer */}
-                        <div className="order-footer-actions">
-                          {(() => {
-                            const isShippedOrDispatched = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(statusLower) || 
-                              ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(String(order.shipping?.status || '').toLowerCase()) || 
-                              Boolean(order.shipping?.awbNumber || order.trackingNumber) || 
-                              Boolean(order.shipping?.pickupAt)
-
-                            if (isCancelled || isShippedOrDispatched) return null
-
-                            return (
-                              <button 
-                                className="cancel-order-action-btn" 
-                                onClick={() => handleCancelOrder(order._id)}
-                                disabled={cancellingId === order._id}
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                {cancellingId === order._id ? 'Cancelling...' : 'Cancel Order'}
-                              </button>
-                            )
-                          })()}
-                          <button className="invoice-btn" onClick={() => handlePrint(order)}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
-                            Print Invoice
-                          </button>
-                          <button className="support-btn" onClick={() => window.location.href='mailto:bizseemee@gmail.com?subject=SEEMEE%20Customer%20Support%20Inquiry'}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                            Contact Support (bizseemee@gmail.com)
-                          </button>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              )
-            })}
+            {filteredOrders.map((order) => renderOrderCard(order))}
           </div>
         )}
       </div>

@@ -18,9 +18,10 @@ router.post('/manifest', protect, admin, shippingController.generateManifest)
 router.post('/label', protect, admin, shippingController.generateLabel)
 router.post('/invoice', optionalAuth, shippingController.generateInvoice)
 
-// Tracking (Public for customer tracking, Admin for ID tracking)
+// Tracking (Public for customer tracking, Admin for ID tracking & manual sync)
 router.post('/track', shippingController.trackOrder)
 router.post('/track-by-id', protect, admin, shippingController.trackOrderById)
+router.post('/sync', protect, admin, shippingController.syncOrder)
 
 // Cancellation (Protected)
 router.post('/cancel', protect, shippingController.cancelOrder)

@@ -32,6 +32,7 @@ export const API_ENDPOINTS = {
     INVOICE: `${API_BASE_URL}/api/shipping/invoice`,
     TRACK: `${API_BASE_URL}/api/shipping/track`,
     TRACK_BY_ID: `${API_BASE_URL}/api/shipping/track-by-id`,
+    SYNC: `${API_BASE_URL}/api/shipping/sync`,
     CANCEL: `${API_BASE_URL}/api/shipping/cancel`
   },
   NEW_ARRIVALS: `${API_BASE_URL}/api/new-arrivals`,

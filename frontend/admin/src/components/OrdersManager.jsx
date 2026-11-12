@@ -349,11 +349,40 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
       })
       if (data.success) {
         setTrackingModalData(data.data)
+        if (data.order) {
+          setSelectedOrder(data.order)
+          setOrders(prev => prev.map(o => (o._id === data.order._id ? data.order : o)))
+        }
       } else {
         showNotification(data.message || 'Tracking failed', 'error')
       }
     } catch (err) {
       showNotification(err.message || 'Tracking failed', 'error')
+    } finally {
+      setAd2shipLoading(false)
+    }
+  }
+
+  const handleSyncAd2Ship = async (orderId) => {
+    setAd2shipLoading(true)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.SHIPPING.SYNC, {
+        method: 'POST',
+        auth: true,
+        body: { orderId }
+      })
+      if (data.success) {
+        showNotification(data.message || 'Synced from Ad2Ship!')
+        if (data.order) {
+          setSelectedOrder(data.order)
+          setOrders(prev => prev.map(o => (o._id === data.order._id ? data.order : o)))
+        }
+        fetchOrders()
+      } else {
+        showNotification(data.message || 'Sync failed', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Sync failed', 'error')
     } finally {
       setAd2shipLoading(false)
     }
@@ -1325,14 +1354,25 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                             )}
 
                             {(selectedOrder.shipping?.awbNumber || selectedOrder.shipping?.ad2shipOrderId) && (
-                              <button
-                                type="button"
-                                disabled={ad2shipLoading}
-                                onClick={() => handleTrackShipment(selectedOrder)}
-                                style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
-                              >
-                                Track Live
-                              </button>
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={ad2shipLoading}
+                                  onClick={() => handleTrackShipment(selectedOrder)}
+                                  style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                                >
+                                  Track Live
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={ad2shipLoading}
+                                  onClick={() => handleSyncAd2Ship(selectedOrder._id)}
+                                  title="Pull latest AWB, courier & status directly from Ad2Ship"
+                                  style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                                >
+                                  Sync A2D
+                                </button>
+                              </>
                             )}
 
                             {selectedOrder.shipping?.ad2shipOrderId && (

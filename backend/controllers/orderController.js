@@ -296,6 +296,7 @@ export const getOrders = asyncHandler(async (req, res) => {
     .populate('items.product')
     .populate('approvedBy', 'name email')
     .sort({ createdAt: -1 })
+  await shippingService.syncActiveAd2ShipOrders(orders)
   res.json({ success: true, data: orders })
 })
 
@@ -317,6 +318,8 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find(
     queryConditions.length > 0 ? { $or: queryConditions } : { _id: null }
   ).sort({ createdAt: -1 })
+
+  await shippingService.syncActiveAd2ShipOrders(orders)
 
   res.json({ success: true, data: orders })
 })

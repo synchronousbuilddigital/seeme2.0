@@ -157,7 +157,8 @@ const orderSchema = new mongoose.Schema({
     manifestGenerated: { type: Boolean, default: false },
     shippedAt: Date,
     pickupAt: Date,
-    expectedDeliveryAt: Date
+    expectedDeliveryAt: Date,
+    lastSyncedAt: Date
   }
 }, {
   timestamps: true

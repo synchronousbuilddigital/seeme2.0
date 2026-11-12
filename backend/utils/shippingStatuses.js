@@ -52,3 +52,31 @@ export const mapAd2ShipStatusToOrder = (ad2shipStatus) => {
       return 'processing'
   }
 }
+
+const ORDER_STATUS_RANK = {
+  pending_approval: 0,
+  pending: 1,
+  confirmed: 2,
+  processing: 3,
+  printing: 3,
+  packaging: 3,
+  shipped: 4,
+  delivered: 5
+}
+
+/**
+ * Prevents live tracking updates from regressing an order's main status backwards
+ * (e.g. 'shipped' -> 'processing' on delayed picked_up/undelivered events),
+ * while still allowing forward progression and terminal 'cancelled' transitions.
+ */
+export const shouldAdvanceOrderStatus = (currentStatus, nextStatus) => {
+  if (!nextStatus) return false
+  const curr = String(currentStatus || 'pending').toLowerCase().trim()
+  const next = String(nextStatus).toLowerCase().trim()
+  if (curr === next) return false
+  if (curr === 'delivered' || curr === 'refunded') return false
+  if (next === 'cancelled') return curr !== 'cancelled'
+  const currRank = ORDER_STATUS_RANK[curr] ?? 0
+  const nextRank = ORDER_STATUS_RANK[next] ?? 0
+  return nextRank > currRank
+}

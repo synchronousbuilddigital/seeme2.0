@@ -1,7 +1,7 @@
 import Order from '../models/Order.js'
 import Product from '../models/Product.js'
 import ad2shipService from './ad2shipService.js'
-import { mapAd2ShipStatusToOrder, AD2SHIP_STATUSES } from '../utils/shippingStatuses.js'
+import { mapAd2ShipStatusToOrder, shouldAdvanceOrderStatus, AD2SHIP_STATUSES } from '../utils/shippingStatuses.js'
 
 export const cleanPhone = (phone) => {
   const digits = String(phone || '').replace(/\D/g, '')
@@ -370,10 +370,25 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
     },
     ProductDetails: order.items.map(item => {
       const p = item.product
-      const skuVal = typeof p === 'object' && p !== null ? (p.sku || String(p._id)) : String(p || 'SKU001')
+      // Build human-friendly SKU code: SKU (or short ID) + Size + Color (e.g., "TSHIRT-M" or "SM-BLK-L")
+      const baseSku = (typeof p === 'object' && p !== null && p.sku) ? String(p.sku).trim() : ''
+      const sizeTag = item.size ? `-${String(item.size).toUpperCase().trim()}` : ''
+      const colorTag = item.color ? `-${String(item.color).toUpperCase().trim()}` : ''
+      
+      const fallbackSku = baseSku ? `${baseSku}${sizeTag}${colorTag}` : (
+        item.name 
+          ? `${item.name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toUpperCase()}${sizeTag}`
+          : `SKU${sizeTag || '-STD'}`
+      )
+
+      // Include size and color directly in the item name printed on the label
+      const sizeStr = item.size ? ` (Size: ${item.size})` : ''
+      const colorStr = item.color ? ` (Color: ${item.color})` : ''
+      const displayName = `${item.name || 'Product'}${sizeStr}${colorStr}`
+
       return {
-        Name: item.name || 'Product',
-        SKU: String(skuVal),
+        Name: displayName.slice(0, 80),
+        SKU: fallbackSku.slice(0, 30),
         QTY: String(item.quantity || 1),
         Amount: String(item.price || 0)
       }
@@ -382,7 +397,7 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
     GstNumber: '',
     ShippingCharge: '0',
     CodCharge: '0',
-    Discount: '0'
+    Discount: String(order.couponDiscount || 0)
   }
 
   const response = await ad2shipService.createOrder([orderPayload])
@@ -570,54 +585,232 @@ export const generateShippingDocument = async ({ orderId, documentType }) => {
   throw new Error(`Unsupported document type: ${documentType}`)
 }
 
+const cleanOptionalStr = (val) => {
+  if (val === null || val === undefined || typeof val === 'boolean') return ''
+  const str = String(val).trim()
+  if (!str || ['null', 'undefined', 'unassigned', 'none', 'n/a'].includes(str.toLowerCase())) {
+    return ''
+  }
+  return str
+}
+
 /**
- * 5. Track Order
+ * Syncs Ad2Ship tracking or webhook payload fields (AWB, courier, charges, status, timeline)
+ * back into the local Seemee Order document.
  */
-export const trackShipment = async ({ awbNumber, orderId }) => {
-  let awb = awbNumber
+export const applyAd2ShipTrackingToOrder = async (order, trackingRes, { source = 'Ad2Ship sync', saveAlways = false } = {}) => {
+  if (!order || !trackingRes || trackingRes.status === false) {
+    return { order, changed: false }
+  }
 
-  if (!awb && orderId) {
-    const order = await Order.findById(orderId)
-    if (order?.shipping?.awbNumber) {
-      awb = order.shipping.awbNumber
-    } else if (order?.shipping?.ad2shipOrderId) {
-      // Fallback to track by Ad2Ship order ID
-      const res = await ad2shipService.trackOrderById({ orderId: order.shipping.ad2shipOrderId })
-      return { success: true, data: res }
+  const payload = (trackingRes.data && typeof trackingRes.data === 'object' && !Array.isArray(trackingRes.data))
+    ? { ...trackingRes, ...trackingRes.data }
+    : trackingRes
+
+  if (!order.shipping) order.shipping = {}
+  let changed = false
+
+  const awb = cleanOptionalStr(
+    payload.AWBNumber || payload.awbNumber || payload.awb_number || payload.awb || payload.AWB || payload.Awb
+  )
+  if (awb && order.shipping.awbNumber !== awb) {
+    order.shipping.awbNumber = awb
+    order.trackingNumber = awb
+    if (!order.shipping.shippedAt) {
+      order.shipping.shippedAt = new Date()
     }
+    changed = true
+  } else if (awb && !order.trackingNumber) {
+    order.trackingNumber = awb
+    changed = true
   }
 
-  if (!awb) {
-    throw new Error('AWB Number or valid Order ID is required for tracking.')
+  const courier = cleanOptionalStr(
+    payload.CourierPartner || payload.courierPartner || payload.courier || payload.courier_name || payload.CourierName
+  )
+  if (courier && order.shipping.courierName !== courier) {
+    order.shipping.courierName = courier
+    changed = true
   }
 
-  const res = await ad2shipService.trackOrder({ awbNumber: awb })
-  
-  // Also sync order status if orderId is available
-  if (orderId && res && res.CurrentStatus) {
-    const order = await Order.findById(orderId)
-    if (order) {
-      const mappedStatus = mapAd2ShipStatusToOrder(res.CurrentStatus)
-      if (mappedStatus && mappedStatus !== order.status) {
-        order.status = mappedStatus
-        if (order.shipping) {
-          order.shipping.status = res.CurrentStatus.toLowerCase()
-        }
-        if (!order.timeline) order.timeline = []
-        order.timeline.push({
-          status: res.CurrentStatus,
-          note: `Shipment update: ${res.StatusDescription || res.CurrentStatus}`,
-          timestamp: new Date()
-        })
-        await order.save()
+  const totalCharges = Number(payload.total_charges ?? payload.totalCharges ?? payload.TotalCharges ?? 0)
+  if (totalCharges > 0 && order.shipping.totalCharges !== totalCharges) {
+    order.shipping.totalCharges = totalCharges
+    const shipCharges = Number(payload.shipping_charges ?? payload.shippingCharges ?? 0)
+    const codCharges = Number(payload.cod_charges ?? payload.codCharges ?? 0)
+    const otherCharges = Number(payload.other_charges ?? payload.otherCharges ?? 0)
+    if (shipCharges > 0) order.shipping.shippingCharges = shipCharges
+    if (codCharges > 0) order.shipping.codCharges = codCharges
+    if (otherCharges > 0) order.shipping.otherCharges = otherCharges
+    changed = true
+  }
+
+  const expectedDateRaw = cleanOptionalStr(
+    payload.ExpectedDeliveryDate || payload.expectedDeliveryDate || payload.expected_delivery_date
+  )
+  if (expectedDateRaw) {
+    const parsedDate = new Date(expectedDateRaw)
+    if (!isNaN(parsedDate.getTime())) {
+      const prevTs = order.estimatedDelivery ? new Date(order.estimatedDelivery).getTime() : 0
+      if (prevTs !== parsedDate.getTime()) {
+        order.estimatedDelivery = parsedDate
+        order.shipping.expectedDeliveryAt = parsedDate
+        changed = true
       }
     }
   }
 
+  const rawStatus = cleanOptionalStr(
+    payload.CurrentStatus || payload.StatusCode || payload.currentStatus || payload.status || payload.Status
+  )
+  const statusDesc = cleanOptionalStr(
+    payload.StatusDescription || payload.statusDescription || payload.activity || payload.remark || payload.message
+  )
+
+  if (rawStatus) {
+    const normalizedShippingStatus = rawStatus.toLowerCase()
+    const shippingStatusChanged = order.shipping.status !== normalizedShippingStatus
+    if (shippingStatusChanged) {
+      order.shipping.status = normalizedShippingStatus
+      changed = true
+    }
+
+    const mappedStatus = mapAd2ShipStatusToOrder(rawStatus)
+    const mainStatusChanged = shouldAdvanceOrderStatus(order.status, mappedStatus)
+    if (mainStatusChanged) {
+      order.status = mappedStatus
+      if (mappedStatus === 'delivered' && order.paymentMethod === 'cod') {
+        order.paymentStatus = 'paid'
+      }
+      changed = true
+    }
+
+    if (shippingStatusChanged || mainStatusChanged) {
+      if (!order.timeline) order.timeline = []
+      const noteText = `${source}: ${statusDesc || rawStatus}`
+      const lastEntry = order.timeline[order.timeline.length - 1]
+      if (!lastEntry || lastEntry.status !== rawStatus || lastEntry.note !== noteText) {
+        order.timeline.push({
+          status: rawStatus,
+          note: noteText,
+          timestamp: new Date()
+        })
+      }
+    }
+  } else if (awb && shouldAdvanceOrderStatus(order.status, 'shipped')) {
+    // AWB assigned directly on Ad2Ship panel even if CurrentStatus wasn't returned
+    order.status = 'shipped'
+    if (!order.shipping.status || order.shipping.status === 'pending') {
+      order.shipping.status = AD2SHIP_STATUSES.SHIPPED
+    }
+    if (!order.timeline) order.timeline = []
+    order.timeline.push({
+      status: 'Shipped',
+      note: `${source}: AWB ${awb}${courier ? ` via ${courier}` : ''}`,
+      timestamp: new Date()
+    })
+    changed = true
+  }
+
+  order.shipping.lastSyncedAt = new Date()
+  if (changed || saveAlways) {
+    await order.save()
+  }
+
+  return { order, changed }
+}
+
+/**
+ * 5. Track Order
+ */
+export const trackShipment = async ({ awbNumber, orderId }) => {
+  let awb = cleanOptionalStr(awbNumber)
+  let order = null
+
+  if (orderId) {
+    order = await Order.findById(orderId).catch(() => null)
+    if (!awb && order?.shipping?.awbNumber) {
+      awb = cleanOptionalStr(order.shipping.awbNumber)
+    }
+  }
+
+  let res = null
+  if (awb) {
+    res = await ad2shipService.trackOrder({ awbNumber: awb })
+  } else if (order?.shipping?.ad2shipOrderId) {
+    res = await ad2shipService.trackOrderById({ orderId: order.shipping.ad2shipOrderId })
+  } else {
+    throw new Error('AWB Number or valid Order ID is required for tracking.')
+  }
+
+  if (order && res) {
+    await applyAd2ShipTrackingToOrder(order, res, { source: 'Shipment update', saveAlways: true })
+  }
+
   return {
     success: true,
-    data: res
+    data: res,
+    order
   }
+}
+
+/**
+ * 5b. Force-sync a single order from Ad2Ship (used by Admin Sync button)
+ */
+export const syncOrderFromAd2Ship = async (orderId) => {
+  const order = await Order.findById(orderId)
+  if (!order) {
+    const err = new Error('Order not found.')
+    err.statusCode = 404
+    throw err
+  }
+  if (!order.shipping?.ad2shipOrderId && !order.shipping?.awbNumber && !order.trackingNumber) {
+    const err = new Error('This order does not have an Ad2Ship Order ID or AWB number yet.')
+    err.statusCode = 400
+    throw err
+  }
+
+  return trackShipment({
+    awbNumber: order.shipping?.awbNumber || order.trackingNumber,
+    orderId: order._id
+  })
+}
+
+/**
+ * 5c. Lightweight auto-sync for active online orders when listing customer/admin orders
+ */
+export const syncActiveAd2ShipOrders = async (orders = [], { cooldownMs = 2 * 60 * 1000, maxOrders = 8 } = {}) => {
+  if (!Array.isArray(orders) || orders.length === 0) return orders
+
+  const now = Date.now()
+  const candidates = orders.filter((order) => {
+    if (!order || String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE') return false
+    const status = String(order.status || '').toLowerCase()
+    if (['delivered', 'cancelled', 'refunded'].includes(status)) return false
+    if (!order.shipping?.ad2shipOrderId && !order.shipping?.awbNumber && !order.trackingNumber) return false
+
+    const lastSynced = order.shipping?.lastSyncedAt ? new Date(order.shipping.lastSyncedAt).getTime() : 0
+    return (now - lastSynced) >= cooldownMs
+  }).slice(0, maxOrders)
+
+  if (candidates.length === 0) return orders
+
+  await Promise.allSettled(
+    candidates.map(async (order) => {
+      try {
+        const awb = cleanOptionalStr(order.shipping?.awbNumber || order.trackingNumber)
+        const res = awb
+          ? await ad2shipService.trackOrder({ awbNumber: awb })
+          : await ad2shipService.trackOrderById({ orderId: order.shipping.ad2shipOrderId })
+        await applyAd2ShipTrackingToOrder(order, res, { source: 'Auto sync', saveAlways: true })
+      } catch (err) {
+        // Non-fatal: keep existing DB order data if Ad2Ship is temporarily unreachable
+        console.warn(`⚠️ Auto-sync skipped for Order #${order.orderNumber}:`, err.message)
+      }
+    })
+  )
+
+  return orders
 }
 
 /**
@@ -723,5 +916,8 @@ export default {
   shipAd2ShipOrder,
   generateShippingDocument,
   trackShipment,
+  syncOrderFromAd2Ship,
+  syncActiveAd2ShipOrders,
+  applyAd2ShipTrackingToOrder,
   cancelShipment
 }
