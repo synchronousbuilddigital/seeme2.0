@@ -6164,3 +6164,329 @@
     font-size: 0.58rem !important;
   }
 }
+/* ==========================================================================
+   RESPONSIVE LAPTOP ALIGNMENT FIX
+   ========================================================================== */
+@media (min-width: 1025px) {
+  .account-wrapper {
+    width: 100% !important;
+    max-width: 1360px !important;
+    grid-template-columns: 228px minmax(0, 1fr) !important;
+    gap: 24px !important;
+    padding: 0 24px !important;
+    box-sizing: border-box !important;
+  }
+
+  .account-nav-sidebar {
+    width: 228px !important;
+    min-width: 0 !important;
+    height: calc(100vh - 120px) !important;
+    max-height: calc(100vh - 120px) !important;
+    padding: 12px !important;
+    border: 1px solid #e8e1d5 !important;
+    border-radius: 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .nav-profile-card {
+    padding: 12px !important;
+    gap: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .nav-user-info {
+    min-width: 0;
+  }
+
+  .nav-user-info h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .nav-user-info p {
+    line-height: 1.35;
+  }
+
+  .side-nav-item {
+    gap: 9px !important;
+  }
+
+  .side-nav-label,
+  .side-nav-item.active .side-nav-label {
+    font-size: 0.75rem !important;
+    letter-spacing: 0.1em !important;
+    white-space: nowrap;
+  }
+
+  .side-nav-badge {
+    margin-left: auto !important;
+    flex-shrink: 0;
+  }
+
+  .side-nav-arrow {
+    display: none !important;
+  }
+
+  .account-main-content {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 24px 0 48px !important;
+    box-sizing: border-box !important;
+  }
+
+  .view-container {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .section-intro.orders-hero {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 24px !important;
+    padding: 22px 26px !important;
+    margin-bottom: 16px !important;
+    text-align: left !important;
+    border-radius: 14px !important;
+    box-shadow: 0 16px 42px rgba(10, 10, 10, 0.2) !important;
+  }
+
+  .section-intro.orders-hero > div:first-child {
+    min-width: 230px;
+  }
+
+  .section-intro.orders-hero h2 {
+    font-size: 1.75rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .section-intro.orders-hero p {
+    font-size: 0.82rem !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  .orders-filter-pills {
+    flex: 1;
+    justify-content: flex-end;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  .filter-pill {
+    padding: 8px 13px !important;
+    white-space: nowrap;
+  }
+
+  .orders-full-list {
+    gap: 12px !important;
+    margin-top: 0 !important;
+  }
+
+  .order-summary-row {
+    min-height: 76px;
+    padding: 13px 16px !important;
+    gap: 16px;
+  }
+
+  .order-id-badge strong {
+    font-size: 1.05rem !important;
+  }
+
+  .order-summary-right {
+    gap: 12px !important;
+  }
+
+  .order-amount-display strong {
+    font-size: 1rem !important;
+  }
+
+  .order-toggle-btn {
+    padding: 7px 10px !important;
+    white-space: nowrap;
+  }
+
+  .order-detail-panel {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  .order-progress-wrapper {
+    padding: 12px 14px !important;
+    border-radius: 10px !important;
+  }
+
+  .order-detail-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.55fr) !important;
+    align-items: start !important;
+    gap: 12px !important;
+  }
+
+  .order-side-info-col {
+    width: 100% !important;
+    gap: 10px !important;
+  }
+
+  .order-item-row {
+    padding: 8px 10px !important;
+    border-radius: 9px !important;
+  }
+
+  .item-thumb-large {
+    width: 44px !important;
+    height: 54px !important;
+  }
+
+  .address-info-box,
+  .payment-info-box {
+    padding: 9px 11px !important;
+    border-radius: 9px !important;
+  }
+
+  .order-detail-actions {
+    padding-top: 10px !important;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1200px) {
+  .account-wrapper {
+    grid-template-columns: 210px minmax(0, 1fr) !important;
+    gap: 16px !important;
+    padding: 0 16px !important;
+  }
+
+  .account-nav-sidebar {
+    width: 210px !important;
+  }
+
+  .account-main-content {
+    padding-top: 18px !important;
+  }
+
+  .section-intro.orders-hero {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  .orders-filter-pills {
+    justify-content: flex-start !important;
+    width: 100%;
+  }
+
+  .order-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .account-wrapper {
+    padding: 0 !important;
+  }
+
+  .account-main-content {
+    box-sizing: border-box !important;
+  }
+
+  .mobile-tab-scroll-container {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .mobile-tab-scroll-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-tab-btn {
+    width: auto !important;
+    min-width: 108px !important;
+    flex: 0 0 auto !important;
+    scroll-snap-align: start;
+  }
+
+  .section-intro.orders-hero {
+    padding: 18px 16px !important;
+    margin-bottom: 14px !important;
+    text-align: left !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 30px rgba(10, 10, 10, 0.18) !important;
+  }
+
+  .section-intro.orders-hero h2 {
+    font-size: 1.55rem !important;
+  }
+
+  .section-intro.orders-hero p {
+    font-size: 0.78rem !important;
+  }
+
+  .orders-filter-pills {
+    flex-wrap: nowrap !important;
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .orders-filter-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .progress-bar-steps {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .order-detail-grid {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .mobile-tab-btn {
+    min-width: 96px !important;
+    padding: 8px 9px !important;
+  }
+
+  .mobile-tab-label {
+    font-size: 0.66rem !important;
+  }
+
+  .account-main-content {
+    padding: 12px 10px 48px !important;
+  }
+
+  .section-intro.orders-hero {
+    padding: 16px 14px !important;
+  }
+
+  .section-intro.orders-hero h2 {
+    font-size: 1.4rem !important;
+  }
+
+  .order-summary-row {
+    padding: 12px !important;
+  }
+
+  .order-summary-right {
+    gap: 8px !important;
+  }
+
+  .order-status-pill {
+    font-size: 0.62rem !important;
+    padding: 4px 7px !important;
+  }
+
+  .step-name {
+    font-size: 0.52rem !important;
+  }
+
+  .order-item-row {
+    padding: 8px !important;
+  }
+}
