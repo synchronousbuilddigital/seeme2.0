@@ -1568,72 +1568,178 @@
   opacity: 1;
 }
 
-/* Minimal, Clean & Elegant Sale Dropdown */
-.simple-sale-menu {
-  min-width: 220px;
-  padding: 6px;
+/* Simple Interactive Discount Dialer / Scroller */
+.dialer-sale-menu {
+  min-width: 270px;
+  padding: 16px 18px 14px;
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
-  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
 }
 
-.sale-simple-row {
+.sale-dialer-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sale-dialer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dialer-sub {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dialer-badge {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.dialer-number {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #dc2626;
+  line-height: 1;
+}
+
+.dialer-suffix {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #991b1b;
+  letter-spacing: 0.04em;
+}
+
+/* Scroller / Slider Bar */
+.sale-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 2px;
+}
+
+.sale-discount-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #fecaca 0%, #ef4444 100%);
+  outline: none;
+  cursor: pointer;
+  margin: 8px 0;
+}
+
+.sale-discount-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #dc2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  cursor: grab;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sale-discount-range::-webkit-slider-thumb:hover,
+.sale-discount-range::-webkit-slider-thumb:active {
+  transform: scale(1.15);
+  cursor: grabbing;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.45);
+}
+
+.sale-discount-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #dc2626;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+  cursor: grab;
+}
+
+.sale-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  padding: 0 2px;
+}
+
+/* Dialer Primary Action Button */
+.sale-dialer-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: #18181b;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  margin-top: 2px;
+}
+
+.sale-dialer-action-btn:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
+}
+
+.sale-dialer-divider {
+  height: 1px;
+  background: #f4f4f5;
+  margin: 2px 0;
+}
+
+/* All Sale Items Link */
+.sale-dialer-all-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 9px 12px;
+  padding: 6px 4px;
   background: transparent;
   border: none;
-  border-radius: 8px;
+  color: #52525b;
+  font-size: 0.78rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease;
   font-family: inherit;
-  text-align: left;
 }
 
-.sale-simple-row:hover {
-  background: #fef2f2;
-}
-
-.sale-simple-row.active {
-  background: #fee2e2;
-}
-
-.simple-row-label {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #27272a;
-  letter-spacing: -0.01em;
-}
-
-.sale-simple-row:hover .simple-row-label,
-.sale-simple-row.active .simple-row-label {
+.sale-dialer-all-link:hover {
   color: #dc2626;
-  font-weight: 600;
 }
 
-.simple-row-count {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #a1a1aa;
-  background: #f4f4f5;
-  padding: 2px 7px;
-  border-radius: 10px;
-  transition: all 0.15s ease;
+.dialer-all-arrow {
+  transition: transform 0.15s ease;
 }
 
-.sale-simple-row:hover .simple-row-count,
-.sale-simple-row.active .simple-row-count {
-  background: #fecaca;
-  color: #991b1b;
-}
-
-.sale-simple-divider {
-  height: 1px;
-  background: #f4f4f5;
-  margin: 4px 6px;
+.sale-dialer-all-link:hover .dialer-all-arrow {
+  transform: translateX(3px);
 }
 
 /* Mobile Drawer Sale Items */

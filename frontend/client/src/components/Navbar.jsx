@@ -81,6 +81,7 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [availableCategories, setAvailableCategories] = useState([])
+  const [dialPercent, setDialPercent] = useState(20)
 
   useEffect(() => {
     const fetchNavbarCategories = async () => {
@@ -486,35 +487,60 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               <AnimatePresence>
                 {saleDropdownOpen && (
                   <motion.div
-                    className="dropdown-menu sale-dropdown-menu simple-sale-menu"
-                    initial={{ opacity: 0, y: 10, x: '-50%', scale: 0.98 }}
+                    className="dropdown-menu sale-dropdown-menu dialer-sale-menu"
+                    initial={{ opacity: 0, y: 8, x: '-50%', scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
                     exit={{ opacity: 0, y: 6, x: '-50%', scale: 0.98 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    transition={{ duration: 0.16, ease: "easeOut" }}
                   >
-                    <button
-                      className={`sale-simple-row ${location.pathname === '/sale' && !location.search ? 'active' : ''}`}
-                      onClick={() => handleNavigation('/sale')}
-                    >
-                      <span className="simple-row-label">All Sale Items</span>
-                      <span className="simple-row-count">{saleInfo.totalSaleCount}</span>
-                    </button>
+                    {/* Interactive Discount Scroller / Dialer */}
+                    <div className="sale-dialer-box">
+                      <div className="sale-dialer-header">
+                        <span className="dialer-sub">Select Discount</span>
+                        <div className="dialer-badge">
+                          <span className="dialer-number">{dialPercent}%</span>
+                          <span className="dialer-suffix">OFF & UP</span>
+                        </div>
+                      </div>
 
-                    <div className="sale-simple-divider" />
+                      <div className="sale-slider-wrap">
+                        <input
+                          type="range"
+                          min="10"
+                          max={Math.min(70, Math.max(50, saleInfo.maxDiscount || 50))}
+                          step="10"
+                          value={dialPercent}
+                          onChange={(e) => setDialPercent(Number(e.target.value))}
+                          className="sale-discount-range"
+                        />
+                        <div className="sale-slider-ticks">
+                          <span>10%</span>
+                          <span>30%</span>
+                          <span>50%</span>
+                          <span>70%</span>
+                        </div>
+                      </div>
 
-                    {saleInfo.tiers.map((tier) => {
-                      const isTierActive = location.pathname === '/sale' && location.search.includes(`discount=${tier.value}`)
-                      return (
-                        <button
-                          key={tier.value}
-                          className={`sale-simple-row ${isTierActive ? 'active' : ''}`}
-                          onClick={() => handleNavigation(`/sale?discount=${tier.value}`)}
-                        >
-                          <span className="simple-row-label">{tier.label}</span>
-                          {tier.count > 0 && <span className="simple-row-count">{tier.count}</span>}
-                        </button>
-                      )
-                    })}
+                      <button
+                        className="sale-dialer-action-btn"
+                        onClick={() => handleNavigation(`/sale?discount=${dialPercent}`)}
+                      >
+                        <span>View {saleInfo.tiers.find(t => Number(t.value) === dialPercent)?.count ?? ''} Items at {dialPercent}%+ OFF</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </button>
+
+                      <div className="sale-dialer-divider" />
+
+                      <button
+                        className="sale-dialer-all-link"
+                        onClick={() => handleNavigation('/sale')}
+                      >
+                        <span>Browse All {saleInfo.totalSaleCount} Sale Products</span>
+                        <span className="dialer-all-arrow">→</span>
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
