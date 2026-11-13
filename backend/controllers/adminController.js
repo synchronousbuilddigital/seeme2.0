@@ -324,15 +324,22 @@ export const getCustomers = asyncHandler(async (req, res) => {
 
   const customerStats = await Order.aggregate([
     {
-      $match: {
-        status: { $nin: ['cancelled', 'refunded'] }
-      }
+      $sort: { createdAt: -1 }
     },
     {
       $group: {
         _id: { $toLower: '$customer.email' },
-        orderCount: { $sum: 1 },
-        totalSpending: { $sum: '$totalAmount' }
+        orderCount: {
+          $sum: {
+            $cond: [{ $in: ['$status', ['cancelled', 'refunded']] }, 0, 1]
+          }
+        },
+        totalSpending: {
+          $sum: {
+            $cond: [{ $in: ['$status', ['cancelled', 'refunded']] }, 0, '$totalAmount']
+          }
+        },
+        latestPhone: { $first: '$customer.phone' }
       }
     }
   ])
@@ -342,6 +349,7 @@ export const getCustomers = asyncHandler(async (req, res) => {
     const stats = customerStats.find(s => s._id === emailKey)
     return {
       ...c,
+      phone: c.phone || stats?.latestPhone || '',
       orderCount: stats ? stats.orderCount : 0,
       totalSpending: stats ? stats.totalSpending : 0
     }
