@@ -8,7 +8,6 @@ import { cachedFetch } from '../utils/cachedFetch'
 import { isProductInCategory, getCategoryProducts, belongsToAudience } from '../utils/categoryHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
 import AddToCartButton from '../components/AddToCartButton'
-import FestiveFireworksCanvas from '../components/FestiveFireworksCanvas'
 import { getColorHex } from '../utils/colorHelper'
 import { isSizeInStock, getSortedSizesForProduct, getFirstAvailableSize, isProductOutOfStock } from '../utils/sizeHelper'
 import './CollectionsPage.css'
@@ -368,9 +367,6 @@ const CollectionsPage = () => {
 
   return (
     <div className="collections-page">
-      {/* Background Patake / Fireworks Animation */}
-      <FestiveFireworksCanvas />
-
       {/* Toast Notification */}
       <AnimatePresence>
         {addedToast && (
@@ -417,23 +413,20 @@ const CollectionsPage = () => {
             { key: 'all', label: 'All', fullLabel: 'All Collections' },
             { key: 'women', label: 'Women', fullLabel: 'Women' },
             { key: 'men', label: 'Men', fullLabel: 'Men' }
-          ].map((tab) => {
-            const isActive = selectedAudience === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                className={`collections-audience-pill ${isActive ? 'active' : ''}`}
-                onClick={() => {
-                  setSelectedAudience(tab.key)
-                  localStorage.setItem('seemee_active_audience', tab.key)
-                }}
-              >
-                <span className="audience-pill-text-desktop">{tab.fullLabel}</span>
-                <span className="audience-pill-text-mobile">{tab.label}</span>
-              </button>
-            )
-          })}
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              className={`collections-audience-pill ${selectedAudience === tab.key ? 'active' : ''}`}
+              onClick={() => {
+                setSelectedAudience(tab.key)
+                localStorage.setItem('seemee_active_audience', tab.key)
+              }}
+            >
+              <span className="audience-pill-text-desktop">{tab.fullLabel}</span>
+              <span className="audience-pill-text-mobile">{tab.label}</span>
+            </button>
+          ))}
         </div>
       </motion.div>
 
