@@ -29,7 +29,7 @@ const CollectionsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedAudience, setSelectedAudience] = useState('all')
   const [selectedBrand, setSelectedBrand] = useState('all')
-  const [sortBy, setSortBy] = useState('featured')
+  const [sortBy, setSortBy] = useState('newest')
   const [searchQuery, setSearchQuery] = useState('')
   const [priceFilter, setPriceFilter] = useState('all')
   const [maxPrice, setMaxPrice] = useState(10000)
@@ -354,7 +354,7 @@ const CollectionsPage = () => {
     setSearchQuery('')
   }
 
-  const hasActiveFilters = selectedCategory !== 'all' || selectedBrand !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || selectedColors.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
+  const hasActiveFilters = selectedCategory !== 'all' || selectedBrand !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || selectedColors.length > 0 || searchQuery.trim() !== '' || sortBy !== 'newest'
 
   const renderCollectionProductCard = (product, index) => {
     const origPrice = Number(product.mrp || product.discountPrice || product.originalPrice || 0)
@@ -746,8 +746,8 @@ const CollectionsPage = () => {
               <h4 className="widget-title">SORT BY</h4>
               <div className="sidebar-select-wrap">
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                  <option value="newest">Newest Arrivals (Default)</option>
                   <option value="featured">Featured Order</option>
-                  <option value="newest">Newest Arrivals</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
                   <option value="name">Name: A to Z</option>
