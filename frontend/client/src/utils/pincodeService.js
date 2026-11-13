@@ -23,11 +23,11 @@ let currentAbortController = null
 export const fetchPincodeDetails = async (pincode, options = {}) => {
   const cleanPin = String(pincode || '').trim()
 
-  // 1. Validate 6 numeric digits
-  if (!cleanPin || cleanPin.length !== 6 || !/^\d{6}$/.test(cleanPin)) {
+  // 1. Validate 6 numeric digits starting with 1-8 (valid Indian PIN codes)
+  if (!cleanPin || cleanPin.length !== 6 || !/^[1-8][0-9]{5}$/.test(cleanPin)) {
     return {
       success: false,
-      error: 'Please enter a valid 6-digit numeric PIN code.'
+      error: 'Please enter a valid 6-digit Indian PIN code (must start with 1-8).'
     }
   }
 

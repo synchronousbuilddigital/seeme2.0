@@ -457,10 +457,16 @@ const CustomersManager = () => {
                         ) : (
                           getCustomerAddresses(selectedCustomer).map((addr, idx) => (
                             <div key={idx} className="customer-addr-box">
-                              {addr.isDefault && <span className="default-tag">Default Address</span>}
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                {addr.name && <strong style={{ fontSize: '0.86rem', color: '#1c1917' }}>{addr.name}</strong>}
+                                {addr.isDefault && <span className="default-tag">Default Address</span>}
+                              </div>
                               <p className="street-line">{addr.street || addr.addressLine1}</p>
                               <p className="city-line">{[addr.city, addr.state, addr.pincode || addr.zipCode].filter(Boolean).join(', ')}</p>
-                              <p className="country-line">{addr.country || 'India'}</p>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '0.78rem', color: '#78716c' }}>
+                                <span className="country-line">{addr.country || 'India'}</span>
+                                {addr.phone && <span style={{ fontWeight: '600', color: '#166534' }}>📞 +91 {addr.phone}</span>}
+                              </div>
                             </div>
                           ))
                         )}
@@ -490,31 +496,31 @@ const CustomersManager = () => {
                       </div>
                     ) : (
                       <div className="active-cart-items-grid">
-                        {selectedCustomer.cart.map((item, idx) => {
-                          const prod = item.product || item
-                          const itemPrice = Number(prod.price) || Number(item.price) || 0
-                          const itemQty = Number(item.quantity) || 1
-                          const itemTotal = itemPrice * itemQty
-                          const prodImg = prod.images?.[0] || prod.image
-
-                          return (
-                            <div key={idx} className="cart-item-luxury-card">
-                              <img src={getImageUrl(prodImg)} alt={prod.name || 'Cart Item'} className="cart-item-thumb" />
-                              <div className="cart-item-details">
-                                <span className="cart-prod-title">{prod.name || 'Product Item'}</span>
-                                <div className="cart-meta-tags">
-                                  {item.size && <span className="cart-chip-tag">Size: {item.size}</span>}
-                                  {item.color && <span className="cart-chip-tag">Color: {item.color}</span>}
-                                  <span className="cart-chip-tag qty">Qty: {itemQty}</span>
-                                </div>
-                                <div className="cart-price-line">
-                                  <span className="unit-price">₹{itemPrice.toLocaleString('en-IN')} × {itemQty}</span>
-                                  <span className="subtotal-price">₹{itemTotal.toLocaleString('en-IN')}</span>
-                                </div>
+                        {selectedCustomer.cart.map((item, idx) => (
+                          <div key={idx} className="cart-item-luxury-card">
+                            <img 
+                              src={getImageUrl((item.product || item).images?.[0] || (item.product || item).image)} 
+                              alt={(item.product || item).name || 'Cart Item'} 
+                              className="cart-item-thumb" 
+                            />
+                            <div className="cart-item-details">
+                              <span className="cart-prod-title">{(item.product || item).name || 'Product Item'}</span>
+                              <div className="cart-meta-tags">
+                                {item.size && <span className="cart-chip-tag">Size: {item.size}</span>}
+                                {item.color && <span className="cart-chip-tag">Color: {item.color}</span>}
+                                <span className="cart-chip-tag qty">Qty: {Number(item.quantity) || 1}</span>
+                              </div>
+                              <div className="cart-price-line">
+                                <span className="unit-price">
+                                  ₹{(Number((item.product || item).price) || Number(item.price) || 0).toLocaleString('en-IN')} × {Number(item.quantity) || 1}
+                                </span>
+                                <span className="subtotal-price">
+                                  ₹{((Number((item.product || item).price) || Number(item.price) || 0) * (Number(item.quantity) || 1)).toLocaleString('en-IN')}
+                                </span>
                               </div>
                             </div>
-                          )
-                        })}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

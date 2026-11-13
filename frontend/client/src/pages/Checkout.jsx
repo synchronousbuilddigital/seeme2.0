@@ -354,23 +354,32 @@ const Checkout = () => {
     if (e) e.preventDefault()
     setAddressFormError('')
 
-    const name = (formData.name || '').trim()
-    const phone = (formData.phone || '').trim()
-    const street = (formData.street || '').trim()
-    const city = (formData.city || '').trim()
-    const state = (formData.state || '').trim()
-    const pincode = (formData.pincode || '').trim()
+    const sanitize = (s) => String(s || '').replace(/<[^>]*>?/gm, '').trim()
+    const name = sanitize(formData.name)
+    const rawPhone = String(formData.phone || '').replace(/\D/g, '').slice(-10)
+    const street = sanitize(formData.street)
+    const city = sanitize(formData.city)
+    const state = sanitize(formData.state)
+    const pincode = String(formData.pincode || '').trim()
 
     if (!name) {
       setAddressFormError('Please enter recipient full name.')
       return
     }
-    if (!phone || phone.length < 10) {
-      setAddressFormError('Please enter a valid 10-digit phone number.')
+    if (!rawPhone || !/^[6-9]\d{9}$/.test(rawPhone)) {
+      setAddressFormError('Compulsory: Please enter a valid 10-digit Indian phone number (starting with 6-9).')
       return
     }
     if (!street) {
       setAddressFormError('Please enter street address / house details.')
+      return
+    }
+    if (!pincode || pincode.length !== 6 || !/^[1-8][0-9]{5}$/.test(pincode)) {
+      setAddressFormError('Please enter a valid 6-digit Indian PIN code (must start with 1-8).')
+      return
+    }
+    if (pincodeError) {
+      setAddressFormError(`Invalid PIN code: ${pincodeError}`)
       return
     }
     if (!city) {
@@ -381,14 +390,10 @@ const Checkout = () => {
       setAddressFormError('Please select state.')
       return
     }
-    if (!pincode || pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
-      setAddressFormError('Please enter a valid 6-digit pincode.')
-      return
-    }
 
     const payload = {
       name,
-      phone,
+      phone: rawPhone,
       street,
       city,
       state,
@@ -461,23 +466,32 @@ const Checkout = () => {
     if (e) e.preventDefault()
     setAddressFormError('')
 
-    const name = (formData.name || '').trim()
-    const phone = (formData.phone || '').trim()
-    const street = (formData.street || '').trim()
-    const city = (formData.city || '').trim()
-    const state = (formData.state || '').trim()
-    const pincode = (formData.pincode || '').trim()
+    const sanitize = (s) => String(s || '').replace(/<[^>]*>?/gm, '').trim()
+    const name = sanitize(formData.name)
+    const rawPhone = String(formData.phone || '').replace(/\D/g, '').slice(-10)
+    const street = sanitize(formData.street)
+    const city = sanitize(formData.city)
+    const state = sanitize(formData.state)
+    const pincode = String(formData.pincode || '').trim()
 
     if (!name) {
       setAddressFormError('Please enter recipient full name.')
       return
     }
-    if (!phone || phone.length < 10) {
-      setAddressFormError('Please enter a valid 10-digit phone number.')
+    if (!rawPhone || !/^[6-9]\d{9}$/.test(rawPhone)) {
+      setAddressFormError('Compulsory: Please enter a valid 10-digit Indian phone number (starting with 6-9).')
       return
     }
     if (!street) {
       setAddressFormError('Please enter street address / house details.')
+      return
+    }
+    if (!pincode || pincode.length !== 6 || !/^[1-8][0-9]{5}$/.test(pincode)) {
+      setAddressFormError('Please enter a valid 6-digit Indian PIN code (must start with 1-8).')
+      return
+    }
+    if (pincodeError) {
+      setAddressFormError(`Invalid PIN code: ${pincodeError}`)
       return
     }
     if (!city) {
@@ -488,14 +502,10 @@ const Checkout = () => {
       setAddressFormError('Please select state.')
       return
     }
-    if (!pincode || pincode.length !== 6 || !/^\d{6}$/.test(pincode)) {
-      setAddressFormError('Please enter a valid 6-digit pincode.')
-      return
-    }
 
     const saved = await saveAddressToBackend({
       name,
-      phone,
+      phone: rawPhone,
       street,
       city,
       state,
@@ -762,15 +772,20 @@ const Checkout = () => {
       return false
     }
 
-    const phoneRegex = /^\+?[0-9]{10,15}$/
-    if (!phoneRegex.test(trimmedPhone.replace(/\s/g, ''))) {
-      alert('Please enter a valid 10-digit phone number.')
+    const cleanPhone = trimmedPhone.replace(/\D/g, '').slice(-10)
+    if (!cleanPhone || !/^[6-9]\d{9}$/.test(cleanPhone)) {
+      alert('Compulsory: Please enter a valid 10-digit Indian phone number (starting with 6, 7, 8, or 9).')
       return false
     }
 
-    const pincodeRegex = /^\d{6}$/
+    const pincodeRegex = /^[1-8][0-9]{5}$/
     if (!pincodeRegex.test(trimmedPincode)) {
-      alert('Please enter a valid 6-digit PIN code.')
+      alert('Please enter a valid 6-digit Indian PIN code (must start with 1-8).')
+      return false
+    }
+
+    if (pincodeError) {
+      alert(`Invalid PIN code: ${pincodeError}`)
       return false
     }
 

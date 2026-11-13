@@ -44,6 +44,33 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new Error('Customer info and at least one item are required')
   }
 
+  // COMPULSORY PHONE VALIDATION: Clean & check 10-digit Indian phone
+  const cleanPhone = String(customer.phone || customer.mobile || '').replace(/\D/g, '').slice(-10)
+  if (!cleanPhone || !/^[6-9]\d{9}$/.test(cleanPhone)) {
+    res.status(400)
+    throw new Error('A valid 10-digit Indian mobile number is compulsory (must start with 6, 7, 8, or 9).')
+  }
+  customer.phone = cleanPhone
+
+  // COMPULSORY PINCODE & ADDRESS VALIDATION
+  const custAddr = customer.address || {}
+  const rawPincode = String(custAddr.pincode || customer.pincode || '').trim()
+  if (!rawPincode || !/^[1-8][0-9]{5}$/.test(rawPincode)) {
+    res.status(400)
+    throw new Error('A valid 6-digit Indian postal PIN code is compulsory (cannot be non-existent or fake like 999999).')
+  }
+
+  // Sanitize address & customer details against XSS
+  const sanitize = (s) => String(s || '').replace(/<[^>]*>?/gm, '').trim()
+  customer.name = sanitize(customer.name) || 'Customer'
+  if (customer.address) {
+    customer.address.street = sanitize(customer.address.street || customer.address.addressLine1 || '')
+    customer.address.city = sanitize(customer.address.city || '')
+    customer.address.state = sanitize(customer.address.state || '')
+    customer.address.pincode = rawPincode
+    customer.address.phone = cleanPhone
+  }
+
   const normalizedOrderType = String(orderType || 'ONLINE').toUpperCase()
   const normalizedPaymentMethod = String(paymentMethod || 'online').toLowerCase()
 
