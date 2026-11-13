@@ -1568,77 +1568,198 @@
   opacity: 1;
 }
 
-/* Sale Dropdown Menu */
-.sale-dropdown-menu {
-  min-width: 280px;
-  padding: 0.75rem 0.6rem;
+/* International Luxury Sale Dropdown */
+.luxury-sale-menu {
+  min-width: 340px;
+  max-width: 380px;
+  padding: 0;
   background: #ffffff;
-  border: 1px solid rgba(220, 38, 38, 0.18);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(220, 38, 38, 0.05);
-  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.14), 0 4px 16px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.sale-dropdown-tiers {
+.sale-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+  color: #ffffff;
+}
+
+.sale-header-brand {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.sale-tier-btn {
+.sale-header-badge {
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  font-weight: 800;
+  color: #f87171;
+  text-transform: uppercase;
+}
+
+.sale-header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #fafafa;
+}
+
+.sale-header-total {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #d4d4d8;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.sale-dropdown-tiers {
+  padding: 12px 14px;
+}
+
+.sale-all-btn {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 8px 12px;
-  background: transparent;
-  border: none;
-  border-radius: 8px;
+  padding: 12px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+
+.sale-all-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+}
+
+.sale-tier-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sale-all-btn .sale-tier-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.sale-tier-sub {
+  font-size: 0.72rem;
+  color: #7f1d1d;
+  font-weight: 400;
+}
+
+.sale-tier-arrow {
+  color: #b91c1c;
+  transition: transform 0.2s ease;
+}
+
+.sale-all-btn:hover .sale-tier-arrow {
+  transform: translateX(4px);
+}
+
+.sale-tiers-divider {
+  height: 1px;
+  background: #f4f4f5;
+  margin: 12px 0 10px 0;
+}
+
+/* 2x3 Luxury Chip Grid for Discounts */
+.sale-discount-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.sale-grid-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 6px;
+  background: #fafafa;
+  border: 1px solid #e4e4e7;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.18s ease;
-  text-align: left;
+  position: relative;
   font-family: inherit;
 }
 
-.sale-tier-btn:hover {
-  background: #fef2f2;
-  transform: none;
+.sale-grid-chip:hover {
+  background: #ffffff;
+  border-color: #18181b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
-.sale-tier-btn.active {
-  background: #fef2f2;
+.sale-grid-chip.active {
+  background: #18181b;
+  border-color: #18181b;
 }
 
-.sale-tier-dot {
-  display: none;
+.sale-grid-chip.active .chip-value,
+.sale-grid-chip.active .chip-text {
+  color: #ffffff;
 }
 
-.sale-tier-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #1e293b;
-  letter-spacing: -0.01em;
+.chip-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #18181b;
+  line-height: 1.1;
 }
 
-.sale-tier-btn:hover .sale-tier-label,
-.sale-tier-btn.active .sale-tier-label {
-  color: #dc2626;
+.chip-text {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #71717a;
+  text-transform: uppercase;
+  margin-top: 2px;
 }
 
-.sale-tier-count {
-  font-size: 0.75rem;
-  color: #94a3b8;
+.chip-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: #ef4444;
+  color: #ffffff;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+}
+
+.sale-menu-footer {
+  padding: 9px 14px;
+  background: #fcfcfc;
+  border-top: 1px solid #f4f4f5;
+  text-align: center;
+  font-size: 0.68rem;
+  color: #a1a1aa;
   font-weight: 500;
-  background: #f8fafc;
-  padding: 2px 8px;
-  border-radius: 12px;
-  border: 1px solid #f1f5f9;
-  transition: all 0.18s ease;
-}
-
-.sale-tier-btn:hover .sale-tier-count {
-  background: #fee2e2;
-  color: #b91c1c;
-  border-color: #fecaca;
+  letter-spacing: 0.01em;
 }
 
 /* Mobile Drawer Sale Items */

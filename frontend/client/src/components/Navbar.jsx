@@ -486,40 +486,56 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               <AnimatePresence>
                 {saleDropdownOpen && (
                   <motion.div
-                    className="dropdown-menu sale-dropdown-menu"
-                    initial={{ opacity: 0, y: 15, x: '-50%', scale: 0.95 }}
+                    className="dropdown-menu sale-dropdown-menu luxury-sale-menu"
+                    initial={{ opacity: 0, y: 12, x: '-50%', scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, x: '-50%', scale: 1 }}
-                    exit={{ opacity: 0, y: 10, x: '-50%', scale: 0.95 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    exit={{ opacity: 0, y: 8, x: '-50%', scale: 0.98 }}
+                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
                   >
+                    <div className="sale-menu-header">
+                      <div className="sale-header-brand">
+                        <span className="sale-header-badge">EXCLUSIVE</span>
+                        <span className="sale-header-title">Curated Reductions</span>
+                      </div>
+                      <span className="sale-header-total">{saleInfo.totalSaleCount} Items</span>
+                    </div>
+
                     <div className="sale-dropdown-tiers">
                       <button
-                        className={`sale-tier-btn ${location.pathname === '/sale' && !location.search ? 'active' : ''}`}
+                        className={`sale-tier-btn sale-all-btn ${location.pathname === '/sale' && !location.search ? 'active' : ''}`}
                         onClick={() => handleNavigation('/sale')}
                       >
-                        <span className="sale-tier-dot">•</span>
-                        <span className="sale-tier-label">All Sale Products</span>
-                        {saleInfo.totalSaleCount > 0 && (
-                          <span className="sale-tier-count">{saleInfo.totalSaleCount} items</span>
-                        )}
+                        <div className="sale-tier-info">
+                          <span className="sale-tier-label">All Sale Collections</span>
+                          <span className="sale-tier-sub">Explore full catalogue reductions</span>
+                        </div>
+                        <svg className="sale-tier-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
                       </button>
 
-                      {saleInfo.tiers.map((tier) => {
-                        const isTierActive = location.pathname === '/sale' && location.search.includes(`discount=${tier.value}`)
-                        return (
-                          <button
-                            key={tier.value}
-                            className={`sale-tier-btn ${isTierActive ? 'active' : ''}`}
-                            onClick={() => handleNavigation(`/sale?discount=${tier.value}`)}
-                          >
-                            <span className="sale-tier-dot">•</span>
-                            <span className="sale-tier-label">{tier.label}</span>
-                            {tier.count > 0 && (
-                              <span className="sale-tier-count">{tier.count} items</span>
-                            )}
-                          </button>
-                        )
-                      })}
+                      <div className="sale-tiers-divider" />
+
+                      <div className="sale-discount-grid">
+                        {saleInfo.tiers.map((tier) => {
+                          const isTierActive = location.pathname === '/sale' && location.search.includes(`discount=${tier.value}`)
+                          return (
+                            <button
+                              key={tier.value}
+                              className={`sale-grid-chip ${isTierActive ? 'active' : ''}`}
+                              onClick={() => handleNavigation(`/sale?discount=${tier.value}`)}
+                            >
+                              <span className="chip-value">{tier.value}%</span>
+                              <span className="chip-text">OFF & UP</span>
+                              {tier.count > 0 && <span className="chip-badge">{tier.count}</span>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="sale-menu-footer">
+                      <span>Limited atelier inventory • Complimentary shipping over ₹999</span>
                     </div>
                   </motion.div>
                 )}
