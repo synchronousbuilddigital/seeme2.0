@@ -28,6 +28,42 @@ export const parseAd2ShipMessage = (msgData) => {
 }
 
 /**
+ * Category-based Standard Shipping Specs Table
+ * Defines realistic weights and folded packaging dimensions for each product category.
+ * Used whenever a product is missing weight/dimensions or has oversized flat garment entries.
+ */
+export const CATEGORY_SHIPPING_SPECS = {
+  't shirt': { weightKg: 0.25, length: 30, width: 24, height: 2.5 },
+  't-shirt': { weightKg: 0.25, length: 30, width: 24, height: 2.5 },
+  'tshirt': { weightKg: 0.25, length: 30, width: 24, height: 2.5 },
+  'shirt': { weightKg: 0.30, length: 32, width: 25, height: 3.0 },
+  'kurta-set': { weightKg: 0.55, length: 35, width: 28, height: 4.0 },
+  'kurtaset': { weightKg: 0.55, length: 35, width: 28, height: 4.0 },
+  'kurta': { weightKg: 0.40, length: 34, width: 26, height: 3.5 },
+  'cord-set': { weightKg: 0.50, length: 35, width: 28, height: 4.0 },
+  'cordset': { weightKg: 0.50, length: 35, width: 28, height: 4.0 },
+  'co-ord': { weightKg: 0.50, length: 35, width: 28, height: 4.0 },
+  'co-ord set': { weightKg: 0.50, length: 35, width: 28, height: 4.0 },
+  'printed-suit-set': { weightKg: 0.65, length: 38, width: 30, height: 5.0 },
+  'suit-set': { weightKg: 0.65, length: 38, width: 30, height: 5.0 },
+  'suit': { weightKg: 0.65, length: 38, width: 30, height: 5.0 }
+}
+
+/**
+ * Resolves standard shipping specs for a given category name or product type
+ */
+export const getSpecsForCategory = (categoryName) => {
+  if (!categoryName) return null
+  const key = String(categoryName).toLowerCase().trim()
+  if (CATEGORY_SHIPPING_SPECS[key]) return CATEGORY_SHIPPING_SPECS[key]
+  // Fuzzy match keyword
+  for (const [k, v] of Object.entries(CATEGORY_SHIPPING_SPECS)) {
+    if (key.includes(k) || k.includes(key)) return v
+  }
+  return null
+}
+
+/**
  * Calculates aggregate shipment weight (kg) and dimensions (cm) for an array of cart/order items.
  * Extracts the ACTUAL dimensions and weight configured on the products or saved on order line-items.
  */
@@ -112,9 +148,12 @@ export const calculateShipmentSpecs = async (items = []) => {
       }
     }
 
-    // Fallback ONLY if product has no weight defined anywhere in system
-    if (itemWeightKg === null || itemWeightKg <= 0) {
-      itemWeightKg = 0.5
+    // 2b. Category-based fallback if weight is still unset or invalid
+    const catSpecs = getSpecsForCategory(prodObj?.category || prodObj?.productType || item.category)
+    if ((itemWeightKg === null || itemWeightKg <= 0) && catSpecs) {
+      itemWeightKg = catSpecs.weightKg
+    } else if (itemWeightKg === null || itemWeightKg <= 0) {
+      itemWeightKg = 0.35 // General safe default for apparel
     }
 
     // 3. Resolve Actual Dimensions (Length, Breadth/Width, Height in cm)
@@ -154,10 +193,18 @@ export const calculateShipmentSpecs = async (items = []) => {
       }
     }
 
-    // Fallbacks ONLY if no actual dimensions exist on the product
-    itemL = itemL !== null && itemL > 0 ? itemL : 20
-    itemB = itemB !== null && itemB > 0 ? itemB : 15
-    itemH = itemH !== null && itemH > 0 ? itemH : 5
+    // Fallbacks from category standards or safe apparel defaults
+    itemL = itemL !== null && itemL > 0 ? itemL : (catSpecs ? catSpecs.length : 30)
+    itemB = itemB !== null && itemB > 0 ? itemB : (catSpecs ? catSpecs.width : 24)
+    itemH = itemH !== null && itemH > 0 ? itemH : (catSpecs ? catSpecs.height : 2.5)
+
+    // Minor size modifier: larger garment sizes (XXL/3XL) add a slight fraction of thickness/weight
+    const itemSizeUpper = String(item.size || '').toUpperCase().trim()
+    if (['XXL', '2XL', '3XL', '4XL'].includes(itemSizeUpper)) {
+      itemWeightKg = Number((itemWeightKg * 1.08).toFixed(3))
+    } else if (['XS', 'S'].includes(itemSizeUpper)) {
+      itemWeightKg = Number((itemWeightKg * 0.94).toFixed(3))
+    }
 
     // 4. Apparel Folding Normalizer:
     // Garment flat dimensions (e.g., 72cm length, 52cm chest width) are folded into standard shipping polybags.
