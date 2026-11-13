@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import Counter from './Counter.js'
 
 const orderSchema = new mongoose.Schema({
   orderNumber: {
@@ -164,11 +165,32 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Generate guaranteed unique order number
+// Generate clean, human-readable, non-random sequential order number (e.g. SM-26-1085)
 orderSchema.pre('save', async function() {
   if (!this.orderNumber) {
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000)
-    this.orderNumber = `SM${Date.now()}${randomSuffix}`
+    try {
+      const year = new Date().getFullYear().toString().slice(-2) // "26"
+      const counter = await Counter.findByIdAndUpdate(
+        { _id: 'orderNumber' },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      )
+
+      let seqNum = counter.seq
+      if (seqNum < 1001) {
+        const total = await mongoose.model('Order').countDocuments()
+        seqNum = Math.max(1001, total + 1000)
+        await Counter.findByIdAndUpdate({ _id: 'orderNumber' }, { seq: seqNum })
+      }
+
+      this.orderNumber = `SM-${year}-${seqNum}`
+    } catch (err) {
+      // Fallback: compact readable date + 4-digit code (SM-2611-4821)
+      const year = new Date().getFullYear().toString().slice(-2)
+      const month = String(new Date().getMonth() + 1).padStart(2, '0')
+      const fallbackSuffix = Math.floor(1000 + Math.random() * 9000)
+      this.orderNumber = `SM-${year}${month}-${fallbackSuffix}`
+    }
   }
 })
 
