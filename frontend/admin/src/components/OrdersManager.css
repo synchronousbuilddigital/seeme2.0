@@ -571,87 +571,101 @@
   background: rgba(212, 175, 55, 0.7);
 }
 
+/* Premium Enterprise Orders Table Styling */
+.orders-table-container {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #f1ece4;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+  overflow-x: auto;
+}
+
 .orders-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   table-layout: auto;
 }
 
 .orders-table th {
-  background: #FAF8F5;
-  padding: 0.8rem 0.55rem;
+  background: #fdfbf7;
+  padding: 12px 14px;
   text-align: left;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #8C6D23;
-  border-bottom: 1.5px solid rgba(212, 175, 55, 0.2);
+  color: #8c6d23;
+  border-bottom: 1.5px solid #ece6db;
   white-space: nowrap;
 }
 
 .orders-table td {
-  padding: 0.8rem 0.55rem;
-  border-bottom: 1px solid #F3F0EA;
+  padding: 14px 14px;
+  border-bottom: 1px solid #f4f1ea;
   vertical-align: middle;
   white-space: nowrap;
-}
-
-.orders-table th.actions-header {
-  text-align: right;
-  padding-right: 0.85rem;
-}
-
-.orders-table td.actions-cell {
-  text-align: right;
-  padding-right: 0.85rem;
+  background: #ffffff;
+  transition: background 0.15s ease;
 }
 
 .orders-table tr:hover td {
-  background: #FEFDFB;
+  background: #fefdf9;
 }
 
-/* Order Ref & Item Thumbnails */
+.orders-table tr:last-child td {
+  border-bottom: none;
+}
+
+.orders-table th.actions-header,
+.orders-table td.actions-cell {
+  text-align: right;
+  padding-right: 18px;
+}
+
+/* Order Ref & Items */
 .order-id-cell {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 2px;
 }
 
 .order-num {
-  font-family: var(--font-body, sans-serif);
+  font-family: 'SF Pro Text', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-weight: 700;
   font-size: 0.88rem;
-  color: #111111;
-  letter-spacing: 0.02em;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .item-count {
   font-size: 0.72rem;
-  color: #777777;
+  color: #94a3b8;
+  font-weight: 500;
 }
 
 .order-items-thumb-stack {
   display: flex;
   align-items: center;
-  gap: -4px;
 }
 
 .mini-thumb-wrap {
-  width: 32px;
-  height: 40px;
-  border-radius: 5px;
+  width: 36px;
+  height: 44px;
+  border-radius: 6px;
   overflow: hidden;
-  border: 1.5px solid #ffffff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  margin-right: -8px;
-  background: #f4f1ea;
-  transition: transform 0.2s ease;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-right: -10px;
+  background: #f8fafc;
+  transition: transform 0.2s ease, z-index 0.2s ease;
+  position: relative;
 }
 
 .mini-thumb-wrap:hover {
-  transform: translateY(-2px) scale(1.1);
+  transform: translateY(-3px) scale(1.12);
   z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .mini-thumb-wrap img {
@@ -661,51 +675,51 @@
 }
 
 .thumb-more-count {
-  margin-left: 10px;
+  margin-left: 14px;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #B8860B;
-  background: rgba(212, 175, 55, 0.1);
-  padding: 1px 6px;
+  color: #b45309;
+  background: #fef3c7;
+  padding: 2px 7px;
   border-radius: 10px;
-  border: 1px solid rgba(212, 175, 55, 0.25);
+  border: 1px solid #fde68a;
 }
 
 /* Customer Cell & Avatar */
 .customer-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .customer-avatar-circle {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1f1f1f 0%, #111111 100%);
-  color: #D4AF37;
-  border: 1px solid rgba(212, 175, 55, 0.4);
+  background: #0f172a;
+  color: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.8rem;
   flex-shrink: 0;
+  border: 1px solid #334155;
 }
 
 .customer-text-meta h4 {
-  font-size: 0.82rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #111111;
+  color: #0f172a;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .customer-text-meta p {
-  font-size: 0.72rem;
-  color: #777777;
+  font-size: 0.74rem;
+  color: #64748b;
   margin: 0;
-  max-width: 130px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -715,74 +729,77 @@
 .date-cell {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+}
+
+.date-cell strong {
   font-size: 0.82rem;
-  color: #222222;
+  color: #0f172a;
+  font-weight: 600;
 }
 
 .date-cell span {
-  font-size: 0.7rem;
-  color: #888888;
-  margin-top: 1px;
+  font-size: 0.72rem;
+  color: #94a3b8;
 }
 
-/* Status & Payment Badges */
+/* Status & Payment Badges - Refined Apple/Stripe-like micro-pills */
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 0.3rem 0.65rem;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 20px;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  border: 1px solid transparent;
   white-space: nowrap;
 }
 
 .status-indicator-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: currentColor;
 }
 
-.status-pill.pending { background: #FEF9C3; color: #854D0E; border-color: #FEF08A; }
-.status-pill.confirmed { background: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
-.status-pill.processing { background: #F3E8FF; color: #6B21A8; border-color: #E9D5FF; }
-.status-pill.shipped { background: #CFFAFE; color: #155E75; border-color: #A5F3FC; }
-.status-pill.delivered { background: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
-.status-pill.cancelled { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+.status-pill.pending { background: #fefce8; color: #a16207; border: 1px solid #fef08a; }
+.status-pill.confirmed { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.status-pill.processing { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+.status-pill.shipped { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
+.status-pill.delivered { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.status-pill.cancelled { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
 .payment-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.68rem;
+  gap: 6px;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 0.28rem 0.6rem;
+  letter-spacing: 0.03em;
+  padding: 4px 10px;
   border-radius: 20px;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .payment-badge.cod {
-  background: #FEF3C7;
-  color: #92400E;
-  border: 1px solid #FDE68A;
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 .payment-badge.paid {
-  background: #ECFDF5;
-  color: #047857;
-  border: 1px solid #A7F3D0;
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
 .payment-badge.rejected {
-  background: #FEE2E2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 .payment-badge .pay-dot {
@@ -793,37 +810,37 @@
 }
 
 .amount-cell {
-  font-family: var(--font-body, sans-serif);
-  font-weight: 700;
-  font-size: 0.92rem;
-  color: #111111;
+  font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 800;
+  font-size: 0.96rem;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .manage-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   background: #ffffff;
-  border: 1px solid rgba(212, 175, 55, 0.4);
-  padding: 0.38rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.68rem;
+  border: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.74rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #111111;
+  letter-spacing: 0.04em;
+  color: #0f172a;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .manage-btn:hover {
-  background: #111111;
+  background: #0f172a;
   color: #ffffff;
-  border-color: #111111;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  border-color: #0f172a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
 
 /* No Orders State */
