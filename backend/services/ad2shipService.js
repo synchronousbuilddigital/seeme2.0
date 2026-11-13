@@ -336,7 +336,7 @@ export const trackOrder = async ({ awbNumber }) => {
  * POST /order-track-by-id
  */
 export const trackOrderById = async ({ orderId }) => {
-  const payload = { OrderID: String(orderId) }
+  const payload = { OrderID: Number(orderId) }
   const response = await postToAd2Ship('order-track-by-id', payload)
 
   if (response === null) {
