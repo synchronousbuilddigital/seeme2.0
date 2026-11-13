@@ -615,22 +615,21 @@ const CollectionsPage = () => {
                     <span className="cat-bullet">{selectedBrand === 'all' ? '✦' : '•'}</span>
                     <span className="cat-name">All Brands</span>
                   </button>
-                  {adminBrandsList.map((b) => {
-                    const bName = b.name || ''
-                    const bNorm = bName.toLowerCase().trim()
-                    const bCount = audienceProducts.filter(p => (p.brand || '').toLowerCase().trim() === bNorm).length
-                    return (
-                      <button
-                        key={b._id || bName}
-                        className={`sidebar-cat-row ${selectedBrand === bNorm ? 'active' : ''}`}
-                        onClick={() => setSelectedBrand(bNorm)}
-                      >
-                        <span className="cat-bullet">{selectedBrand === bNorm ? '✦' : '•'}</span>
-                        <span className="cat-name">{bName}</span>
-                        {bCount > 0 && <span className="cat-count">{bCount}</span>}
-                      </button>
-                    )
-                  })}
+                  {adminBrandsList.map((b) => (
+                    <button
+                      key={b._id || b.name || ''}
+                      className={`sidebar-cat-row ${selectedBrand === (b.name || '').toLowerCase().trim() ? 'active' : ''}`}
+                      onClick={() => setSelectedBrand((b.name || '').toLowerCase().trim())}
+                    >
+                      <span className="cat-bullet">{selectedBrand === (b.name || '').toLowerCase().trim() ? '✦' : '•'}</span>
+                      <span className="cat-name">{b.name || ''}</span>
+                      {audienceProducts.filter(p => (p.brand || '').toLowerCase().trim() === (b.name || '').toLowerCase().trim()).length > 0 && (
+                        <span className="cat-count">
+                          {audienceProducts.filter(p => (p.brand || '').toLowerCase().trim() === (b.name || '').toLowerCase().trim()).length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
