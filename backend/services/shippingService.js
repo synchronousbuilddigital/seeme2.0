@@ -437,9 +437,9 @@ export const createAd2ShipOrderForSeemeeOrder = async (orderId) => {
       const baseSku = (typeof p === 'object' && p !== null && p.sku) ? String(p.sku).trim() : ''
       const sizeTag = item.size ? `-${String(item.size).toUpperCase().trim()}` : ''
       const colorTag = item.color ? `-${String(item.color).toUpperCase().trim()}` : ''
-      
+
       const fallbackSku = baseSku ? `${baseSku}${sizeTag}${colorTag}` : (
-        item.name 
+        item.name
           ? `${item.name.replace(/[^a-zA-Z0-9]/g, '').slice(0, 10).toUpperCase()}${sizeTag}`
           : `SKU${sizeTag || '-STD'}`
       )
@@ -588,7 +588,7 @@ export const generateShippingDocument = async ({ orderId, documentType }) => {
       err.statusCode = 400
       throw err
     }
-    
+
     order.shipping.labelUrl = res.label
     await order.save()
     return { success: true, labelUrl: res.label, message: parseAd2ShipMessage(res.message) || 'Label generated successfully.' }
@@ -601,7 +601,7 @@ export const generateShippingDocument = async ({ orderId, documentType }) => {
       err.statusCode = 400
       throw err
     }
-    
+
     order.shipping.invoiceUrl = res.invoice
     await order.save()
     return { success: true, invoiceUrl: res.invoice, message: parseAd2ShipMessage(res.message) || 'Invoice generated successfully.' }
@@ -634,7 +634,7 @@ export const generateShippingDocument = async ({ orderId, documentType }) => {
       err.statusCode = 400
       throw err
     }
-    
+
     const manifestPdfUrl = res.manifest || res.url || res.manifest_url || res.data?.manifest || ''
     order.shipping.manifestGenerated = true
     order.shipping.status = AD2SHIP_STATUSES.MANIFESTED
@@ -900,8 +900,8 @@ export const cancelShipment = async (orderId) => {
 
   // RULE 1: Cancellation can ONLY be done BEFORE shipping
   const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery'].includes(currentStatus) ||
-                    ['shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
-                    Boolean(order.shipping?.awbNumber)
+    ['shipped', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+    Boolean(order.shipping?.awbNumber)
 
   if (isShipped) {
     const err = new Error('Order cancellation is ONLY allowed BEFORE shipping. Once shipped with an AWB, the order cannot be cancelled.')
@@ -911,8 +911,8 @@ export const cancelShipment = async (orderId) => {
 
   // RULE 2: Refund can ONLY be done BEFORE pickup from warehouse
   const isPickedUp = ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(currentStatus) ||
-                     ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
-                     Boolean(order.shipping?.pickupAt)
+    ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(shippingStatus) ||
+    Boolean(order.shipping?.pickupAt)
 
   if (isPickedUp) {
     const err = new Error('Refunds and cancellation are ONLY allowed BEFORE package pickup from warehouse.')

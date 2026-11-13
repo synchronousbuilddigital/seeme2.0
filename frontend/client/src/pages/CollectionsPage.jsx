@@ -356,6 +356,99 @@ const CollectionsPage = () => {
 
   const hasActiveFilters = selectedCategory !== 'all' || selectedBrand !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || selectedColors.length > 0 || searchQuery.trim() !== '' || sortBy !== 'featured'
 
+  const renderCollectionProductCard = (product, index) => {
+    const origPrice = Number(product.mrp || product.discountPrice || product.originalPrice || 0)
+    const curPrice = Number(product.price || 0)
+    let discountPct = 0
+    if (origPrice > curPrice && origPrice > 0) {
+      discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
+    } else if (product.discount && Number(product.discount) > 0) {
+      discountPct = Math.round(Number(product.discount))
+    }
+    const hasDiscount = discountPct > 0
+    const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
+    const isOutOfStock = isProductOutOfStock(product)
+    const inWishlist = isInWishlist(product._id)
+
+    return (
+      <motion.div
+        key={product._id || index}
+        className={`collection-product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`}
+        initial={{ opacity: 0, y: 25 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
+      >
+        <div
+          className="product-image-wrapper"
+          onClick={() => {
+            try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
+            navigate(`/product/${product._id}`, { state: { product } })
+          }}
+        >
+          <img
+            src={mainImg}
+            alt={product.name}
+            className="product-image"
+            loading="lazy"
+            onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
+          />
+
+          {discountPct > 0 && (
+            <span className="collection-discount-badge">{discountPct}% OFF</span>
+          )}
+
+          <button
+            className={`wishlist-btn-card ${inWishlist ? 'active' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleWishlist(product)
+            }}
+            title="Add to Wishlist"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill={inWishlist ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
+
+          {isOutOfStock && (
+            <div className="out-of-stock-badge">Sold Out</div>
+          )}
+        </div>
+
+        <div className="product-info">
+          <h3
+            className="product-name"
+            onClick={() => {
+              try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
+              navigate(`/product/${product._id}`, { state: { product } })
+            }}
+          >
+            {product.name}
+          </h3>
+
+          <div className="product-footer">
+            <div className="collection-price-group">
+              <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+              {hasDiscount && (
+                <span className="product-mrp-crossed">
+                  ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
+                </span>
+              )}
+            </div>
+
+            <AddToCartButton
+              product={product}
+              selectedSize={getFirstAvailableSize(product, 'M')}
+              variant="mini"
+              label="+ Add"
+            />
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   if (loading) {
     return (
       <div className="collections-page-loading">
@@ -469,24 +562,22 @@ const CollectionsPage = () => {
                   { key: 'all', label: 'All Collections' },
                   { key: 'women', label: 'Women' },
                   { key: 'men', label: 'Men' }
-                ].map(aud => {
-                  const isSelected = selectedAudience === aud.key
-                  const count = products.filter(p => belongsToAudience(p, aud.key)).length
-                  return (
-                    <button
-                      key={aud.key}
-                      className={`sidebar-cat-row ${isSelected ? 'active' : ''}`}
-                      onClick={() => {
-                        setSelectedAudience(aud.key)
-                        localStorage.setItem('seemee_active_audience', aud.key)
-                      }}
-                    >
-                      <span className="cat-bullet">{isSelected ? '✦' : '•'}</span>
-                      <span className="cat-name">{aud.label}</span>
-                      <span className="cat-count">{count}</span>
-                    </button>
-                  )
-                })}
+                ].map((aud) => (
+                  <button
+                    key={aud.key}
+                    className={`sidebar-cat-row ${selectedAudience === aud.key ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedAudience(aud.key)
+                      localStorage.setItem('seemee_active_audience', aud.key)
+                    }}
+                  >
+                    <span className="cat-bullet">{selectedAudience === aud.key ? '✦' : '•'}</span>
+                    <span className="cat-name">{aud.label}</span>
+                    <span className="cat-count">
+                      {products.filter(p => belongsToAudience(p, aud.key)).length}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -494,24 +585,21 @@ const CollectionsPage = () => {
             <div className="sidebar-widget">
               <h4 className="widget-title">CATEGORIES</h4>
               <div className="sidebar-category-list">
-                {categoriesList.map(cat => {
-                  const count = cat.value === 'all'
-                    ? audienceProducts.length
-                    : getCategoryProducts(audienceProducts, cat.value).length
-                  const isSelected = selectedCategory === cat.value
-
-                  return (
-                    <button
-                      key={cat.value}
-                      className={`sidebar-cat-row ${isSelected ? 'active' : ''}`}
-                      onClick={() => setSelectedCategory(cat.value)}
-                    >
-                      <span className="cat-bullet">{isSelected ? '✦' : '•'}</span>
-                      <span className="cat-name">{cat.label}</span>
-                      <span className="cat-count">{count}</span>
-                    </button>
-                  )
-                })}
+                {categoriesList.map((cat) => (
+                  <button
+                    key={cat.value}
+                    className={`sidebar-cat-row ${selectedCategory === cat.value ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory(cat.value)}
+                  >
+                    <span className="cat-bullet">{selectedCategory === cat.value ? '✦' : '•'}</span>
+                    <span className="cat-name">{cat.label}</span>
+                    <span className="cat-count">
+                      {cat.value === 'all'
+                        ? audienceProducts.length
+                        : getCategoryProducts(audienceProducts, cat.value).length}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -527,20 +615,19 @@ const CollectionsPage = () => {
                     <span className="cat-bullet">{selectedBrand === 'all' ? '✦' : '•'}</span>
                     <span className="cat-name">All Brands</span>
                   </button>
-                  {adminBrandsList.map(b => {
+                  {adminBrandsList.map((b) => {
                     const bName = b.name || ''
                     const bNorm = bName.toLowerCase().trim()
-                    const isSelected = selectedBrand === bNorm
-                    const count = audienceProducts.filter(p => (p.brand || '').toLowerCase().trim() === bNorm).length
+                    const bCount = audienceProducts.filter(p => (p.brand || '').toLowerCase().trim() === bNorm).length
                     return (
                       <button
                         key={b._id || bName}
-                        className={`sidebar-cat-row ${isSelected ? 'active' : ''}`}
+                        className={`sidebar-cat-row ${selectedBrand === bNorm ? 'active' : ''}`}
                         onClick={() => setSelectedBrand(bNorm)}
                       >
-                        <span className="cat-bullet">{isSelected ? '✦' : '•'}</span>
+                        <span className="cat-bullet">{selectedBrand === bNorm ? '✦' : '•'}</span>
                         <span className="cat-name">{bName}</span>
-                        {count > 0 && <span className="cat-count">{count}</span>}
+                        {bCount > 0 && <span className="cat-count">{bCount}</span>}
                       </button>
                     )
                   })}
@@ -617,28 +704,24 @@ const CollectionsPage = () => {
                   )}
                 </div>
                 <div className="sidebar-color-chips">
-                  {availableColors.map(c => {
-                    const isSelected = selectedColors.some(sel => sel.toLowerCase() === c.name.toLowerCase())
-                    const hex = getColorHex(c.name)
-                    return (
-                      <button
-                        key={c.name}
-                        type="button"
-                        className={`sidebar-color-chip ${isSelected ? 'active' : ''}`}
-                        onClick={() => toggleColorFilter(c.name)}
-                        title={`${c.name} (${c.count})`}
-                      >
-                        <span className="sidebar-color-dot" style={{ backgroundColor: hex }} />
-                        <span className="sidebar-color-name">{c.name}</span>
-                        <span className="sidebar-color-count">{c.count}</span>
-                        {isSelected && (
-                          <svg className="sidebar-color-check" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        )}
-                      </button>
-                    )
-                  })}
+                  {availableColors.map((c) => (
+                    <button
+                      key={c.name}
+                      type="button"
+                      className={`sidebar-color-chip ${selectedColors.some(sel => sel.toLowerCase() === c.name.toLowerCase()) ? 'active' : ''}`}
+                      onClick={() => toggleColorFilter(c.name)}
+                      title={`${c.name} (${c.count})`}
+                    >
+                      <span className="sidebar-color-dot" style={{ backgroundColor: getColorHex(c.name) }} />
+                      <span className="sidebar-color-name">{c.name}</span>
+                      <span className="sidebar-color-count">{c.count}</span>
+                      {selectedColors.some(sel => sel.toLowerCase() === c.name.toLowerCase()) && (
+                        <svg className="sidebar-color-check" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
@@ -647,18 +730,15 @@ const CollectionsPage = () => {
             <div className="sidebar-widget">
               <h4 className="widget-title">SIZES</h4>
               <div className="sidebar-size-pills">
-                {['S', 'M', 'L', 'XL', 'XXL'].map(sz => {
-                  const isSelected = selectedSizes.includes(sz)
-                  return (
-                    <button
-                      key={sz}
-                      className={`sidebar-size-chip ${isSelected ? 'active' : ''}`}
-                      onClick={() => toggleSizeFilter(sz)}
-                    >
-                      {sz}
-                    </button>
-                  )
-                })}
+                {['S', 'M', 'L', 'XL', 'XXL'].map((sz) => (
+                  <button
+                    key={sz}
+                    className={`sidebar-size-chip ${selectedSizes.includes(sz) ? 'active' : ''}`}
+                    onClick={() => toggleSizeFilter(sz)}
+                  >
+                    {sz}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -771,97 +851,7 @@ const CollectionsPage = () => {
               </div>
             ) : (
               <>
-                {filteredProducts.slice(0, visibleCount).map((product, index) => {
-                  const origPrice = Number(product.mrp || product.discountPrice || product.originalPrice || 0)
-                  const curPrice = Number(product.price || 0)
-                  let discountPct = 0
-                  if (origPrice > curPrice && origPrice > 0) {
-                    discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
-                  } else if (product.discount && Number(product.discount) > 0) {
-                    discountPct = Math.round(Number(product.discount))
-                  }
-                  const hasDiscount = discountPct > 0
-                  const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
-                  const isOutOfStock = isProductOutOfStock(product)
-
-                  return (
-                    <motion.div
-                      key={product._id || index}
-                      className={`collection-product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`}
-                      initial={{ opacity: 0, y: 25 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
-                    >
-                      <div
-                        className="product-image-wrapper"
-                        onClick={() => {
-                          try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
-                          navigate(`/product/${product._id}`, { state: { product } })
-                        }}
-                      >
-                        <img
-                          src={mainImg}
-                          alt={product.name}
-                          className="product-image"
-                          loading="lazy"
-                          onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
-                        />
-
-                        {discountPct > 0 && (
-                          <span className="collection-discount-badge">{discountPct}% OFF</span>
-                        )}
-
-                        <button
-                          className={`wishlist-btn-card ${isInWishlist(product._id) ? 'active' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            toggleWishlist(product)
-                          }}
-                          title="Add to Wishlist"
-                        >
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill={isInWishlist(product._id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
-                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                          </svg>
-                        </button>
-
-                        {isOutOfStock && (
-                          <div className="out-of-stock-badge">Sold Out</div>
-                        )}
-                      </div>
-
-                      <div className="product-info">
-                        <h3
-                          className="product-name"
-                          onClick={() => {
-                            try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
-                            navigate(`/product/${product._id}`, { state: { product } })
-                          }}
-                        >
-                          {product.name}
-                        </h3>
-
-                        <div className="product-footer">
-                          <div className="collection-price-group">
-                            <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-                            {hasDiscount && (
-                              <span className="product-mrp-crossed">
-                                ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
-                              </span>
-                            )}
-                          </div>
-
-                          <AddToCartButton
-                            product={product}
-                            selectedSize={getFirstAvailableSize(product, 'M')}
-                            variant="mini"
-                            label="+ Add"
-                          />
-                        </div>
-                      </div>
-                    </motion.div>
-                  )
-                })}
+                {filteredProducts.slice(0, visibleCount).map((product, index) => renderCollectionProductCard(product, index))}
 
                 {visibleCount < filteredProducts.length && (
                   <div style={{ textAlign: 'center', width: '100%', gridColumn: '1 / -1', padding: '36px 0 20px' }}>
