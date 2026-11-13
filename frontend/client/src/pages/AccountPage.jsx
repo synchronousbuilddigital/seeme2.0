@@ -19,7 +19,13 @@ const EMPTY_ADDRESS = {
   isDefault: false
 }
 
-const ORDER_STEPS = ['placed', 'confirmed', 'shipped', 'delivered']
+const ORDER_STEPS = [
+  { id: 'confirmed', label: 'Confirmed' },
+  { id: 'packed', label: 'Packed' },
+  { id: 'shipped', label: 'Shipped' },
+  { id: 'out_for_delivery', label: 'Out for Delivery' },
+  { id: 'delivered', label: 'Delivered' }
+]
 
 const ACTIVE_ORDER_STATUSES = [
   'pending',
@@ -39,6 +45,31 @@ const SHIPPED_STATUSES = [
   'out_for_delivery',
   'picked_up'
 ]
+
+const getTrackingStepIndex = (order) => {
+  const statuses = [order?.shipping?.status, order?.status]
+    .filter(Boolean)
+    .map((status) => String(status).toLowerCase())
+
+  if (statuses.includes('delivered')) return 4
+  if (statuses.includes('out_for_delivery')) return 3
+  if (
+    statuses.some((status) =>
+      ['shipped', 'in_transit', 'picked_up'].includes(status)
+    )
+  ) {
+    return 2
+  }
+  if (
+    statuses.some((status) =>
+      ['packed', 'processing', 'approved'].includes(status)
+    )
+  ) {
+    return 1
+  }
+
+  return 0
+}
 
 const formatCurrency = (value) =>
   `â‚¹${Number(value || 0).toLocaleString('en-IN')}`
@@ -157,6 +188,16 @@ const Icon = ({ name, size = 18 }) => {
         </svg>
       )
 
+    case 'track':
+      return (
+        <svg {...commonProps}>
+          <path d="M10 17h4V5H2v12h3" />
+          <path d="M14 9h4l4 4v4h-3" />
+          <circle cx="7.5" cy="17.5" r="2.5" />
+          <circle cx="16.5" cy="17.5" r="2.5" />
+        </svg>
+      )
+
     case 'heart':
       return (
         <svg {...commonProps}>
@@ -266,7 +307,7 @@ const OrderCard = ({
   const status = String(order.status || 'placed').toLowerCase()
   const shippingStatus = String(order.shipping?.status || '').toLowerCase()
   const statusStyle = getStatusStyle(status)
-  const currentStepIndex = Math.max(ORDER_STEPS.indexOf(status), 0)
+  const currentStepIndex = getTrackingStepIndex(order)
 
   const isOfflineCod =
     String(order.orderType || '').toUpperCase() === 'OFFLINE' &&
@@ -433,7 +474,7 @@ const OrderCard = ({
                 <div className="progress-bar-steps">
                   {ORDER_STEPS.map((step, index) => (
                     <div
-                      key={step}
+                      key={step.id}
                       className={`progress-step-item ${
                         index <= currentStepIndex ? 'completed' : ''
                       } ${index === currentStepIndex ? 'active' : ''}`}
@@ -441,7 +482,7 @@ const OrderCard = ({
                       <div className="step-dot">
                         {index <= currentStepIndex ? 'âœ“' : index + 1}
                       </div>
-                      <span className="step-name">{step}</span>
+                      <span className="step-name">{step.label}</span>
                     </div>
                   ))}
                 </div>
@@ -621,6 +662,7 @@ const AccountPage = () => {
   const [addresses, setAddresses] = useState([])
   const [loading, setLoading] = useState(true)
   const [orderFilter, setOrderFilter] = useState('all')
+  const [trackingQuery, setTrackingQuery] = useState('')
   const [selectedOrderId, setSelectedOrderId] = useState(null)
   const [cancellingOrderId, setCancellingOrderId] = useState(null)
 
@@ -834,6 +876,30 @@ const AccountPage = () => {
     })
   }, [orders, orderFilter])
 
+  const trackingOrders = useMemo(() => {
+    const query = trackingQuery.trim().toLowerCase()
+
+    return orders
+      .filter(
+        (order) =>
+          String(order.status || '').toLowerCase() !== 'cancelled'
+      )
+      .filter((order) => {
+        if (!query) return true
+
+        return [
+          order.orderNumber,
+          order._id,
+          order.shipping?.awbNumber,
+          order.trackingNumber
+        ]
+          .filter(Boolean)
+          .some((value) =>
+            String(value).toLowerCase().includes(query)
+          )
+      })
+  }, [orders, trackingQuery])
+
   const menuItems = useMemo(
     () => [
       {
@@ -844,9 +910,15 @@ const AccountPage = () => {
       },
       {
         id: 'orders',
-        label: 'Orders',
+        label: 'My Orders',
         icon: <Icon name="orders" />,
         badge: orders.length || null
+      },
+      {
+        id: 'tracking',
+        label: 'Track Order',
+        icon: <Icon name="track" />,
+        badge: null
       },
       {
         id: 'wishlist',
@@ -855,13 +927,19 @@ const AccountPage = () => {
         badge: wishlist.length || null
       },
       {
+        id: 'addresses',
+        label: 'Addresses',
+        icon: <Icon name="location" />,
+        badge: addresses.length || null
+      },
+      {
         id: 'profile',
-        label: 'Settings',
+        label: 'Profile',
         icon: <Icon name="user" />,
         badge: null
       }
     ],
-    [orders.length, wishlist.length]
+    [addresses.length, orders.length, wishlist.length]
   )
 
   const selectTab = (tab) => {
@@ -1549,6 +1627,138 @@ const AccountPage = () => {
     </div>
   )
 
+  const renderTracking = () => (
+    <div className="account-section-view tracking-view">
+      <div className="section-intro tracking-intro">
+        <div>
+          <h2>Track Order</h2>
+          <p>
+            Follow every shipment from confirmation to delivery.
+          </p>
+        </div>
+
+        <label className="tracking-search">
+          <span>Order or AWB</span>
+          <input
+            type="search"
+            value={trackingQuery}
+            onChange={(event) => setTrackingQuery(event.target.value)}
+            placeholder="Search order number or tracking ID"
+          />
+        </label>
+      </div>
+
+      {loading ? (
+        <div className="editorial-empty">
+          <div className="spinner" />
+          <p>Loading shipment updates...</p>
+        </div>
+      ) : trackingOrders.length === 0 ? (
+        <div className="editorial-empty-card compact">
+          <div className="empty-icon-circle">
+            <Icon name="track" size={30} />
+          </div>
+          <h4>No shipment found</h4>
+          <p>Check the order number or tracking ID and try again.</p>
+        </div>
+      ) : (
+        <div className="tracking-order-list">
+          {trackingOrders.map((order) => {
+            const trackingStep = getTrackingStepIndex(order)
+            const displayStatus =
+              order.shipping?.status || order.status || 'confirmed'
+            const statusStyle = getStatusStyle(displayStatus)
+            const awb =
+              order.shipping?.awbNumber || order.trackingNumber
+            const carrier =
+              order.shipping?.courierName ||
+              order.shipping?.carrier ||
+              'Shipping partner pending'
+            const expectedDelivery =
+              order.shipping?.estimatedDelivery ||
+              order.estimatedDelivery ||
+              order.deliveryDate
+
+            return (
+              <article
+                key={order._id}
+                className="tracking-order-card"
+              >
+                <div className="tracking-card-header">
+                  <div>
+                    <span className="tracking-order-label">Order</span>
+                    <h3>#{order.orderNumber || order._id}</h3>
+                    <p>Placed {formatDate(order.createdAt)}</p>
+                  </div>
+
+                  <span
+                    className="order-status-pill"
+                    style={{
+                      background: statusStyle.bg,
+                      color: statusStyle.text,
+                      border: `1px solid ${statusStyle.border}`
+                    }}
+                  >
+                    {String(displayStatus)
+                      .replaceAll('_', ' ')
+                      .toUpperCase()}
+                  </span>
+                </div>
+
+                <div className="order-progress-wrapper tracking-progress">
+                  <div className="progress-bar-steps">
+                    {ORDER_STEPS.map((step, index) => (
+                      <div
+                        key={step.id}
+                        className={`progress-step-item ${
+                          index <= trackingStep ? 'completed' : ''
+                        } ${index === trackingStep ? 'active' : ''}`}
+                      >
+                        <div className="step-dot">
+                          {index <= trackingStep ? '✓' : index + 1}
+                        </div>
+                        <span className="step-name">{step.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="tracking-meta-grid">
+                  <div>
+                    <span>Tracking ID</span>
+                    <strong>{awb || 'Assigned after dispatch'}</strong>
+                  </div>
+                  <div>
+                    <span>Delivery Partner</span>
+                    <strong>{carrier}</strong>
+                  </div>
+                  <div>
+                    <span>Expected Delivery</span>
+                    <strong>
+                      {expectedDelivery
+                        ? formatDate(expectedDelivery)
+                        : 'Update coming soon'}
+                    </strong>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-editorial outline tracking-details-btn"
+                    onClick={() => {
+                      setSelectedOrderId(order._id)
+                      selectTab('orders')
+                    }}
+                  >
+                    View Order
+                  </button>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+
   const renderWishlist = () => (
     <div className="account-section-view">
       <div className="section-intro">
@@ -1667,13 +1877,17 @@ const AccountPage = () => {
     </div>
   )
 
-  const renderProfile = () => (
+  const renderProfile = (section = 'profile') => (
     <div className="account-section-view ux-settings-container">
       <div className="section-intro ux-settings-intro">
         <div>
-          <h2>Account Settings & Security</h2>
+          <h2>
+            {section === 'addresses' ? 'Saved Addresses' : 'Profile & Security'}
+          </h2>
           <p>
-            Manage your profile, password, and delivery addresses.
+            {section === 'addresses'
+              ? 'Manage delivery destinations for faster checkout.'
+              : 'Update your personal information and password.'}
           </p>
         </div>
       </div>
@@ -1701,7 +1915,7 @@ const AccountPage = () => {
         )}
       </AnimatePresence>
 
-      <div className="profile-management-layout">
+      <div className={`profile-management-layout ${section}-only`}>
         <form
           className="editorial-form profile-settings-form ux-settings-card"
           onSubmit={handleProfileUpdate}
@@ -2146,11 +2360,17 @@ const AccountPage = () => {
       case 'orders':
         return renderOrders()
 
+      case 'tracking':
+        return renderTracking()
+
       case 'wishlist':
         return renderWishlist()
 
+      case 'addresses':
+        return renderProfile('addresses')
+
       case 'profile':
-        return renderProfile()
+        return renderProfile('profile')
 
       case 'dashboard':
       default:
