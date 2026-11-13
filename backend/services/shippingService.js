@@ -159,7 +159,16 @@ export const calculateShipmentSpecs = async (items = []) => {
     itemB = itemB !== null && itemB > 0 ? itemB : 15
     itemH = itemH !== null && itemH > 0 ? itemH : 5
 
-    // 4. Aggregate across quantity and items
+    // 4. Apparel Folding Normalizer:
+    // Garment flat dimensions (e.g., 72cm length, 52cm chest width) are folded into standard shipping polybags.
+    // If a dimension exceeds courier flyer limits (> 38cm length or > 28cm breadth), fold it to standard flyer size.
+    if (itemL > 38 || itemB > 28) {
+      itemL = Math.min(35, itemL / 2 > 20 ? itemL / 2 : 30)
+      itemB = Math.min(28, itemB / 2 > 15 ? itemB / 2 : 24)
+      itemH = Math.max(itemH, 3) // Folded apparel creates ~3-4cm thickness
+    }
+
+    // 5. Aggregate across quantity and items
     totalWeightKg += itemWeightKg * qty
     maxLengthCm = Math.max(maxLengthCm, itemL)
     maxBreadthCm = Math.max(maxBreadthCm, itemB)
@@ -167,6 +176,13 @@ export const calculateShipmentSpecs = async (items = []) => {
   }
 
   // Courier acceptance bounds (min 0.01kg, max 50kg allowed by logistics network)
+  // Ensure final aggregated parcel dimensions never exceed a standard e-commerce courier flyer (max 38 x 30 cm)
+  // for apparel parcels weighing under 1.5kg
+  if (totalWeightKg <= 1.5) {
+    maxLengthCm = Math.min(35, maxLengthCm)
+    maxBreadthCm = Math.min(28, maxBreadthCm)
+    totalHeightCm = Math.min(8, Math.max(3, totalHeightCm))
+  }
   totalWeightKg = Math.min(50, Math.max(0.01, Number(totalWeightKg.toFixed(3))))
   maxLengthCm = Math.max(1, Number(maxLengthCm.toFixed(1)))
   maxBreadthCm = Math.max(1, Number(maxBreadthCm.toFixed(1)))
