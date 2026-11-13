@@ -72,7 +72,7 @@ const getTrackingStepIndex = (order) => {
 }
 
 const formatCurrency = (value) =>
-  `â‚¹${Number(value || 0).toLocaleString('en-IN')}`
+  `₹${Number(value || 0).toLocaleString('en-IN')}`
 
 const formatDate = (value) => {
   if (!value) return 'Date unavailable'
@@ -378,7 +378,7 @@ const OrderCard = ({
           </div>
 
           <span className="order-toggle-btn">
-            {expanded ? 'Hide Details â–²' : 'View Details â–¼'}
+            {expanded ? 'Hide Details ▲' : 'View Details ▼'}
           </span>
         </div>
       </button>
@@ -400,7 +400,7 @@ const OrderCard = ({
                 <span className="strip-name">{item.name}</span>
                 <span className="strip-spec">
                   Qty: {item.quantity || 1}
-                  {item.size ? ` â€¢ Size: ${item.size}` : ''}
+                  {item.size ? ` • Size: ${item.size}` : ''}
                 </span>
               </div>
             </div>
@@ -421,7 +421,7 @@ const OrderCard = ({
 
               {status === 'cancelled' ? (
                 <div className="timeline-cancelled-banner">
-                  <span className="cancelled-icon-badge">Ã—</span>
+                  <span className="cancelled-icon-badge">×</span>
                   <span className="cancelled-text">
                     This order is cancelled
                   </span>
@@ -480,7 +480,7 @@ const OrderCard = ({
                       } ${index === currentStepIndex ? 'active' : ''}`}
                     >
                       <div className="step-dot">
-                        {index <= currentStepIndex ? 'âœ“' : index + 1}
+                        {index <= currentStepIndex ? '✓' : index + 1}
                       </div>
                       <span className="step-name">{step.label}</span>
                     </div>
@@ -1375,7 +1375,7 @@ const AccountPage = () => {
 
           <div className="ux-card-footer">
             <span className="ux-action-link">Manage Orders</span>
-            <span className="ux-arrow">â†’</span>
+            <span className="ux-arrow">→</span>
           </div>
         </button>
 
@@ -1400,7 +1400,7 @@ const AccountPage = () => {
 
           <div className="ux-card-footer">
             <span className="ux-action-link">View Wishlist</span>
-            <span className="ux-arrow">â†’</span>
+            <span className="ux-arrow">→</span>
           </div>
         </button>
 
@@ -1439,7 +1439,7 @@ const AccountPage = () => {
             <span className="ux-action-link">
               Manage Addresses
             </span>
-            <span className="ux-arrow">â†’</span>
+            <span className="ux-arrow">→</span>
           </div>
         </button>
 
@@ -1462,7 +1462,7 @@ const AccountPage = () => {
 
           <div className="ux-card-footer">
             <span className="ux-action-link">Update Profile</span>
-            <span className="ux-arrow">â†’</span>
+            <span className="ux-arrow">→</span>
           </div>
         </button>
       </div>
@@ -1909,7 +1909,7 @@ const AccountPage = () => {
               aria-label="Close message"
               onClick={() => setMessage({ type: '', text: '' })}
             >
-              Ã—
+              ×
             </button>
           </motion.div>
         )}
@@ -2057,7 +2057,7 @@ const AccountPage = () => {
                 setShowAddressForm(true)
               }}
             >
-              {showAddressForm ? 'Cancel Form Ã—' : '+ Add Address'}
+              {showAddressForm ? 'Cancel Form ×' : '+ Add Address'}
             </button>
           </div>
 
@@ -2289,7 +2289,7 @@ const AccountPage = () => {
                       }
                     >
                       {address.isDefault
-                        ? 'âœ¦ DEFAULT DESTINATION'
+                        ? '✦ DEFAULT DESTINATION'
                         : 'DESTINATION'}
                     </span>
                   </div>
@@ -2306,7 +2306,7 @@ const AccountPage = () => {
                   {(address.name || address.phone) && (
                     <p>
                       {address.name}
-                      {address.name && address.phone ? ' â€¢ ' : ''}
+                      {address.name && address.phone ? ' • ' : ''}
                       {address.phone
                         ? `+91 ${address.phone}`
                         : ''}
@@ -2415,7 +2415,7 @@ const AccountPage = () => {
               {user.name || 'Valued Client'}
             </span>
             <span className="mobile-user-badge">
-              âœ¦ SEEMEE Member
+              ✦ SEEMEE Member
             </span>
           </div>
         </div>
@@ -2468,7 +2468,7 @@ const AccountPage = () => {
 
             <div className="nav-user-info">
               <h3>{user.name || 'Valued Client'}</h3>
-              <p>âœ¦ SEEMEE MEMBER</p>
+              <p>✦ SEEMEE MEMBER</p>
             </div>
           </div>
 
@@ -2496,7 +2496,7 @@ const AccountPage = () => {
                   </span>
                 )}
 
-                <span className="side-nav-arrow">â€º</span>
+                <span className="side-nav-arrow">›</span>
               </button>
             ))}
 
