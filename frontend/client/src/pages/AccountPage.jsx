@@ -41,7 +41,7 @@ const SHIPPED_STATUSES = [
 ]
 
 const formatCurrency = (value) =>
-  `₹${Number(value || 0).toLocaleString('en-IN')}`
+  `â‚¹${Number(value || 0).toLocaleString('en-IN')}`
 
 const formatDate = (value) => {
   if (!value) return 'Date unavailable'
@@ -337,7 +337,7 @@ const OrderCard = ({
           </div>
 
           <span className="order-toggle-btn">
-            {expanded ? 'Hide Details ▲' : 'View Details ▼'}
+            {expanded ? 'Hide Details â–²' : 'View Details â–¼'}
           </span>
         </div>
       </button>
@@ -359,7 +359,7 @@ const OrderCard = ({
                 <span className="strip-name">{item.name}</span>
                 <span className="strip-spec">
                   Qty: {item.quantity || 1}
-                  {item.size ? ` • Size: ${item.size}` : ''}
+                  {item.size ? ` â€¢ Size: ${item.size}` : ''}
                 </span>
               </div>
             </div>
@@ -380,7 +380,7 @@ const OrderCard = ({
 
               {status === 'cancelled' ? (
                 <div className="timeline-cancelled-banner">
-                  <span className="cancelled-icon-badge">×</span>
+                  <span className="cancelled-icon-badge">Ã—</span>
                   <span className="cancelled-text">
                     This order is cancelled
                   </span>
@@ -439,7 +439,7 @@ const OrderCard = ({
                       } ${index === currentStepIndex ? 'active' : ''}`}
                     >
                       <div className="step-dot">
-                        {index <= currentStepIndex ? '✓' : index + 1}
+                        {index <= currentStepIndex ? 'âœ“' : index + 1}
                       </div>
                       <span className="step-name">{step}</span>
                     </div>
@@ -1297,7 +1297,7 @@ const AccountPage = () => {
 
           <div className="ux-card-footer">
             <span className="ux-action-link">Manage Orders</span>
-            <span className="ux-arrow">→</span>
+            <span className="ux-arrow">â†’</span>
           </div>
         </button>
 
@@ -1322,7 +1322,7 @@ const AccountPage = () => {
 
           <div className="ux-card-footer">
             <span className="ux-action-link">View Wishlist</span>
-            <span className="ux-arrow">→</span>
+            <span className="ux-arrow">â†’</span>
           </div>
         </button>
 
@@ -1361,7 +1361,7 @@ const AccountPage = () => {
             <span className="ux-action-link">
               Manage Addresses
             </span>
-            <span className="ux-arrow">→</span>
+            <span className="ux-arrow">â†’</span>
           </div>
         </button>
 
@@ -1384,7 +1384,7 @@ const AccountPage = () => {
 
           <div className="ux-card-footer">
             <span className="ux-action-link">Update Profile</span>
-            <span className="ux-arrow">→</span>
+            <span className="ux-arrow">â†’</span>
           </div>
         </button>
       </div>
@@ -1589,83 +1589,79 @@ const AccountPage = () => {
         </div>
       ) : (
         <div className="wishlist-full-grid">
-          {wishlist.map((item) => {
-            const itemId = item.id || item._id
-            const numericPrice =
-              typeof item.price === 'number'
-                ? item.price
-                : Number(
-                    String(item.price || '0').replace(/[₹,\s]/g, '')
-                  ) || 0
+          {wishlist.map((item) => (
+            <article key={item.id || item._id} className="wishlist-card">
+              <div
+                className="wishlist-card-media"
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/product/${item.id || item._id}`)}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === 'Enter' ||
+                    event.key === ' '
+                  ) {
+                    navigate(`/product/${item.id || item._id}`)
+                  }
+                }}
+              >
+                <img
+                  src={getOptimizedImageUrl(
+                    item.images?.[0] || item.image
+                  )}
+                  alt={item.name || 'Wishlist product'}
+                  className="wishlist-card-img"
+                />
 
-            return (
-              <article key={itemId} className="wishlist-card">
-                <div
-                  className="wishlist-card-media"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => navigate(`/product/${itemId}`)}
-                  onKeyDown={(event) => {
-                    if (
-                      event.key === 'Enter' ||
-                      event.key === ' '
-                    ) {
-                      navigate(`/product/${itemId}`)
-                    }
+                <button
+                  type="button"
+                  className="wishlist-remove-icon"
+                  title="Remove from wishlist"
+                  aria-label={`Remove ${item.name} from wishlist`}
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    toggleWishlist(item)
                   }}
                 >
-                  <img
-                    src={getOptimizedImageUrl(
-                      item.images?.[0] || item.image
-                    )}
-                    alt={item.name || 'Wishlist product'}
-                    className="wishlist-card-img"
-                  />
+                  ×
+                </button>
+              </div>
 
-                  <button
-                    type="button"
-                    className="wishlist-remove-icon"
-                    title="Remove from wishlist"
-                    aria-label={`Remove ${item.name} from wishlist`}
-                    onClick={(event) => {
-                      event.stopPropagation()
-                      toggleWishlist(item)
-                    }}
-                  >
-                    ×
-                  </button>
+              <div className="wishlist-card-info">
+                <span className="wishlist-card-category">
+                  {item.category || 'Atelier Collection'}
+                </span>
+
+                <button
+                  type="button"
+                  className="wishlist-card-title"
+                  onClick={() => navigate(`/product/${item.id || item._id}`)}
+                >
+                  {item.name}
+                </button>
+
+                <div className="wishlist-card-price">
+                  {formatCurrency(
+                    typeof item.price === 'number'
+                      ? item.price
+                      : Number(
+                          String(item.price || '0').replace(/[₹,\s]/g, '')
+                        ) || 0
+                  )}
                 </div>
 
-                <div className="wishlist-card-info">
-                  <span className="wishlist-card-category">
-                    {item.category || 'Atelier Collection'}
-                  </span>
-
+                <div className="wishlist-card-actions">
                   <button
                     type="button"
-                    className="wishlist-card-title"
-                    onClick={() => navigate(`/product/${itemId}`)}
+                    className="btn-editorial gold full-btn"
+                    onClick={() => addToCart(item)}
                   >
-                    {item.name}
+                    Add to Bag
                   </button>
-
-                  <div className="wishlist-card-price">
-                    {formatCurrency(numericPrice)}
-                  </div>
-
-                  <div className="wishlist-card-actions">
-                    <button
-                      type="button"
-                      className="btn-editorial gold full-btn"
-                      onClick={() => addToCart(item)}
-                    >
-                      Add to Bag
-                    </button>
-                  </div>
                 </div>
-              </article>
-            )
-          })}
+              </div>
+            </article>
+          ))}
         </div>
       )}
     </div>
@@ -1699,7 +1695,7 @@ const AccountPage = () => {
               aria-label="Close message"
               onClick={() => setMessage({ type: '', text: '' })}
             >
-              ×
+              Ã—
             </button>
           </motion.div>
         )}
@@ -1847,7 +1843,7 @@ const AccountPage = () => {
                 setShowAddressForm(true)
               }}
             >
-              {showAddressForm ? 'Cancel Form ×' : '+ Add Address'}
+              {showAddressForm ? 'Cancel Form Ã—' : '+ Add Address'}
             </button>
           </div>
 
@@ -2079,7 +2075,7 @@ const AccountPage = () => {
                       }
                     >
                       {address.isDefault
-                        ? '✦ DEFAULT DESTINATION'
+                        ? 'âœ¦ DEFAULT DESTINATION'
                         : 'DESTINATION'}
                     </span>
                   </div>
@@ -2096,7 +2092,7 @@ const AccountPage = () => {
                   {(address.name || address.phone) && (
                     <p>
                       {address.name}
-                      {address.name && address.phone ? ' • ' : ''}
+                      {address.name && address.phone ? ' â€¢ ' : ''}
                       {address.phone
                         ? `+91 ${address.phone}`
                         : ''}
@@ -2199,7 +2195,7 @@ const AccountPage = () => {
               {user.name || 'Valued Client'}
             </span>
             <span className="mobile-user-badge">
-              ✦ SEEMEE Member
+              âœ¦ SEEMEE Member
             </span>
           </div>
         </div>
@@ -2252,7 +2248,7 @@ const AccountPage = () => {
 
             <div className="nav-user-info">
               <h3>{user.name || 'Valued Client'}</h3>
-              <p>✦ SEEMEE MEMBER</p>
+              <p>âœ¦ SEEMEE MEMBER</p>
             </div>
           </div>
 
@@ -2280,7 +2276,7 @@ const AccountPage = () => {
                   </span>
                 )}
 
-                <span className="side-nav-arrow">›</span>
+                <span className="side-nav-arrow">â€º</span>
               </button>
             ))}
 
