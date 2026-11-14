@@ -1034,6 +1034,8 @@ const Checkout = () => {
               coupon: '',
               items: cart
             })
+            trackClarityEvent('purchase_cod_success')
+            upgradeClaritySession('purchase_cod_success')
           } catch (e) {
             console.error('GTM purchase tracking error:', e)
           }
