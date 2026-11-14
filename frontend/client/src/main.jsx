@@ -4,6 +4,10 @@ import App from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 import { initPWAInstallPrompt } from './utils/pwaInstallManager'
+import { initClarity } from './utils/clarity'
+
+// Initialize Microsoft Clarity Behavioral Analytics
+initClarity()
 
 // Initialize PWA Install Prompt listener before React renders
 initPWAInstallPrompt()

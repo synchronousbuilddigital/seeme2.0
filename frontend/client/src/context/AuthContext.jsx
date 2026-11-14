@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { API_ENDPOINTS } from '../config/api'
+import { identifyClarityUser, setClarityTag } from '../utils/clarity'
 
 export const AuthContext = createContext()
 
@@ -36,6 +37,8 @@ export const AuthProvider = ({ children }) => {
     try {
       if (user) {
         localStorage.setItem('seemee-user', JSON.stringify(user))
+        identifyClarityUser(user)
+        setClarityTag('user_role', user.role || 'customer')
       } else {
         localStorage.removeItem('seemee-user')
       }

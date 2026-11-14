@@ -7,6 +7,7 @@ import { API_ENDPOINTS, RAZORPAY_KEY_ID } from '../config/api'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
 import { fetchPincodeDetails } from '../utils/pincodeService'
 import { trackAddShippingInfo, trackAddPaymentInfo, trackPurchase } from '../utils/gtmEcommerce'
+import { upgradeClaritySession, trackClarityEvent } from '../utils/clarity'
 import './Checkout.css'
 
 const INDIAN_STATES = [
@@ -904,6 +905,8 @@ const Checkout = () => {
                 coupon: '',
                 items: cart
               })
+              trackClarityEvent('purchase_success')
+              upgradeClaritySession('purchase_success')
             } catch (e) {
               console.error('GTM purchase tracking error:', e)
             }
