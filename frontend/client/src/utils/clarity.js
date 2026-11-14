@@ -1,6 +1,6 @@
 import Clarity from '@microsoft/clarity'
 
-const DEFAULT_PROJECT_ID = import.meta.env.VITE_CLARITY_PROJECT_ID || 'zdbki96960'
+const DEFAULT_PROJECT_ID = import.meta.env.VITE_CLARITY_PROJECT_ID || 'zdfv55poaj'
 
 let isInitialized = false
 
