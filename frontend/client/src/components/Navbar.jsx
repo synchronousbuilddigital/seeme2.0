@@ -465,13 +465,13 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               <button
                 className={`dropdown-trigger nav-item sale-nav-item ${isActiveRoute('/sale') ? 'active' : ''}`}
                 onClick={() => handleNavigation('/sale')}
-                aria-label="Sale"
+                aria-label="Deals"
               >
                 <span className="sale-live-indicator" aria-hidden="true">
                   <span className="sale-live-pulse"></span>
                   <span className="sale-live-dot"></span>
                 </span>
-                <span className="sale-cursive-text">Sale</span>
+                <span className="sale-cursive-text">Deals</span>
                 <svg
                   width="8"
                   height="6"
@@ -779,13 +779,13 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                     <button
                       className={`admin-style-link sale-mobile-link ${isActiveRoute('/sale') ? 'active' : ''}`}
                       onClick={() => handleNavigation('/sale')}
-                      aria-label="Sale"
+                      aria-label="Deals"
                     >
                       <span className="sale-live-indicator" aria-hidden="true">
                         <span className="sale-live-pulse"></span>
                         <span className="sale-live-dot"></span>
                       </span>
-                      <span className="sale-cursive-text">Sale</span>
+                      <span className="sale-cursive-text">Deals</span>
                     </button>
                     <button
                       className="drawer-expand-btn sale-drawer-expand-btn"
