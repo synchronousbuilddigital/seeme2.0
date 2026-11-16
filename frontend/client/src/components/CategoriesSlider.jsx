@@ -138,11 +138,10 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="categories-title">
-            <span>Categories</span>
-          </h2>
-          <div className="categories-header-line">
-            <span className="line-diamond"></span>
+          <div className="categories-heading-copy">
+            <span className="categories-kicker">Shop by category</span>
+            <h2 className="categories-title">Find your <span>signature</span></h2>
+            <p className="categories-editorial-subtitle">{dynamicSubtitle}</p>
           </div>
 
           {/* Interactive Audience Filter Pills */}
@@ -214,12 +213,15 @@ const CategoriesSlider = ({ activeAudience = 'all' }) => {
 
                   {/* Bottom Content Section - Title & Description */}
                   <div className="arch-card-info">
+                    <div className="arch-card-meta">
+                      <span>{cat.indexCode}</span>
+                      <span>{cat.productCount} {cat.productCount === 1 ? 'style' : 'styles'}</span>
+                    </div>
                     <div className="arch-info-header">
                       <h3 className="arch-card-title">{cat.title}</h3>
+                      <span className="arch-card-arrow" aria-hidden="true">↗</span>
                     </div>
-                    <p className="arch-card-desc">
-                      {cleanDesc}
-                    </p>
+                    <p className="arch-card-desc">{cleanDesc}</p>
                   </div>
                 </motion.div>
               )

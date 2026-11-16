@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getImageUrl } from '../utils/imageHelper'
 import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
@@ -343,6 +344,15 @@ const CategoriesPage = () => {
         {/* ============================================================== */}
         {/* EXACT 3-COLUMN BENTO GRID MATCHING THE MOCKUP IMAGE             */}
         {/* ============================================================== */}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={`${activeAudience}:${searchCategoryQuery.trim().toLowerCase()}`}
+            className="mockup-results-stage"
+            initial={{ opacity: 0, y: 22, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.985 }}
+            transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
+          >
         {filteredCategories.length > 0 ? (
           <div className="mockup-bento-grid">
             {/* ---------------- Column 1: Tall Card (Cord set) ------------ */}
@@ -641,6 +651,8 @@ const CategoriesPage = () => {
             ))}
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* ============================================================== */}

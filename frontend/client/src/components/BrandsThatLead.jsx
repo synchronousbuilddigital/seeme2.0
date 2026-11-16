@@ -245,9 +245,13 @@ const BrandsThatLead = ({ activeAudience = 'all' }) => {
       <div className="brands-lead-container">
         {/* Header with Title */}
         <div className="brands-lead-header">
-          <h2 className="brands-lead-title">
-            Brands That <span className="brands-title-gold">Lead</span>
-          </h2>
+          <div className="brands-lead-heading-group">
+            <span className="brands-lead-eyebrow">The brand edit</span>
+            <h2 className="brands-lead-title">
+              Brands That <span className="brands-title-gold">Lead</span>
+            </h2>
+          </div>
+          <p className="brands-lead-intro">Signature labels, selected for every side of your style.</p>
         </div>
 
         {/* Bento Grid */}

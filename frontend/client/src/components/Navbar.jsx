@@ -6,6 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { API_ENDPOINTS, getAdminUrl } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { getOptimizedImageUrl } from '../utils/imageHelper'
+import { getProductDiscountPercent } from '../utils/discountHelper'
 import './Navbar.css'
 
 const normalizeCategorySlug = (slug) => {
@@ -182,27 +183,14 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
         const allProds = Array.isArray(prodData?.data) ? prodData.data : (Array.isArray(prodData?.products) ? prodData.products : [])
         const activeProds = allProds.filter(p => p && p.isActive !== false)
 
-        // Find products marked onSale
-        let salePool = activeProds.filter(p => Boolean(p.isSale === true || p.onSale === true || p.isSale === 'true' || p.onSale === 'true'))
-
-        // Fallback: products with positive discount if none flagged onSale
-        if (salePool.length === 0) {
-          salePool = activeProds.filter(p => {
-            const price = Number(p.price || 0)
-            const mrp = Number(p.mrp || p.discountPrice || 0)
-            return (mrp > price && price > 0) || (p.discount && Number(p.discount) > 0)
-          })
-        }
+        // Complete Deals pool across every audience: Admin-enabled deals + genuine discounts.
+        const salePool = activeProds.filter(p => {
+          const isExplicitDeal = p.isSale === true || p.onSale === true || p.isSale === 'true' || p.onSale === 'true'
+          return isExplicitDeal || getProductDiscountPercent(p) > 0
+        })
 
         if (salePool.length > 0 && !isCancelled) {
-          const productDiscounts = salePool.map(p => {
-            const price = Number(p.price || 0)
-            const mrp = Number(p.mrp || p.discountPrice || p.price || 0)
-            const discPct = mrp > price && price > 0
-              ? Math.round(((mrp - price) / mrp) * 100)
-              : Number(p.discount || 0)
-            return Math.max(0, discPct)
-          })
+          const productDiscounts = salePool.map(getProductDiscountPercent)
 
           const maxFound = Math.max(...productDiscounts, 0)
           const highestDiscount = maxFound > 0 ? maxFound : 50
@@ -555,7 +543,6 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
               Catalog
             </button>
             <button onClick={() => handleNavigation('/magazine')} className={`nav-item ${isActiveRoute('/magazine') ? 'active' : ''}`}>Magazine</button>
-            <button onClick={() => handleNavigation('/about')} className={`nav-item ${isActiveRoute('/about') ? 'active' : ''}`}>About</button>
           </div>
 
           <div className="nav-actions">
@@ -886,13 +873,6 @@ const Navbar = ({ onCartOpen, onWishlistOpen }) => {
                   <span className="link-text">Magazine</span>
                   <span className="drawer-arrow">→</span>
                 </button>
-
-                <button onClick={() => handleNavigation('/about')} className={`admin-style-link ${isActiveRoute('/about') ? 'active' : ''}`}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></svg>
-                  <span className="link-text">About Atelier</span>
-                  <span className="drawer-arrow">→</span>
-                </button>
-
                 {user?.role === 'admin' && (
                   <button
                     onClick={() => {

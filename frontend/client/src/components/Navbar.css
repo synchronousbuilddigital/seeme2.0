@@ -1464,7 +1464,7 @@
   padding: 4px 12px !important;
   border-radius: 9999px !important;
   text-transform: none !important;
-  letter-spacing: 0 !important;
+  letter-spacing: 0.025em !important;
   background: transparent !important;
   border: 1.5px solid transparent !important;
   position: relative;
@@ -1533,25 +1533,25 @@
 
 /* Calligraphic Cursive 'Sale' Text (Alex Brush / Great Vibes / Allura) */
 .sale-cursive-text {
-  font-family: 'Alex Brush', 'Great Vibes', 'Allura', 'Dancing Script', 'Brush Script MT', cursive !important;
-  font-size: 1.55rem !important;
-  font-weight: 400 !important;
+  font-family: var(--font-heading, 'Cormorant Garamond', Georgia, serif) !important;
+  font-size: 1.28rem !important;
+  font-weight: 700 !important;
   font-style: italic !important;
   line-height: 1 !important;
   color: #ef4444 !important;
   text-transform: none !important;
-  letter-spacing: 0 !important;
+  letter-spacing: 0.025em !important;
   display: inline-block !important;
-  transform: translateY(-2px) !important;
+  transform: translateY(-1px) !important;
   -webkit-font-smoothing: antialiased;
-  text-shadow: 0 0 1px rgba(239, 68, 68, 0.2);
+  text-shadow: none;
   transition: color 0.2s ease, text-shadow 0.2s ease !important;
 }
 
 .sale-nav-item:hover .sale-cursive-text,
 .sale-nav-item.active .sale-cursive-text {
   color: #dc2626 !important;
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.35);
+  text-shadow: 0 2px 8px rgba(239, 68, 68, 0.18);
 }
 
 /* Soft Downward Arrow */

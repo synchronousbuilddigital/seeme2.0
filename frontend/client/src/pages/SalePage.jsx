@@ -7,6 +7,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { cachedFetch } from '../utils/cachedFetch'
 import { belongsToAudience } from '../utils/categoryHelper'
 import { trackViewItemList, trackSelectItem } from '../utils/gtmEcommerce'
+import { getProductPricing, getProductDiscountPercent } from '../utils/discountHelper'
 import AddToCartButton from '../components/AddToCartButton'
 import { isSizeInStock, getSortedSizesForProduct, getFirstAvailableSize, isProductOutOfStock } from '../utils/sizeHelper'
 import './SalePage.css'
@@ -70,21 +71,13 @@ const SalePage = () => {
         ? response.data
         : (Array.isArray(response?.products) ? response.products : [])
 
-      // STRICT FILTER: ONLY products explicitly enabled for Sale in Admin Panel
-      let saleItems = rawList.filter(p => {
+      // Deals include products explicitly enabled in Admin plus every product with a real discount.
+      // This prevents one audience's sale flags from hiding discounted products for other audiences.
+      const saleItems = rawList.filter(p => {
         if (!p || p.isActive === false) return false
-        return Boolean(p.isSale === true || p.onSale === true || p.isSale === 'true' || p.onSale === 'true')
+        const isExplicitDeal = p.isSale === true || p.onSale === true || p.isSale === 'true' || p.onSale === 'true'
+        return isExplicitDeal || getProductDiscountPercent(p) > 0
       })
-
-      // Fallback if no products explicitly flagged onSale yet: show products with active discounts
-      if (saleItems.length === 0) {
-        saleItems = rawList.filter(p => {
-          if (!p || p.isActive === false) return false
-          const price = Number(p.price || 0)
-          const mrp = Number(p.mrp || p.discountPrice || 0)
-          return (mrp > price && price > 0) || (p.discount && Number(p.discount) > 0)
-        })
-      }
 
       setProducts(saleItems)
 
@@ -162,6 +155,10 @@ const SalePage = () => {
     setMaxPrice(10000)
     setSelectedSizes([])
     setSortBy('discount_desc')
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('discount')
+    nextParams.delete('minDiscount')
+    setSearchParams(nextParams, { replace: true })
   }
 
   const hasActiveFilters = Boolean(
@@ -576,7 +573,7 @@ const SalePage = () => {
               {discountFilter !== 'all' && (
                 <span className="sale-filter-chip">
                   {discountFilter}%+ OFF
-                  <button onClick={() => setDiscountFilter('all')}>✕</button>
+                  <button onClick={() => handleDiscountSelect('all')}>✕</button>
                 </span>
               )}
               {(priceFilter !== 'all' || maxPrice < 10000) && (

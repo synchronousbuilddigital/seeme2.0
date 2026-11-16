@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { LOOKS_DATA } from '../data/tryTheLookData'
 import { cachedFetch } from '../utils/cachedFetch'
 import { useCart } from '../context/CartContext'
@@ -7,7 +8,7 @@ import { API_ENDPOINTS } from '../config/api'
 import { belongsToAudience, interleaveAudiences } from '../utils/categoryHelper'
 import './TryTheLook.css'
 
-const AUTOPLAY_DURATION = 5000 // 5 seconds per look
+const AUTOPLAY_DURATION = 4500 // smooth continuous autoplay
 const TRANSITION_DURATION = 1000 // 1s coordinated motion
 
 // Helper to convert backend Cloudinary product URLs into transparent cutout model images
@@ -35,7 +36,6 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [isAutoplay, setIsAutoplay] = useState(true)
-  const [isHovered, setIsHovered] = useState(false)
   const [selectedSize, setSelectedSize] = useState('M')
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [addedToCart, setAddedToCart] = useState(false)
@@ -261,7 +261,7 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
 
   // Autoplay progression timer — pure single timeout per look, no 20/sec re-renders!
   useEffect(() => {
-    if (!isAutoplay || isHovered) {
+    if (!isAutoplay) {
       if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current)
       return
     }
@@ -273,7 +273,7 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
     return () => {
       if (autoplayTimerRef.current) clearTimeout(autoplayTimerRef.current)
     }
-  }, [isAutoplay, isHovered, activeIndex, handleNext])
+  }, [isAutoplay, activeIndex, handleNext])
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -384,8 +384,6 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
       className="try-the-look-section"
       aria-label="Try the Look Interactive Fashion Lineup"
       ref={sectionRef}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <div className="try-the-look-container">
         <div className="try-the-look-grid">
@@ -426,10 +424,9 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                       title={!isActive ? `Switch to ${look.name}` : undefined}
                     >
                       <div className="model-img-wrapper">
-                        <img
-                          src={look.modelImage}
+                        <motion.img src={look.modelImage}
                           alt={isActive ? look.name : ''}
-                          className="lineup-model-img"
+                          className="lineup-model-img" animate={{ scale: isActive ? 1 : 0.965, opacity: isActive ? 1 : 0.88 }} transition={{ type: 'spring', stiffness: 85, damping: 20, mass: 0.85 }}
                           loading={offset <= 2 ? 'eager' : 'lazy'}
                           decoding="async"
                           onError={(e) => {
@@ -487,7 +484,7 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                   {looks.map((look, idx) => {
                     const isActive = idx === activeIndex
                     const isPassed = idx < activeIndex
-                    const isPaused = !isAutoplay || isHovered
+                    const isPaused = !isAutoplay
                     return (
                       <button
                         key={look.id || idx}
@@ -536,10 +533,14 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                 {/* Hero Media Preview & Gallery Strip */}
                 <div className="single-look-media-card">
                   <div className="single-look-image-container">
-                    <img
+                    <motion.img
+                      key={`${activeLook?.id || activeIndex}-${selectedImageIndex}`}
                       src={currentDisplayImage}
                       alt={activeLook?.fullName || activeLook?.name}
                       className="single-look-hero-img"
+                      initial={{ opacity: 0, scale: 0.97 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                       loading="lazy"
                     />
                     <div className="single-look-ensemble-badge">

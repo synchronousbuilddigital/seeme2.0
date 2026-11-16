@@ -777,3 +777,27 @@
     min-height: 112px;
   }
 }
+/* Coordinated filter transition */
+.mockup-results-stage { width: 100%; transform-origin: 50% 0; }
+.mockup-results-stage .bento-tall-col,
+.mockup-results-stage .bento-horizontal-card,
+.mockup-results-stage .bento-compact-card {
+  animation: category-card-arrive .55s cubic-bezier(.22, 1, .36, 1) both;
+  will-change: transform, opacity;
+}
+.mockup-results-stage .bento-middle-col .bento-horizontal-card:nth-child(1) { animation-delay: .055s; }
+.mockup-results-stage .bento-middle-col .bento-horizontal-card:nth-child(2) { animation-delay: .11s; }
+.mockup-results-stage .bento-right-col .bento-compact-card:nth-child(1) { animation-delay: .165s; }
+.mockup-results-stage .bento-right-col .bento-compact-card:nth-child(2) { animation-delay: .22s; }
+.mockup-results-stage .mockup-extra-grid .bento-compact-card:nth-child(1) { animation-delay: .275s; }
+.mockup-results-stage .mockup-extra-grid .bento-compact-card:nth-child(2) { animation-delay: .33s; }
+.mockup-results-stage .mockup-extra-grid .bento-compact-card:nth-child(n+3) { animation-delay: .385s; }
+@keyframes category-card-arrive {
+  from { opacity: 0; transform: translateY(26px) scale(.975); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mockup-results-stage .bento-tall-col,
+  .mockup-results-stage .bento-horizontal-card,
+  .mockup-results-stage .bento-compact-card { animation: none !important; }
+}
