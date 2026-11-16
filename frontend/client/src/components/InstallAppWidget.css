@@ -319,3 +319,16 @@
   }
 }
 
+
+/* Keep mobile install control clear of card CTAs */
+@media (max-width: 768px) {
+  .install-app-floating-wrap {
+    left: 12px;
+    right: auto;
+  }
+
+  .install-side-popover {
+    left: 0;
+    right: auto;
+  }
+}

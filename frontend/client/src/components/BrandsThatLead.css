@@ -1217,3 +1217,147 @@
   .brands-bento-grid.count-4 .bento-slot-1 .bento-card-content-left,
   .brands-bento-grid.count-4 .bento-slot-4 .bento-card-content-left { height: 100px !important; min-height: 100px !important; flex-basis: 100px !important; padding: .65rem !important; }
 }
+/* Mobile brand card overflow repair */
+@media (max-width: 768px) {
+  .brands-bento-grid .bento-card-content-left,
+  .brands-bento-grid .bento-hangup-content,
+  .brands-bento-grid.count-4 .bento-slot-1 .bento-card-content-left,
+  .brands-bento-grid.count-4 .bento-slot-2 .bento-card-content-left,
+  .brands-bento-grid.count-4 .bento-slot-3 .bento-card-content-left,
+  .brands-bento-grid.count-4 .bento-slot-4 .bento-card-content-left {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    justify-content: stretch !important;
+    gap: .45rem !important;
+    overflow: hidden !important;
+  }
+
+  .brands-bento-grid .bento-card-texts,
+  .brands-bento-grid.count-4 .bento-card .bento-card-texts {
+    width: auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .brands-bento-grid .bento-btn-wrap,
+  .brands-bento-grid.count-4 .bento-card .bento-btn-wrap {
+    width: auto !important;
+    min-width: 2.25rem !important;
+    margin: 0 !important;
+    align-self: center !important;
+    justify-self: end !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  .brands-bento-grid .bento-pill-btn,
+  .brands-bento-grid.count-4 .bento-card .bento-pill-btn {
+    width: 2.25rem !important;
+    min-width: 2.25rem !important;
+    height: 2.25rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 50% !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+    letter-spacing: 0 !important;
+    color: transparent !important;
+    display: grid !important;
+    place-items: center !important;
+    overflow: hidden !important;
+  }
+
+  .brands-bento-grid .bento-pill-btn::after,
+  .brands-bento-grid.count-4 .bento-card .bento-pill-btn::after {
+    content: '↗' !important;
+    color: #fff !important;
+    font-family: Arial, sans-serif !important;
+    font-size: .9rem !important;
+    line-height: 1 !important;
+  }
+
+  .brands-bento-grid .bento-brand-name,
+  .brands-bento-grid.count-4 .bento-card .bento-brand-name {
+    max-width: 100% !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .brands-bento-grid .bento-brand-tagline,
+  .brands-bento-grid.count-4 .bento-slot-1 .bento-brand-tagline,
+  .brands-bento-grid.count-4 .bento-slot-2 .bento-brand-tagline,
+  .brands-bento-grid.count-4 .bento-slot-3 .bento-brand-tagline,
+  .brands-bento-grid.count-4 .bento-slot-4 .bento-brand-tagline {
+    display: none !important;
+  }
+
+  .brands-bento-grid .bento-brand-badge,
+  .brands-bento-grid.count-4 .bento-card .bento-brand-badge {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+}
+/* Geometrically centered mobile CTA arrow */
+@media (max-width: 768px) {
+  .brands-bento-grid .bento-pill-btn,
+  .brands-bento-grid.count-4 .bento-card .bento-pill-btn {
+    position: relative !important;
+  }
+
+  .brands-bento-grid .bento-pill-btn::before,
+  .brands-bento-grid.count-4 .bento-card .bento-pill-btn::before {
+    content: '' !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    width: 10px !important;
+    height: 2px !important;
+    border: 0 !important;
+    border-radius: 2px !important;
+    background: #fff !important;
+    transform: translate(-50%, -50%) rotate(-45deg) !important;
+    transform-origin: center !important;
+  }
+
+  .brands-bento-grid .bento-pill-btn::after,
+  .brands-bento-grid.count-4 .bento-card .bento-pill-btn::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    width: 6px !important;
+    height: 6px !important;
+    border-top: 2px solid #fff !important;
+    border-right: 2px solid #fff !important;
+    background: transparent !important;
+    transform: translate(-1px, -6px) !important;
+  }
+}
+/* Final uncropped SVG CTA arrow */
+@media (max-width: 768px) {
+  .brands-bento-grid .bento-pill-btn::before,
+  .brands-bento-grid.count-4 .bento-card .bento-pill-btn::before {
+    display: none !important;
+  }
+
+  .brands-bento-grid .bento-pill-btn::after,
+  .brands-bento-grid.count-4 .bento-card .bento-pill-btn::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    width: 14px !important;
+    height: 14px !important;
+    border: 0 !important;
+    background-color: transparent !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17L17 7'/%3E%3Cpath d='M8 7h9v9'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
