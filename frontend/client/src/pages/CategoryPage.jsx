@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useMemo } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
 import { getImageUrl, getOptimizedImageUrl } from '../utils/imageHelper'
@@ -14,6 +14,7 @@ import './CategoryPage.css'
 const CategoryPage = () => {
   const { categoryName } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { addToCart, buyNow, toggleWishlist, isInWishlist } = useContext(CartContext)
 
   const [products, setProducts] = useState([])
@@ -158,27 +159,25 @@ const CategoryPage = () => {
     }
 
     if (priceFilter !== 'all') {
-      result = result.filter(p => {
-        const price = p.price || 0
+      result = result.filter(product => {
+        const price = Number(String(product.price ?? 0).replace(/[^0-9.]/g, '')) || 0
         switch (priceFilter) {
-          case 'under-5000':
-            return price < 5000
-          case '5000-15000':
-            return price >= 5000 && price <= 15000
-          case '15000-30000':
-            return price >= 15000 && price <= 30000
-          case 'above-30000':
-            return price > 30000
-          default:
-            return true
+          case 'under-1000': return price < 1000
+          case '1000-2000': return price >= 1000 && price < 2000
+          case '2000-3000': return price >= 2000 && price < 3000
+          case 'above-3000': return price >= 3000
+          default: return true
         }
       })
     }
 
     if (selectedSizes.length > 0) {
-      result = result.filter(p => {
-        const pSizes = p.sizes || ['S', 'M', 'L', 'XL']
-        return selectedSizes.some(sz => pSizes.includes(sz))
+      result = result.filter(product => {
+        const productSizes = getSortedSizesForProduct(product).map(size => String(size).trim().toUpperCase())
+        return selectedSizes.some(size => {
+          const normalizedSize = String(size).trim().toUpperCase()
+          return productSizes.includes(normalizedSize) && isSizeInStock(normalizedSize, product)
+        })
       })
     }
 
@@ -200,7 +199,7 @@ const CategoryPage = () => {
     }
 
     return result
-  }, [products, searchQuery, priceFilter, selectedSizes, sortBy])
+  }, [products, searchQuery, priceFilter, selectedSizes, sortBy, location.search])
 
   useEffect(() => {
     if (filteredProducts.length > 0) {
@@ -240,7 +239,7 @@ const CategoryPage = () => {
     setTimeout(() => setAddedToast(false), 2500)
   }
 
-  const hasActiveFilters = searchQuery !== '' || priceFilter !== 'all' || selectedSizes.length > 0
+  const hasActiveFilters = searchQuery.trim() !== '' || priceFilter !== 'all' || selectedSizes.length > 0 || sortBy !== 'featured'
 
   return (
     <div className="unique-category-page">
@@ -343,10 +342,10 @@ const CategoryPage = () => {
               <div className="luxury-select-wrapper">
                 <select value={priceFilter} onChange={(e) => setPriceFilter(e.target.value)}>
                   <option value="all">Price: All Ranges</option>
-                  <option value="under-5000">Under ₹5,000</option>
-                  <option value="5000-15000">₹5,000 - ₹15,000</option>
-                  <option value="15000-30000">₹15,000 - ₹30,000</option>
-                  <option value="above-30000">Above ₹30,000</option>
+                  <option value="under-1000">Under ₹1,000</option>
+                  <option value="1000-2000">₹1,000 - ₹1,999</option>
+                  <option value="2000-3000">₹2,000 - ₹2,999</option>
+                  <option value="above-3000">₹3,000 and above</option>
                 </select>
               </div>
 
@@ -427,10 +426,10 @@ const CategoryPage = () => {
                   <label>Price Range</label>
                   <select value={priceFilter} onChange={(e) => setPriceFilter(e.target.value)}>
                     <option value="all">All Prices</option>
-                    <option value="under-5000">Under ₹5,000</option>
-                    <option value="5000-15000">₹5,000 - ₹15,000</option>
-                    <option value="15000-30000">₹15,000 - ₹30,000</option>
-                    <option value="above-30000">Above ₹30,000</option>
+                    <option value="under-1000">Under ₹1,000</option>
+                    <option value="1000-2000">₹1,000 - ₹1,999</option>
+                    <option value="2000-3000">₹2,000 - ₹2,999</option>
+                    <option value="above-3000">₹3,000 and above</option>
                   </select>
                 </div>
 
