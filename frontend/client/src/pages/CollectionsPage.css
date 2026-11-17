@@ -2201,3 +2201,22 @@
     transform: scale(1);
   }
 }
+/* Keep Deals cards visually consistent with the Shop grid. */
+@media (min-width: 1025px) {
+  .collections-page .collections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+.collections-page .collection-product-card .product-image {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+}
+
+.collections-page .collection-product-card:hover .product-image {
+  transform: scale(1.025) !important;
+}

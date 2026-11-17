@@ -626,3 +626,24 @@
     justify-content: center;
   }
 }
+/* Compact footer proportions */
+.footer-editorial { padding: 64px 0 36px; }
+.footer-bg-text { font-size: 18vw; }
+.footer-main-grid { gap: clamp(40px, 5vw, 64px); margin-bottom: 48px; }
+.footer-logo-premium { margin-bottom: 20px; }
+.brand-statement { margin-bottom: 24px; line-height: 1.65; }
+.column-title { margin-bottom: 20px; padding-bottom: 9px; }
+.column-links { gap: 11px; }
+.footer-bottom-bar { padding-top: 26px; }
+
+@media (max-width: 768px) {
+  .footer-editorial { padding: 40px 0 24px; }
+  .footer-main-grid { gap: 24px; margin-bottom: 28px; }
+  .footer-brand-column { padding-bottom: 18px; }
+  .footer-logo-premium { margin-bottom: 12px; }
+  .brand-statement { margin-bottom: 18px; line-height: 1.55; }
+  .column-title { margin-bottom: 12px; padding-bottom: 7px; }
+  .column-links { gap: 7px; }
+  .column-links button { padding: 2px 0; }
+  .footer-bottom-bar { padding-top: 18px; gap: 10px; }
+}

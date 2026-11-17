@@ -1423,3 +1423,64 @@
     font-size: 0.68rem !important;
   }
 }
+/* Catalog grid: show the complete product photograph without cropping */
+.card-media-box { padding: 12px; box-sizing: border-box; }
+.card-img,
+.card-img.primary,
+.card-img.secondary {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  object-fit: contain;
+  object-position: center center;
+}
+.unique-product-card:hover .card-img.primary,
+.unique-product-card:hover .card-img.secondary { transform: scale(1.02); }
+/* Final catalog image inset: visibly contain the full photograph inside the card */
+.card-media-box {
+  padding: 0 !important;
+  background: #f6f1e9 !important;
+}
+.card-img.primary {
+  width: 90% !important;
+  height: 90% !important;
+  max-width: 90% !important;
+  max-height: 90% !important;
+  margin: auto !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+.card-img.secondary {
+  top: 5% !important;
+  left: 5% !important;
+  width: 90% !important;
+  height: 90% !important;
+  max-width: 90% !important;
+  max-height: 90% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  transform: none !important;
+}
+.unique-product-card:hover .card-img.primary,
+.unique-product-card:hover .card-img.secondary {
+  transform: none !important;
+}
+/* Slightly larger catalog product presentation */
+.card-img.primary {
+  width: 94% !important;
+  height: 94% !important;
+  max-width: 94% !important;
+  max-height: 94% !important;
+}
+.card-img.secondary {
+  top: 3% !important;
+  left: 3% !important;
+  width: 94% !important;
+  height: 94% !important;
+  max-width: 94% !important;
+  max-height: 94% !important;
+}

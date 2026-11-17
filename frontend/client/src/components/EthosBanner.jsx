@@ -18,7 +18,7 @@ const EthosBanner = () => {
 
           {/* Main Italicized Ethos Quote matching user screenshot */}
           <blockquote className="ethos-quote-text">
-            Luxury is never in the speed of the machine, but in the patience of the hand that coaxes threads into poetry.
+            Beautiful clothing takes time, care, and skilled hands.
           </blockquote>
 
           {/* Gold Accent Divider Line */}
@@ -26,7 +26,7 @@ const EthosBanner = () => {
 
           {/* Attribution */}
           <div className="ethos-attribution">
-            — THE SEEMEE ETHOS
+            — THE SEE MEE PROMISE
           </div>
         </motion.div>
       </div>

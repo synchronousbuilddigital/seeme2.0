@@ -505,3 +505,35 @@
   }
 }
 
+
+/* Compact Latest Trends presentation */
+.homepage-main .latest-trends-section {
+  padding: 2rem clamp(1.25rem, 4vw, 3.75rem) 1.75rem !important;
+}
+.latest-trends-container { max-width: 1180px; gap: clamp(1.5rem, 3vw, 2.75rem); }
+.trends-top-controls-row { margin-bottom: 1rem; }
+.trends-giant-heading { font-size: clamp(3.1rem, 5vw, 4.8rem); margin-bottom: 1.5rem; line-height: .9; }
+.trends-discover-btn { padding: 12px 28px; }
+.trends-top-drag-hint { margin-bottom: 10px; }
+.stacked-cards-wrapper { max-width: 370px; height: 430px; }
+.stacked-card-item { width: 320px; height: 410px; margin-left: -160px; }
+.card-hover-overlay { padding: 18px 16px; }
+.trends-deck-controls { margin-top: 10px; }
+
+@media (max-width: 992px) {
+  .homepage-main .latest-trends-section { padding-block: 2rem !important; }
+  .latest-trends-container { gap: 1rem; }
+  .trends-giant-heading { font-size: clamp(2.8rem, 8vw, 4rem); }
+  .stacked-cards-wrapper { height: 410px; }
+  .stacked-card-item { width: 300px; height: 390px; margin-left: -150px; }
+}
+
+@media (max-width: 576px) {
+  .homepage-main .latest-trends-section { padding: 1.5rem .85rem !important; }
+  .trends-top-controls-row { margin-bottom: .65rem; }
+  .trends-giant-heading { font-size: clamp(2.45rem, 11vw, 3.25rem); }
+  .stacked-cards-wrapper { height: 365px; }
+  .stacked-card-item { width: min(76vw, 270px); height: 345px; margin-left: max(-38vw, -135px); }
+  .trends-deck-controls { margin-top: 8px; }
+  .trends-discover-btn.mobile-only { margin-top: 12px; }
+}

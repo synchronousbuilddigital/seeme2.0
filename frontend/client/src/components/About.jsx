@@ -51,75 +51,30 @@ const About = () => {
           transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
         >
           <div className="content-header">
-            <span className="editorial-label">See Mee Heritage</span>
-            <h2 className="editorial-main-title">
-              Where Heritage <br />
-              <span className="accent-italic">Meets Modernity</span>
-            </h2>
+            <span className="editorial-label">About See Mee</span>
+            <h2 className="editorial-main-title">Tradition, <span className="accent-italic">made for today.</span></h2>
           </div>
 
           <div className="editorial-narrative">
             <p>
-              At See Mee, we celebrate the artistry of Indian ethnic fashion. Every stitch tells a story —
-              of skilled artisans preserving techniques passed down through generations.
-            </p>
-            <p>
-              Crafted for the woman who wears her heritage with pride, our collections
-              balance royal grandeur with contemporary ease.
+              We make Indian clothing that feels comfortable, modern, and easy to wear.
+              Each piece is thoughtfully made for everyday life and special moments.
             </p>
           </div>
 
-          <div className="editorial-values-row">
-            {[
-              { title: "Curated Quality", desc: "Handpicked fabrics" },
-              { title: "Artisan Heritage", desc: "Generations of craft" },
-              { title: "Crafted with Soul", desc: "A labour of love" }
-            ].map((item, i) => (
-              <div key={i} className="value-item">
-                <span className="value-title">{item.title}</span>
-                <span className="value-desc">{item.desc}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="editorial-footer">
-            <blockquote className="footer-quote">
-              "Every stitch tells a story of heritage and soul."
-            </blockquote>
-
-            <motion.button
-              className="split-cta-btn"
-              onClick={() => navigate('/magazine')}
-              whileHover={{ x: 10 }}
-            >
-              Explore Our Magazine
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </motion.button>
-          </div>
+          <motion.button
+            className="split-cta-btn"
+            onClick={() => navigate('/about')}
+            whileHover={{ x: 6 }}
+          >
+            Read Our Story
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </motion.button>
         </motion.div>
       </div>
 
-      {/* Infinite Luxury Scrolling Marquee */}
-      <div className="luxury-about-marquee">
-        <div className="marquee-content">
-          {[1, 2, 3].map((loopIdx) => (
-            <div key={loopIdx} className="marquee-track" aria-hidden={loopIdx > 1}>
-              <span>INTRICATELY CRAFTED</span>
-              <span className="marquee-bullet">•</span>
-              <span>ARTISAN WEAVES</span>
-              <span className="marquee-bullet">•</span>
-              <span>ETHICALLY TAILORED</span>
-              <span className="marquee-bullet">•</span>
-              <span>CURATED LUXURY</span>
-              <span className="marquee-bullet">•</span>
-              <span>TRADITIONAL HERITAGE</span>
-              <span className="marquee-bullet">•</span>
-            </div>
-          ))}
-        </div>
-      </div>
     </section>
   )
 }

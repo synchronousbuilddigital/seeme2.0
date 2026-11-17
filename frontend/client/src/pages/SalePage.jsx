@@ -629,7 +629,8 @@ const SalePage = () => {
               {filteredProducts.map((product, index) => {
                 const mainImg = getOptimizedImageUrl(
                   product.images?.[0] || product.image || '/images/categories_straight.jpg',
-                  { width: 600, quality: 85 }
+                  'default',
+                  { width: 800, quality: 'auto:good', crop: 'limit' }
                 )
                 const price = Number(product.price || 0)
                 const mrp = Number(product.mrp || product.discountPrice || 0)

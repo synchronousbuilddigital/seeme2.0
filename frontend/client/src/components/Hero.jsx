@@ -444,11 +444,11 @@ const Hero = ({ activeAudience = 'all' }) => {
         ])
 
         const EDITORIAL_DESCRIPTIONS = [
-          'Tailored for the modern ensemble, this collection merges casual ease with luxury aesthetics, showcasing handloom cotton and minimal gold detailing for a timeless elegance.',
-          'Crafted with ancestral wisdom, our luxury designs tell stories of slow fashion, using pure silk, tilla-gold embroidery and regal velvet that celebrate royal heritage.',
-          'Celebrate your grand milestones with our signature shararas, suits, and jackets, embellished with intricate hand embroidery.',
-          'Every thread holds a centuries-old story of craftsmanship, intricately interlaced with pure gold zari and raw mulberry silk.',
-          'Designed to drape like liquid gold, this collection features deep gemstone colors paired with traditional dabka hand-embroidery.'
+          'Comfortable styles made with quality cotton and subtle gold details.',
+          'Classic designs made with silk, velvet, and detailed embroidery.',
+          'Shararas, suits, and jackets made for celebrations.',
+          'Traditional weaving made with zari and soft silk.',
+          'Rich colours finished with traditional hand embroidery.'
         ]
 
         const backendSlides = data && data.success && Array.isArray(data.data)
@@ -749,7 +749,7 @@ const Hero = ({ activeAudience = 'all' }) => {
                     <path d="M20 20C15 13 6 15 6 21C6 27 15 23 20 20Z" stroke="#b98a45" strokeWidth="1.8" />
                     <path d="M20 20C25 13 34 15 34 21C34 27 25 23 20 20Z" stroke="#b98a45" strokeWidth="1.8" />
                   </svg>
-                  <span>PREMIUM FABRICS</span>
+                  <span>QUALITY FABRICS</span>
                 </div>
 
                 <div className="pillar-vertical-divider" />
@@ -762,7 +762,7 @@ const Hero = ({ activeAudience = 'all' }) => {
                     <circle cx="11" cy="20" r="2.5" stroke="#b98a45" strokeWidth="1.5" />
                     <circle cx="29" cy="20" r="2.5" stroke="#b98a45" strokeWidth="1.5" />
                   </svg>
-                  <span>EXQUISITE EMBROIDERY</span>
+                  <span>FINE EMBROIDERY</span>
                 </div>
 
                 <div className="pillar-vertical-divider" />
@@ -773,7 +773,7 @@ const Hero = ({ activeAudience = 'all' }) => {
                     <path d="M12 14H28" stroke="#b98a45" strokeWidth="1.5" />
                     <path d="M16 14L20 34L24 14" stroke="#b98a45" strokeWidth="1.5" />
                   </svg>
-                  <span>FESTIVE STYLES</span>
+                  <span>FESTIVE WEAR</span>
                 </div>
               </div>
 
@@ -785,7 +785,7 @@ const Hero = ({ activeAudience = 'all' }) => {
                   whileHover={{ scale: 1.04, boxShadow: '0 8px 25px rgba(142, 39, 68, 0.35)' }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span>View Collection</span>
+                  <span>Shop Collection</span>
                   <svg width="18" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M2 6h20M16 1l5 5-5 5" />
                   </svg>

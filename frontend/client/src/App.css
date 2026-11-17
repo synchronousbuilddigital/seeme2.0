@@ -62,3 +62,29 @@
     transform: translate(20px, -20px) scale(1.1);
   }
 }
+/* Homepage-wide vertical rhythm: prevents adjacent sections from doubling whitespace. */
+.homepage-sections-container > div {
+  margin: 0 !important;
+}
+
+.homepage-main .brands-lead-section { padding-block: clamp(2.75rem, 4.5vw, 4rem) !important; }
+.homepage-main .new-arrivals-premium.small-size-section { padding-block: clamp(1.75rem, 3vw, 2.5rem) !important; }
+.homepage-main .homepage-shop-section { padding-block: clamp(2.5rem, 4vw, 3.5rem) !important; }
+.homepage-main .catalog-showcase-section { padding-block: clamp(3rem, 4.5vw, 4rem) !important; }
+.homepage-main .categories-runway-section { padding-block: clamp(3rem, 4.5vw, 4rem) !important; }
+.homepage-main .latest-trends-section { padding-top: clamp(3rem, 4.5vw, 4rem) !important; padding-bottom: clamp(2.5rem, 4vw, 3.5rem) !important; }
+.homepage-main .try-the-look-section { padding-block: clamp(1.25rem, 2.2vw, 2rem) !important; }
+.homepage-main .seemee-ethos-banner { padding-block: clamp(3.5rem, 5vw, 4.5rem) !important; }
+.homepage-main .about-editorial-split { padding-block: clamp(1.75rem, 3vw, 2.5rem) !important; }
+
+@media (max-width: 768px) {
+  .homepage-main .brands-lead-section { padding-block: 2.25rem !important; }
+  .homepage-main .new-arrivals-premium.small-size-section { padding-block: 1.5rem !important; }
+  .homepage-main .homepage-shop-section { padding-block: 2rem !important; }
+  .homepage-main .catalog-showcase-section { padding-block: 2.25rem !important; }
+  .homepage-main .categories-runway-section { padding-block: 2.25rem !important; }
+  .homepage-main .latest-trends-section { padding-top: 2.25rem !important; padding-bottom: 2rem !important; }
+  .homepage-main .try-the-look-section { padding-block: 1rem !important; }
+  .homepage-main .seemee-ethos-banner { padding-block: 3rem !important; }
+  .homepage-main .about-editorial-split { padding-block: 1.5rem !important; }
+}

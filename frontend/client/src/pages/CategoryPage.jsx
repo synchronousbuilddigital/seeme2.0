@@ -537,7 +537,7 @@ const CategoryPage = () => {
                         )}
 
                         <img
-                          src={getOptimizedImageUrl(primaryImg, 'product')}
+                          src={getOptimizedImageUrl(primaryImg, 'default', { width: 800, crop: 'limit' })}
                           alt={product.name}
                           className="card-img primary"
                           loading="lazy"
@@ -546,7 +546,7 @@ const CategoryPage = () => {
 
                         {hasSecondary && secondImg && (
                           <img
-                            src={getOptimizedImageUrl(secondImg, 'product')}
+                            src={getOptimizedImageUrl(secondImg, 'default', { width: 800, crop: 'limit' })}
                             alt={`${product.name} preview`}
                             className="card-img secondary"
                             loading="lazy"

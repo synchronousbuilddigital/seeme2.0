@@ -1121,3 +1121,21 @@
     font-size: 1.02rem !important;
   }
 }
+
+/* Deals page: keep the complete product visible inside every card. */
+.sale-page-root .sale-card-media {
+  background: #f7f3ed;
+}
+
+.sale-page-root .sale-product-image,
+.sale-page-root .sale-product-grid > *:nth-child(3n) .sale-product-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center top !important;
+  transform: none !important;
+}
+
+.sale-page-root .sale-product-card:hover .sale-product-image {
+  transform: none !important;
+}

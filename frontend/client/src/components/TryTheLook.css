@@ -1299,3 +1299,24 @@
   .lineup-model-card.lineup-wrap-forward,
   .lineup-model-card.lineup-wrap-backward { animation: none; }
 }
+/* Compact section rhythm after removing the progress strip */
+.try-the-look-section {
+  padding-top: clamp(1rem, 1.8vw, 1.8rem);
+  padding-bottom: clamp(1.25rem, 2.4vw, 2.4rem);
+}
+
+.stage-header { margin-bottom: clamp(.5rem, 1vw, .9rem); }
+.stage-heading { margin-bottom: 0; }
+.lineup-stage-viewport { padding-bottom: .5rem; }
+.lineup-controls-bar { margin-top: .45rem; gap: 0; }
+
+@media (max-width: 1024px) {
+  .try-the-look-grid { gap: 1.5rem; }
+}
+
+@media (max-width: 768px) {
+  .try-the-look-section { padding: .85rem 0 1.25rem; }
+  .try-the-look-grid { gap: .75rem; }
+  .stage-header { margin-bottom: .35rem; }
+  .lineup-controls-bar { margin-top: .25rem; }
+}
