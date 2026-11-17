@@ -171,6 +171,8 @@ const formatButtonText = (text) => {
 const BrandsThatLead = ({ activeAudience = 'all' }) => {
   const [brands, setBrands] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeDeckIndex, setActiveDeckIndex] = useState(0)
+  const [touchStartX, setTouchStartX] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -223,6 +225,28 @@ const BrandsThatLead = ({ activeAudience = 'all' }) => {
   }
 
   const totalCount = displayBrands.length
+
+  useEffect(() => {
+    setActiveDeckIndex(0)
+  }, [activeAudience, totalCount])
+
+  const showNextBrand = () => {
+    setActiveDeckIndex(current => (current + 1) % totalCount)
+  }
+
+  const showPreviousBrand = () => {
+    setActiveDeckIndex(current => (current - 1 + totalCount) % totalCount)
+  }
+
+  const handleDeckTouchEnd = (event) => {
+    if (touchStartX === null) return
+    const distance = event.changedTouches[0].clientX - touchStartX
+    if (Math.abs(distance) > 45) {
+      if (distance < 0) showNextBrand()
+      else showPreviousBrand()
+    }
+    setTouchStartX(null)
+  }
 
   // Determine card role based on count and index
   const getCardRole = (index, total) => {
@@ -278,18 +302,23 @@ const BrandsThatLead = ({ activeAudience = 'all' }) => {
             )}
           </div>
         ) : (
-          <div className={`brands-bento-grid count-${totalCount}`}>
+          <div
+            className={`brands-bento-grid count-${totalCount} mobile-brand-deck`}
+            onTouchStart={(event) => setTouchStartX(event.touches[0].clientX)}
+            onTouchEnd={handleDeckTouchEnd}
+          >
             {displayBrands.map((brand, idx) => {
               const theme = getBrandTheme(brand, idx)
               const role = getCardRole(idx, totalCount)
               const fallbackImg = theme.fallbackImg || '/images/ruby_bridal_sharara.png'
               const isTall = role === 'tall'
               const isWide = role === 'wide'
+              const deckPosition = (idx - activeDeckIndex + totalCount) % totalCount
 
               return (
                 <div
                   key={brand._id || brand.name || idx}
-                  className={`bento-card bento-slot-${idx + 1} ${isTall ? 'bento-role-tall' : isWide ? 'bento-role-wide' : 'bento-role-square'} ${theme.themeClass}`}
+                  className={`bento-card bento-slot-${idx + 1} deck-position-${deckPosition} ${idx === activeDeckIndex ? 'deck-active' : ''} ${isTall ? 'bento-role-tall' : isWide ? 'bento-role-wide' : 'bento-role-square'} ${theme.themeClass}`}
                   style={{ backgroundColor: theme.bgColor }}
                   onClick={() => handleCardClick(brand)}
                 >
@@ -330,6 +359,18 @@ const BrandsThatLead = ({ activeAudience = 'all' }) => {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {!loading && totalCount > 1 && (
+          <div className="mobile-deck-controls" aria-label="Brand deck controls">
+            <button type="button" onClick={showPreviousBrand} aria-label="Previous brand">&larr;</button>
+            <div className="mobile-deck-progress" aria-hidden="true">
+              {displayBrands.map((brand, index) => (
+                <span key={brand._id || brand.name || index} className={index === activeDeckIndex ? 'is-active' : ''} />
+              ))}
+            </div>
+            <button type="button" onClick={showNextBrand} aria-label="Next brand">&rarr;</button>
           </div>
         )}
       </div>
