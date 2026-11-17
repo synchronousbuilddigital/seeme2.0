@@ -715,3 +715,115 @@
   color: #c49a27;
 }
 
+
+/* Sign-in form alignment: keep every control on the same full-width grid. */
+.auth-form-container,
+.auth-form-editorial,
+.input-group-editorial,
+.input-group-editorial > div {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-group-editorial input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.forgot-password-link-container {
+  width: 100%;
+  padding-top: 2px;
+}
+
+.forgot-password-btn {
+  display: inline-flex;
+  padding: 4px 0;
+  text-decoration: none;
+}
+
+@media (max-width: 1024px) {
+  .auth-form-side {
+    padding-inline: 24px !important;
+  }
+
+  .auth-form-container {
+    max-width: 520px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-form-side {
+    padding-inline: 18px !important;
+  }
+
+  .auth-form-editorial {
+    gap: 14px;
+  }
+}
+/* Create-account mode must remain accessible on every viewport height. */
+.auth-form-side.auth-signup-mode {
+  align-items: flex-start;
+  overflow-y: auto;
+  padding-top: clamp(18px, 3vh, 32px);
+  padding-bottom: clamp(28px, 5vh, 56px);
+}
+
+.auth-signup-mode .auth-form-container {
+  margin: auto;
+}
+
+.auth-form-editorial .input-group-editorial,
+.auth-form-editorial .input-group-editorial > div,
+.auth-form-editorial .input-group-editorial input {
+  min-width: 0;
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-height: 900px) and (min-width: 1025px) {
+  .auth-signup-mode .auth-mode-switcher {
+    margin-bottom: 14px;
+  }
+
+  .auth-signup-mode .auth-header-editorial {
+    margin-bottom: 12px;
+  }
+
+  .auth-signup-mode .auth-form-editorial {
+    gap: 9px;
+  }
+
+  .auth-signup-mode .input-group-editorial input {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  .auth-signup-mode .auth-footer-editorial {
+    margin-top: 10px;
+    padding-bottom: 8px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .auth-form-side.auth-signup-mode {
+    align-items: flex-start !important;
+    padding-top: 18px !important;
+    padding-bottom: calc(44px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .auth-signup-mode .auth-form-container {
+    margin: 0 auto !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-signup-mode .auth-mode-switcher {
+    margin-bottom: 18px;
+  }
+
+  .auth-signup-mode .auth-header-editorial {
+    margin-bottom: 18px;
+  }
+}

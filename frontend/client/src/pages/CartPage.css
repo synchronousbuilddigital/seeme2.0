@@ -1199,3 +1199,98 @@
   background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
 }
 
+
+/* Compact, responsive empty-cart layout. */
+.cart-page-wrapper.empty-state {
+  display: block;
+  min-height: 0;
+  max-width: none;
+  width: 100%;
+  padding: clamp(24px, 4vw, 48px) 20px clamp(40px, 6vw, 72px);
+  box-sizing: border-box;
+}
+
+.cart-page-wrapper.empty-state .cart-editorial-back {
+  display: none;
+}
+
+.cart-page-wrapper.empty-state .empty-cart-hero-box {
+  width: min(100%, 680px);
+  max-width: 680px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: clamp(26px, 4vw, 38px) clamp(20px, 5vw, 48px);
+  border-radius: 20px;
+}
+
+.cart-page-wrapper.empty-state .empty-bag-icon-badge {
+  width: 68px;
+  height: 68px;
+  margin-bottom: 14px;
+}
+
+.cart-page-wrapper.empty-state .empty-bag-icon-badge svg {
+  width: 36px;
+  height: 36px;
+}
+
+.cart-page-wrapper.empty-state .empty-cart-title {
+  font-size: clamp(1.75rem, 3vw, 2.15rem);
+  margin-bottom: 10px;
+}
+
+.cart-page-wrapper.empty-state .empty-cart-subtitle {
+  max-width: 540px;
+  margin: 0 auto 22px;
+  line-height: 1.5;
+}
+
+.cart-page-wrapper.empty-state .empty-cart-actions {
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.cart-page-wrapper.empty-state .empty-cart-quick-links {
+  gap: 10px;
+  padding-top: 16px;
+}
+
+@media (max-width: 600px) {
+  .cart-page-wrapper.empty-state {
+    padding: 18px 14px 40px;
+  }
+
+  .cart-page-wrapper.empty-state .empty-cart-hero-box {
+    padding: 24px 18px;
+    border-radius: 16px;
+  }
+
+  .cart-page-wrapper.empty-state .empty-cart-actions {
+    flex-direction: column;
+  }
+
+  .cart-page-wrapper.empty-state .empty-cart-actions button {
+    width: 100%;
+  }
+
+  .cart-page-wrapper.empty-state .empty-cart-quick-links,
+  .cart-page-wrapper.empty-state .quick-chips {
+    justify-content: center;
+  }
+}
+/* Fixed navbar clearance for the empty-cart page. */
+.cart-page-wrapper.empty-state {
+  padding-top: calc(105px + clamp(24px, 4vw, 48px));
+}
+
+@media (max-width: 968px) {
+  .cart-page-wrapper.empty-state {
+    padding-top: 92px;
+  }
+}
+
+@media (max-width: 600px) {
+  .cart-page-wrapper.empty-state {
+    padding-top: 82px;
+  }
+}
