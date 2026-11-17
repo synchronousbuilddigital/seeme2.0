@@ -181,6 +181,7 @@ const BrandsThatLead = ({ activeAudience = 'all' }) => {
     const fetchBrands = async () => {
       try {
         setLoading(true)
+        setActiveDeckIndex(0)
         const targetUrl = `${API_ENDPOINTS.BRANDS}?gender=${encodeURIComponent(activeAudience)}`
         const res = await cachedFetch(targetUrl, { ttlMs: 30000 })
         
@@ -226,9 +227,6 @@ const BrandsThatLead = ({ activeAudience = 'all' }) => {
 
   const totalCount = displayBrands.length
 
-  useEffect(() => {
-    setActiveDeckIndex(0)
-  }, [activeAudience, totalCount])
 
   const showNextBrand = () => {
     setActiveDeckIndex(current => (current + 1) % totalCount)
