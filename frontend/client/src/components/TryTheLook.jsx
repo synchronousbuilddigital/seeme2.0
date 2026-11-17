@@ -32,9 +32,10 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
     // Graceful fallback if rendered outside CartProvider
   }
 
-  const [looks, setLooks] = useState(LOOKS_DATA)
+  const [looks, setLooks] = useState(LOOKS_DATA.slice(0, 5))
   const [activeIndex, setActiveIndex] = useState(0)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [moveDirection, setMoveDirection] = useState(null)
   const [isAutoplay, setIsAutoplay] = useState(true)
   const [selectedSize, setSelectedSize] = useState('M')
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
@@ -105,9 +106,14 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
             }
           }
 
-          const targetProducts = audienceMatched
+          // This editorial lineup is women-only. Exclude male and unisex products so
+          // a men’s model cannot reappear when the backend selection refreshes.
+          const womenOnlyProducts = audienceMatched.filter((product) => (
+            belongsToAudience(product, 'women') && !belongsToAudience(product, 'men')
+          ))
+          const targetProducts = womenOnlyProducts
 
-          const dynamicLooks = targetProducts.map((prod, idx) => {
+          let dynamicLooks = targetProducts.slice(0, 5).map((prod, idx) => {
             const prodImages = Array.isArray(prod.images) && prod.images.length > 0
               ? prod.images.filter(Boolean)
               : (prod.image ? [prod.image] : [])
@@ -149,6 +155,12 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
             }
           })
 
+          // Keep five women’s looks visible. Fill any available slots with the
+          // existing curated products, while avoiding duplicate product IDs.
+          const usedProductIds = new Set(dynamicLooks.map((look) => look.productId || look.id))
+          const curatedFillers = LOOKS_DATA.filter((look) => !usedProductIds.has(look.productId || look.id))
+          dynamicLooks = [...dynamicLooks, ...curatedFillers].slice(0, 5)
+
           if (!isCancelled && dynamicLooks.length > 0) {
             setLooks(dynamicLooks)
             setActiveIndex(0)
@@ -156,12 +168,12 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
         } else {
           // If no products marked yet, fallback to curated looks so homepage is never blank
           if (!isCancelled) {
-            setLooks(LOOKS_DATA)
+            setLooks(LOOKS_DATA.slice(0, 5))
           }
         }
       } catch (err) {
         console.error('Error fetching backend products for TryTheLook:', err)
-        if (!isCancelled) setLooks(LOOKS_DATA)
+        if (!isCancelled) setLooks(LOOKS_DATA.slice(0, 5))
       } finally {
         if (!isCancelled) setLoading(false)
       }
@@ -215,9 +227,11 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
   const handleNext = useCallback(() => {
     if (isTransitioning || totalLooks <= 1) return
     setIsTransitioning(true)
+    setMoveDirection('next')
     setActiveIndex((prev) => (prev + 1) % totalLooks)
     setTimeout(() => {
       setIsTransitioning(false)
+      setMoveDirection(null)
     }, 650)
   }, [isTransitioning, totalLooks])
 
@@ -225,9 +239,11 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
   const handlePrev = useCallback(() => {
     if (isTransitioning || totalLooks <= 1) return
     setIsTransitioning(true)
+    setMoveDirection('previous')
     setActiveIndex((prev) => (prev - 1 + totalLooks) % totalLooks)
     setTimeout(() => {
       setIsTransitioning(false)
+      setMoveDirection(null)
     }, 650)
   }, [isTransitioning, totalLooks])
 
@@ -235,9 +251,11 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
   const handleSelectLook = (targetIdx) => {
     if (targetIdx === activeIndex || isTransitioning || targetIdx >= totalLooks) return
     setIsTransitioning(true)
+    setMoveDirection(targetIdx > activeIndex ? 'next' : 'previous')
     setActiveIndex(targetIdx)
     setTimeout(() => {
       setIsTransitioning(false)
+      setMoveDirection(null)
     }, 650)
   }
 
@@ -411,12 +429,15 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                   else if (offset === totalLooks - 2) slotClass = 'lineup-slot-left-2'
 
                   const isActive = offset === 0
+                  const isWrappingForward = moveDirection === 'next' && offset === 2
+                  const isWrappingBackward = moveDirection === 'previous' && offset === totalLooks - 2
+                  const wrapClass = isWrappingForward ? 'lineup-wrap-forward' : (isWrappingBackward ? 'lineup-wrap-backward' : '')
                   const isClickable = offset === 1 || offset === totalLooks - 1
 
                   return (
                     <div
                       key={look.id || idx}
-                      className={`lineup-model-card ${slotClass} ${isClickable ? 'is-clickable' : ''}`}
+                      className={`lineup-model-card ${slotClass} ${wrapClass} ${isClickable ? 'is-clickable' : ''}`}
                       aria-hidden={!isActive}
                       onClick={() => {
                         if (!isActive) handleSelectLook(idx)
@@ -478,47 +499,6 @@ const TryTheLook = ({ activeAudience = 'all' }) => {
                 </button>
               </div>
 
-              {/* Segmented Progress Bar with Active Look Name */}
-              <div className="lineup-progress-cluster">
-                <div className="progress-segments-track" role="tablist" aria-label="Look selector">
-                  {looks.map((look, idx) => {
-                    const isActive = idx === activeIndex
-                    const isPassed = idx < activeIndex
-                    const isPaused = !isAutoplay
-                    return (
-                      <button
-                        key={look.id || idx}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        aria-label={`Jump to look ${idx + 1}: ${look.name}`}
-                        className={`progress-segment-btn ${isActive ? 'active' : ''} ${isPassed ? 'passed' : ''} ${isPaused ? 'paused' : ''}`}
-                        onClick={() => handleSelectLook(idx)}
-                      >
-                        <div className="progress-segment-bar">
-                          <div
-                            className="progress-segment-fill"
-                            key={`fill-${idx}-${isActive}`}
-                          />
-                        </div>
-                        {looks.length <= 10 && (
-                          <span className="progress-segment-number">
-                            {String(idx + 1).padStart(2, '0')}
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                <div className="active-look-title-indicator">
-                  <span className="indicator-counter">
-                    {String(activeIndex + 1).padStart(2, '0')} / {String(totalLooks).padStart(2, '0')}
-                  </span>
-                  <span className="indicator-dash">—</span>
-                  <strong className="indicator-name">{activeLook?.name}</strong>
-                </div>
-              </div>
             </div>
           </div>
 

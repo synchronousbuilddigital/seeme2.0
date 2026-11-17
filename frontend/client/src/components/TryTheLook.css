@@ -1282,3 +1282,20 @@
   .lineup-slot-left-2 { transform: translate3d(-145px,-24px,0) scale(.64); }
   .lineup-slot-right-2 { transform: translate3d(145px,-24px,0) scale(.64); }
 }
+/* Seamless circular lineup: hide the far model while it crosses behind the stage. */
+.lineup-model-card.lineup-wrap-forward,
+.lineup-model-card.lineup-wrap-backward {
+  animation: lineup-wrap-behind .65s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes lineup-wrap-behind {
+  0% { opacity: .48; }
+  22% { opacity: 0; }
+  78% { opacity: 0; }
+  100% { opacity: .48; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lineup-model-card.lineup-wrap-forward,
+  .lineup-model-card.lineup-wrap-backward { animation: none; }
+}
