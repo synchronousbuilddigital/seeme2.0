@@ -20,8 +20,6 @@ const Cart = lazy(() => import('./components/Cart'))
 const Wishlist = lazy(() => import('./components/Wishlist'))
 
 // Homepage sections - loaded immediately for instant 0-delay render
-import CategoriesSlider from './components/CategoriesSlider'
-import LatestTrendsSection from './components/LatestTrendsSection'
 import About from './components/About'
 import ShopSection from './components/ShopSection'
 import FabricSection from './components/FabricSection'
@@ -121,12 +119,6 @@ const HomePage = ({ onCartOpen, onWishlistOpen }) => {
           </LazySection>
           <LazySection minHeight="420px" rootMargin="450px">
             <CatalogSection activeAudience={activeAudience} />
-          </LazySection>
-          <LazySection minHeight="360px" rootMargin="450px">
-            <CategoriesSlider activeAudience={activeAudience} />
-          </LazySection>
-          <LazySection minHeight="400px" rootMargin="450px">
-            <LatestTrendsSection activeAudience={activeAudience} />
           </LazySection>
           <LazySection minHeight="520px" rootMargin="450px">
             <TryTheLook activeAudience={activeAudience} />

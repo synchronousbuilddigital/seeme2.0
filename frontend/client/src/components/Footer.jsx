@@ -92,6 +92,7 @@ const Footer = () => {
               {[
                 { 
                   name: 'Instagram', 
+                  url: 'https://www.instagram.com/seemee.fashions/',
                   svg: (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -102,32 +103,19 @@ const Footer = () => {
                 },
                 { 
                   name: 'Facebook', 
+                  url: 'https://www.facebook.com/people/SeeMee/61594145674784/',
                   svg: (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
-                    </svg>
-                  )
-                },
-                { 
-                  name: 'Pinterest', 
-                  svg: (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 2C6.48 2 2 6.48 2 12c0 4.27 2.68 7.91 6.46 9.32-.09-.79-.17-2 .03-2.87.19-.79 1.22-5.17 1.22-5.17s-.31-.62-.31-1.54c0-1.44.83-2.52 1.88-2.52.88 0 1.31.67 1.31 1.47 0 .89-.57 2.22-.86 3.45-.24 1.03.52 1.87 1.54 1.87 1.85 0 3.27-1.95 3.27-4.77 0-2.49-1.79-4.23-4.34-4.23-2.95 0-4.69 2.22-4.69 4.5 0 .89.34 1.85.77 2.37.08.1.1.17.07.28l-.29 1.18c-.05.18-.16.22-.36.13-1.34-.62-2.18-2.58-2.18-4.15 0-3.38 2.45-6.49 7.08-6.49 3.72 0 6.61 2.65 6.61 6.19 0 3.7-2.33 6.68-5.57 6.68-1.09 0-2.11-.56-2.46-1.23 0 0-.54 2.05-.67 2.56-.24.93-.89 2.09-1.33 2.81C10.03 21.84 11 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"></path>
-                    </svg>
-                  )
-                },
-                { 
-                  name: 'Twitter', 
-                  svg: (
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
                     </svg>
                   )
                 }
               ].map((social) => (
                 <motion.a 
                   key={social.name}
-                  href={`#${social.name.toLowerCase()}`}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="social-icon-btn"
                   whileHover={{ y: -3 }}
                   aria-label={`Follow us on ${social.name}`}
