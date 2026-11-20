@@ -63,22 +63,46 @@
 
 @media (max-width: 1024px) {
   .festive-banner-img {
-    max-height: 320px;
+    max-height: 380px;
     object-position: center 25%;
   }
 }
 
 @media (max-width: 768px) {
+  .festive-slide-frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    width: 100%;
+  }
+
   .festive-banner-img {
-    max-height: 260px;
-    object-position: center 25%;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 240px;
+    max-height: 440px !important;
+    object-fit: contain !important;
+    object-position: center !important;
   }
 }
 
 @media (max-width: 480px) {
+  .festive-slide-frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    width: 100%;
+  }
+
   .festive-banner-img {
-    max-height: 220px;
-    object-position: center 25%;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 260px;
+    max-height: 420px !important;
+    object-fit: contain !important;
+    object-position: center !important;
   }
 }
 
