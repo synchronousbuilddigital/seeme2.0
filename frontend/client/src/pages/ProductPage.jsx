@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useMemo } from 'react'
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CartContext } from '../context/CartContext'
@@ -47,8 +47,59 @@ const ProductPage = () => {
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
 
-  const productColors = (() => {
+  // Sibling color variants found among other products in the store/category
+  const siblingColorVariants = useMemo(() => {
+    if (!product || !Array.isArray(relatedProducts) || relatedProducts.length === 0) return []
+    const norm = (str) => String(str || '').toLowerCase().trim()
+    const cleanBaseName = (name) => {
+      let n = norm(name)
+      n = n.replace(/\s*[-–—|/].*$/, '').replace(/\s*\(.*?\)/g, '').trim()
+      return n
+    }
+    const currentBase = cleanBaseName(product.name)
+    if (!currentBase || currentBase.length < 3) return []
+
+    const siblings = []
+    const curId = String(product._id || product.id || '')
+    relatedProducts.forEach(rel => {
+      if (!rel) return
+      const relId = String(rel._id || rel.id || '')
+      if (relId === curId) return
+      const relBase = cleanBaseName(rel.name)
+      const isBaseMatch = relBase === currentBase || (relBase.length > 3 && (relBase.startsWith(currentBase) || currentBase.startsWith(relBase)))
+      if (isBaseMatch) {
+        const relColor = rel.color || (Array.isArray(rel.colors) && rel.colors[0])
+        if (relColor && typeof relColor === 'string' && relColor.trim() && relColor.toLowerCase() !== 'standard') {
+          const colClean = relColor.trim()
+          if (!siblings.some(s => s.color.toLowerCase() === colClean.toLowerCase())) {
+            siblings.push({
+              color: colClean,
+              product: rel,
+              productId: relId,
+              images: Array.isArray(rel.images) && rel.images.length > 0 ? rel.images : (rel.image ? [rel.image] : [])
+            })
+          }
+        }
+      }
+    })
+    return siblings
+  }, [product, relatedProducts])
+
+  // Aggregate all available colors (from colorImages, colors, color, and sibling products)
+  const productColors = useMemo(() => {
     const list = []
+    // 1. Explicit color-specific images defined on product
+    if (Array.isArray(product?.colorImages) && product.colorImages.length > 0) {
+      product.colorImages.forEach(ci => {
+        if (ci && ci.color && typeof ci.color === 'string' && ci.color.trim()) {
+          const clean = ci.color.trim()
+          if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
+            list.push(clean)
+          }
+        }
+      })
+    }
+    // 2. Regular colors array
     if (Array.isArray(product?.colors) && product.colors.length > 0) {
       product.colors.forEach(c => {
         if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
@@ -59,14 +110,21 @@ const ProductPage = () => {
         }
       })
     }
+    // 3. Single color field
     if (product?.color && typeof product.color === 'string' && product.color.trim() && product.color.trim().toLowerCase() !== 'standard') {
       const clean = product.color.trim()
       if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
-        list.unshift(clean)
+        list.push(clean)
       }
     }
+    // 4. Sibling variant products in store
+    siblingColorVariants.forEach(s => {
+      if (!list.some(x => x.toLowerCase() === s.color.toLowerCase())) {
+        list.push(s.color)
+      }
+    })
     return list
-  })()
+  }, [product, siblingColorVariants])
 
   const [selectedColor, setSelectedColor] = useState(() => {
     if (passedProduct) {
@@ -81,6 +139,82 @@ const ProductPage = () => {
     return ''
   })
 
+  // Determine active images according to selected colour
+  const currentGalleryImages = useMemo(() => {
+    if (!product) return []
+    const norm = (s) => String(s || '').toLowerCase().trim()
+    const activeCol = norm(selectedColor || (productColors.length > 0 ? productColors[0] : ''))
+
+    // 1. Check explicit colorImages assigned in admin
+    if (activeCol && Array.isArray(product.colorImages) && product.colorImages.length > 0) {
+      const match = product.colorImages.find(ci => norm(ci.color) === activeCol)
+      if (match && Array.isArray(match.images) && match.images.length > 0) {
+        return match.images.filter(Boolean)
+      }
+    }
+
+    // 2. Intelligent keyword / filename matching in product.images
+    if (activeCol && Array.isArray(product.images) && product.images.length > 0) {
+      const matchedByUrl = product.images.filter(img => {
+        const urlStr = norm(typeof img === 'string' ? img : img?.url)
+        return urlStr.includes(activeCol) || urlStr.includes(`_${activeCol}`) || urlStr.includes(`-${activeCol}`)
+      })
+      if (matchedByUrl.length > 0) {
+        return matchedByUrl.filter(Boolean)
+      }
+    }
+
+    // 3. Sibling product image match
+    if (activeCol && siblingColorVariants.length > 0) {
+      const sibMatch = siblingColorVariants.find(s => norm(s.color) === activeCol)
+      if (sibMatch && sibMatch.images && sibMatch.images.length > 0) {
+        return sibMatch.images.filter(Boolean)
+      }
+    }
+
+    // 4. Positional fallback: if product has N colors and N images, map 1:1
+    if (activeCol && productColors.length > 1 && Array.isArray(product.images) && product.images.length >= productColors.length) {
+      const colIdx = productColors.findIndex(c => norm(c) === activeCol)
+      if (colIdx >= 0 && colIdx < product.images.length) {
+        const reordered = [product.images[colIdx], ...product.images.filter((_, i) => i !== colIdx)]
+        return reordered.filter(Boolean)
+      }
+    }
+
+    // 5. Fallback to product images or main image
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      return product.images.filter(Boolean)
+    }
+    if (product.image) {
+      return [product.image]
+    }
+    return []
+  }, [product, selectedColor, productColors, siblingColorVariants])
+
+  const handleColorChange = (col) => {
+    if (!col) return
+    const norm = (s) => String(s || '').toLowerCase().trim()
+    const targetCol = norm(col)
+
+    // Check if this color belongs to a sibling product
+    const sibMatch = siblingColorVariants.find(s => norm(s.color) === targetCol)
+    const hasLocalImages = Array.isArray(product?.colorImages) && product.colorImages.some(ci => norm(ci.color) === targetCol && ci.images?.length > 0)
+
+    if (sibMatch && sibMatch.productId && !hasLocalImages) {
+      navigate(`/product/${sibMatch.productId}`, { state: { product: sibMatch.product } })
+      return
+    }
+
+    setSelectedColor(col)
+    setSelectedImage(0)
+
+    // If current selectedSize is out of stock in this newly selected color, switch to first available in-stock size!
+    if (selectedSize && !isSizeInStock(selectedSize, product, col)) {
+      const bestSize = getFirstAvailableSize(product, selectedSize, col)
+      setSelectedSize(bestSize)
+    }
+  }
+
   useEffect(() => {
     if (product) {
       if (productColors.length > 0) {
@@ -89,7 +223,50 @@ const ProductPage = () => {
         setSelectedColor('')
       }
     }
-  }, [product?._id || product?.id, product?.colors, product?.color])
+  }, [product?._id || product?.id, product?.colors, product?.color, product?.colorImages, productColors])
+
+  // Get representative image for color swatch thumbnail
+  const getColorSwatchImage = (col) => {
+    if (!product || !col) return null
+    const norm = (s) => String(s || '').toLowerCase().trim()
+    const targetCol = norm(col)
+
+    // 1. Explicit colorImages in product
+    if (Array.isArray(product.colorImages) && product.colorImages.length > 0) {
+      const match = product.colorImages.find(ci => ci && norm(ci.color) === targetCol)
+      if (match && Array.isArray(match.images) && match.images.length > 0) {
+        return match.images[0]
+      }
+    }
+
+    // 2. Intelligent keyword / filename match in product.images
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      const match = product.images.find(img => {
+        const urlStr = norm(typeof img === 'string' ? img : img?.url)
+        return urlStr.includes(targetCol) || urlStr.includes(`_${targetCol}`) || urlStr.includes(`-${targetCol}`)
+      })
+      if (match) return match
+    }
+
+    // 3. Sibling products match
+    if (siblingColorVariants && siblingColorVariants.length > 0) {
+      const sib = siblingColorVariants.find(s => norm(s.color) === targetCol)
+      if (sib && sib.images && sib.images.length > 0) {
+        return sib.images[0]
+      }
+    }
+
+    // 4. Positional fallback: if product has multiple colors and multiple images
+    if (productColors.length > 1 && Array.isArray(product.images) && product.images.length >= productColors.length) {
+      const colIdx = productColors.findIndex(c => norm(c) === targetCol)
+      if (colIdx >= 0 && colIdx < product.images.length) {
+        return product.images[colIdx]
+      }
+    }
+
+    // 5. Default main image
+    return product.images?.[0] || product.image || null
+  }
 
   const [offersOpen, setOffersOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('description')
@@ -160,11 +337,19 @@ const ProductPage = () => {
 
   const getSelectedSizeStock = () => {
     if (!product) return 0
-    if (product.sizeStock && Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
-      if (!selectedSize) return product.sizeStock.reduce((acc, item) => acc + Number(item.quantity || item.stock || 0), 0)
-      return getSizeStockQty(selectedSize, product)
+    const colorToUse = selectedColor || (productColors.length > 0 ? productColors[0] : '')
+    if (!selectedSize) {
+      if (colorToUse && Array.isArray(product.colorImages)) {
+        const cEntry = product.colorImages.find(ci => ci && ci.color && ci.color.trim().toLowerCase() === colorToUse.toLowerCase())
+        if (cEntry && Array.isArray(cEntry.sizeStock) && cEntry.sizeStock.length > 0) {
+          return cEntry.sizeStock.reduce((acc, item) => acc + Number(item.quantity || 0), 0)
+        }
+      }
+      if (product.sizeStock && Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
+        return product.sizeStock.reduce((acc, item) => acc + Number(item.quantity || item.stock || 0), 0)
+      }
     }
-    return product.stock !== undefined && product.stock !== null ? Number(product.stock) : 10
+    return getSizeStockQty(selectedSize, product, colorToUse)
   }
 
   const currentStock = getSelectedSizeStock()
@@ -280,7 +465,8 @@ const ProductPage = () => {
     const colorToUse = (selectedColor && selectedColor.toLowerCase() !== 'standard')
       ? selectedColor
       : (productColors.length > 0 ? productColors[0] : ((product?.color && product.color.toLowerCase() !== 'standard') ? product.color : ''))
-    addToCart({ ...product, selectedSize, selectedColor: colorToUse, color: colorToUse, quantity }, navigate)
+    const activeColorImg = currentGalleryImages[0] || product.images?.[0] || product.image
+    addToCart({ ...product, image: activeColorImg, selectedSize, selectedColor: colorToUse, color: colorToUse, quantity }, navigate)
     setAddedToast(true)
     setTimeout(() => setAddedToast(false), 2500)
   }
@@ -295,11 +481,12 @@ const ProductPage = () => {
     const inCartQty = getItemQuantity ? getItemQuantity(prodId, sizeToUse) : 0
     const qtyToUse = Math.max(Number(quantity) || 1, inCartQty || 1)
 
+    const activeColorImg = currentGalleryImages[0] || product.images?.[0] || product.image
     if (buyNow) {
-      const res = buyNow({ ...product, selectedSize: sizeToUse, selectedColor: colorToUse, color: colorToUse }, sizeToUse, qtyToUse, navigate)
+      const res = buyNow({ ...product, image: activeColorImg, selectedSize: sizeToUse, selectedColor: colorToUse, color: colorToUse }, sizeToUse, qtyToUse, navigate)
       if (res === false) return
     } else {
-      const res = addToCart({ ...product, selectedSize: sizeToUse, selectedColor: colorToUse, color: colorToUse, quantity: qtyToUse }, navigate)
+      const res = addToCart({ ...product, image: activeColorImg, selectedSize: sizeToUse, selectedColor: colorToUse, color: colorToUse, quantity: qtyToUse }, navigate)
       if (res === false) return
     }
 
@@ -357,7 +544,7 @@ const ProductPage = () => {
   const discountPercent = hasDiscount ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0
   const savingsAmount = hasDiscount ? (originalPrice - currentPrice) : 0
 
-  const mainImageUrl = getImageUrl(product.images?.[selectedImage] || product.image)
+  const mainImageUrl = getImageUrl(currentGalleryImages[selectedImage] || currentGalleryImages[0] || product.images?.[0] || product.image)
 
   const handleApplyPdpCoupon = async (e, codeOverride) => {
     if (e) e.preventDefault()
@@ -459,6 +646,7 @@ const ProductPage = () => {
               )}
 
               <img
+                key={mainImageUrl}
                 src={mainImageUrl}
                 alt={product.name}
                 className="main-product-img"
@@ -477,15 +665,15 @@ const ProductPage = () => {
             </div>
 
             {/* Thumbnail Strip */}
-            {product.images && product.images.length > 1 && (
+            {currentGalleryImages && currentGalleryImages.length > 1 && (
               <div className="product-thumbnails-row">
-                {product.images.map((img, idx) => (
+                {currentGalleryImages.map((img, idx) => (
                   <div
                     key={idx}
                     className={`thumb-chip ${selectedImage === idx ? 'active' : ''}`}
                     onClick={() => setSelectedImage(idx)}
                   >
-                    <img src={getImageUrl(img)} alt={`View ${idx + 1}`} />
+                    <img src={getImageUrl(img)} alt={`${product.name} view ${idx + 1}`} />
                   </div>
                 ))}
               </div>
@@ -564,34 +752,40 @@ const ProductPage = () => {
             {/* Colour Selector */}
             {productColors.length > 0 && (
               <div className="product-option-section pdp-color-section">
-                <div className="size-option-header">
-                  <span className="option-title-label">
-                    COLOUR: <strong>{selectedColor || productColors[0]}</strong>
+                <div className="size-option-header pdp-color-header-row">
+                  <span className="option-title-label pdp-color-title">
+                    Color: <strong className="pdp-active-color-name">{selectedColor || productColors[0]}</strong>
                   </span>
                   <span className="pdp-color-count-tag">
-                    {productColors.length} {productColors.length === 1 ? 'Colour' : 'Colours Available'}
+                    {productColors.length} {productColors.length === 1 ? 'Color' : 'Colors'}
                   </span>
                 </div>
-                <div className="color-swatches-row">
+                <div className="color-swatches-row pdp-image-swatches-row">
                   {productColors.map((col) => {
                     const isSelected = (selectedColor || productColors[0] || '').toLowerCase() === col.toLowerCase()
+                    const swatchImg = getColorSwatchImage(col)
                     const hex = getColorHex(col)
+
                     return (
                       <button
                         key={col}
                         type="button"
-                        className={`pdp-color-chip ${isSelected ? 'active' : ''}`}
-                        onClick={() => setSelectedColor(col)}
-                        title={`Select ${col}`}
-                        aria-label={`Select colour ${col}`}
+                        className={`pdp-image-swatch-card ${isSelected ? 'active' : ''}`}
+                        onClick={() => handleColorChange(col)}
+                        title={`Select Color: ${col}`}
+                        aria-label={`Select Color: ${col}`}
                       >
-                        <span className="color-swatch-circle-dot" style={{ backgroundColor: hex }} />
-                        <span className="color-chip-text">{col}</span>
-                        {isSelected && (
-                          <svg className="chip-check-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
+                        {swatchImg ? (
+                          <img
+                            src={getImageUrl(swatchImg)}
+                            alt={col}
+                            className="pdp-image-swatch-thumb"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="pdp-image-swatch-fallback-hex" style={{ backgroundColor: hex }} />
                         )}
+                        <span className="swatch-tooltip">{col}</span>
                       </button>
                     )
                   })}
@@ -609,10 +803,11 @@ const ProductPage = () => {
               </div>
               <div className="size-pills-row">
                 {(() => {
-                  const sortedSizesList = getSortedSizesForProduct(product)
+                  const colorToUse = selectedColor || (productColors.length > 0 ? productColors[0] : '')
+                  const sortedSizesList = getSortedSizesForProduct(product, colorToUse)
 
                   return sortedSizesList.map(sz => {
-                    const sizeQty = getSizeStockQty(sz, product)
+                    const sizeQty = getSizeStockQty(sz, product, colorToUse)
                     const isSizeOutOfStock = sizeQty <= 0
                     const isSelected = String(selectedSize).toUpperCase() === String(sz).toUpperCase()
 
@@ -664,6 +859,7 @@ const ProductPage = () => {
                   <AddToCartButton
                     product={{
                       ...product,
+                      image: currentGalleryImages[0] || product.images?.[0] || product.image,
                       selectedColor: (selectedColor && selectedColor.toLowerCase() !== 'standard')
                         ? selectedColor
                         : (productColors.length > 0 ? productColors[0] : '')

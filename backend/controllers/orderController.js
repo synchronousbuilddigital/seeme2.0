@@ -11,6 +11,7 @@ import shippingService from '../services/shippingService.js'
 import pushNotificationService from '../services/pushNotificationService.js'
 import { validateAndCalculateCoupon, recordCouponUsage, revertCouponUsage } from '../services/couponEngine.js'
 import * as siteSettingsService from '../services/siteSettingsService.js'
+import { checkVariantAvailability, deductVariantStock, restoreVariantStock } from '../utils/variantStockHelper.js'
 
 // Initialize Razorpay dynamically
 let razorpayInstance = null
@@ -105,9 +106,15 @@ export const createOrder = asyncHandler(async (req, res) => {
       throw new Error(`Product ${item.product} not found`)
     }
 
-    if (product.stock < item.quantity) {
+    // Comprehensive variant stock availability check (color + size + overall)
+    const stockCheck = checkVariantAvailability(product, {
+      size: item.size,
+      color: item.color,
+      quantity: item.quantity
+    })
+    if (!stockCheck.inStock) {
       res.status(400)
-      throw new Error(`Insufficient stock for ${product.name}`)
+      throw new Error(stockCheck.errorMsg || `Insufficient stock for ${product.name}`)
     }
 
     totalAmount += product.price * item.quantity
@@ -129,6 +136,10 @@ export const createOrder = asyncHandler(async (req, res) => {
     }
     pWeight = pWeight && pWeight > 0 ? Number(pWeight.toFixed(3)) : 0.5
 
+    const colorMatchImg = item.color && Array.isArray(product.colorImages)
+      ? product.colorImages.find(ci => ci.color && ci.color.trim().toLowerCase() === item.color.trim().toLowerCase())?.images?.[0]
+      : null
+
     orderItems.push({
       product: product._id,
       name: product.name,
@@ -136,7 +147,8 @@ export const createOrder = asyncHandler(async (req, res) => {
       quantity: item.quantity,
       size: item.size,
       color: item.color,
-      image: product.images?.[0],
+      variantId: item.variantId || '',
+      image: item.image || colorMatchImg || product.images?.[0],
       weightKg: pWeight,
       dimensions: {
         length: Number(prodDim.length || prodDim.lengthCm || product.lengthCm || 20),
@@ -145,26 +157,11 @@ export const createOrder = asyncHandler(async (req, res) => {
       }
     })
 
-    // Pre-check sizeStock availability without mutating DB yet
-    let targetSize = null
-    if (product.sizeStock && product.sizeStock.length > 0) {
-      const sizeItem = product.sizeStock.find(s => s.size === item.size)
-      if (sizeItem) {
-        if (sizeItem.quantity < item.quantity) {
-          res.status(400)
-          throw new Error(`Insufficient stock for size ${item.size} of ${product.name}`)
-        }
-        targetSize = item.size
-      } else if (product.stock < item.quantity) {
-        res.status(400)
-        throw new Error(`Insufficient stock for ${product.name}`)
-      }
-    }
-
     plannedDeductions.push({
       product,
       productId: product._id,
-      size: targetSize,
+      size: item.size,
+      color: item.color,
       quantity: item.quantity
     })
   }
@@ -197,17 +194,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
   try {
     for (const op of plannedDeductions) {
-      if (op.size && op.product.sizeStock && op.product.sizeStock.length > 0) {
-        const sizeItem = op.product.sizeStock.find(s => s.size === op.size)
-        if (sizeItem) {
-          sizeItem.quantity -= op.quantity
-          op.product.stock = op.product.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-        } else {
-          op.product.stock -= op.quantity
-        }
-      } else {
-        op.product.stock -= op.quantity
-      }
+      deductVariantStock(op.product, { size: op.size, color: op.color, quantity: op.quantity })
       await op.product.save()
       decrementedOperations.push(op)
     }
@@ -230,13 +217,7 @@ export const createOrder = asyncHandler(async (req, res) => {
       try {
         const p = await Product.findById(op.productId)
         if (p) {
-          if (op.size && p.sizeStock && p.sizeStock.length > 0) {
-            const sizeItem = p.sizeStock.find(s => s.size === op.size)
-            if (sizeItem) sizeItem.quantity += op.quantity
-            p.stock = p.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-          } else {
-            p.stock += op.quantity
-          }
+          restoreVariantStock(p, { size: op.size, color: op.color, quantity: op.quantity })
           await p.save()
         }
       } catch (rErr) {
@@ -283,13 +264,7 @@ export const createOrder = asyncHandler(async (req, res) => {
           try {
             const p = await Product.findById(op.productId)
             if (p) {
-              if (op.size && p.sizeStock && p.sizeStock.length > 0) {
-                const sizeItem = p.sizeStock.find(s => s.size === op.size)
-                if (sizeItem) sizeItem.quantity += op.quantity
-                p.stock = p.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-              } else {
-                p.stock += op.quantity
-              }
+              restoreVariantStock(p, { size: op.size, color: op.color, quantity: op.quantity })
               await p.save()
             }
           } catch (rErr) {}
@@ -416,14 +391,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
           if (item.product) {
             const product = await Product.findById(item.product)
             if (product) {
-              if (product.sizeStock && product.sizeStock.length > 0) {
-                const sizeItem = product.sizeStock.find(s => s.size === item.size)
-                if (sizeItem) {
-                  sizeItem.quantity += (item.quantity || 1)
-                }
-              } else {
-                product.stock += (item.quantity || 1)
-              }
+              restoreVariantStock(product, { size: item.size, color: item.color, quantity: item.quantity })
               await product.save()
             }
           }
@@ -499,14 +467,7 @@ export const cancelMyOrder = asyncHandler(async (req, res) => {
       if (item.product) {
         const product = await Product.findById(item.product)
         if (product) {
-          if (product.sizeStock && product.sizeStock.length > 0) {
-            const sizeItem = product.sizeStock.find(s => s.size === item.size)
-            if (sizeItem) {
-              sizeItem.quantity += (item.quantity || 1)
-            }
-          } else {
-            product.stock += (item.quantity || 1)
-          }
+          restoreVariantStock(product, { size: item.size, color: item.color, quantity: item.quantity })
           await product.save()
         }
       }
@@ -805,24 +766,15 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         throw new Error(`Product ${item.product} not found`)
       }
 
-      if (product.stock < item.quantity) {
+      // Variant availability validation
+      const stockCheck = checkVariantAvailability(product, {
+        size: item.size,
+        color: item.color,
+        quantity: item.quantity
+      })
+      if (!stockCheck.inStock) {
         res.status(400)
-        throw new Error(`Insufficient stock for ${product.name}`)
-      }
-
-      let targetSize = null
-      if (product.sizeStock && product.sizeStock.length > 0) {
-        const sizeItem = product.sizeStock.find(s => s.size === item.size)
-        if (sizeItem) {
-          if (sizeItem.quantity < item.quantity) {
-            res.status(400)
-            throw new Error(`Insufficient stock for size ${item.size} of ${product.name}`)
-          }
-          targetSize = item.size
-        } else if (product.stock < item.quantity) {
-          res.status(400)
-          throw new Error(`Insufficient stock for ${product.name}`)
-        }
+        throw new Error(stockCheck.errorMsg || `Insufficient stock for ${product.name}`)
       }
 
       const prodDim = product.dimensions || {}
@@ -842,6 +794,10 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       }
       pWeight = pWeight && pWeight > 0 ? Number(pWeight.toFixed(3)) : 0.5
 
+      const colorMatchImg = item.color && Array.isArray(product.colorImages)
+        ? product.colorImages.find(ci => ci.color && ci.color.trim().toLowerCase() === item.color.trim().toLowerCase())?.images?.[0]
+        : null
+
       verifiedOrderItems.push({
         product: product._id,
         name: item.name || product.name,
@@ -849,7 +805,8 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         quantity: item.quantity,
         size: item.size,
         color: item.color,
-        image: item.image || product.images?.[0],
+        variantId: item.variantId || '',
+        image: item.image || colorMatchImg || product.images?.[0],
         weightKg: pWeight,
         dimensions: {
           length: Number(prodDim.length || prodDim.lengthCm || product.lengthCm || 20),
@@ -861,7 +818,8 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       plannedDeductions.push({
         product,
         productId: product._id,
-        size: targetSize,
+        size: item.size,
+        color: item.color,
         quantity: item.quantity
       })
     }
@@ -871,17 +829,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
     try {
       for (const op of plannedDeductions) {
-        if (op.size && op.product.sizeStock && op.product.sizeStock.length > 0) {
-          const sizeItem = op.product.sizeStock.find(s => s.size === op.size)
-          if (sizeItem) {
-            sizeItem.quantity -= op.quantity
-            op.product.stock = op.product.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-          } else {
-            op.product.stock -= op.quantity
-          }
-        } else {
-          op.product.stock -= op.quantity
-        }
+        deductVariantStock(op.product, { size: op.size, color: op.color, quantity: op.quantity })
         await op.product.save()
         decrementedOperations.push(op)
       }
@@ -907,13 +855,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
         try {
           const p = await Product.findById(op.productId)
           if (p) {
-            if (op.size && p.sizeStock && p.sizeStock.length > 0) {
-              const sizeItem = p.sizeStock.find(s => s.size === op.size)
-              if (sizeItem) sizeItem.quantity += op.quantity
-              p.stock = p.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-            } else {
-              p.stock += op.quantity
-            }
+            restoreVariantStock(p, { size: op.size, color: op.color, quantity: op.quantity })
             await p.save()
           }
         } catch (rErr) {

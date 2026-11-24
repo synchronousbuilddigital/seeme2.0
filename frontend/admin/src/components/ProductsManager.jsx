@@ -29,6 +29,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [stockFilter, setStockFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [colorFilter, setColorFilter] = useState('all')
+  const [showMobileFilterModal, setShowMobileFilterModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [productToDelete, setProductToDelete] = useState(null)
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' })
@@ -37,11 +38,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [customSizeInput, setCustomSizeInput] = useState('')
   const [customSizeQty, setCustomSizeQty] = useState('0')
   const [customColorInput, setCustomColorInput] = useState('')
+  const [customColorHex, setCustomColorHex] = useState('#0f172a')
+  const [colorNewSizeInputs, setColorNewSizeInputs] = useState({})
   const pageSize = 8
   const [formTab, setFormTab] = useState('general')
 
   useEffect(() => {
-    if (showForm) {
+    if (showForm || showMobileFilterModal) {
       const prevBodyOverflow = document.body.style.overflow
       const prevBodyOverflowX = document.body.style.overflowX
       const prevHtmlOverflowX = document.documentElement.style.overflowX
@@ -56,7 +59,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         document.documentElement.style.overflowX = prevHtmlOverflowX
       }
     }
-  }, [showForm])
+  }, [showForm, showMobileFilterModal])
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -83,6 +86,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     sizes: [],
     color: '',
     colors: [],
+    colorImages: [],
     featured: false,
     inCollection: false,
     isSale: false,
@@ -171,7 +175,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
     })
   }
 
-  const handleAddColor = (colToAdd) => {
+  const handleAddColor = (colToAdd, hexCode) => {
     const clean = String(colToAdd || customColorInput || '').trim()
     if (!clean) return
 
@@ -181,12 +185,28 @@ const ProductsManager = ({ onPromoteToHero }) => {
       return
     }
 
-    const updated = [...existing, clean]
-    setFormData(prev => ({
-      ...prev,
-      colors: updated,
-      color: prev.color || clean
-    }))
+    const assignedHex = hexCode || customColorHex || getColorHex(clean)
+    const updatedColors = [...existing, clean]
+
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      if (!currentList.some(ci => ci.color?.toLowerCase() === clean.toLowerCase())) {
+        currentList.push({
+          color: clean,
+          hex: assignedHex,
+          images: [],
+          sizeStock: (prev.sizeStock && prev.sizeStock.length > 0)
+            ? prev.sizeStock.map(s => ({ size: s.size, quantity: Number(s.quantity) || 0 }))
+            : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map(s => ({ size: s, quantity: 0 }))
+        })
+      }
+      return {
+        ...prev,
+        colors: updatedColors,
+        color: prev.color || clean,
+        colorImages: currentList
+      }
+    })
     setCustomColorInput('')
     showNotification(`Added colour "${clean}"`, 'success')
   }
@@ -201,13 +221,57 @@ const ProductsManager = ({ onPromoteToHero }) => {
     setFormData(prev => ({
       ...prev,
       colors: updated,
-      color: nextPrimary
+      color: nextPrimary,
+      colorImages: (prev.colorImages || []).filter(ci => ci.color?.toLowerCase() !== colToRemove.toLowerCase())
     }))
+    showNotification(`Removed colour "${colToRemove}"`, 'info')
   }
 
   const handleSetPrimaryColor = (colName) => {
     setFormData(prev => ({ ...prev, color: colName }))
     showNotification(`Set "${colName}" as primary colour`, 'info')
+  }
+
+  const handleColorHexChange = (colName, newHex) => {
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      const idx = currentList.findIndex(ci => ci.color?.toLowerCase() === colName.toLowerCase())
+      if (idx >= 0) {
+        currentList[idx] = { ...currentList[idx], hex: newHex }
+      }
+      return { ...prev, colorImages: currentList }
+    })
+  }
+
+  const handleColorAddCustomSize = (colName, sizeName) => {
+    const cleanSz = String(sizeName || '').trim().toUpperCase()
+    if (!cleanSz) return
+
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      const idx = currentList.findIndex(ci => ci.color?.toLowerCase() === colName.toLowerCase())
+      if (idx >= 0) {
+        const sizes = Array.isArray(currentList[idx].sizeStock) ? [...currentList[idx].sizeStock] : []
+        if (!sizes.some(s => s.size?.toUpperCase() === cleanSz)) {
+          sizes.push({ size: cleanSz, quantity: 0 })
+          currentList[idx] = { ...currentList[idx], sizeStock: sizes }
+        }
+      }
+      return { ...prev, colorImages: currentList }
+    })
+    setColorNewSizeInputs(prev => ({ ...prev, [colName]: '' }))
+  }
+
+  const handleColorRemoveSize = (colName, sizeName) => {
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      const idx = currentList.findIndex(ci => ci.color?.toLowerCase() === colName.toLowerCase())
+      if (idx >= 0) {
+        const sizes = (currentList[idx].sizeStock || []).filter(s => s.size?.toUpperCase() !== sizeName.toUpperCase())
+        currentList[idx] = { ...currentList[idx], sizeStock: sizes }
+      }
+      return { ...prev, colorImages: currentList }
+    })
   }
 
 
@@ -435,6 +499,183 @@ const ProductsManager = ({ onPromoteToHero }) => {
         setUploadProgress(0)
       }, 500)
     }
+  }
+
+  const [colorUrlInputs, setColorUrlInputs] = useState({})
+
+  const handleColorMediaUpload = async (colorName, files) => {
+    const selectedFiles = Array.from(files || [])
+    if (selectedFiles.length === 0 || !colorName) return
+
+    for (const file of selectedFiles) {
+      if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+        alert(`File ${file.name} is too large. Max size is ${MAX_IMAGE_SIZE_MB}MB.`)
+        return
+      }
+    }
+
+    setUploading(true)
+    setUploadProgress(10)
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => (prev < 90 ? prev + 5 : prev))
+    }, 500)
+
+    try {
+      const uploadFormData = new FormData()
+      selectedFiles.forEach(file => uploadFormData.append('images', file))
+
+      const data = await apiRequest(API_ENDPOINTS.UPLOAD.IMAGES, {
+        method: 'POST',
+        auth: true,
+        isFormData: true,
+        body: uploadFormData
+      })
+
+      clearInterval(progressInterval)
+      setUploadProgress(100)
+
+      if (data.success) {
+        const imageUrls = data.data.map(img => normalizeMediaUrl(img)).filter(Boolean)
+        setFormData(prev => {
+          const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+          const existingIdx = currentList.findIndex(ci => ci.color?.toLowerCase() === colorName.toLowerCase())
+          if (existingIdx >= 0) {
+            currentList[existingIdx] = {
+              ...currentList[existingIdx],
+              images: [...(currentList[existingIdx].images || []), ...imageUrls]
+            }
+          } else {
+            currentList.push({
+              color: colorName,
+              images: imageUrls
+            })
+          }
+          return { ...prev, colorImages: currentList }
+        })
+        showNotification(`${selectedFiles.length} photos added for colour ${colorName}`)
+      }
+    } catch (error) {
+      clearInterval(progressInterval)
+      console.error('Upload error:', error)
+      showNotification(error.message || 'Failed to upload images', 'error')
+    } finally {
+      setTimeout(() => {
+        setUploading(false)
+        setUploadProgress(0)
+      }, 500)
+    }
+  }
+
+  const handleRemoveColorImage = (colorName, imageIdx) => {
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      const existingIdx = currentList.findIndex(ci => ci.color?.toLowerCase() === colorName.toLowerCase())
+      if (existingIdx >= 0) {
+        const updatedImages = (currentList[existingIdx].images || []).filter((_, i) => i !== imageIdx)
+        currentList[existingIdx] = {
+          ...currentList[existingIdx],
+          images: updatedImages
+        }
+      }
+      return { ...prev, colorImages: currentList }
+    })
+  }
+
+  const handleAddColorImageUrl = async (colorName) => {
+    const raw = (colorUrlInputs[colorName] || '').trim()
+    if (!raw) {
+      showNotification('Please enter an image URL', 'error')
+      return
+    }
+
+    let urlToUse = raw
+    try {
+      if (raw.startsWith('http://') || raw.startsWith('https://')) {
+        const res = await apiRequest(API_ENDPOINTS.UPLOAD.IMAGE_FROM_URL, {
+          method: 'POST',
+          auth: true,
+          body: { url: raw }
+        })
+        if (res.success && res.data?.url) {
+          urlToUse = res.data.url
+        }
+      }
+    } catch (err) {
+      console.warn('URL upload failed, using raw URL:', err)
+    }
+
+    const normalized = normalizeMediaUrl(urlToUse)
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      const existingIdx = currentList.findIndex(ci => ci.color?.toLowerCase() === colorName.toLowerCase())
+      if (existingIdx >= 0) {
+        currentList[existingIdx] = {
+          ...currentList[existingIdx],
+          images: [...(currentList[existingIdx].images || []), normalized]
+        }
+      } else {
+        currentList.push({
+          color: colorName,
+          images: [normalized]
+        })
+      }
+      return { ...prev, colorImages: currentList }
+    })
+    setColorUrlInputs(prev => ({ ...prev, [colorName]: '' }))
+    showNotification(`Photo URL added for ${colorName}`)
+  }
+
+  const handleColorSizeStockChange = (colorName, sizeName, newQty) => {
+    const qty = Math.max(0, parseInt(newQty) || 0)
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      const existingIdx = currentList.findIndex(ci => ci.color?.toLowerCase() === colorName.toLowerCase())
+      if (existingIdx >= 0) {
+        const currentSizes = Array.isArray(currentList[existingIdx].sizeStock) ? [...currentList[existingIdx].sizeStock] : []
+        const sizeIdx = currentSizes.findIndex(s => s.size?.toUpperCase() === sizeName.toUpperCase())
+        if (sizeIdx >= 0) {
+          currentSizes[sizeIdx] = { ...currentSizes[sizeIdx], quantity: qty }
+        } else {
+          currentSizes.push({ size: sizeName, quantity: qty })
+        }
+        currentList[existingIdx] = {
+          ...currentList[existingIdx],
+          sizeStock: currentSizes
+        }
+      } else {
+        currentList.push({
+          color: colorName,
+          images: [],
+          sizeStock: [{ size: sizeName, quantity: qty }]
+        })
+      }
+      return { ...prev, colorImages: currentList }
+    })
+  }
+
+  const handleCopySizesToColor = (colorName) => {
+    const sourceSizes = (formData.sizeStock && formData.sizeStock.length > 0)
+      ? formData.sizeStock.map(s => ({ size: s.size, quantity: Number(s.quantity) || 0 }))
+      : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map(s => ({ size: s, quantity: 10 }))
+
+    setFormData(prev => {
+      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      const existingIdx = currentList.findIndex(ci => ci.color?.toLowerCase() === colorName.toLowerCase())
+      if (existingIdx >= 0) {
+        currentList[existingIdx] = {
+          ...currentList[existingIdx],
+          sizeStock: sourceSizes
+        }
+      } else {
+        currentList.push({
+          color: colorName,
+          images: [],
+          sizeStock: sourceSizes
+        })
+      }
+      return { ...prev, colorImages: currentList }
+    })
+    showNotification(`Copied size quantities to ${colorName}`)
   }
 
   const handleAddImageUrl = async (e) => {
@@ -692,6 +933,15 @@ const ProductsManager = ({ onPromoteToHero }) => {
         tags: finalTags,
         color: formData.color || (formData.colors && formData.colors[0]) || undefined,
         colors: (formData.colors && formData.colors.length > 0) ? formData.colors : (formData.color ? [formData.color] : []),
+        colorImages: (formData.colorImages || [])
+          .filter(ci => ci && ci.color && ci.color.trim())
+          .map(ci => ({
+            color: ci.color.trim(),
+            images: (ci.images || []).map(normalizeMediaUrl).filter(Boolean),
+            sizeStock: Array.isArray(ci.sizeStock)
+              ? ci.sizeStock.map(s => ({ size: String(s.size).trim(), quantity: Math.max(0, parseInt(s.quantity) || 0) }))
+              : []
+          })),
         seo: formData.seo,
         featured: formData.featured,
         inCollection: formData.inCollection,
@@ -828,6 +1078,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
       dimensions: { length: '', width: '', height: '' },
       weightKg: '',
       weight: '',
+      colorImages: [],
       tags: [],
       seo: { title: '', description: '' }
     })
@@ -875,6 +1126,16 @@ const ProductsManager = ({ onPromoteToHero }) => {
       colors: Array.isArray(product.colors) && product.colors.length > 0
         ? product.colors
         : (product.color ? [product.color] : []),
+      colorImages: Array.isArray(product.colorImages)
+        ? product.colorImages.map(ci => ({
+            color: ci.color || '',
+            hex: ci.hex || getColorHex(ci.color || ''),
+            images: (ci.images || []).map(normalizeMediaUrl).filter(Boolean),
+            sizeStock: Array.isArray(ci.sizeStock)
+              ? ci.sizeStock.map(s => ({ size: String(s.size).trim(), quantity: Number(s.quantity) || 0 }))
+              : []
+          }))
+        : [],
       featured: product.featured,
       inCollection: product.inCollection || false,
       isNewArrival: product.isNewArrival || false,
@@ -1052,9 +1313,30 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize))
   const paginatedProducts = filteredProducts.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
+  const activeFiltersCount = [
+    audienceFilter !== 'all',
+    categoryFilter !== 'all',
+    brandFilter !== 'all',
+    collectionFilter !== 'all',
+    stockFilter !== 'all',
+    statusFilter !== 'all',
+    colorFilter !== 'all'
+  ].filter(Boolean).length
+
+  const resetAllFilters = () => {
+    setAudienceFilter('all')
+    setCategoryFilter('all')
+    setBrandFilter('all')
+    setCollectionFilter('all')
+    setStockFilter('all')
+    setStatusFilter('all')
+    setColorFilter('all')
+  }
+
   return (
     <div className="products-manager">
       <div className="manager-header">
+        <h1 className="manager-title">Product Library</h1>
         <div className="header-actions">
           <button className="add-btn" onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Cancel' : '+ Add Product'}
@@ -1063,57 +1345,269 @@ const ProductsManager = ({ onPromoteToHero }) => {
       </div>
 
       <div className="product-toolbar">
-        <div className="filter-selects-group">
-          <select className="toolbar-select" value={audienceFilter} onChange={(e) => setAudienceFilter(e.target.value)}>
-            <option value="all">All Gender (Men & Women)</option>
-            <option value="women">Women Only</option>
-            <option value="men">Men Only</option>
-          </select>
-
-          <select className="toolbar-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
-            <option value="all">All categories</option>
-            {availableCategories.map(cat => {
-              const slug = typeof cat === 'string' ? cat : (cat.slug || cat.title)
-              const title = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')) : (cat.title || cat.slug)
-              return <option key={slug} value={slug}>{title}</option>
-            })}
-          </select>
-
-          <select className="toolbar-select" value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)}>
-            <option value="all">All Brands</option>
-            {availableBrands.map(b => (
-              <option key={b} value={b}>{b}</option>
-            ))}
-          </select>
-
-          <select className="toolbar-select" value={collectionFilter} onChange={(e) => setCollectionFilter(e.target.value)}>
-            <option value="all">All products</option>
-            <option value="collection">In collection</option>
-            <option value="sale">On Festive Sale</option>
-            <option value="tryTheLook">Try The Look</option>
-            <option value="regular">Not in collection</option>
-          </select>
-
-          <select className="toolbar-select" value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
-            <option value="all">All stock levels</option>
-            <option value="in-stock">In stock</option>
-            <option value="out-of-stock">Out of stock</option>
-          </select>
-
-          <select className="toolbar-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-            <option value="all">All Statuses (Active & Inactive)</option>
-            <option value="active">Active Only (Live on Storefront)</option>
-            <option value="inactive">Inactive Only (Hidden on Storefront)</option>
-          </select>
-
-          <select className="toolbar-select" value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
-            <option value="all">All Colours {availableColors.length > 0 ? `(${availableColors.length})` : ''}</option>
-            {availableColors.map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+        {/* Search Box */}
+        <div className="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            className="toolbar-input"
+            placeholder="Search products..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              className="toolbar-search-clear-btn"
+              onClick={() => setSearchTerm('')}
+              title="Clear search"
+            >
+              ✕
+            </button>
+          )}
         </div>
+
+        {/* Filter Button - Opens separate filter modal/sheet */}
+        <button
+          type="button"
+          className={`pm-filter-trigger-btn ${activeFiltersCount > 0 ? 'active' : ''}`}
+          onClick={() => setShowMobileFilterModal(true)}
+          title="Open filters"
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          <span>Filters</span>
+          {activeFiltersCount > 0 && (
+            <span className="pm-filter-badge">{activeFiltersCount}</span>
+          )}
+        </button>
       </div>
+
+      {/* Active Filter Chips Bar */}
+      {activeFiltersCount > 0 && (
+        <div className="active-filters-chips-bar">
+          <span className="chips-label">Active:</span>
+          {audienceFilter !== 'all' && (
+            <span className="filter-active-chip">
+              Gender: {audienceFilter}
+              <button type="button" onClick={() => setAudienceFilter('all')}>✕</button>
+            </span>
+          )}
+          {categoryFilter !== 'all' && (
+            <span className="filter-active-chip">
+              Category: {categoryFilter}
+              <button type="button" onClick={() => setCategoryFilter('all')}>✕</button>
+            </span>
+          )}
+          {brandFilter !== 'all' && (
+            <span className="filter-active-chip">
+              Brand: {brandFilter}
+              <button type="button" onClick={() => setBrandFilter('all')}>✕</button>
+            </span>
+          )}
+          {collectionFilter !== 'all' && (
+            <span className="filter-active-chip">
+              Type: {collectionFilter}
+              <button type="button" onClick={() => setCollectionFilter('all')}>✕</button>
+            </span>
+          )}
+          {stockFilter !== 'all' && (
+            <span className="filter-active-chip">
+              Stock: {stockFilter}
+              <button type="button" onClick={() => setStockFilter('all')}>✕</button>
+            </span>
+          )}
+          {statusFilter !== 'all' && (
+            <span className="filter-active-chip">
+              Status: {statusFilter}
+              <button type="button" onClick={() => setStatusFilter('all')}>✕</button>
+            </span>
+          )}
+          {colorFilter !== 'all' && (
+            <span className="filter-active-chip">
+              Colour: {colorFilter}
+              <button type="button" onClick={() => setColorFilter('all')}>✕</button>
+            </span>
+          )}
+          <button type="button" className="clear-all-chips-link" onClick={resetAllFilters}>
+            Clear All
+          </button>
+        </div>
+      )}
+
+      {/* Separate Mobile Filter Modal / Drawer */}
+      <AnimatePresence>
+        {showMobileFilterModal && (
+          <div className="products-mobile-filter-overlay" onClick={() => setShowMobileFilterModal(false)}>
+            <motion.div
+              className="products-mobile-filter-drawer"
+              initial={{ y: '100%', opacity: 0.5 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="pm-filter-drawer-header">
+                <div className="pm-filter-drawer-title-wrap">
+                  <div className="pm-filter-handle-bar" />
+                  <h3>Filter Products</h3>
+                  <p className="pm-filter-count-hint">
+                    {activeFiltersCount > 0
+                      ? `${activeFiltersCount} active filter${activeFiltersCount > 1 ? 's' : ''}`
+                      : 'Refine product catalog'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="pm-filter-close-btn"
+                  onClick={() => setShowMobileFilterModal(false)}
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="pm-filter-drawer-body">
+                {/* 1. Gender */}
+                <div className="pm-filter-group">
+                  <label>Gender / Audience</label>
+                  <select
+                    className="pm-filter-select"
+                    value={audienceFilter}
+                    onChange={(e) => setAudienceFilter(e.target.value)}
+                  >
+                    <option value="all">All Gender (Men & Women)</option>
+                    <option value="women">Women Only</option>
+                    <option value="men">Men Only</option>
+                  </select>
+                </div>
+
+                {/* 2. Category */}
+                <div className="pm-filter-group">
+                  <label>Category</label>
+                  <select
+                    className="pm-filter-select"
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                  >
+                    <option value="all">All categories</option>
+                    {availableCategories.map(cat => {
+                      const slug = typeof cat === 'string' ? cat : (cat.slug || cat.title)
+                      const title = typeof cat === 'string' ? (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, ' ')) : (cat.title || cat.slug)
+                      return <option key={slug} value={slug}>{title}</option>
+                    })}
+                  </select>
+                </div>
+
+                {/* 3. Brand */}
+                <div className="pm-filter-group">
+                  <label>Brand</label>
+                  <select
+                    className="pm-filter-select"
+                    value={brandFilter}
+                    onChange={(e) => setBrandFilter(e.target.value)}
+                  >
+                    <option value="all">All Brands</option>
+                    {availableBrands.map(b => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. Collection / Offer */}
+                <div className="pm-filter-group">
+                  <label>Collection & Placement</label>
+                  <select
+                    className="pm-filter-select"
+                    value={collectionFilter}
+                    onChange={(e) => setCollectionFilter(e.target.value)}
+                  >
+                    <option value="all">All products</option>
+                    <option value="collection">In collection</option>
+                    <option value="sale">On Festive Sale</option>
+                    <option value="tryTheLook">Try The Look</option>
+                    <option value="regular">Not in collection</option>
+                  </select>
+                </div>
+
+                {/* 5. Stock Level */}
+                <div className="pm-filter-group">
+                  <label>Stock Level</label>
+                  <select
+                    className="pm-filter-select"
+                    value={stockFilter}
+                    onChange={(e) => setStockFilter(e.target.value)}
+                  >
+                    <option value="all">All stock levels</option>
+                    <option value="in-stock">In stock</option>
+                    <option value="out-of-stock">Out of stock</option>
+                  </select>
+                </div>
+
+                {/* 6. Visibility Status */}
+                <div className="pm-filter-group">
+                  <label>Storefront Visibility</label>
+                  <select
+                    className="pm-filter-select"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option value="all">All Statuses (Active & Inactive)</option>
+                    <option value="active">Active Only (Live on Storefront)</option>
+                    <option value="inactive">Inactive Only (Hidden on Storefront)</option>
+                  </select>
+                </div>
+
+                {/* 7. Colour */}
+                <div className="pm-filter-group">
+                  <label>Colour {availableColors.length > 0 ? `(${availableColors.length})` : ''}</label>
+                  <select
+                    className="pm-filter-select"
+                    value={colorFilter}
+                    onChange={(e) => setColorFilter(e.target.value)}
+                  >
+                    <option value="all">All Colours {availableColors.length > 0 ? `(${availableColors.length})` : ''}</option>
+                    {availableColors.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="pm-filter-drawer-footer">
+                {activeFiltersCount > 0 && (
+                  <button
+                    type="button"
+                    className="pm-filter-reset-action"
+                    onClick={resetAllFilters}
+                  >
+                    Reset All
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="pm-filter-apply-action"
+                  onClick={() => setShowMobileFilterModal(false)}
+                >
+                  Show ({filteredProducts.length}) Products
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="toolbar-summary">
         Showing <strong>{filteredProducts.length}</strong> of {products.length} products
@@ -1132,8 +1626,20 @@ const ProductsManager = ({ onPromoteToHero }) => {
             >
               <div className="drawer-top-bar">
                 <div className="drawer-header">
-                  <h2>{editingProduct ? 'Edit Product' : 'New Product'}</h2>
-                  <button className="close-drawer-btn" onClick={resetForm}>&times;</button>
+                  <div className="drawer-header-titles">
+                    <h2>{editingProduct ? 'Edit Product' : 'New Product'}</h2>
+                    {editingProduct && (
+                      <p className="drawer-subtitle" title={editingProduct.name}>
+                        {editingProduct.name || editingProduct._id}
+                      </p>
+                    )}
+                  </div>
+                  <button type="button" className="close-drawer-btn" onClick={resetForm} aria-label="Close edit form">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
                 </div>
                 <div className="form-header-tabs">
                   <button type="button" className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
@@ -1217,12 +1723,12 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       </div>
                     </div>
 
-                    <div className="form-group mb-4">
+                    <div className="form-group mb-4 audience-form-group">
                       <label style={{ fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
-                        Target Audience Panels (Multi-Select: Choose where this product appears) *
+                        Target Audience Panels (Multi-Select) *
                       </label>
-                      <div className="checkbox-audience-row" style={{ display: 'flex', gap: '1.25rem', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                      <div className="checkbox-audience-row">
+                        <label className={`audience-toggle-card ${getAudienceArray(formData.targetAudience || formData.gender).includes('all') ? 'active-all' : ''}`}>
                           <input
                             type="checkbox"
                             checked={getAudienceArray(formData.targetAudience || formData.gender).includes('all')}
@@ -1230,7 +1736,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           />
                           <span>ALL</span>
                         </label>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#2563eb' }}>
+                        <label className={`audience-toggle-card ${getAudienceArray(formData.targetAudience || formData.gender).includes('men') ? 'active-men' : ''}`}>
                           <input
                             type="checkbox"
                             checked={getAudienceArray(formData.targetAudience || formData.gender).includes('men')}
@@ -1238,7 +1744,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           />
                           <span>MEN</span>
                         </label>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem', color: '#ec4899' }}>
+                        <label className={`audience-toggle-card ${getAudienceArray(formData.targetAudience || formData.gender).includes('women') ? 'active-women' : ''}`}>
                           <input
                             type="checkbox"
                             checked={getAudienceArray(formData.targetAudience || formData.gender).includes('women')}
@@ -1256,7 +1762,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <label>Full Description *</label>
                       <textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="4" required placeholder="Detailed product storytelling..." />
                     </div>
-                    <div className="form-row">
+                    <div className="form-row price-mrp-row">
                       <div className="form-group">
                         <label>Selling Price (₹) *</label>
                         <input
@@ -1299,7 +1805,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           <span className="status-radio-dot active-dot"></span>
                           <div className="status-radio-info">
                             <strong>Active</strong>
-                            <p>Product & images are live on frontend</p>
                           </div>
                         </label>
                         <label className={`status-radio-btn ${formData.isActive === false ? 'selected-inactive' : ''}`}>
@@ -1312,7 +1817,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
                           <span className="status-radio-dot inactive-dot"></span>
                           <div className="status-radio-info">
                             <strong>Inactive</strong>
-                            <p>Product & images are hidden from frontend</p>
                           </div>
                         </label>
                       </div>
@@ -1324,24 +1828,32 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 {formTab === 'colors' && (
                   <div className="form-tab-content">
                     <div className="form-group mb-4 product-colors-form-block dedicated-tab-mode">
-                      {/* Custom Colour Input Box */}
+                      {/* Custom Colour & Visual Color Picker Box */}
                       <div className="color-input-wrapper">
+                        <div className="color-picker-box-wrap" title="Click to choose custom colour hex">
+                          <input
+                            type="color"
+                            value={customColorHex}
+                            onChange={(e) => setCustomColorHex(e.target.value)}
+                            className="color-picker-swatch-input"
+                          />
+                        </div>
                         <input
                           type="text"
-                          placeholder="Type custom colour (e.g. Royal Maroon, Rani Pink, Wine, Mint)..."
+                          placeholder="Type colour name (e.g. Royal Maroon, Rani Pink, Wine, Mint)..."
                           value={customColorInput}
                           onChange={(e) => setCustomColorInput(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault()
-                              handleAddColor(customColorInput)
+                              handleAddColor(customColorInput, customColorHex)
                             }
                           }}
                         />
                         <button
                           type="button"
                           className="btn-add-color-pill"
-                          onClick={() => handleAddColor(customColorInput)}
+                          onClick={() => handleAddColor(customColorInput, customColorHex)}
                         >
                           + Add Colour
                         </button>
@@ -1351,7 +1863,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div className="quick-color-suggestions">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                           <span className="quick-color-label" style={{ margin: 0 }}>
-                            Quick Select from Popular Ethnic & Couture Shades ({COMMON_COLOR_SUGGESTIONS.length}):
+                            Quick Select from Popular Shades ({COMMON_COLOR_SUGGESTIONS.length}):
                           </span>
                           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Click to toggle</span>
                         </div>
@@ -1367,7 +1879,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                                 className={`quick-color-chip ${isSelected ? 'active' : ''}`}
                                 onClick={() => {
                                   if (isSelected) handleRemoveColor(c.name)
-                                  else handleAddColor(c.name)
+                                  else handleAddColor(c.name, c.hex)
                                 }}
                                 title={isSelected ? `Click to remove ${c.name}` : `Click to add ${c.name}`}
                               >
@@ -1383,13 +1895,16 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       {/* Active Selected Colours Badges */}
                       {formData.colors && formData.colors.length > 0 ? (
                         <div className="active-selected-colors-row">
-                          <span className="active-colors-label">Selected Colours ({formData.colors.length}):</span>
+                          <span className="active-colors-label">Configured Colours ({formData.colors.length}):</span>
                           <div className="active-color-tags">
                             {formData.colors.map(col => {
                               const isPrimary = (formData.color || '').toLowerCase() === col.toLowerCase()
+                              const ciEntry = (formData.colorImages || []).find(ci => ci.color?.toLowerCase() === col.toLowerCase())
+                              const hex = ciEntry?.hex || getColorHex(col)
+
                               return (
                                 <div key={col} className={`active-color-badge ${isPrimary ? 'primary' : ''}`}>
-                                  <span className="chip-color-dot" style={{ backgroundColor: getColorHex(col) }} />
+                                  <span className="chip-color-dot" style={{ backgroundColor: hex }} />
                                   <span className="color-name">{col}</span>
                                   {isPrimary ? (
                                     <span className="is-primary-label">Primary</span>
@@ -1418,7 +1933,198 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         </div>
                       ) : (
                         <div className="no-colors-hint">
-                          <span> Click any quick colour above or type a custom shade to add options to this product.</span>
+                          <span>Click any quick colour above or pick a shade to add options to this product.</span>
+                        </div>
+                      )}
+
+                      {/* Color-Specific Photo Galleries & Size-wise Stock */}
+                      {formData.colors && formData.colors.length > 0 && (
+                        <div className="color-galleries-section" style={{ marginTop: '1.5rem' }}>
+                          <div className="color-galleries-header">
+                            <div className="color-galleries-header-info">
+                              <h4 className="color-galleries-title">📸 Photos & Inventory for Each Colour Variant</h4>
+                              <p className="color-galleries-subtitle">
+                                Upload photos and set size stock for each colour. The 1st photo serves as the swatch card on the product page. When selected by customers, only this colour's photos and available sizes will be displayed!
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="color-galleries-cards-grid">
+                            {formData.colors.map(col => {
+                              const galleryEntry = (formData.colorImages || []).find(ci => ci.color?.toLowerCase() === col.toLowerCase())
+                              const colorImgs = galleryEntry?.images || []
+                              const hex = galleryEntry?.hex || getColorHex(col)
+                              const isPrimary = (formData.color || '').toLowerCase() === col.toLowerCase()
+                              const inputId = `color-tab-file-${col.replace(/[^a-zA-Z0-9]/g, '-')}`
+
+                              // Aggregate sizes for this color: standard product sizes + variant sizes
+                              const colorSizeStock = Array.isArray(galleryEntry?.sizeStock) ? galleryEntry.sizeStock : []
+                              const standardSizes = (formData.sizeStock && formData.sizeStock.length > 0)
+                                ? formData.sizeStock.map(s => s.size)
+                                : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
+
+                              const allSizesSet = new Set(standardSizes)
+                              colorSizeStock.forEach(s => s.size && allSizesSet.add(s.size))
+                              const displayedSizes = Array.from(allSizesSet)
+
+                              return (
+                                <div key={col} className={`color-gallery-card ${isPrimary ? 'is-primary-card' : ''}`}>
+                                  <div className="color-gallery-top">
+                                    <div className="color-gallery-pill">
+                                      <input
+                                        type="color"
+                                        value={hex}
+                                        onChange={(e) => handleColorHexChange(col, e.target.value)}
+                                        className="color-pill-dot-input"
+                                        title="Click to adjust hex code for this colour"
+                                      />
+                                      <span className="color-pill-name">{col}</span>
+                                      {isPrimary && <span className="color-primary-tag">Primary</span>}
+                                      <span className="color-pill-count">
+                                        ({colorImgs.length} {colorImgs.length === 1 ? 'photo' : 'photos'})
+                                      </span>
+                                    </div>
+                                    <div className="color-gallery-actions">
+                                      {!isPrimary && (
+                                        <button
+                                          type="button"
+                                          className="btn-set-primary-card"
+                                          onClick={() => handleSetPrimaryColor(col)}
+                                          title="Set as main/primary colour"
+                                        >
+                                          ★ Set Primary
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        className="btn-color-upload-trigger"
+                                        onClick={() => document.getElementById(inputId)?.click()}
+                                      >
+                                        + Upload Photos
+                                      </button>
+                                      <button
+                                        type="button"
+                                        className="btn-color-delete-card"
+                                        onClick={() => handleRemoveColor(col)}
+                                        title={`Remove colour ${col}`}
+                                      >
+                                        Delete
+                                      </button>
+                                      <input
+                                        id={inputId}
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        onChange={(e) => handleColorMediaUpload(col, e.target.files)}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="color-gallery-url-row">
+                                    <input
+                                      type="url"
+                                      placeholder={`Paste image URL for ${col}...`}
+                                      value={colorUrlInputs[col] || ''}
+                                      onChange={(e) => setColorUrlInputs({ ...colorUrlInputs, [col]: e.target.value })}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault()
+                                          handleAddColorImageUrl(col)
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="btn-color-add-url"
+                                      onClick={() => handleAddColorImageUrl(col)}
+                                    >
+                                      Add URL
+                                    </button>
+                                  </div>
+
+                                  <div className="color-gallery-thumbs">
+                                    {colorImgs.map((img, idx) => (
+                                      <div key={idx} className="color-thumb-item">
+                                        <img src={getImageUrl(img)} alt={`${col} ${idx + 1}`} />
+                                        <button
+                                          type="button"
+                                          className="btn-color-thumb-del"
+                                          onClick={() => handleRemoveColorImage(col, idx)}
+                                          title={`Remove photo from ${col}`}
+                                        >
+                                          &times;
+                                        </button>
+                                        {idx === 0 && <span className="color-thumb-main-badge">Swatch & Cover</span>}
+                                      </div>
+                                    ))}
+                                    {colorImgs.length === 0 && (
+                                      <div className="color-thumbs-none">
+                                        <span>No photos uploaded for {col} yet (will show cover images by default)</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Color-Specific Size Stock Inputs (Rendered cleanly once) */}
+                                  <div className="color-sizestock-block">
+                                    <div className="color-sizestock-header">
+                                      <span className="color-sizestock-title">📏 Available Sizes & Stock for {col}:</span>
+                                      <button
+                                        type="button"
+                                        className="btn-copy-main-sizes"
+                                        onClick={() => handleCopySizesToColor(col)}
+                                        title="Copy standard size quantities"
+                                      >
+                                        ↻ Copy Sizes
+                                      </button>
+                                    </div>
+                                    <div className="color-sizes-inputs-row">
+                                      {displayedSizes.map(sz => {
+                                        const currentQty = (galleryEntry?.sizeStock || []).find(s => s.size?.toUpperCase() === sz.toUpperCase())?.quantity ?? ''
+                                        return (
+                                          <div key={sz} className="color-size-input-chip">
+                                            <span className="color-size-badge-lbl">{sz}</span>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              className="color-size-qty-field"
+                                              placeholder="0"
+                                              value={currentQty}
+                                              onChange={(e) => handleColorSizeStockChange(col, sz, e.target.value)}
+                                            />
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+
+                                    {/* Add Custom Size to this variant */}
+                                    <div className="color-add-custom-size-row">
+                                      <input
+                                        type="text"
+                                        placeholder={`Add size to ${col} (e.g. 38, 40, Free Size)...`}
+                                        value={colorNewSizeInputs[col] || ''}
+                                        onChange={(e) => setColorNewSizeInputs({ ...colorNewSizeInputs, [col]: e.target.value })}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.preventDefault()
+                                            handleColorAddCustomSize(col, colorNewSizeInputs[col])
+                                          }
+                                        }}
+                                        className="color-custom-size-input"
+                                      />
+                                      <button
+                                        type="button"
+                                        className="btn-add-variant-size"
+                                        onClick={() => handleColorAddCustomSize(col, colorNewSizeInputs[col])}
+                                      >
+                                        + Add Size
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1449,13 +2155,13 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         ) : (
                           <>
                             <div className="upload-icon-container">
-                              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
                               </svg>
                             </div>
                             <div className="upload-text">
-                              <p className="main-text">Drop Masterpiece Images Here</p>
-                              <p className="sub-text">Recommended: 1200x1600px | WEBP or JPG</p>
+                              <p className="main-text">Upload Product Images</p>
+                              <p className="sub-text">Tap or drop photos • WEBP, JPG, PNG</p>
                             </div>
                           </>
                         )}
@@ -1512,6 +2218,24 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             <p>No images uploaded yet</p>
                           </div>
                         )}
+                      </div>
+
+                      {/* Helpful Banner for Colour Variant Photos */}
+                      <div className="media-color-switch-banner">
+                        <div className="media-color-switch-content">
+                          <span className="media-banner-icon">🎨</span>
+                          <div>
+                            <strong>Need photos for specific colour variants?</strong>
+                            <p>Upload photos and manage size-wise stock for each colour (e.g. White, Blue, Black) in the <strong>Colours</strong> tab.</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-switch-tab-pill"
+                          onClick={() => setFormTab('colors')}
+                        >
+                          Go to Colours Tab →
+                        </button>
                       </div>
                     </div>
 
@@ -2183,126 +2907,175 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
         {/* Mobile Touch Product Card Feed */}
         <div className="mobile-product-card-feed">
-          {paginatedProducts.map((product) => (
-            <div key={product._id} className="mobile-product-card">
-              <div className="mobile-card-top">
-                <div className="mobile-card-img-wrapper">
-                  {product.images && product.images.length > 0 && product.images[0] ? (
-                    <img src={getImageUrl(product.images[0])} alt={product.name} />
-                  ) : (
-                    <div className="no-image-mini">No Img</div>
-                  )}
+          {paginatedProducts.map((product) => {
+            const hasDiscount = product.discountPrice > 0 && product.discountPrice < product.price
+            const isOutOfStock = !product.stock || product.stock <= 0
+            const isTryLook = Boolean(product.isTryTheLook || product.tryTheLook)
+            const prodIdx = products.findIndex(p => p._id === product._id)
+            const isFirst = prodIdx === 0
+            const isLast = prodIdx === products.length - 1
+
+            return (
+              <div key={product._id} className="mobile-product-card">
+                {/* 1. Top Bar: Category, Brand & Active Switch */}
+                <div className="mpc-header-row">
+                  <div className="mpc-taxonomy-group">
+                    <span className="mpc-category-pill">{product.category || 'General'}</span>
+                    {product.brand && (
+                      <span
+                        className="mpc-brand-pill"
+                        onClick={() => setBrandFilter(product.brand)}
+                        title={`Filter by ${product.brand}`}
+                      >
+                        {product.brand}
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`mpc-status-toggle ${product.isActive !== false ? 'is-active' : 'is-inactive'}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleActive(product)
+                    }}
+                    title={product.isActive !== false ? 'Click to deactivate' : 'Click to activate'}
+                  >
+                    <span className="mpc-toggle-indicator" />
+                    <span>{product.isActive !== false ? 'Active' : 'Inactive'}</span>
+                  </button>
                 </div>
-                <div className="mobile-card-meta">
-                  <div className="mobile-card-category-row">
-                    <div className="taxonomy-pill-row">
-                      <span className="category-badge-pill">{product.category || 'General'}</span>
-                      {product.brand && (
+
+                {/* 2. Main Row: Image & Key Details */}
+                <div className="mpc-main-row">
+                  <div className="mpc-img-box" onClick={() => startEdit(product)} title="Click to edit">
+                    {product.images && product.images.length > 0 && product.images[0] ? (
+                      <img src={getImageUrl(product.images[0])} alt={product.name} loading="lazy" />
+                    ) : (
+                      <div className="mpc-no-img">No Img</div>
+                    )}
+                    {product.images?.length > 1 && (
+                      <span className="mpc-img-count-tag">📷 {product.images.length}</span>
+                    )}
+                  </div>
+
+                  <div className="mpc-details-col">
+                    <h4 className="mpc-product-name" onClick={() => startEdit(product)} title={product.name}>
+                      {product.name}
+                    </h4>
+
+                    {(product.color || (product.colors && product.colors.length > 0)) && (
+                      <div className="mpc-color-pill">
                         <span
-                          className="brand-badge-pill"
-                          onClick={() => setBrandFilter(product.brand)}
-                        >
-                           {product.brand}
+                          className="mpc-color-swatch"
+                          style={{ backgroundColor: getColorHex(product.color || product.colors[0]) }}
+                        />
+                        <span className="mpc-color-name">
+                          {product.colors && product.colors.length > 0 ? product.colors.join(', ') : product.color}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="mpc-price-box">
+                      <span className="mpc-current-price">
+                        ₹{(hasDiscount ? product.discountPrice : product.price)?.toLocaleString('en-IN')}
+                      </span>
+                      {hasDiscount && (
+                        <span className="mpc-original-price">
+                          ₹{product.price?.toLocaleString('en-IN')}
                         </span>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      className={`inline-status-toggle ${product.isActive !== false ? 'is-active' : 'is-inactive'}`}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleToggleActive(product)
-                      }}
-                    >
-                      <span className="toggle-switch-track">
-                        <span className="toggle-switch-thumb"></span>
-                      </span>
-                      <span className="toggle-status-label">
-                        {product.isActive !== false ? 'Active' : 'Inactive'}
-                      </span>
-                    </button>
                   </div>
-                  <h4 className="mobile-card-title">{product.name}</h4>
-                  {(product.color || (product.colors && product.colors.length > 0)) && (
-                    <div className="mobile-product-color-row">
-                      <span className="mobile-color-label">Colour:</span>
-                      <span className="mobile-color-val">
-                        <span className="color-dot" style={{ backgroundColor: getColorHex(product.color || product.colors[0]) }} />
-                        {product.colors && product.colors.length > 0 ? product.colors.join(', ') : product.color}
-                      </span>
-                    </div>
-                  )}
-                  <div className="mobile-card-price-row">
-                    <span className="mobile-price">₹{product.price?.toLocaleString('en-IN')}</span>
-                    {product.discountPrice > 0 && (
-                      <span className="mobile-discount-price">₹{product.discountPrice?.toLocaleString('en-IN')}</span>
+                </div>
+
+                {/* 3. Middle Meta Bar: Stock Status + Placement Badges + Try Look */}
+                <div className="mpc-meta-bar">
+                  <div className="mpc-meta-left">
+                    <span className={`mpc-stock-badge ${isOutOfStock ? 'out' : 'in'}`}>
+                      <span className="mpc-stock-bullet" />
+                      {isOutOfStock ? '0 Units Out' : `${product.stock} Units`}
+                    </span>
+
+                    {product.featured && <span className="mpc-flag-badge featured">Featured</span>}
+                    {product.inCollection && <span className="mpc-flag-badge collection">Collection</span>}
+                    {(product.isSale || product.onSale) && <span className="mpc-flag-badge sale">🔥 Sale</span>}
+                    {!product.featured && !product.inCollection && !product.isSale && !product.onSale && !isTryLook && (
+                      <span className="mpc-flag-badge regular">Regular</span>
                     )}
                   </div>
+
+                  <button
+                    type="button"
+                    className={`mpc-trylook-chip ${isTryLook ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleToggleTryTheLook(product)
+                    }}
+                    title={isTryLook ? 'Click to Remove from Try Look' : 'Click to Add to Try Look'}
+                  >
+                    {isTryLook ? '✨ In Try Look' : '+ Add to Try Look'}
+                  </button>
+                </div>
+
+                {/* 4. Action Bar: Reorder Controls (Left) + Edit & Delete (Right) */}
+                <div className="mpc-actions-bar">
+                  <div className="mpc-reorder-pair">
+                    <button
+                      type="button"
+                      onClick={() => handleMoveProduct(product, 'up')}
+                      disabled={isFirst}
+                      className="mpc-order-btn"
+                      title="Move Up"
+                      aria-label="Move Up"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleMoveProduct(product, 'down')}
+                      disabled={isLast}
+                      className="mpc-order-btn"
+                      title="Move Down"
+                      aria-label="Move Down"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)}
+                    className="mpc-hero-btn"
+                    title="Promote to Hero Carousel"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+                    <span>Hero</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => startEdit(product)}
+                    className="mpc-edit-btn"
+                    title="Edit Product Details"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
+                    <span>Edit</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProductToDelete(product)}
+                    className="mpc-delete-btn"
+                    title="Delete Product"
+                    aria-label="Delete Product"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
                 </div>
               </div>
-
-              <div className="mobile-card-body">
-                <div className="mobile-card-stock">
-                  <span className={`stock-dot ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}></span>
-                  <span className="stock-label">Stock: <strong>{product.stock} Units</strong></span>
-                </div>
-                <div className="status-badges">
-                  {product.featured && <span className="mini-badge featured">Featured</span>}
-                  {product.inCollection && <span className="mini-badge collection">Collection</span>}
-                  {(product.isSale || product.onSale) && <span className="mini-badge sale" style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fca5a5', fontWeight: '700' }}>🔥 Sale</span>}
-                  {!product.featured && !product.inCollection && !product.isSale && !product.onSale && !(product.isTryTheLook || product.tryTheLook) && <span className="mini-badge regular">Regular</span>}
-                </div>
-                <button
-                  type="button"
-                  className={`inline-trylook-toggle mobile-trylook-btn ${Boolean(product.isTryTheLook || product.tryTheLook) ? 'active' : ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleToggleTryTheLook(product)
-                  }}
-                  title={Boolean(product.isTryTheLook || product.tryTheLook) ? "Click to Remove from Try The Look" : "Click to Add to Try The Look"}
-                >
-                  {Boolean(product.isTryTheLook || product.tryTheLook) ? '✨ In Try Look' : '+ Add to Try Look'}
-                </button>
-              </div>
-
-              <div className="mobile-card-actions">
-                <button
-                  onClick={() => handleMoveProduct(product, 'up')}
-                  disabled={products.findIndex(p => p._id === product._id) === 0}
-                  className="mobile-action-btn move-up"
-                  title="Move Up (Uper)"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                  <span>Up</span>
-                </button>
-                <button
-                  onClick={() => handleMoveProduct(product, 'down')}
-                  disabled={products.findIndex(p => p._id === product._id) === products.length - 1}
-                  className="mobile-action-btn move-down"
-                  title="Move Down (Neeche)"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                  <span>Down</span>
-                </button>
-                <button
-                  onClick={() => typeof onPromoteToHero === 'function' && onPromoteToHero(product)}
-                  className="mobile-action-btn hero"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-                  <span>Hero</span>
-                </button>
-
-                <button onClick={() => startEdit(product)} className="mobile-action-btn edit">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
-                  <span>Edit</span>
-                </button>
-                <button onClick={() => setProductToDelete(product)} className="mobile-action-btn delete">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                  <span>Delete</span>
-                </button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
           {filteredProducts.length === 0 && (
             <div className="mobile-no-products">No products found matching your filter criteria.</div>
           )}

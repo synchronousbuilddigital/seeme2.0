@@ -42,6 +42,7 @@ const orderSchema = new mongoose.Schema({
     },
     size: String,
     color: String,
+    variantId: String,
     image: String,
     weightKg: Number,
     dimensions: {

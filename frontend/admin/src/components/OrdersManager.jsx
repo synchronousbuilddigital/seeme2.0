@@ -588,32 +588,19 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
 
   return (
     <div className="orders-manager">
-      {/* Header & KPI Summary Cards */}
-      <div className="manager-header">
-        <div className="online-cod-toggle-banner">
-          <div className="cod-toggle-content">
-            <div className="cod-toggle-icon-pill">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                <line x1="1" y1="10" x2="23" y2="10"></line>
-              </svg>
-            </div>
-            <div className="cod-toggle-text-block">
-              <div className="cod-title-row">
-                <span className="cod-main-label">Online Store COD Setting</span>
-                <span className={`cod-status-chip ${isOnlineCodEnabled ? 'enabled' : 'disabled'}`}>
-                  <span className="status-indicator-dot" />
-                  {isOnlineCodEnabled ? 'ACTIVE / ACCEPTING' : 'DISABLED / OFF'}
-                </span>
-              </div>
-              <p className="cod-sub-desc">
-                {isOnlineCodEnabled
-                  ? 'Cash on Delivery is active on the online store checkout.'
-                  : 'Cash on Delivery is turned off on the online store checkout (prepaid only).'}
-              </p>
-            </div>
+      {/* Header with Title & Export on Line 1, and Store COD on Line 2 */}
+      <div className="orders-manager-header manager-header">
+        <div className="orders-header-top-row">
+          <h1 className="orders-title">Order Management</h1>
+          <div className="header-actions">
+            <button className="export-btn" onClick={openExportModal} title="Export orders ledger">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
+              <span>Export</span>
+            </button>
           </div>
+        </div>
 
+        <div className="orders-header-second-row">
           <button
             type="button"
             className={`cod-toggle-action-btn ${isOnlineCodEnabled ? 'turn-off' : 'turn-on'}`}
@@ -625,22 +612,15 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
               <span>Updating...</span>
             ) : isOnlineCodEnabled ? (
               <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                 <span>Disable Online COD</span>
               </>
             ) : (
               <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>Enable Online COD</span>
               </>
             )}
-          </button>
-        </div>
-
-        <div className="header-actions">
-          <button className="export-btn" onClick={openExportModal}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
-            Export Ledger
           </button>
         </div>
       </div>
@@ -682,7 +662,12 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
 
         <div className="kpi-card">
           <div className="kpi-icon-wrap green">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 3h12" />
+              <path d="M6 8h12" />
+              <path d="M6 13l8.5 8" />
+              <path d="M6 13h3a4.5 4.5 0 0 0 0-9" />
+            </svg>
           </div>
           <div className="kpi-info">
             <span className="kpi-label">GROSS REVENUE</span>
@@ -792,7 +777,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                   <td>
                     <div className="order-items-thumb-stack">
                       {order.items?.slice(0, 3).map((item, i) => (
-                        <div key={i} className="mini-thumb-wrap" title={`${item.name} (${item.size})`}>
+                        <div key={i} className="mini-thumb-wrap" title={`${item.name} (${item.color ? item.color + ' / ' : ''}${item.size || 'Standard'})`}>
                           <img src={getImageUrl(item.image)} alt={item.name} />
                         </div>
                       ))}
@@ -909,23 +894,12 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
       <div className="mobile-order-card-feed">
         {visibleOrders.map((order) => (
           <div key={order._id} className="mobile-order-card" onClick={() => setSelectedOrder(order)}>
+            {/* Header: Order Number, Channel Badge & Status */}
             <div className="mobile-order-card-top">
               <div className="mobile-order-id-group">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <div className="mobile-order-id-pills">
                   <span className="mobile-order-num">#{order.orderNumber}</span>
-                  <span style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                    fontSize: '0.7rem',
-                    fontWeight: '700',
-                    whiteSpace: 'nowrap',
-                    background: String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(59, 130, 246, 0.12)',
-                    color: String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' ? '#059669' : '#2563eb',
-                    border: `1px solid ${String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' ? '#10b981' : '#3b82f6'}`
-                  }}>
+                  <span className={`mobile-channel-badge ${String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' ? 'offline' : 'online'}`}>
                     <span>{String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' ? '🏬' : '🌐'}</span>
                     <span>{String(order.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' ? 'OFFLINE' : 'ONLINE'}</span>
                   </span>
@@ -936,11 +910,12 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                   })} • {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
-              <span className={`status-pill ${order.status}`} style={{ flexShrink: 0, margin: 0 }}>
+              <span className={`status-pill ${order.status}`}>
                 {order.status}
               </span>
             </div>
 
+            {/* Body: Customer Details & Financials */}
             <div className="mobile-order-card-body">
               <div className="mobile-customer-info">
                 <div className="mobile-customer-avatar">
@@ -953,31 +928,44 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
               </div>
 
               <div className="mobile-order-financials">
-                <div className="mobile-order-items-badge">
-                  📦 {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
-                </div>
                 <div className="mobile-order-total">
                   ₹{order.totalAmount?.toLocaleString('en-IN')}
+                </div>
+                <div className="mobile-order-items-badge">
+                  📦 {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
                 </div>
               </div>
             </div>
 
-            {/* Item Thumbnail Strip for Mobile */}
+            {/* Item Thumbnail & Name Preview */}
             {order.items && order.items.length > 0 && (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', overflowX: 'auto', padding: '2px 0 6px 0' }}>
-                {order.items.slice(0, 4).map((item, idx) => (
-                  <div key={idx} style={{ width: '38px', height: '48px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, background: '#f4f1ea', border: '1px solid #eae7e0' }}>
-                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div className="mobile-order-items-preview">
+                <div className="mobile-thumbs-list">
+                  {order.items.slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="mobile-thumb-item" title={item.name}>
+                      <img src={getImageUrl(item.image)} alt={item.name} />
+                      {item.quantity > 1 && <span className="thumb-qty-tag">×{item.quantity}</span>}
+                    </div>
+                  ))}
+                  {order.items.length > 3 && (
+                    <div className="mobile-thumb-more">
+                      +{order.items.length - 3}
+                    </div>
+                  )}
+                </div>
+                {order.items[0]?.name && (
+                  <div className="mobile-preview-item-info">
+                    <span className="mobile-preview-item-name">{order.items[0].name}</span>
+                    <span className="mobile-preview-item-meta">
+                      Size: {order.items[0].size || 'Free'}
+                      {order.items.length > 1 ? ` • +${order.items.length - 1} more item${order.items.length > 2 ? 's' : ''}` : ''}
+                    </span>
                   </div>
-                ))}
-                {order.items.length > 4 && (
-                  <span style={{ fontSize: '0.72rem', fontWeight: '700', color: '#B8860B', background: 'rgba(212, 175, 55, 0.1)', padding: '2px 8px', borderRadius: '10px' }}>
-                    +{order.items.length - 4} more
-                  </span>
                 )}
               </div>
             )}
 
+            {/* Footer: Payment Badge & Manage Order Button */}
             <div className="mobile-order-card-footer">
               {(() => {
                 const isPaid = String(order.paymentStatus || '').toLowerCase() === 'paid'
@@ -993,7 +981,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                     : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
                 } else {
                   badgeText = isCod
-                    ? 'ONLINE (COD)'
+                    ? (isPaid ? 'COD (PAID)' : 'ONLINE (COD)')
                     : `ONLINE (${isPaid ? 'PAID' : (order.paymentStatus || 'PENDING').toUpperCase()})`
                 }
 
@@ -1009,7 +997,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                 setSelectedOrder(order)
               }}>
                 <span>Manage Order</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
             </div>
           </div>
@@ -1034,14 +1022,26 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
               onClick={(e) => e.stopPropagation()}
             >
               <div className="modal-sidebar-header">
+                <button
+                  type="button"
+                  className="modal-back-arrow-btn"
+                  onClick={() => setSelectedOrder(null)}
+                  title="Back to orders"
+                  aria-label="Back"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                </button>
                 <div className="header-main">
                   <h2>Order #{selectedOrder.orderNumber}</h2>
                   <span className={`status-pill ${selectedOrder.status}`}>{selectedOrder.status}</span>
                 </div>
                 <div className="header-actions">
                   <button className="print-btn" onClick={printInvoice}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                    Print Invoice
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    <span>Print Invoice</span>
                   </button>
                   <button className="close-side-modal" onClick={() => setSelectedOrder(null)}>&times;</button>
                 </div>
@@ -1073,8 +1073,8 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                   {String(selectedOrder.orderType || 'ONLINE').toUpperCase() === 'OFFLINE' && String(selectedOrder.paymentMethod || '').toLowerCase() === 'cod' && (
                     <section className="offline-cod-section" style={{ marginTop: '20px' }}>
                       <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>🏬 Offline Cash on Delivery (COD) Management</h3>
-                      <div style={{ padding: '20px', background: '#1c1917', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #10b981', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', fontSize: '0.88rem' }}>
+                      <div className="order-detail-dark-card" style={{ padding: '20px', background: '#1c1917', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #10b981', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
+                        <div className="order-detail-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px', fontSize: '0.88rem' }}>
                           <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#10b981', marginLeft: '4px', fontWeight: '700' }}>OFFLINE</strong></div>
                           <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>COD</strong></div>
                           <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: String(selectedOrder.paymentStatus || '').toLowerCase() === 'paid' ? '#22c55e' : String(selectedOrder.paymentStatus || '').toLowerCase() === 'rejected' ? '#ef4444' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.paymentStatus || 'PENDING').toUpperCase()}</strong></div>
@@ -1140,8 +1140,8 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                   {String(selectedOrder.orderType || 'ONLINE').toUpperCase() !== 'OFFLINE' && (
                     <section className="refund-section" style={{ marginTop: '20px' }}>
                       <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>💳 Payment & Refund Control</h3>
-                      <div style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
+                      <div className="order-detail-dark-card" style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
+                        <div className="order-detail-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
                           <div><span style={{ color: '#a3a3a3' }}>Order Channel:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>ONLINE</strong></div>
                           <div><span style={{ color: '#a3a3a3' }}>Payment Method:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.paymentMethod === 'cod' ? 'ONLINE (COD)' : (selectedOrder.paymentMethod || 'online').toUpperCase()}</strong></div>
                           <div><span style={{ color: '#a3a3a3' }}>Payment Status:</span> <strong style={{ color: selectedOrder.paymentStatus === 'paid' ? '#22c55e' : '#f59e0b', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.paymentMethod === 'cod' ? (selectedOrder.paymentStatus === 'paid' ? 'PAID' : 'COD (PAY ON DELIVERY)') : (selectedOrder.paymentStatus || 'pending').toUpperCase()}</strong></div>
@@ -1287,138 +1287,138 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                       </div>
 
                       {/* 100% Automated Ad2Ship Logistics Management Card */}
-                      <div className="ad2ship-fulfillment-card" style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(212, 175, 55, 0.3)', paddingBottom: '10px' }}>
-                            <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#d4af37', fontWeight: '700', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span>🚚 AD2SHIP LOGISTICS CONTROL</span>
-                            </h4>
-                            {ad2shipLoading && <span style={{ fontSize: '0.8rem', color: '#facc15', fontWeight: '600' }}>Processing Ad2Ship...</span>}
+                      <div className="ad2ship-fulfillment-card order-detail-dark-card" style={{ padding: '20px', background: '#111111', color: '#ffffff', borderRadius: '12px', border: '1.5px solid #d4af37', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid rgba(212, 175, 55, 0.3)', paddingBottom: '10px' }}>
+                          <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#d4af37', fontWeight: '700', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>🚚 AD2SHIP LOGISTICS CONTROL</span>
+                          </h4>
+                          {ad2shipLoading && <span style={{ fontSize: '0.8rem', color: '#facc15', fontWeight: '600' }}>Processing Ad2Ship...</span>}
+                        </div>
+
+                        <div className="order-detail-meta-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
+                          <div><span style={{ color: '#a3a3a3' }}>Ad2Ship Order ID:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.ad2shipOrderId || 'None'}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>AWB Number:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.awbNumber || selectedOrder.trackingNumber || 'Unassigned'}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Courier Partner:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.courierName || 'Unassigned'}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Shipping Fee:</span> <strong style={{ color: '#facc15', marginLeft: '4px', fontWeight: '700' }}>₹{selectedOrder.shipping?.totalCharges || 0}</strong></div>
+                        </div>
+
+                        {/* Partner Selection Dropdown */}
+                        {ad2shipPartners.length > 0 && !selectedOrder.shipping?.awbNumber && (
+                          <div style={{ marginBottom: '16px' }}>
+                            <label style={{ fontSize: '0.8rem', color: '#d4af37', fontWeight: '700', marginBottom: '6px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Courier Partner:</label>
+                            <select
+                              className="ad2ship-courier-select"
+                              value={selectedCourierId}
+                              onChange={(e) => setSelectedCourierId(e.target.value)}
+                            >
+                              {ad2shipPartners.map(p => (
+                                <option key={p.id} value={p.id} style={{ background: '#ffffff', color: '#111111', fontWeight: '600' }}>
+                                  {p.name} — ₹{p.total_charge} (Freight: ₹{p.freight_charge}, COD: ₹{p.cod_charge})
+                                </option>
+                              ))}
+                            </select>
                           </div>
+                        )}
 
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.88rem' }}>
-                            <div><span style={{ color: '#a3a3a3' }}>Ad2Ship Order ID:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.ad2shipOrderId || 'None'}</strong></div>
-                            <div><span style={{ color: '#a3a3a3' }}>AWB Number:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.awbNumber || selectedOrder.trackingNumber || 'Unassigned'}</strong></div>
-                            <div><span style={{ color: '#a3a3a3' }}>Courier Partner:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.shipping?.courierName || 'Unassigned'}</strong></div>
-                            <div><span style={{ color: '#a3a3a3' }}>Shipping Fee:</span> <strong style={{ color: '#facc15', marginLeft: '4px', fontWeight: '700' }}>₹{selectedOrder.shipping?.totalCharges || 0}</strong></div>
-                          </div>
+                        {/* Ad2Ship Action Buttons */}
+                        <div className="ad2ship-buttons-mobile-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                          <button
+                            type="button"
+                            disabled={ad2shipLoading}
+                            onClick={() => handleCalculateRate(selectedOrder)}
+                            style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#1c1917', color: '#d4af37', border: '1.5px solid #d4af37', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' }}
+                          >
+                            Calculate Rates
+                          </button>
 
-                          {/* Partner Selection Dropdown */}
-                          {ad2shipPartners.length > 0 && !selectedOrder.shipping?.awbNumber && (
-                            <div style={{ marginBottom: '16px' }}>
-                              <label style={{ fontSize: '0.8rem', color: '#d4af37', fontWeight: '700', marginBottom: '6px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select Courier Partner:</label>
-                              <select
-                                className="ad2ship-courier-select"
-                                value={selectedCourierId}
-                                onChange={(e) => setSelectedCourierId(e.target.value)}
-                              >
-                                {ad2shipPartners.map(p => (
-                                  <option key={p.id} value={p.id} style={{ background: '#ffffff', color: '#111111', fontWeight: '600' }}>
-                                    {p.name} — ₹{p.total_charge} (Freight: ₹{p.freight_charge}, COD: ₹{p.cod_charge})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-
-                          {/* Ad2Ship Action Buttons */}
-                          <div className="ad2ship-buttons-mobile-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                          {!selectedOrder.shipping?.ad2shipOrderId && (
                             <button
                               type="button"
                               disabled={ad2shipLoading}
-                              onClick={() => handleCalculateRate(selectedOrder)}
-                              style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#1c1917', color: '#d4af37', border: '1.5px solid #d4af37', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' }}
+                              onClick={() => handleCreateAd2ShipOrder(selectedOrder._id)}
+                              style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#d4af37', color: '#000000', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)' }}
                             >
-                              Calculate Rates
+                              Create Ad2Ship Order
                             </button>
+                          )}
 
-                            {!selectedOrder.shipping?.ad2shipOrderId && (
+                          {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && (
+                            <button
+                              type="button"
+                              disabled={ad2shipLoading || !selectedCourierId}
+                              onClick={() => handleShipOrder(selectedOrder._id)}
+                              style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)' }}
+                            >
+                              Ship Order & Assign AWB
+                            </button>
+                          )}
+
+                          {(selectedOrder.shipping?.awbNumber || selectedOrder.shipping?.ad2shipOrderId) && (
+                            <>
                               <button
                                 type="button"
                                 disabled={ad2shipLoading}
-                                onClick={() => handleCreateAd2ShipOrder(selectedOrder._id)}
-                                style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#d4af37', color: '#000000', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(212, 175, 55, 0.3)' }}
+                                onClick={() => handleTrackShipment(selectedOrder)}
+                                style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
                               >
-                                Create Ad2Ship Order
+                                Track Live
                               </button>
-                            )}
-
-                            {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && (
-                              <button
-                                type="button"
-                                disabled={ad2shipLoading || !selectedCourierId}
-                                onClick={() => handleShipOrder(selectedOrder._id)}
-                                style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)' }}
-                              >
-                                Ship Order & Assign AWB
-                              </button>
-                            )}
-
-                            {(selectedOrder.shipping?.awbNumber || selectedOrder.shipping?.ad2shipOrderId) && (
-                              <>
-                                <button
-                                  type="button"
-                                  disabled={ad2shipLoading}
-                                  onClick={() => handleTrackShipment(selectedOrder)}
-                                  style={{ padding: '8px 16px', fontSize: '0.82rem', background: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
-                                >
-                                  Track Live
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={ad2shipLoading}
-                                  onClick={() => handleSyncAd2Ship(selectedOrder._id)}
-                                  title="Pull latest AWB, courier & status directly from Ad2Ship"
-                                  style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
-                                >
-                                  Sync A2D
-                                </button>
-                              </>
-                            )}
-
-                            {selectedOrder.shipping?.ad2shipOrderId && (
-                              <>
-                                <button
-                                  type="button"
-                                  disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
-                                  title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download shipping label'}
-                                  onClick={() => handleGenerateDocument(selectedOrder._id, 'label')}
-                                  style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b', color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
-                                >
-                                  Download Label
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
-                                  title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download tax invoice'}
-                                  onClick={() => handleGenerateDocument(selectedOrder._id, 'invoice')}
-                                  style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b', color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
-                                >
-                                  Download Invoice
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
-                                  title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Generate courier manifest'}
-                                  onClick={() => handleGenerateDocument(selectedOrder._id, 'manifest')}
-                                  style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.manifestGenerated ? '#15803d' : (selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b'), color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
-                                >
-                                  {selectedOrder.shipping?.manifestGenerated ? 'Manifested ✓' : 'Manifest'}
-                                </button>
-                              </>
-                            )}
-
-                            {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'shipped' && selectedOrder.status !== 'delivered' && (
                               <button
                                 type="button"
                                 disabled={ad2shipLoading}
-                                onClick={() => handleCancelShipment(selectedOrder._id)}
-                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                                onClick={() => handleSyncAd2Ship(selectedOrder._id)}
+                                title="Pull latest AWB, courier & status directly from Ad2Ship"
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
                               >
-                                Cancel Shipment
+                                Sync A2D
                               </button>
-                            )}
-                          </div>
+                            </>
+                          )}
+
+                          {selectedOrder.shipping?.ad2shipOrderId && (
+                            <>
+                              <button
+                                type="button"
+                                disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
+                                title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download shipping label'}
+                                onClick={() => handleGenerateDocument(selectedOrder._id, 'label')}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b', color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
+                              >
+                                Download Label
+                              </button>
+                              <button
+                                type="button"
+                                disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
+                                title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Download tax invoice'}
+                                onClick={() => handleGenerateDocument(selectedOrder._id, 'invoice')}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b', color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
+                              >
+                                Download Invoice
+                              </button>
+                              <button
+                                type="button"
+                                disabled={ad2shipLoading || !selectedOrder.shipping?.awbNumber}
+                                title={!selectedOrder.shipping?.awbNumber ? 'Ship order & assign AWB first' : 'Generate courier manifest'}
+                                onClick={() => handleGenerateDocument(selectedOrder._id, 'manifest')}
+                                style={{ padding: '8px 14px', fontSize: '0.82rem', background: selectedOrder.shipping?.manifestGenerated ? '#15803d' : (selectedOrder.shipping?.awbNumber ? '#334155' : '#1e293b'), color: selectedOrder.shipping?.awbNumber ? '#ffffff' : '#64748b', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: selectedOrder.shipping?.awbNumber ? 'pointer' : 'not-allowed' }}
+                              >
+                                {selectedOrder.shipping?.manifestGenerated ? 'Manifested ✓' : 'Manifest'}
+                              </button>
+                            </>
+                          )}
+
+                          {selectedOrder.shipping?.ad2shipOrderId && !selectedOrder.shipping?.awbNumber && selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'shipped' && selectedOrder.status !== 'delivered' && (
+                            <button
+                              type="button"
+                              disabled={ad2shipLoading}
+                              onClick={() => handleCancelShipment(selectedOrder._id)}
+                              style={{ padding: '8px 14px', fontSize: '0.82rem', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                            >
+                              Cancel Shipment
+                            </button>
+                          )}
                         </div>
+                      </div>
                     </section>
                   ) : null}
 
@@ -1455,7 +1455,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                           <div className="pkg-info">
                             <h4>{item.name}</h4>
                             <p>
-                              Size: {item.size} • Qty: {item.quantity}
+                              {item.color ? `Colour: ${item.color} • ` : ''}Size: {item.size || 'Standard'} • Qty: {item.quantity}
                               {(item.weightKg || item.product?.weightKg) ? ` • ${item.weightKg || item.product?.weightKg} kg` : ''}
                               {(item.dimensions?.length || item.product?.dimensions?.length) ? ` • ${item.dimensions?.length || item.product?.dimensions?.length}×${item.dimensions?.width || item.product?.dimensions?.width}×${item.dimensions?.height || item.product?.dimensions?.height} cm` : ''}
                             </p>

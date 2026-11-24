@@ -529,28 +529,99 @@
   stroke-width: 3;
 }
 
+.color-swatches-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .color-swatch-circle {
-  width: 32px;
-  height: 32px;
+  position: relative;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: 2px solid #ffffff;
-  outline: 1px solid #e7e5e4;
+  padding: 3px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  outline: none;
+}
+
+.color-swatch-circle:hover {
+  transform: translateY(-2px) scale(1.08);
+  border-color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .color-swatch-circle.active {
-  outline: 2px solid #1c1917;
+  border-color: #0f172a;
+  box-shadow: 0 0 0 2px #d4af37, 0 4px 12px rgba(15, 23, 42, 0.18);
+  transform: scale(1.1);
 }
 
-.swatch-check {
+.swatch-color-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+}
+
+.swatch-check-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #ffffff;
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85));
+  pointer-events: none;
+}
+
+.swatch-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 25;
+}
+
+.swatch-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px;
+  border-style: solid;
+  border-color: #0f172a transparent transparent transparent;
+}
+
+.color-swatch-circle:hover .swatch-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 .size-option-header {
@@ -2191,4 +2262,88 @@
     grid-template-columns: 1fr;
     gap: 8px;
   }
+}
+
+/* ========================================================
+   PDP IMAGE SWATCHES (JUST LIKE USER SCREENSHOT)
+   ======================================================== */
+.pdp-color-section {
+  margin-bottom: 1.25rem;
+}
+
+.pdp-color-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pdp-color-title {
+  font-size: 0.95rem;
+  color: #52525b;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+}
+
+.pdp-active-color-name {
+  color: #18181b;
+  font-weight: 600;
+  margin-left: 5px;
+  text-transform: capitalize;
+}
+
+.pdp-image-swatches-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.pdp-image-swatch-card {
+  position: relative;
+  width: 48px;
+  height: 58px;
+  border-radius: 9px;
+  padding: 2px;
+  background: #ffffff;
+  border: 1.5px solid #d4d4d8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  outline: none;
+}
+
+.pdp-image-swatch-card:hover {
+  border-color: #71717a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.pdp-image-swatch-card.active {
+  border: 2px solid #18181b;
+  box-shadow: 0 0 0 1px #18181b, 0 4px 12px rgba(24, 24, 27, 0.16);
+  transform: scale(1.05);
+}
+
+.pdp-image-swatch-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 6px;
+  display: block;
+}
+
+.pdp-image-swatch-fallback-hex {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  display: block;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
 }

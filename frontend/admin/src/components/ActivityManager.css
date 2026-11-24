@@ -124,7 +124,7 @@
    -------------------------------------------------------------------------- */
 .activity-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.9rem;
   margin-bottom: 1.3rem;
 }
@@ -732,6 +732,10 @@
 
 /* Responsive */
 @media (max-width: 992px) {
+  .activity-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
   .log-stream-header {
     display: none;
   }
@@ -742,5 +746,79 @@
   }
   .col-amount, .col-payment, .col-status {
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .activity-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .activity-kpi-grid .kpi-card {
+    padding: 10px 10px !important;
+    gap: 8px !important;
+    border-radius: 10px !important;
+  }
+
+  .activity-kpi-grid .kpi-icon-wrap {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+  }
+
+  .activity-kpi-grid .kpi-icon-wrap svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .activity-kpi-grid .kpi-label {
+    font-size: 0.62rem !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .activity-kpi-grid .kpi-value {
+    font-size: 1.25rem !important;
+  }
+
+  .activity-kpi-grid .kpi-subtext {
+    font-size: 0.64rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (max-width: 480px) {
+  .activity-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .activity-kpi-grid .kpi-card {
+    padding: 8px 10px !important;
+    gap: 6px !important;
+  }
+
+  .activity-kpi-grid .kpi-icon-wrap {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .activity-kpi-grid .kpi-icon-wrap svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .activity-kpi-grid .kpi-label {
+    font-size: 0.58rem !important;
+  }
+
+  .activity-kpi-grid .kpi-value {
+    font-size: 1.15rem !important;
+  }
+
+  .activity-kpi-grid .kpi-subtext {
+    font-size: 0.6rem !important;
   }
 }

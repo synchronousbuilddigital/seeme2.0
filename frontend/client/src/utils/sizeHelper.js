@@ -2,6 +2,7 @@
  * Helper utilities for product size sorting and stock availability.
  * Requirement: For every individual product, available sizes must appear FIRST in the size selector row,
  * followed by out-of-stock sizes.
+ * Supports Color + Size Matrix inventory (colorImages[].sizeStock).
  */
 
 export const isExcludedSize = (s) => {
@@ -19,15 +20,36 @@ export const isExcludedSize = (s) => {
 
 /**
  * Get available stock quantity for a specific size of a product.
+ * Takes optional selectedColor to look up Color + Size Matrix inventory.
  * Returns 0 if product is out of stock or size has 0 quantity.
  */
-export const getSizeStockQty = (sz, prod) => {
+export const getSizeStockQty = (sz, prod, selectedColor = null) => {
   if (!prod || !sz) return 0
   if (prod.status === 'Out of Stock' || prod.status === 'archived' || prod.inStock === false) return 0
 
+  const targetSizeUpper = String(sz).trim().toUpperCase()
+
+  // 1. Check Color-specific sizeStock if selectedColor is provided
+  if (selectedColor && Array.isArray(prod.colorImages) && prod.colorImages.length > 0) {
+    const targetColLower = String(selectedColor).trim().toLowerCase()
+    const colorEntry = prod.colorImages.find(
+      ci => ci && ci.color && ci.color.trim().toLowerCase() === targetColLower
+    )
+    if (colorEntry && Array.isArray(colorEntry.sizeStock) && colorEntry.sizeStock.length > 0) {
+      const foundInColor = colorEntry.sizeStock.find(
+        s => s && String(s.size).trim().toUpperCase() === targetSizeUpper
+      )
+      if (foundInColor) {
+        return Math.max(0, Number(foundInColor.quantity ?? foundInColor.stock ?? 0))
+      }
+      return 0
+    }
+  }
+
+  // 2. Product-level sizeStock
   if (Array.isArray(prod.sizeStock) && prod.sizeStock.length > 0) {
     const found = prod.sizeStock.find(
-      s => s && String(s.size).trim().toUpperCase() === String(sz).trim().toUpperCase()
+      s => s && String(s.size).trim().toUpperCase() === targetSizeUpper
     )
     if (found) {
       return Math.max(0, Number(found.quantity ?? found.stock ?? 0))
@@ -45,8 +67,8 @@ export const getSizeStockQty = (sz, prod) => {
   return 10
 }
 
-export const isSizeInStock = (sz, prod) => {
-  return getSizeStockQty(sz, prod) > 0
+export const isSizeInStock = (sz, prod, selectedColor = null) => {
+  return getSizeStockQty(sz, prod, selectedColor) > 0
 }
 
 /**
@@ -76,9 +98,24 @@ const compareBySizeOrder = (a, b) => {
  * 1. Available (in-stock) sizes come FIRST (ordered by standard size hierarchy).
  * 2. Out-of-stock sizes come SECOND (ordered by standard size hierarchy).
  */
-export const getSortedSizesForProduct = (prod) => {
+export const getSortedSizesForProduct = (prod, selectedColor = null) => {
   if (!prod) return []
   const sizeSet = new Set()
+
+  // Color-specific sizes
+  if (selectedColor && Array.isArray(prod.colorImages) && prod.colorImages.length > 0) {
+    const targetColLower = String(selectedColor).trim().toLowerCase()
+    const colorEntry = prod.colorImages.find(
+      ci => ci && ci.color && ci.color.trim().toLowerCase() === targetColLower
+    )
+    if (colorEntry && Array.isArray(colorEntry.sizeStock) && colorEntry.sizeStock.length > 0) {
+      colorEntry.sizeStock.forEach(s => {
+        if (s?.size && !isExcludedSize(s.size)) {
+          sizeSet.add(String(s.size).trim().toUpperCase())
+        }
+      })
+    }
+  }
 
   if (Array.isArray(prod.sizes) && prod.sizes.length > 0) {
     prod.sizes.forEach(s => {
@@ -105,7 +142,7 @@ export const getSortedSizesForProduct = (prod) => {
   const outOfStock = []
 
   Array.from(sizeSet).forEach(sz => {
-    if (isSizeInStock(sz, prod)) {
+    if (isSizeInStock(sz, prod, selectedColor)) {
       inStock.push(sz)
     } else {
       outOfStock.push(sz)
@@ -125,11 +162,11 @@ export const getSortedSizesForProduct = (prod) => {
  * 2. If all out of stock, first size in the sorted list.
  * 3. Fallback default size.
  */
-export const getFirstAvailableSize = (prod, fallback = 'M') => {
+export const getFirstAvailableSize = (prod, fallback = 'M', selectedColor = null) => {
   if (!prod) return fallback
-  const sorted = getSortedSizesForProduct(prod)
+  const sorted = getSortedSizesForProduct(prod, selectedColor)
   if (sorted.length === 0) return fallback
-  const firstInStock = sorted.find(sz => isSizeInStock(sz, prod))
+  const firstInStock = sorted.find(sz => isSizeInStock(sz, prod, selectedColor))
   return firstInStock || sorted[0] || fallback
 }
 
@@ -153,6 +190,25 @@ export const isProductInStock = (product) => {
 
   if (product.inStock === false) return false
 
+  // Check colorImages sizeStock if defined
+  if (Array.isArray(product.colorImages) && product.colorImages.length > 0) {
+    const hasAnyColorSizeStock = product.colorImages.some(
+      ci => Array.isArray(ci.sizeStock) && ci.sizeStock.length > 0
+    )
+    if (hasAnyColorSizeStock) {
+      let grandTotal = 0
+      product.colorImages.forEach(ci => {
+        if (Array.isArray(ci.sizeStock)) {
+          grandTotal += ci.sizeStock.reduce(
+            (sum, s) => sum + Math.max(0, Number(s?.quantity ?? s?.stock ?? 0)),
+            0
+          )
+        }
+      })
+      if (grandTotal > 0) return true
+    }
+  }
+
   // Check total quantity across sizes if sizeStock is defined
   if (Array.isArray(product.sizeStock) && product.sizeStock.length > 0) {
     const totalSizeStock = product.sizeStock.reduce(
@@ -171,4 +227,3 @@ export const isProductInStock = (product) => {
 export const isProductOutOfStock = (product) => {
   return !isProductInStock(product)
 }
-

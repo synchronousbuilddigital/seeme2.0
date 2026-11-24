@@ -8,6 +8,7 @@ import { getRazorpay } from './orderController.js'
 import shippingService from '../services/shippingService.js'
 import { sendOrderEmail } from '../services/emailService.js'
 import { revertCouponUsage } from '../services/couponEngine.js'
+import { restoreVariantStock } from '../utils/variantStockHelper.js'
 
 /**
  * Helper to determine if an order has been shipped or picked up from warehouse.
@@ -324,17 +325,7 @@ export const approveRefund = asyncHandler(async (req, res) => {
       if (item.product) {
         const prod = await Product.findById(item.product)
         if (prod) {
-          if (prod.sizeStock && prod.sizeStock.length > 0) {
-            const sItem = prod.sizeStock.find(s => s.size === item.size)
-            if (sItem) {
-              sItem.quantity += (item.quantity || 1)
-              prod.stock = prod.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
-            } else {
-              prod.stock += (item.quantity || 1)
-            }
-          } else {
-            prod.stock += (item.quantity || 1)
-          }
+          restoreVariantStock(prod, { size: item.size, color: item.color, quantity: item.quantity })
           await prod.save()
         }
       }

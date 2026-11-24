@@ -20,7 +20,8 @@ const AddToCartButton = ({
   if (!product) return null
 
   const productId = product._id || product.id
-  const qty = getItemQuantity(productId, selectedSize)
+  const productColor = product.selectedColor || product.color || ''
+  const qty = getItemQuantity(productId, selectedSize, productColor)
 
   const handleAdd = (e) => {
     e.stopPropagation()
@@ -31,7 +32,7 @@ const AddToCartButton = ({
 
   const handleDecrease = (e) => {
     e.stopPropagation()
-    decreaseQuantity(productId, selectedSize)
+    decreaseQuantity(productId, selectedSize, productColor)
   }
 
   const handleIncrease = (e) => {
@@ -41,13 +42,13 @@ const AddToCartButton = ({
 
   if (qty > 0) {
     return (
-      <div 
+      <div
         className={`add-to-cart-qty-control variant-${variant} ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <button 
+        <button
           type="button"
-          className="qty-btn qty-btn-minus" 
+          className="qty-btn qty-btn-minus"
           onClick={handleDecrease}
           aria-label="Decrease quantity"
           title="Decrease quantity"
@@ -58,9 +59,9 @@ const AddToCartButton = ({
           <span className="qty-count-val">{qty}</span>
           {showInBagLabel && <span className="qty-in-bag-label">in bag</span>}
         </div>
-        <button 
+        <button
           type="button"
-          className="qty-btn qty-btn-plus" 
+          className="qty-btn qty-btn-plus"
           onClick={handleIncrease}
           aria-label="Increase quantity"
           title="Increase quantity"

@@ -73,6 +73,30 @@ const productSchema = new mongoose.Schema({
   images: [{
     type: String  // URLs or Cloudinary links
   }],
+  colorImages: [{
+    color: {
+      type: String,
+      trim: true
+    },
+    hex: {
+      type: String,
+      trim: true
+    },
+    images: [{
+      type: String
+    }],
+    sizeStock: [{
+      size: {
+        type: String,
+        trim: true
+      },
+      quantity: {
+        type: Number,
+        min: 0,
+        default: 0
+      }
+    }]
+  }],
   video: {
     type: String
   },
@@ -204,12 +228,49 @@ const productSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Auto-calculate total stock and sizes array from sizeStock, and sync color/colors
+// Auto-calculate total stock and sizes array from sizeStock and colorImages, and sync color/colors
 productSchema.pre('save', function (next) {
-  if (this.sizeStock && this.sizeStock.length > 0) {
-    this.stock = this.sizeStock.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
-    this.sizes = this.sizeStock.map(item => item.size)
+  // Aggregate all unique sizes across sizeStock and colorImages
+  const sizeSet = new Set()
+  if (Array.isArray(this.sizes)) {
+    this.sizes.forEach(s => s && sizeSet.add(String(s).trim()))
   }
+  if (Array.isArray(this.sizeStock) && this.sizeStock.length > 0) {
+    this.sizeStock.forEach(item => item.size && sizeSet.add(String(item.size).trim()))
+  }
+
+  // Check color-specific size stock
+  let colorStockTotal = 0
+  let hasColorSizeStock = false
+  if (Array.isArray(this.colorImages) && this.colorImages.length > 0) {
+    if (!this.colors) this.colors = []
+    this.colorImages.forEach(ci => {
+      if (ci && ci.color && ci.color.trim()) {
+        const cTrim = ci.color.trim()
+        if (!this.colors.some(existing => existing.toLowerCase() === cTrim.toLowerCase())) {
+          this.colors.push(cTrim)
+        }
+      }
+      if (ci && Array.isArray(ci.sizeStock) && ci.sizeStock.length > 0) {
+        hasColorSizeStock = true
+        ci.sizeStock.forEach(s => {
+          if (s && s.size) sizeSet.add(String(s.size).trim())
+          colorStockTotal += Math.max(0, Number(s.quantity) || 0)
+        })
+      }
+    })
+  }
+
+  if (hasColorSizeStock && colorStockTotal > 0) {
+    this.stock = colorStockTotal
+  } else if (this.sizeStock && this.sizeStock.length > 0) {
+    this.stock = this.sizeStock.reduce((total, item) => total + (Number(item.quantity) || 0), 0)
+  }
+
+  if (sizeSet.size > 0) {
+    this.sizes = Array.from(sizeSet)
+  }
+
   if (Array.isArray(this.colors) && this.colors.length > 0) {
     if (!this.color) this.color = this.colors[0]
   } else if (this.color && (!this.colors || this.colors.length === 0)) {
@@ -236,6 +297,23 @@ productSchema.pre('findOneAndUpdate', function (next) {
       update.stock = totalStock
       update.sizes = sizes
     }
+  }
+
+  // Sync colorImages to colors on update
+  const colorImages = update.colorImages || (update.$set && update.$set.colorImages)
+  if (Array.isArray(colorImages) && colorImages.length > 0) {
+    let currentColors = update.colors || (update.$set && update.$set.colors) || []
+    if (!Array.isArray(currentColors)) currentColors = []
+    colorImages.forEach(ci => {
+      if (ci && ci.color && ci.color.trim()) {
+        const cTrim = ci.color.trim()
+        if (!currentColors.some(existing => existing.toLowerCase() === cTrim.toLowerCase())) {
+          currentColors.push(cTrim)
+        }
+      }
+    })
+    if (update.$set) update.$set.colors = currentColors
+    else update.colors = currentColors
   }
 
   // Sync color/colors on update

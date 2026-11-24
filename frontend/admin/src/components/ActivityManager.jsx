@@ -8,11 +8,9 @@ const ActivityManager = () => {
   const [activities, setActivities] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(15)
   const [copiedId, setCopiedId] = useState(null)
-  const [lastRefreshed, setLastRefreshed] = useState(new Date())
 
   useEffect(() => {
     fetchActivities()
@@ -110,7 +108,6 @@ const ActivityManager = () => {
       )
 
       setActivities(combined)
-      setLastRefreshed(new Date())
     } catch (error) {
       console.error('Error fetching activity logs:', error)
     } finally {
@@ -144,24 +141,9 @@ const ActivityManager = () => {
         if (a.orderStatus !== 'confirmed') return false
       }
 
-      // Search term
-      if (searchTerm) {
-        const q = searchTerm.toLowerCase().trim()
-        const haystack = [
-          a.orderNumber,
-          a.customerName,
-          a.customerEmail,
-          a.title,
-          a.orderStatus,
-          a.paymentMethod,
-          String(a.amount || '')
-        ].filter(Boolean).join(' ').toLowerCase()
-        return haystack.includes(q)
-      }
-
       return true
     })
-  }, [activities, filter, searchTerm])
+  }, [activities, filter])
 
   // Pagination calculation
   const totalPages = Math.ceil(filteredActivities.length / pageSize) || 1
@@ -170,10 +152,10 @@ const ActivityManager = () => {
     return filteredActivities.slice(startIndex, startIndex + pageSize)
   }, [filteredActivities, currentPage, pageSize])
 
-  // Reset to page 1 on filter or search changes
+  // Reset to page 1 on filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [filter, searchTerm, pageSize])
+  }, [filter, pageSize])
 
   // Count aggregates
   const orderCount = activities.filter(a => a.type === 'order').length
@@ -214,31 +196,6 @@ const ActivityManager = () => {
 
   return (
     <div className="activity-manager">
-      {/* Header */}
-      <div className="manager-header">
-        <div>
-          <div className="executive-badge">
-            <span className="live-pulse-dot" />
-            LIVE AUDIT TRAIL & SYSTEM SIGNALS
-          </div>
-          <h1>System Activity Logs</h1>
-          <p>Real-time audit ledger of customer checkouts, logistics movements, and store alerts</p>
-        </div>
-        <div className="header-right">
-          <span className="sync-timestamp">
-            Synced: {lastRefreshed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-          </span>
-          <button className="refresh-btn" onClick={fetchActivities} disabled={loading}>
-            <svg className={loading ? 'spin-icon' : ''} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M23 4v6h-6"></path>
-              <path d="M1 20v-6h6"></path>
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
-            {loading ? 'SYNCING...' : 'REFRESH'}
-          </button>
-        </div>
-      </div>
-
       {/* KPI Cards */}
       <div className="activity-kpi-grid">
         <div className="kpi-card">
@@ -286,21 +243,8 @@ const ActivityManager = () => {
         </div>
       </div>
 
-      {/* Toolbar: Search + Filter Tabs */}
+      {/* Activity Filter Tabs */}
       <div className="activity-toolbar">
-        <div className="search-box">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input 
-            type="search" 
-            placeholder="Search activity by Order #, Customer, Amount, or Status..." 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button className="clear-search-btn" onClick={() => setSearchTerm('')}>✕</button>
-          )}
-        </div>
-
         <div className="feed-filters">
           <button className={`filter-tab ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>
             <span>ALL</span>
@@ -442,7 +386,7 @@ const ActivityManager = () => {
               <div className="empty-feed">
                 <span className="empty-feed-icon">📜</span>
                 <h3>No activity logs match your filter</h3>
-                <p>Try clearing search keywords or choosing "ALL" updates.</p>
+                <p>Try choosing "ALL" updates to view all logs.</p>
               </div>
             )}
           </div>

@@ -335,20 +335,30 @@ export const CartProvider = ({ children }) => {
       const defaultSize = (product.sizes && product.sizes.length > 0) ? product.sizes[0] : 'S'
       const productSize = product.selectedSize || product.size || defaultSize
       const productColor = product.selectedColor || product.color || ''
+      const activeVariant = Array.isArray(product.colorImages)
+        ? product.colorImages.find(ci => ci && ci.color && ci.color.toLowerCase() === productColor.toLowerCase())
+        : null
+      const variantId = product.variantId || product.selectedVariantId || (activeVariant ? String(activeVariant._id || activeVariant.id || '') : '') || (productColor ? `${productId}-${productColor}` : '')
       const normalizedProduct = {
         ...product,
         id: productId,
         size: productSize,
         selectedSize: productSize,
         color: productColor,
-        selectedColor: productColor
+        selectedColor: productColor,
+        variantId: variantId,
+        selectedVariantId: variantId
       }
 
       const existingIndex = prevCart.findIndex(item => {
         const itemId = item.id || item._id
         const itemSize = item.selectedSize || item.size || 'S'
         const itemColor = item.selectedColor || item.color || ''
-        return itemId === productId && itemSize === productSize && itemColor === productColor
+        const itemVariant = item.variantId || item.selectedVariantId || ''
+        const sizeMatch = itemSize === productSize
+        const colorMatch = itemColor.toLowerCase() === productColor.toLowerCase()
+        const variantMatch = (itemVariant && variantId) ? itemVariant === variantId : true
+        return itemId === productId && sizeMatch && colorMatch && variantMatch
       })
 
       const addedQty = Number(product.quantity) || 1
@@ -443,6 +453,10 @@ export const CartProvider = ({ children }) => {
     const addedQty = Number(quantity) || 1
 
     const productColor = product.selectedColor || product.color || ''
+    const activeVariant = Array.isArray(product.colorImages)
+      ? product.colorImages.find(ci => ci && ci.color && ci.color.toLowerCase() === productColor.toLowerCase())
+      : null
+    const variantId = product.variantId || product.selectedVariantId || (activeVariant ? String(activeVariant._id || activeVariant.id || '') : '') || (productColor ? `${productId}-${productColor}` : '')
     const normalizedProduct = {
       ...product,
       id: productId,
@@ -450,6 +464,8 @@ export const CartProvider = ({ children }) => {
       selectedSize: productSize,
       color: productColor,
       selectedColor: productColor,
+      variantId: variantId,
+      selectedVariantId: variantId,
       quantity: addedQty
     }
 
@@ -542,15 +558,14 @@ export const CartProvider = ({ children }) => {
     return wishlist.length
   }
 
-  const getItemQuantity = (productId, size) => {
+  const getItemQuantity = (productId, size, color) => {
     if (!productId) return 0
     const matches = cart.filter(item => {
       const itemId = item.id || item._id
-      if (size) {
-        const itemSize = item.selectedSize || item.size
-        return String(itemId) === String(productId) && itemSize === size
-      }
-      return String(itemId) === String(productId)
+      if (String(itemId) !== String(productId)) return false
+      if (size && (item.selectedSize || item.size) !== size) return false
+      if (color && (item.selectedColor || item.color || '').toLowerCase() !== color.toLowerCase()) return false
+      return true
     })
     return matches.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0)
   }
@@ -561,51 +576,43 @@ export const CartProvider = ({ children }) => {
 
     const productId = product.id || product._id
     const targetSize = size || product.selectedSize || product.size || (product.sizes && product.sizes[0]) || 'S'
+    const targetColor = product.selectedColor || product.color || ''
     
     const existing = cart.find(item => {
       const itemId = item.id || item._id
       const itemSize = item.selectedSize || item.size || 'S'
-      return String(itemId) === String(productId) && itemSize === targetSize
+      const itemColor = item.selectedColor || item.color || ''
+      const sizeMatch = itemSize === targetSize
+      const colorMatch = targetColor ? itemColor.toLowerCase() === targetColor.toLowerCase() : true
+      return String(itemId) === String(productId) && sizeMatch && colorMatch
     })
 
     if (existing) {
-      updateQuantity(productId, (existing.quantity || 1) + 1, targetSize)
+      updateQuantity(productId, (existing.quantity || 1) + 1, targetSize, existing.selectedColor || existing.color)
     } else {
-      addToCart({ ...product, selectedSize: targetSize }, customNavigate)
+      addToCart({ ...product, selectedSize: targetSize, selectedColor: targetColor }, customNavigate)
     }
     return true
   }
 
-  const decreaseQuantity = (productId, size) => {
+  const decreaseQuantity = (productId, size, color) => {
     if (!productId) return
     const items = cart.filter(item => String(item.id || item._id) === String(productId))
     if (items.length === 0) return
 
-    if (size) {
-      const targetItem = items.find(item => (item.selectedSize || item.size || 'S') === size)
-      if (targetItem) {
-        if ((targetItem.quantity || 1) > 1) {
-          updateQuantity(productId, targetItem.quantity - 1, size)
-        } else {
-          removeFromCart(productId, size)
-        }
-      } else {
-        const first = items[0]
-        const firstSize = first.selectedSize || first.size || 'S'
-        if ((first.quantity || 1) > 1) {
-          updateQuantity(productId, first.quantity - 1, firstSize)
-        } else {
-          removeFromCart(productId, firstSize)
-        }
-      }
+    const targetItem = items.find(item => {
+      const sizeMatch = size ? (item.selectedSize || item.size || 'S') === size : true
+      const colorMatch = color ? (item.selectedColor || item.color || '').toLowerCase() === color.toLowerCase() : true
+      return sizeMatch && colorMatch
+    }) || items[0]
+
+    const itemSize = targetItem.selectedSize || targetItem.size || 'S'
+    const itemColor = targetItem.selectedColor || targetItem.color || ''
+
+    if ((targetItem.quantity || 1) > 1) {
+      updateQuantity(productId, targetItem.quantity - 1, itemSize, itemColor)
     } else {
-      const first = items[0]
-      const firstSize = first.selectedSize || first.size || 'S'
-      if ((first.quantity || 1) > 1) {
-        updateQuantity(productId, first.quantity - 1, firstSize)
-      } else {
-        removeFromCart(productId, firstSize)
-      }
+      removeFromCart(productId, itemSize, itemColor)
     }
   }
 

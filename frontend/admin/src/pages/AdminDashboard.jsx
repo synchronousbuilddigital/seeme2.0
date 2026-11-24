@@ -355,10 +355,9 @@ const AdminDashboard = () => {
         </div>
 
         {/* Subpage Header for non-overview tabs */}
-        {activeTab !== 'overview' && (
+        {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'orders' && activeTab !== 'inventory' && (
           <div className="subpage-header">
             <h1 className="subpage-title">
-              {activeTab === 'products' && 'Product Library'}
               {activeTab === 'orders' && 'Order Management'}
               {activeTab === 'inventory' && 'Inventory Control'}
               {activeTab === 'customers' && 'Customer Registry'}
@@ -381,7 +380,6 @@ const AdminDashboard = () => {
             <div className="overview-header-row">
               <div className="overview-title-group">
                 <h1 className="overview-main-title">Dashboard Overview</h1>
-                <p className="overview-subtitle">Welcome back! Here's what's happening with your store.</p>
               </div>
               <div className="overview-date-filter">
                 <div className="date-filter-button">

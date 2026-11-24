@@ -36,10 +36,43 @@
 .inventory-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 28px;
-  flex-wrap: wrap;
+  width: 100%;
   gap: 16px;
+}
+
+.inventory-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.inventory-title {
+  font-family: var(--font-heading, 'Outfit', 'Playfair Display', sans-serif);
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0F172A;
+  margin: 0;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.export-text-full {
+  display: inline;
+}
+
+.export-text-short {
+  display: none;
+}
+
+.sync-text-full {
+  display: inline;
+}
+
+.sync-text-short {
+  display: none;
 }
 
 .inventory-header h2 {
@@ -1207,14 +1240,62 @@
   }
 
   .inventory-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 20px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    gap: 8px !important;
+    margin-bottom: 16px !important;
   }
 
-  .inventory-header h2 {
-    font-size: 1.5rem;
+  .inventory-header-left {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+  }
+
+  .inventory-title {
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
+    color: #0F172A !important;
+    letter-spacing: -0.02em !important;
+  }
+
+  .live-sync-badge {
+    padding: 3px 8px !important;
+    font-size: 0.65rem !important;
+    gap: 5px !important;
+    border-radius: 20px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .header-action-buttons {
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+  }
+
+  .export-excel-btn {
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .export-excel-btn svg {
+    width: 14px !important;
+    height: 14px !important;
   }
 
   .inventory-kpi-grid {
@@ -1284,8 +1365,24 @@
 }
 
 @media (max-width: 480px) {
-  .inventory-header h2 {
-    font-size: 1.35rem;
+  .inventory-title {
+    font-size: 1.15rem !important;
+  }
+
+  .sync-text-full {
+    display: none !important;
+  }
+
+  .sync-text-short {
+    display: inline !important;
+  }
+
+  .export-text-full {
+    display: none !important;
+  }
+
+  .export-text-short {
+    display: inline !important;
   }
 
   .inventory-kpi-grid {

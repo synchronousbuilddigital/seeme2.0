@@ -1000,7 +1000,8 @@ const Checkout = () => {
           quantity: item.quantity || 1, 
           size: item.selectedSize || item.size || 'M',
           color: (item.selectedColor && item.selectedColor.toLowerCase() !== 'standard') ? item.selectedColor : ((item.color && item.color.toLowerCase() !== 'standard') ? item.color : ''),
-          image: item.images?.[0] || item.image 
+          variantId: item.variantId || item.selectedVariantId || '',
+          image: item.image || item.images?.[0]
         }
       }),
       totalAmount: calculateTotal(),

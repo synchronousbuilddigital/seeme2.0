@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { API_ENDPOINTS } from '../config/api'
 import { apiRequest } from '../utils/apiClient'
 import { getImageUrl } from '../utils/imageHelper'
+import { printOrderInvoice } from '../utils/invoiceHelper'
 import './CustomersManager.css'
 
 const CustomersManager = () => {
@@ -14,6 +15,7 @@ const CustomersManager = () => {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [drawerTab, setDrawerTab] = useState('profile') // 'profile' | 'cart' | 'history'
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState(null)
 
   const [segmentFilter, setSegmentFilter] = useState('all')
 
@@ -39,12 +41,23 @@ const CustomersManager = () => {
     setDrawerTab('profile')
     setIsHistoryModalOpen(true)
     setHistoryLoading(true)
+    setSelectedOrderDetails(null)
     try {
       const data = await apiRequest(API_ENDPOINTS.ORDERS, { auth: true })
       if (data.success) {
-        const filtered = (data.data || []).filter(order => 
-          order.customer?.email?.toLowerCase().trim() === customer.email?.toLowerCase().trim()
-        )
+        const custEmail = (customer.email || '').toLowerCase().trim()
+        const custPhone = (customer.phone || '').trim().replace(/^\+91/, '').replace(/\s+/g, '')
+        const custId = String(customer._id || customer.id || '')
+        const filtered = (data.data || []).filter(order => {
+          const ordEmail = (order.customer?.email || '').toLowerCase().trim()
+          const ordPhone = (order.customer?.phone || '').trim().replace(/^\+91/, '').replace(/\s+/g, '')
+          const ordUserId = String(order.user?._id || order.user || '')
+          return (
+            (custEmail && ordEmail === custEmail) ||
+            (custPhone && ordPhone && (ordPhone === custPhone || ordPhone.endsWith(custPhone) || custPhone.endsWith(ordPhone))) ||
+            (custId && ordUserId && ordUserId === custId)
+          )
+        })
         setCustomerOrders(filtered)
       }
     } catch (error) {
@@ -165,7 +178,12 @@ const CustomersManager = () => {
 
         <div className="kpi-card">
           <div className="kpi-icon-wrap green">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 3h12" />
+              <path d="M6 8h12" />
+              <path d="M6 13l8.5 8" />
+              <path d="M6 13h3a4.5 4.5 0 0 0 0-9" />
+            </svg>
           </div>
           <div className="kpi-info">
             <span className="kpi-label">LIFETIME SPENDING</span>
@@ -229,7 +247,8 @@ const CustomersManager = () => {
         </div>
       </div>
 
-      <div className="customers-table-container premium-card">
+      {/* Desktop Table View */}
+      <div className="customers-table-container premium-card desktop-only-table">
         <table className="admin-table">
           <thead>
             <tr>
@@ -311,6 +330,91 @@ const CustomersManager = () => {
         </table>
       </div>
 
+      {/* Mobile Customer Cards Feed */}
+      <div className="mobile-customer-card-feed">
+        {filteredCustomers.length === 0 ? (
+          <div className="empty-search-state">
+            <span className="empty-search-icon">🔍</span>
+            <h3>No matching clients found</h3>
+            <p>Try searching with a different name, email or phone number</p>
+          </div>
+        ) : (
+          filteredCustomers.map(customer => (
+            <div 
+              key={customer._id} 
+              className="mobile-customer-card"
+              onClick={() => handleViewHistory(customer)}
+            >
+              {/* Top Row: Avatar + Name + VIP Tag + Joined Date */}
+              <div className="m-cust-card-top">
+                <div className="m-cust-avatar-group">
+                  <div className="m-cust-avatar">
+                    {customer.name ? customer.name[0].toUpperCase() : 'U'}
+                  </div>
+                  <div className="m-cust-name-col">
+                    <div className="m-cust-name-row">
+                      <h4 className="m-cust-name">{customer.name || 'Anonymous User'}</h4>
+                      {(customer.orderCount || 0) >= 2 && (
+                        <span className="vip-pill-tag">✦ VIP</span>
+                      )}
+                    </div>
+                    <span className="m-cust-email">{customer.email}</span>
+                  </div>
+                </div>
+                <span className="m-cust-joined-date">
+                  Since {new Date(customer.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}
+                </span>
+              </div>
+
+              {/* Middle Section: Phone Contact & Cart Indicator */}
+              <div className="m-cust-contact-row">
+                <div className="m-cust-contact-item">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                  <span>{customer.phone || 'No phone provided'}</span>
+                </div>
+                {customer.cart && customer.cart.length > 0 && (
+                  <span className="m-cust-cart-badge">
+                    🛒 {customer.cart.length} {customer.cart.length === 1 ? 'item' : 'items'} in cart
+                  </span>
+                )}
+              </div>
+
+              {/* Stats Strip: Orders Count & Lifetime Spend */}
+              <div className="m-cust-stats-strip">
+                <div className="m-cust-stat-col">
+                  <span className="m-cust-stat-label">ORDERS</span>
+                  <span className="m-cust-stat-val">
+                    📦 {customer.orderCount || 0} {customer.orderCount === 1 ? 'order' : 'orders'}
+                  </span>
+                </div>
+                <div className="m-cust-stat-divider"></div>
+                <div className="m-cust-stat-col">
+                  <span className="m-cust-stat-label">LIFETIME SPEND</span>
+                  <span className="m-cust-stat-val spend-val">
+                    ₹{(customer.totalSpending || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+
+              {/* Footer: View Profile & History Button */}
+              <div className="m-cust-card-footer">
+                <button 
+                  className="m-cust-view-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleViewHistory(customer)
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                  <span>View Profile & History</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Customer History & Profile Drawer */}
       <AnimatePresence>
         {isHistoryModalOpen && selectedCustomer && (
@@ -350,6 +454,7 @@ const CustomersManager = () => {
                   setIsHistoryModalOpen(false)
                   setSelectedCustomer(null)
                   setCustomerOrders([])
+                  setSelectedOrderDetails(null)
                 }}>&times;</button>
               </div>
 
@@ -360,10 +465,15 @@ const CustomersManager = () => {
                   <span className="value gold-text">₹{(customerOrders.length > 0 ? historyTotalSpent : (selectedCustomer.totalSpending || 0)).toLocaleString('en-IN')}</span>
                   <span className="sub-label">Total Completed</span>
                 </div>
-                <div className="stat-card">
+                <div
+                  className="stat-card"
+                  onClick={() => setDrawerTab('history')}
+                  style={{ cursor: 'pointer' }}
+                  title="Click to view full purchase history"
+                >
                   <span className="label">ORDERS PLACED</span>
                   <span className="value">{customerOrders.length > 0 ? historyOrderCount : (selectedCustomer.orderCount || 0)}</span>
-                  <span className="sub-label">Checkouts Done</span>
+                  <span className="sub-label">View History →</span>
                 </div>
                 <div className="stat-card">
                   <span className="label">MEMBER SINCE</span>
@@ -471,6 +581,86 @@ const CustomersManager = () => {
                           ))
                         )}
                       </div>
+
+                      {/* Recent Orders Preview in Profile View */}
+                      {customerOrders.length > 0 && (
+                        <div className="address-section" style={{ marginTop: '14px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                            <span className="info-label">🛍️ RECENT ORDERS ({customerOrders.length})</span>
+                            <button
+                              type="button"
+                              onClick={() => setDrawerTab('history')}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#8C6D23',
+                                fontSize: '0.78rem',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                padding: 0
+                              }}
+                            >
+                              View All History →
+                            </button>
+                          </div>
+                          <div className="history-list" style={{ gap: '10px' }}>
+                            {customerOrders.slice(0, 2).map(order => (
+                              <div key={order._id} className="history-order-card" style={{ padding: '12px' }}>
+                                <div className="card-top">
+                                  <div className="order-num-group">
+                                    <span className="order-num" style={{ fontSize: '0.94rem' }}>#{order.orderNumber}</span>
+                                    <span className="date">
+                                      {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                    </span>
+                                  </div>
+                                  <span className={`status-pill ${order.status}`}>{order.status}</span>
+                                </div>
+                                <div className="card-items">
+                                  {order.items?.slice(0, 2).map((item, idx) => {
+                                    const itemImg = item.image || item.product?.images?.[0] || item.product?.image
+                                    return (
+                                      <div key={idx} className="item-row">
+                                        <div className="item-thumb-box">
+                                          {itemImg ? (
+                                            <img
+                                              src={getImageUrl(itemImg)}
+                                              alt={item.name || 'Order Item'}
+                                              className="item-thumb-img"
+                                              onError={(e) => { e.target.style.display = 'none' }}
+                                            />
+                                          ) : (
+                                            <div className="item-thumb-placeholder">🛍️</div>
+                                          )}
+                                        </div>
+                                        <div className="item-info-col">
+                                          <span className="item-name">{item.name}</span>
+                                          <span className="item-details">Size: {item.size || 'N/A'} • Qty: {item.quantity}</span>
+                                        </div>
+                                        <div className="item-price-col">
+                                          ₹{((item.price || item.product?.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}
+                                        </div>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                                <div className="card-bottom-actions">
+                                  <span className="amount" style={{ fontSize: '0.94rem', fontWeight: 700 }}>
+                                    ₹{order.totalAmount?.toLocaleString('en-IN')}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="view-order-details-btn"
+                                    onClick={() => setSelectedOrderDetails(order)}
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <span>View Order</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -558,7 +748,12 @@ const CustomersManager = () => {
                                   })}
                                 </span>
                               </div>
-                              <span className={`status-pill ${order.status}`}>{order.status}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span className="order-channel-tag" style={{ background: '#F1F5F9', color: '#475569', border: '1px solid #CBD5E1', padding: '2px 8px', borderRadius: '12px', fontSize: '0.68rem', fontWeight: '700' }}>
+                                  {String(order.orderType || 'ONLINE').toUpperCase()}
+                                </span>
+                                <span className={`status-pill ${order.status}`}>{order.status}</span>
+                              </div>
                             </div>
 
                             <div className="card-middle">
@@ -567,26 +762,273 @@ const CustomersManager = () => {
                             </div>
 
                             <div className="card-items">
-                              {order.items?.map((item, idx) => (
-                                <div key={idx} className="item-row">
-                                  <span className="item-name">{item.name}</span>
-                                  <span className="item-details">Size: {item.size || 'N/A'} • Qty: {item.quantity}</span>
-                                </div>
-                              ))}
+                              {order.items?.map((item, idx) => {
+                                const itemImg = item.image || item.product?.images?.[0] || item.product?.image
+                                return (
+                                  <div key={idx} className="item-row">
+                                    <div className="item-thumb-box">
+                                      {itemImg ? (
+                                        <img
+                                          src={getImageUrl(itemImg)}
+                                          alt={item.name || 'Order Item'}
+                                          className="item-thumb-img"
+                                          onError={(e) => { e.target.style.display = 'none' }}
+                                        />
+                                      ) : (
+                                        <div className="item-thumb-placeholder">🛍️</div>
+                                      )}
+                                    </div>
+                                    <div className="item-info-col">
+                                      <span className="item-name">{item.name}</span>
+                                      <span className="item-details">
+                                        {item.size ? `Size: ${item.size}` : ''}
+                                        {item.color ? ` • ${item.color}` : ''}
+                                        {` • Qty: ${item.quantity}`}
+                                      </span>
+                                    </div>
+                                    <div className="item-price-col">
+                                      ₹{((item.price || item.product?.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}
+                                    </div>
+                                  </div>
+                                )
+                              })}
                             </div>
 
-                            {order.customer?.address && (
-                              <div className="order-shipping-addr">
-                                <span>Ship To: </span>
-                                {[order.customer.address.street, order.customer.address.city, order.customer.address.state, order.customer.address.pincode].filter(Boolean).join(', ')}
-                              </div>
-                            )}
+                            <div className="card-bottom-actions">
+                              {order.customer?.address ? (
+                                <div className="order-shipping-addr">
+                                  <span>Ship To: </span>
+                                  {[order.customer.address.street, order.customer.address.city, order.customer.address.state, order.customer.address.pincode].filter(Boolean).join(', ')}
+                                </div>
+                              ) : <div />}
+                              <button
+                                type="button"
+                                className="view-order-details-btn"
+                                onClick={() => setSelectedOrderDetails(order)}
+                              >
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                <span>View Order</span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
                     )}
                   </>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Dedicated Customer Order Details Modal */}
+      <AnimatePresence>
+        {selectedOrderDetails && (
+          <div className="modal-overlay customer-order-modal-overlay" onClick={() => setSelectedOrderDetails(null)}>
+            <motion.div
+              className="customer-order-details-modal"
+              initial={{ opacity: 0, scale: 0.94, y: 18 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 18 }}
+              transition={{ duration: 0.22 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="order-modal-header">
+                <div className="order-modal-title-group">
+                  <div className="order-modal-tag-row">
+                    <span className="order-modal-num">#{selectedOrderDetails.orderNumber}</span>
+                    <span className={`status-pill ${selectedOrderDetails.status}`}>
+                      {selectedOrderDetails.status}
+                    </span>
+                    <span className="order-channel-tag">
+                      {String(selectedOrderDetails.orderType || 'ONLINE').toUpperCase()}
+                    </span>
+                  </div>
+                  <span className="order-modal-date">
+                    Order Date: {new Date(selectedOrderDetails.createdAt).toLocaleString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="close-order-modal-btn"
+                  onClick={() => setSelectedOrderDetails(null)}
+                  title="Close Order Details"
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="order-modal-body">
+                {/* Package Items Section */}
+                <div className="order-modal-section">
+                  <div className="section-head-line">
+                    <h4 className="section-title">
+                      <span>📦</span> ORDERED PRODUCTS & ITEMS ({selectedOrderDetails.items?.length || 0})
+                    </h4>
+                  </div>
+
+                  <div className="order-modal-items-list">
+                    {selectedOrderDetails.items?.map((item, idx) => {
+                      const itemImg = item.image || item.product?.images?.[0] || item.product?.image
+                      const unitPrice = item.price || item.product?.price || 0
+                      const itemTotal = unitPrice * (item.quantity || 1)
+                      return (
+                        <div key={idx} className="order-modal-item-row">
+                          <div className="order-item-img-container">
+                            {itemImg ? (
+                              <img
+                                src={getImageUrl(itemImg)}
+                                alt={item.name || 'Order Item'}
+                                className="order-item-big-img"
+                                onError={(e) => {
+                                  e.target.style.display = 'none'
+                                }}
+                              />
+                            ) : (
+                              <div className="order-item-no-img">🛍️</div>
+                            )}
+                          </div>
+                          <div className="order-item-details-container">
+                            <h5 className="order-item-title">{item.name}</h5>
+                            <div className="order-item-chips">
+                              {item.size && <span className="chip">Size: {item.size}</span>}
+                              {item.color && <span className="chip">Color: {item.color}</span>}
+                              <span className="chip qty">Qty: {item.quantity}</span>
+                              {(item.weightKg || item.product?.weightKg) && (
+                                <span className="chip weight">{item.weightKg || item.product?.weightKg} kg</span>
+                              )}
+                            </div>
+                            <div className="order-item-price-row">
+                              <span className="unit-calc">
+                                ₹{unitPrice.toLocaleString('en-IN')} × {item.quantity}
+                              </span>
+                              <span className="line-total">
+                                ₹{itemTotal.toLocaleString('en-IN')}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Grid for Delivery & Payment Details */}
+                <div className="order-modal-info-grid">
+                  {/* Shipping Address */}
+                  <div className="order-modal-card">
+                    <h5 className="card-heading">📍 SHIPPING & DELIVERY ADDRESS</h5>
+                    <div className="card-content">
+                      <strong className="client-recipient-name">
+                        {selectedOrderDetails.customer?.name || selectedCustomer?.name || 'Client'}
+                      </strong>
+                      <p className="addr-street">
+                        {selectedOrderDetails.customer?.address?.street || selectedOrderDetails.customer?.address?.addressLine1 || 'Street not specified'}
+                      </p>
+                      <p className="addr-city">
+                        {[
+                          selectedOrderDetails.customer?.address?.city,
+                          selectedOrderDetails.customer?.address?.state,
+                          selectedOrderDetails.customer?.address?.pincode
+                        ].filter(Boolean).join(', ') || 'City/State not specified'}
+                      </p>
+                      <p className="addr-country">{selectedOrderDetails.customer?.address?.country || 'India'}</p>
+                      <div className="addr-contact-row">
+                        {(selectedOrderDetails.customer?.phone || selectedCustomer?.phone) && (
+                          <span className="phone">📞 +91 {selectedOrderDetails.customer?.phone || selectedCustomer?.phone}</span>
+                        )}
+                        {(selectedOrderDetails.customer?.email || selectedCustomer?.email) && (
+                          <span className="email">✉️ {selectedOrderDetails.customer?.email || selectedCustomer?.email}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment & Logistics Info */}
+                  <div className="order-modal-card">
+                    <h5 className="card-heading">💳 PAYMENT & LOGISTICS</h5>
+                    <div className="card-content">
+                      <div className="meta-line">
+                        <span className="meta-label">Payment Mode:</span>
+                        <span className="meta-val highlight">
+                          {String(selectedOrderDetails.paymentMethod || '').toLowerCase() === 'cod'
+                            ? 'Cash on Delivery (COD)'
+                            : (selectedOrderDetails.paymentMethod || 'Online').toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="meta-line">
+                        <span className="meta-label">Payment Status:</span>
+                        <span className={`meta-val pay-status ${selectedOrderDetails.paymentStatus || 'pending'}`}>
+                          {(selectedOrderDetails.paymentStatus || 'PENDING').toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="meta-line">
+                        <span className="meta-label">Fulfillment Status:</span>
+                        <span className="meta-val status-text">{selectedOrderDetails.status?.toUpperCase()}</span>
+                      </div>
+                      {selectedOrderDetails.shipping?.awbNumber && (
+                        <div className="meta-line">
+                          <span className="meta-label">AWB Tracking:</span>
+                          <span className="meta-val">{selectedOrderDetails.shipping.awbNumber}</span>
+                        </div>
+                      )}
+                      {selectedOrderDetails.shipping?.courierName && (
+                        <div className="meta-line">
+                          <span className="meta-label">Courier Partner:</span>
+                          <span className="meta-val">{selectedOrderDetails.shipping.courierName}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Summary Box */}
+                <div className="order-modal-summary-box">
+                  <div className="summary-row">
+                    <span>Items Subtotal</span>
+                    <span>₹{selectedOrderDetails.totalAmount?.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="summary-row">
+                    <span>Shipping Charges</span>
+                    <span className="free-text">FREE</span>
+                  </div>
+                  <div className="summary-row grand-total">
+                    <span>Total Amount</span>
+                    <span className="total-val">₹{selectedOrderDetails.totalAmount?.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="order-modal-footer">
+                <button
+                  type="button"
+                  className="print-invoice-btn"
+                  onClick={() => printOrderInvoice(selectedOrderDetails)}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                  </svg>
+                  <span>Print Invoice</span>
+                </button>
+                <button
+                  type="button"
+                  className="close-action-btn"
+                  onClick={() => setSelectedOrderDetails(null)}
+                >
+                  Close
+                </button>
               </div>
             </motion.div>
           </div>
