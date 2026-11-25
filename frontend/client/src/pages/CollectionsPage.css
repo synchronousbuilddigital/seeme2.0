@@ -2201,6 +2201,7 @@
     transform: scale(1);
   }
 }
+
 /* Keep Deals cards visually consistent with the Shop grid. */
 @media (min-width: 1025px) {
   .collections-page .collections-grid {
@@ -2219,4 +2220,160 @@
 
 .collections-page .collection-product-card:hover .product-image {
   transform: scale(1.025) !important;
+}
+
+
+/* ==========================================================================
+   Interconnected Colours & Swatches (Manual + Connected Variants)
+   ========================================================================== */
+
+/* View Mode Switcher in Grid Header */
+.view-mode-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  background: #f4f3ee;
+  border: 1px solid rgba(28, 25, 23, 0.1);
+  border-radius: 24px;
+  padding: 3px;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.view-mode-btn {
+  border: none;
+  background: transparent;
+  color: #78716c;
+  font-family: var(--font-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.view-mode-btn:hover {
+  color: #1c1917;
+}
+
+.view-mode-btn.active {
+  background: #1c1917;
+  color: #d4af37;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+
+/* Color Badge on Card Image (Bottom Left) */
+.collection-color-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(28, 25, 23, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fafaf9;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 3;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.color-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+/* Colour Swatches Bar on Collection Product Card */
+.card-color-swatches-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  padding: 2px 0;
+}
+
+.card-swatches-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.card-color-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.18s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.card-color-dot:hover {
+  transform: scale(1.28);
+  z-index: 2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.card-color-dot.active {
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 3.5px #d4af37;
+  transform: scale(1.15);
+}
+
+.card-more-colors-count {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #78716c;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 5px;
+  border-radius: 10px;
+  line-height: 1.2;
+}
+
+.card-colors-count-label {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #a8a29e;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .view-mode-toggle-group {
+    order: 2;
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .view-mode-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 6px 10px;
+    font-size: 0.74rem;
+  }
 }

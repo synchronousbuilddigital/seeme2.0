@@ -15,7 +15,13 @@ const QUICK_SIZE_SUGGESTIONS = [
 const ProductsManager = ({ onPromoteToHero }) => {
   const MAX_IMAGE_SIZE_MB = 10
   const MAX_VIDEO_SIZE_MB = 100
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('seemee_admin_products_cache')
+      if (cached) return JSON.parse(cached)
+    } catch (e) { }
+    return []
+  })
   const [showForm, setShowForm] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [uploading, setUploading] = useState(false)
@@ -38,8 +44,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
   const [customSizeInput, setCustomSizeInput] = useState('')
   const [customSizeQty, setCustomSizeQty] = useState('0')
   const [customColorInput, setCustomColorInput] = useState('')
-  const [customColorHex, setCustomColorHex] = useState('#0f172a')
-  const [colorNewSizeInputs, setColorNewSizeInputs] = useState({})
   const pageSize = 8
   const [formTab, setFormTab] = useState('general')
 
@@ -175,7 +179,43 @@ const ProductsManager = ({ onPromoteToHero }) => {
     })
   }
 
-  const handleAddColor = (colToAdd, hexCode) => {
+  const handlePrimaryColorChange = (newColor) => {
+    const clean = String(newColor || '').trim()
+    setFormData(prev => {
+      const oldPrimary = prev.color || ''
+      const existing = Array.isArray(prev.colors) ? [...prev.colors] : []
+      let updatedColors = existing
+      if (clean) {
+        const withoutNew = existing.filter(c => c.toLowerCase() !== clean.toLowerCase())
+        updatedColors = [clean, ...withoutNew]
+      }
+      // If old primary had colorImages entry and was renamed, update it
+      let updatedCI = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      if (oldPrimary && clean && oldPrimary.toLowerCase() !== clean.toLowerCase()) {
+        let found = false
+        updatedCI = updatedCI.map(ci => {
+          if (ci.color?.toLowerCase() === oldPrimary.toLowerCase()) {
+            found = true
+            return { ...ci, color: clean, hex: getColorHex(clean) }
+          }
+          return ci
+        })
+        if (!found) {
+          updatedCI.push({ color: clean, hex: getColorHex(clean), images: [], sizeStock: [] })
+        }
+      } else if (clean && !updatedCI.some(ci => ci.color?.toLowerCase() === clean.toLowerCase())) {
+        updatedCI.push({ color: clean, hex: getColorHex(clean), images: [], sizeStock: [] })
+      }
+      return {
+        ...prev,
+        color: clean,
+        colors: updatedColors,
+        colorImages: updatedCI
+      }
+    })
+  }
+
+  const handleAddColor = (colToAdd) => {
     const clean = String(colToAdd || customColorInput || '').trim()
     if (!clean) return
 
@@ -185,30 +225,46 @@ const ProductsManager = ({ onPromoteToHero }) => {
       return
     }
 
-    const assignedHex = hexCode || customColorHex || getColorHex(clean)
-    const updatedColors = [...existing, clean]
-
+    const updated = [...existing, clean]
     setFormData(prev => {
-      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
-      if (!currentList.some(ci => ci.color?.toLowerCase() === clean.toLowerCase())) {
-        currentList.push({
-          color: clean,
-          hex: assignedHex,
-          images: [],
-          sizeStock: (prev.sizeStock && prev.sizeStock.length > 0)
-            ? prev.sizeStock.map(s => ({ size: s.size, quantity: Number(s.quantity) || 0 }))
-            : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'].map(s => ({ size: s, quantity: 0 }))
-        })
+      const existingCI = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
+      if (!existingCI.some(ci => (ci.color || '').toLowerCase() === clean.toLowerCase())) {
+        existingCI.push({ color: clean, hex: getColorHex(clean), images: [], sizeStock: [] })
       }
       return {
         ...prev,
-        colors: updatedColors,
+        colors: updated,
         color: prev.color || clean,
-        colorImages: currentList
+        colorImages: existingCI
       }
     })
     setCustomColorInput('')
     showNotification(`Added colour "${clean}"`, 'success')
+  }
+
+  const handleRenameColor = (oldColor, newColor) => {
+    const oldClean = String(oldColor || '').trim()
+    const newClean = String(newColor || '').trim()
+    if (!newClean || oldClean.toLowerCase() === newClean.toLowerCase()) return
+
+    setFormData(prev => {
+      const existing = Array.isArray(prev.colors) ? [...prev.colors] : []
+      const updatedColors = existing.map(c => c.toLowerCase() === oldClean.toLowerCase() ? newClean : c)
+      const nextPrimary = prev.color?.toLowerCase() === oldClean.toLowerCase() ? newClean : prev.color
+      const updatedCI = (prev.colorImages || []).map(ci => {
+        if (ci.color?.toLowerCase() === oldClean.toLowerCase()) {
+          return { ...ci, color: newClean, hex: getColorHex(newClean) }
+        }
+        return ci
+      })
+      return {
+        ...prev,
+        colors: updatedColors,
+        color: nextPrimary,
+        colorImages: updatedCI
+      }
+    })
+    showNotification(`Renamed colour "${oldClean}" to "${newClean}"`, 'success')
   }
 
   const handleRemoveColor = (colToRemove) => {
@@ -222,56 +278,24 @@ const ProductsManager = ({ onPromoteToHero }) => {
       ...prev,
       colors: updated,
       color: nextPrimary,
-      colorImages: (prev.colorImages || []).filter(ci => ci.color?.toLowerCase() !== colToRemove.toLowerCase())
+      colorImages: (prev.colorImages || []).filter(ci => (ci.color || '').toLowerCase() !== colToRemove.toLowerCase())
     }))
     showNotification(`Removed colour "${colToRemove}"`, 'info')
   }
 
   const handleSetPrimaryColor = (colName) => {
-    setFormData(prev => ({ ...prev, color: colName }))
-    showNotification(`Set "${colName}" as primary colour`, 'info')
-  }
-
-  const handleColorHexChange = (colName, newHex) => {
+    const clean = String(colName || '').trim()
+    if (!clean) return
     setFormData(prev => {
-      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
-      const idx = currentList.findIndex(ci => ci.color?.toLowerCase() === colName.toLowerCase())
-      if (idx >= 0) {
-        currentList[idx] = { ...currentList[idx], hex: newHex }
+      const existing = Array.isArray(prev.colors) ? [...prev.colors] : []
+      const filtered = existing.filter(c => c.toLowerCase() !== clean.toLowerCase())
+      return {
+        ...prev,
+        color: clean,
+        colors: [clean, ...filtered]
       }
-      return { ...prev, colorImages: currentList }
     })
-  }
-
-  const handleColorAddCustomSize = (colName, sizeName) => {
-    const cleanSz = String(sizeName || '').trim().toUpperCase()
-    if (!cleanSz) return
-
-    setFormData(prev => {
-      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
-      const idx = currentList.findIndex(ci => ci.color?.toLowerCase() === colName.toLowerCase())
-      if (idx >= 0) {
-        const sizes = Array.isArray(currentList[idx].sizeStock) ? [...currentList[idx].sizeStock] : []
-        if (!sizes.some(s => s.size?.toUpperCase() === cleanSz)) {
-          sizes.push({ size: cleanSz, quantity: 0 })
-          currentList[idx] = { ...currentList[idx], sizeStock: sizes }
-        }
-      }
-      return { ...prev, colorImages: currentList }
-    })
-    setColorNewSizeInputs(prev => ({ ...prev, [colName]: '' }))
-  }
-
-  const handleColorRemoveSize = (colName, sizeName) => {
-    setFormData(prev => {
-      const currentList = Array.isArray(prev.colorImages) ? [...prev.colorImages] : []
-      const idx = currentList.findIndex(ci => ci.color?.toLowerCase() === colName.toLowerCase())
-      if (idx >= 0) {
-        const sizes = (currentList[idx].sizeStock || []).filter(s => s.size?.toUpperCase() !== sizeName.toUpperCase())
-        currentList[idx] = { ...currentList[idx], sizeStock: sizes }
-      }
-      return { ...prev, colorImages: currentList }
-    })
+    showNotification(`Set "${clean}" as primary colour`, 'info')
   }
 
 
@@ -322,9 +346,12 @@ const ProductsManager = ({ onPromoteToHero }) => {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}?includeInactive=true&limit=1000&_t=${Date.now()}`, { auth: true, bypassCache: true })
-      if (data.success) {
-        setProducts(data.data || [])
+      const data = await apiRequest(`${API_ENDPOINTS.PRODUCTS}?includeInactive=true&limit=1000`, { auth: true })
+      if (data.success && Array.isArray(data.data)) {
+        setProducts(data.data)
+        try {
+          sessionStorage.setItem('seemee_admin_products_cache', JSON.stringify(data.data))
+        } catch (e) { }
       }
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -385,7 +412,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         showNotification(newVal ? ` "${product.name}" added to Try The Look!` : `"${product.name}" removed from Try The Look.`)
         try {
           localStorage.setItem('seemee_product_updated', Date.now().toString())
-        } catch (e) {}
+        } catch (e) { }
         fetchProducts()
       } else {
         setProducts(prevProducts =>
@@ -931,10 +958,32 @@ const ProductsManager = ({ onPromoteToHero }) => {
         length: formData.length,
         careInstructions: formData.careInstructions,
         tags: finalTags,
-        color: formData.color || (formData.colors && formData.colors[0]) || undefined,
-        colors: (formData.colors && formData.colors.length > 0) ? formData.colors : (formData.color ? [formData.color] : []),
+        color: (() => {
+          const c = (formData.color || (formData.colors && formData.colors[0]) || '').trim()
+          return c || undefined
+        })(),
+        colors: (() => {
+          const primary = (formData.color || (formData.colors && formData.colors[0]) || '').trim()
+          const list = []
+          if (primary) list.push(primary)
+          if (Array.isArray(formData.colors)) {
+            formData.colors.forEach(col => {
+              const ct = String(col || '').trim()
+              if (ct && !list.some(existing => existing.toLowerCase() === ct.toLowerCase())) {
+                list.push(ct)
+              }
+            })
+          }
+          return list
+        })(),
         colorImages: (formData.colorImages || [])
-          .filter(ci => ci && ci.color && ci.color.trim())
+          .filter(ci => {
+            if (!ci || !ci.color || !ci.color.trim()) return false
+            const ciCol = ci.color.trim().toLowerCase()
+            const primary = (formData.color || '').trim().toLowerCase()
+            const hasInColors = Array.isArray(formData.colors) && formData.colors.some(c => String(c).trim().toLowerCase() === ciCol)
+            return ciCol === primary || hasInColors
+          })
           .map(ci => ({
             color: ci.color.trim(),
             images: (ci.images || []).map(normalizeMediaUrl).filter(Boolean),
@@ -964,7 +1013,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
         resetForm()
         try {
           localStorage.setItem('seemee_product_updated', Date.now().toString())
-        } catch (e) {}
+        } catch (e) { }
         showNotification(wasEditing ? 'Product updated successfully!' : 'Product created successfully!')
       } else {
         showNotification(data.message || 'Failed to save product', 'error')
@@ -1123,18 +1172,35 @@ const ProductsManager = ({ onPromoteToHero }) => {
           ]),
       sizes: product.sizes || [],
       color: product.color || (product.colors && product.colors[0]) || '',
-      colors: Array.isArray(product.colors) && product.colors.length > 0
-        ? product.colors
-        : (product.color ? [product.color] : []),
+      colors: (() => {
+        const list = []
+        if (product.color && typeof product.color === 'string' && product.color.trim()) {
+          list.push(product.color.trim())
+        }
+        if (Array.isArray(product.colors)) {
+          product.colors.forEach(c => {
+            if (c && typeof c === 'string' && c.trim() && !list.some(existing => existing.toLowerCase() === c.trim().toLowerCase())) {
+              list.push(c.trim())
+            }
+          })
+        }
+        if (Array.isArray(product.colorImages)) {
+          product.colorImages.forEach(ci => {
+            if (ci && ci.color && typeof ci.color === 'string' && ci.color.trim() && !list.some(existing => existing.toLowerCase() === ci.color.trim().toLowerCase())) {
+              list.push(ci.color.trim())
+            }
+          })
+        }
+        return list
+      })(),
       colorImages: Array.isArray(product.colorImages)
         ? product.colorImages.map(ci => ({
-            color: ci.color || '',
-            hex: ci.hex || getColorHex(ci.color || ''),
-            images: (ci.images || []).map(normalizeMediaUrl).filter(Boolean),
-            sizeStock: Array.isArray(ci.sizeStock)
-              ? ci.sizeStock.map(s => ({ size: String(s.size).trim(), quantity: Number(s.quantity) || 0 }))
-              : []
-          }))
+          color: ci.color || '',
+          images: (ci.images || []).map(normalizeMediaUrl).filter(Boolean),
+          sizeStock: Array.isArray(ci.sizeStock)
+            ? ci.sizeStock.map(s => ({ size: String(s.size).trim(), quantity: Number(s.quantity) || 0 }))
+            : []
+        }))
         : [],
       featured: product.featured,
       inCollection: product.inCollection || false,
@@ -1644,7 +1710,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                 <div className="form-header-tabs">
                   <button type="button" className={formTab === 'general' ? 'active' : ''} onClick={() => setFormTab('general')}>General</button>
                   <button type="button" className={formTab === 'colors' ? 'active' : ''} onClick={() => setFormTab('colors')}>
-                     Colours {formData.colors?.length > 0 ? `(${formData.colors.length})` : ''}
+                    Colours {formData.colors?.length > 0 ? `(${formData.colors.length})` : ''}
                   </button>
                   <button type="button" className={formTab === 'media' ? 'active' : ''} onClick={() => setFormTab('media')}>Media</button>
                   <button type="button" className={formTab === 'inventory' ? 'active' : ''} onClick={() => setFormTab('inventory')}>Inventory</button>
@@ -1720,6 +1786,58 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div className="form-group">
                         <label>Subcategory</label>
                         <input type="text" value={formData.subcategory} onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })} placeholder="e.g. Wedding Wear" />
+                      </div>
+                    </div>
+
+                    <div className="form-row" style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+                      <div className="form-group" style={{ flex: '1 1 300px' }}>
+                        <label style={{ fontWeight: 700, color: '#1e293b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          🎨 Primary Colour / Shade
+                        </label>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            placeholder="e.g. Olive Green, Royal Maroon, Wine, Black..."
+                            value={formData.color || ''}
+                            onChange={(e) => handlePrimaryColorChange(e.target.value)}
+                            list="common-colors-general-datalist"
+                            style={{ flex: 1, borderColor: '#6366f1', background: '#ffffff', fontWeight: 600 }}
+                          />
+                          {formData.color && (
+                            <span
+                              style={{
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '50%',
+                                backgroundColor: getColorHex(formData.color),
+                                border: '2px solid #cbd5e1',
+                                flexShrink: 0,
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                              }}
+                              title={`Preview: ${formData.color}`}
+                            />
+                          )}
+                        </div>
+                        <datalist id="common-colors-general-datalist">
+                          {COMMON_COLOR_SUGGESTIONS.map(c => (
+                            <option key={c.name} value={c.name} />
+                          ))}
+                        </datalist>
+                        <span style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                          Type or choose the main colour. You can also upload variant photos in the <strong>Colours</strong> tab.
+                        </span>
+                      </div>
+                      <div className="form-group" style={{ flex: '1 1 200px' }}>
+                        <label style={{ fontWeight: 700, color: '#1e293b' }}>
+                          SKU (Stock Keeping Unit)
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.sku || ''}
+                          onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                          placeholder="e.g. SEEMEE-KUR-001"
+                          style={{ background: '#ffffff' }}
+                        />
                       </div>
                     </div>
 
@@ -1822,38 +1940,30 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       </div>
                     </div>
 
-                    </div>
+                  </div>
                 )}
 
                 {formTab === 'colors' && (
                   <div className="form-tab-content">
                     <div className="form-group mb-4 product-colors-form-block dedicated-tab-mode">
-                      {/* Custom Colour & Visual Color Picker Box */}
+                      {/* Custom Colour Input Box */}
                       <div className="color-input-wrapper">
-                        <div className="color-picker-box-wrap" title="Click to choose custom colour hex">
-                          <input
-                            type="color"
-                            value={customColorHex}
-                            onChange={(e) => setCustomColorHex(e.target.value)}
-                            className="color-picker-swatch-input"
-                          />
-                        </div>
                         <input
                           type="text"
-                          placeholder="Type colour name (e.g. Royal Maroon, Rani Pink, Wine, Mint)..."
+                          placeholder="Type custom colour (e.g. Royal Maroon, Rani Pink, Wine, Mint)..."
                           value={customColorInput}
                           onChange={(e) => setCustomColorInput(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault()
-                              handleAddColor(customColorInput, customColorHex)
+                              handleAddColor(customColorInput)
                             }
                           }}
                         />
                         <button
                           type="button"
                           className="btn-add-color-pill"
-                          onClick={() => handleAddColor(customColorInput, customColorHex)}
+                          onClick={() => handleAddColor(customColorInput)}
                         >
                           + Add Colour
                         </button>
@@ -1863,7 +1973,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       <div className="quick-color-suggestions">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                           <span className="quick-color-label" style={{ margin: 0 }}>
-                            Quick Select from Popular Shades ({COMMON_COLOR_SUGGESTIONS.length}):
+                            Quick Select from Popular Ethnic & Couture Shades ({COMMON_COLOR_SUGGESTIONS.length}):
                           </span>
                           <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Click to toggle</span>
                         </div>
@@ -1879,7 +1989,7 @@ const ProductsManager = ({ onPromoteToHero }) => {
                                 className={`quick-color-chip ${isSelected ? 'active' : ''}`}
                                 onClick={() => {
                                   if (isSelected) handleRemoveColor(c.name)
-                                  else handleAddColor(c.name, c.hex)
+                                  else handleAddColor(c.name)
                                 }}
                                 title={isSelected ? `Click to remove ${c.name}` : `Click to add ${c.name}`}
                               >
@@ -1895,17 +2005,35 @@ const ProductsManager = ({ onPromoteToHero }) => {
                       {/* Active Selected Colours Badges */}
                       {formData.colors && formData.colors.length > 0 ? (
                         <div className="active-selected-colors-row">
-                          <span className="active-colors-label">Configured Colours ({formData.colors.length}):</span>
+                          <span className="active-colors-label">Selected Colours ({formData.colors.length}):</span>
                           <div className="active-color-tags">
                             {formData.colors.map(col => {
                               const isPrimary = (formData.color || '').toLowerCase() === col.toLowerCase()
-                              const ciEntry = (formData.colorImages || []).find(ci => ci.color?.toLowerCase() === col.toLowerCase())
-                              const hex = ciEntry?.hex || getColorHex(col)
-
                               return (
                                 <div key={col} className={`active-color-badge ${isPrimary ? 'primary' : ''}`}>
-                                  <span className="chip-color-dot" style={{ backgroundColor: hex }} />
+                                  <span className="chip-color-dot" style={{ backgroundColor: getColorHex(col) }} />
                                   <span className="color-name">{col}</span>
+                                  <button
+                                    type="button"
+                                    className="btn-rename-color"
+                                    onClick={() => {
+                                      const nextName = window.prompt(`Rename colour "${col}" to:`, col)
+                                      if (nextName && nextName.trim() && nextName.trim().toLowerCase() !== col.toLowerCase()) {
+                                        handleRenameColor(col, nextName.trim())
+                                      }
+                                    }}
+                                    title={`Rename colour "${col}"`}
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      cursor: 'pointer',
+                                      padding: '0 4px',
+                                      fontSize: '12px',
+                                      color: '#64748b'
+                                    }}
+                                  >
+                                    ✏️
+                                  </button>
                                   {isPrimary ? (
                                     <span className="is-primary-label">Primary</span>
                                   ) : (
@@ -1933,18 +2061,18 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         </div>
                       ) : (
                         <div className="no-colors-hint">
-                          <span>Click any quick colour above or pick a shade to add options to this product.</span>
+                          <span> Click any quick colour above or type a custom shade to add options to this product.</span>
                         </div>
                       )}
 
-                      {/* Color-Specific Photo Galleries & Size-wise Stock */}
+                      {/* Color-Specific Photo Galleries directly in Colours tab */}
                       {formData.colors && formData.colors.length > 0 && (
                         <div className="color-galleries-section" style={{ marginTop: '1.5rem' }}>
                           <div className="color-galleries-header">
                             <div className="color-galleries-header-info">
-                              <h4 className="color-galleries-title">📸 Photos & Inventory for Each Colour Variant</h4>
+                              <h4 className="color-galleries-title">📸 Photos for Each Colour Variant</h4>
                               <p className="color-galleries-subtitle">
-                                Upload photos and set size stock for each colour. The 1st photo serves as the swatch card on the product page. When selected by customers, only this colour's photos and available sizes will be displayed!
+                                Upload photos for each colour. The 1st photo is used as the mini photo in the colour swatch on the product page, and clicking it displays that colour's photos!
                               </p>
                             </div>
                           </div>
@@ -1953,62 +2081,26 @@ const ProductsManager = ({ onPromoteToHero }) => {
                             {formData.colors.map(col => {
                               const galleryEntry = (formData.colorImages || []).find(ci => ci.color?.toLowerCase() === col.toLowerCase())
                               const colorImgs = galleryEntry?.images || []
-                              const hex = galleryEntry?.hex || getColorHex(col)
-                              const isPrimary = (formData.color || '').toLowerCase() === col.toLowerCase()
+                              const hex = getColorHex(col)
                               const inputId = `color-tab-file-${col.replace(/[^a-zA-Z0-9]/g, '-')}`
 
-                              // Aggregate sizes for this color: standard product sizes + variant sizes
-                              const colorSizeStock = Array.isArray(galleryEntry?.sizeStock) ? galleryEntry.sizeStock : []
-                              const standardSizes = (formData.sizeStock && formData.sizeStock.length > 0)
-                                ? formData.sizeStock.map(s => s.size)
-                                : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
-
-                              const allSizesSet = new Set(standardSizes)
-                              colorSizeStock.forEach(s => s.size && allSizesSet.add(s.size))
-                              const displayedSizes = Array.from(allSizesSet)
-
                               return (
-                                <div key={col} className={`color-gallery-card ${isPrimary ? 'is-primary-card' : ''}`}>
+                                <div key={col} className="color-gallery-card">
                                   <div className="color-gallery-top">
                                     <div className="color-gallery-pill">
-                                      <input
-                                        type="color"
-                                        value={hex}
-                                        onChange={(e) => handleColorHexChange(col, e.target.value)}
-                                        className="color-pill-dot-input"
-                                        title="Click to adjust hex code for this colour"
-                                      />
+                                      <span className="color-pill-dot" style={{ backgroundColor: hex }} />
                                       <span className="color-pill-name">{col}</span>
-                                      {isPrimary && <span className="color-primary-tag">Primary</span>}
                                       <span className="color-pill-count">
-                                        ({colorImgs.length} {colorImgs.length === 1 ? 'photo' : 'photos'})
+                                        {colorImgs.length} {colorImgs.length === 1 ? 'photo' : 'photos'}
                                       </span>
                                     </div>
                                     <div className="color-gallery-actions">
-                                      {!isPrimary && (
-                                        <button
-                                          type="button"
-                                          className="btn-set-primary-card"
-                                          onClick={() => handleSetPrimaryColor(col)}
-                                          title="Set as main/primary colour"
-                                        >
-                                          ★ Set Primary
-                                        </button>
-                                      )}
                                       <button
                                         type="button"
                                         className="btn-color-upload-trigger"
                                         onClick={() => document.getElementById(inputId)?.click()}
                                       >
                                         + Upload Photos
-                                      </button>
-                                      <button
-                                        type="button"
-                                        className="btn-color-delete-card"
-                                        onClick={() => handleRemoveColor(col)}
-                                        title={`Remove colour ${col}`}
-                                      >
-                                        Delete
                                       </button>
                                       <input
                                         id={inputId}
@@ -2060,26 +2152,29 @@ const ProductsManager = ({ onPromoteToHero }) => {
                                     ))}
                                     {colorImgs.length === 0 && (
                                       <div className="color-thumbs-none">
-                                        <span>No photos uploaded for {col} yet (will show cover images by default)</span>
+                                        <span>No photos uploaded for {col} yet (will show general images by default)</span>
                                       </div>
                                     )}
                                   </div>
 
-                                  {/* Color-Specific Size Stock Inputs (Rendered cleanly once) */}
+                                  {/* Color-Specific Size Stock Inputs */}
                                   <div className="color-sizestock-block">
                                     <div className="color-sizestock-header">
-                                      <span className="color-sizestock-title">📏 Available Sizes & Stock for {col}:</span>
+                                      <span className="color-sizestock-title">📏 Size-wise Stock for {col}:</span>
                                       <button
                                         type="button"
                                         className="btn-copy-main-sizes"
                                         onClick={() => handleCopySizesToColor(col)}
                                         title="Copy standard size quantities"
                                       >
-                                        ↻ Copy Sizes
+                                        Copy Sizes
                                       </button>
                                     </div>
                                     <div className="color-sizes-inputs-row">
-                                      {displayedSizes.map(sz => {
+                                      {((formData.sizeStock && formData.sizeStock.length > 0)
+                                        ? formData.sizeStock.map(s => s.size)
+                                        : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
+                                      ).map(sz => {
                                         const currentQty = (galleryEntry?.sizeStock || []).find(s => s.size?.toUpperCase() === sz.toUpperCase())?.quantity ?? ''
                                         return (
                                           <div key={sz} className="color-size-input-chip">
@@ -2095,30 +2190,6 @@ const ProductsManager = ({ onPromoteToHero }) => {
                                           </div>
                                         )
                                       })}
-                                    </div>
-
-                                    {/* Add Custom Size to this variant */}
-                                    <div className="color-add-custom-size-row">
-                                      <input
-                                        type="text"
-                                        placeholder={`Add size to ${col} (e.g. 38, 40, Free Size)...`}
-                                        value={colorNewSizeInputs[col] || ''}
-                                        onChange={(e) => setColorNewSizeInputs({ ...colorNewSizeInputs, [col]: e.target.value })}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') {
-                                            e.preventDefault()
-                                            handleColorAddCustomSize(col, colorNewSizeInputs[col])
-                                          }
-                                        }}
-                                        className="color-custom-size-input"
-                                      />
-                                      <button
-                                        type="button"
-                                        className="btn-add-variant-size"
-                                        onClick={() => handleColorAddCustomSize(col, colorNewSizeInputs[col])}
-                                      >
-                                        + Add Size
-                                      </button>
                                     </div>
                                   </div>
                                 </div>
@@ -2220,22 +2291,149 @@ const ProductsManager = ({ onPromoteToHero }) => {
                         )}
                       </div>
 
-                      {/* Helpful Banner for Colour Variant Photos */}
-                      <div className="media-color-switch-banner">
-                        <div className="media-color-switch-content">
-                          <span className="media-banner-icon">🎨</span>
-                          <div>
-                            <strong>Need photos for specific colour variants?</strong>
-                            <p>Upload photos and manage size-wise stock for each colour (e.g. White, Blue, Black) in the <strong>Colours</strong> tab.</p>
+                      {/* Color-Specific Galleries (Variant Photos) */}
+                      <div className="color-galleries-section">
+                        <div className="color-galleries-header">
+                          <div className="color-galleries-header-info">
+                            <h4 className="color-galleries-title">🎨 Color-Specific Photo Galleries</h4>
+                            <p className="color-galleries-subtitle">
+                              Add separate photos for each colour (e.g. Blue, Wine, Black). When a customer taps that colour circle on the product page, only that colour's photos will be displayed.
+                            </p>
                           </div>
                         </div>
-                        <button
-                          type="button"
-                          className="btn-switch-tab-pill"
-                          onClick={() => setFormTab('colors')}
-                        >
-                          Go to Colours Tab →
-                        </button>
+
+                        {(!formData.colors || formData.colors.length === 0) ? (
+                          <div className="color-galleries-empty-box">
+                            <p>⚠️ No colours configured for this product yet.</p>
+                            <button
+                              type="button"
+                              className="btn-switch-colors-tab"
+                              onClick={() => setFormTab('colors')}
+                            >
+                              Go to 'Colours' Tab to Add Colours First
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="color-galleries-cards-grid">
+                            {formData.colors.map(col => {
+                              const galleryEntry = (formData.colorImages || []).find(ci => ci.color?.toLowerCase() === col.toLowerCase())
+                              const colorImgs = galleryEntry?.images || []
+                              const hex = getColorHex(col)
+                              const inputId = `color-file-${col.replace(/[^a-zA-Z0-9]/g, '-')}`
+
+                              return (
+                                <div key={col} className="color-gallery-card">
+                                  <div className="color-gallery-top">
+                                    <div className="color-gallery-pill">
+                                      <span className="color-pill-dot" style={{ backgroundColor: hex }} />
+                                      <span className="color-pill-name">{col}</span>
+                                      <span className="color-pill-count">
+                                        {colorImgs.length} {colorImgs.length === 1 ? 'image' : 'images'}
+                                      </span>
+                                    </div>
+                                    <div className="color-gallery-actions">
+                                      <button
+                                        type="button"
+                                        className="btn-color-upload-trigger"
+                                        onClick={() => document.getElementById(inputId)?.click()}
+                                      >
+                                        + Upload Photos
+                                      </button>
+                                      <input
+                                        id={inputId}
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        style={{ display: 'none' }}
+                                        onChange={(e) => handleColorMediaUpload(col, e.target.files)}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="color-gallery-url-row">
+                                    <input
+                                      type="url"
+                                      placeholder={`Paste image URL for ${col}...`}
+                                      value={colorUrlInputs[col] || ''}
+                                      onChange={(e) => setColorUrlInputs({ ...colorUrlInputs, [col]: e.target.value })}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          e.preventDefault()
+                                          handleAddColorImageUrl(col)
+                                        }
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      className="btn-color-add-url"
+                                      onClick={() => handleAddColorImageUrl(col)}
+                                    >
+                                      Add URL
+                                    </button>
+                                  </div>
+
+                                  <div className="color-gallery-thumbs">
+                                    {colorImgs.map((img, idx) => (
+                                      <div key={idx} className="color-thumb-item">
+                                        <img src={getImageUrl(img)} alt={`${col} ${idx + 1}`} />
+                                        <button
+                                          type="button"
+                                          className="btn-color-thumb-del"
+                                          onClick={() => handleRemoveColorImage(col, idx)}
+                                          title={`Remove photo from ${col}`}
+                                        >
+                                          &times;
+                                        </button>
+                                        {idx === 0 && <span className="color-thumb-main-badge">Swatch & Cover</span>}
+                                      </div>
+                                    ))}
+                                    {colorImgs.length === 0 && (
+                                      <div className="color-thumbs-none">
+                                        <span>No images uploaded for {col} yet (will show general images by default)</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  {/* Color-Specific Size Stock Inputs */}
+                                  <div className="color-sizestock-block">
+                                    <div className="color-sizestock-header">
+                                      <span className="color-sizestock-title">📏 Size-wise Stock for {col}:</span>
+                                      <button
+                                        type="button"
+                                        className="btn-copy-main-sizes"
+                                        onClick={() => handleCopySizesToColor(col)}
+                                        title="Copy standard size quantities"
+                                      >
+                                        Copy Sizes
+                                      </button>
+                                    </div>
+                                    <div className="color-sizes-inputs-row">
+                                      {((formData.sizeStock && formData.sizeStock.length > 0)
+                                        ? formData.sizeStock.map(s => s.size)
+                                        : ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL']
+                                      ).map(sz => {
+                                        const currentQty = (galleryEntry?.sizeStock || []).find(s => s.size?.toUpperCase() === sz.toUpperCase())?.quantity ?? ''
+                                        return (
+                                          <div key={sz} className="color-size-input-chip">
+                                            <span className="color-size-badge-lbl">{sz}</span>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              className="color-size-qty-field"
+                                              placeholder="0"
+                                              value={currentQty}
+                                              onChange={(e) => handleColorSizeStockChange(col, sz, e.target.value)}
+                                            />
+                                          </div>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
 

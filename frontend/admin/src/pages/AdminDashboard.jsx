@@ -25,15 +25,21 @@ import { isAdminSessionValid, getStoredAdminUser, clearAdminSession } from '../u
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview')
-  const [stats, setStats] = useState({
-    totalOrders: 0,
-    totalProducts: 0,
-    pendingOrders: 0,
-    revenue: 0,
-    topProducts: [],
-    recentOrders: [],
-    monthlyRevenue: [],
-    totalUsers: 0
+  const [stats, setStats] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('seemee_admin_stats_cache')
+      if (cached) return JSON.parse(cached)
+    } catch (e) { }
+    return {
+      totalOrders: 0,
+      totalProducts: 0,
+      pendingOrders: 0,
+      revenue: 0,
+      topProducts: [],
+      recentOrders: [],
+      monthlyRevenue: [],
+      totalUsers: 0
+    }
   })
   const [backendStatus, setBackendStatus] = useState('checking')
   const [lastSync, setLastSync] = useState(new Date())
@@ -41,6 +47,14 @@ const AdminDashboard = () => {
   const [timeframe, setTimeframe] = useState('6months')
   const [targetOrderId, setTargetOrderId] = useState(null)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    try {
+      if (stats && (stats.totalOrders > 0 || stats.totalProducts > 0)) {
+        sessionStorage.setItem('seemee_admin_stats_cache', JSON.stringify(stats))
+      }
+    } catch (e) { }
+  }, [stats])
 
   useEffect(() => {
     // Check URL parameters for push notification clicks (?orderId=xxx)

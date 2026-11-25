@@ -295,11 +295,20 @@ export const getOrders = asyncHandler(async (req, res) => {
     query.orderType = String(req.query.orderType).toUpperCase()
   }
   const orders = await Order.find(query)
-    .populate('items.product')
+    .populate('items.product', '_id name price mrp image images color colors sku')
     .populate('approvedBy', 'name email')
     .sort({ createdAt: -1 })
-  await shippingService.syncActiveAd2ShipOrders(orders)
+    .lean()
+
+  // Return orders immediately so admin panel loads in milliseconds!
   res.json({ success: true, data: orders })
+
+  // Trigger Ad2Ship background sync asynchronously without blocking the response
+  if (req.query.sync !== 'false') {
+    shippingService.syncActiveAd2ShipOrders(orders).catch(err => {
+      console.warn('Background Ad2Ship sync notice:', err.message)
+    })
+  }
 })
 
 // @desc    Get logged in user orders
@@ -319,11 +328,15 @@ export const getMyOrders = asyncHandler(async (req, res) => {
 
   const orders = await Order.find(
     queryConditions.length > 0 ? { $or: queryConditions } : { _id: null }
-  ).sort({ createdAt: -1 })
+  ).sort({ createdAt: -1 }).lean()
 
-  await shippingService.syncActiveAd2ShipOrders(orders)
-
+  // Return orders immediately for instant response
   res.json({ success: true, data: orders })
+
+  // Background courier sync
+  shippingService.syncActiveAd2ShipOrders(orders).catch(err => {
+    console.warn('Background Ad2Ship sync notice:', err.message)
+  })
 })
 
 // @desc    Get single order

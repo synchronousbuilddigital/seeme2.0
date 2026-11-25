@@ -402,8 +402,12 @@ const ActivityManager = () => {
             <div className="pagination-controls">
               {/* Page Size Selector */}
               <div className="page-size-selector">
-                <span>Per page:</span>
-                <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
+                <span className="page-size-label">Per page:</span>
+                <select 
+                  value={pageSize} 
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  aria-label="Items per page"
+                >
                   <option value={10}>10</option>
                   <option value={15}>15</option>
                   <option value={25}>25</option>
@@ -417,6 +421,7 @@ const ActivityManager = () => {
                   className="page-btn nav-btn" 
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  aria-label="Previous Page"
                 >
                   ‹ Prev
                 </button>
@@ -427,10 +432,11 @@ const ActivityManager = () => {
                     const prev = arr[idx - 1]
                     return (
                       <span key={p} className="page-num-wrap">
-                        {prev && p - prev > 1 && <span className="page-dots">…</span>}
+                        {prev && p - prev > 1 && <span className="page-dots" aria-hidden="true">…</span>}
                         <button
                           className={`page-btn ${currentPage === p ? 'active' : ''}`}
                           onClick={() => setCurrentPage(p)}
+                          aria-label={`Page ${p}`}
                         >
                           {p}
                         </button>
@@ -443,6 +449,7 @@ const ActivityManager = () => {
                   className="page-btn nav-btn" 
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  aria-label="Next Page"
                 >
                   Next ›
                 </button>

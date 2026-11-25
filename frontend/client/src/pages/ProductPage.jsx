@@ -49,25 +49,16 @@ const ProductPage = () => {
 
   // Sibling color variants found among other products in the store/category
   const siblingColorVariants = useMemo(() => {
-    if (!product || !Array.isArray(relatedProducts) || relatedProducts.length === 0) return []
-    const norm = (str) => String(str || '').toLowerCase().trim()
-    const cleanBaseName = (name) => {
-      let n = norm(name)
-      n = n.replace(/\s*[-–—|/].*$/, '').replace(/\s*\(.*?\)/g, '').trim()
-      return n
-    }
-    const currentBase = cleanBaseName(product.name)
-    if (!currentBase || currentBase.length < 3) return []
-
-    const siblings = []
+    if (!product) return []
     const curId = String(product._id || product.id || '')
-    relatedProducts.forEach(rel => {
-      if (!rel) return
-      const relId = String(rel._id || rel.id || '')
-      if (relId === curId) return
-      const relBase = cleanBaseName(rel.name)
-      const isBaseMatch = relBase === currentBase || (relBase.length > 3 && (relBase.startsWith(currentBase) || currentBase.startsWith(relBase)))
-      if (isBaseMatch) {
+    const siblings = []
+
+    // 1. Direct explicit siblingVariants (from backend styleCode / connected group)
+    if (Array.isArray(product.siblingVariants) && product.siblingVariants.length > 0) {
+      product.siblingVariants.forEach(rel => {
+        if (!rel) return
+        const relId = String(rel._id || rel.id || '')
+        if (relId === curId) return
         const relColor = rel.color || (Array.isArray(rel.colors) && rel.colors[0])
         if (relColor && typeof relColor === 'string' && relColor.trim() && relColor.toLowerCase() !== 'standard') {
           const colClean = relColor.trim()
@@ -80,60 +71,95 @@ const ProductPage = () => {
             })
           }
         }
+      })
+    }
+
+    // 2. Fallback heuristic from relatedProducts (if base name matches and not already in siblings)
+    if (Array.isArray(relatedProducts) && relatedProducts.length > 0) {
+      const norm = (str) => String(str || '').toLowerCase().trim()
+      const cleanBaseName = (name) => {
+        let n = norm(name)
+        n = n.replace(/\s*[-–—|/].*$/, '').replace(/\s*\(.*?\)/g, '').trim()
+        return n
       }
-    })
+      const currentBase = cleanBaseName(product.name)
+      if (currentBase && currentBase.length >= 3) {
+        relatedProducts.forEach(rel => {
+          if (!rel) return
+          const relId = String(rel._id || rel.id || '')
+          if (relId === curId) return
+          const relBase = cleanBaseName(rel.name)
+          const isBaseMatch = relBase === currentBase || (relBase.length > 3 && (relBase.startsWith(currentBase) || currentBase.startsWith(relBase)))
+          if (isBaseMatch) {
+            const relColor = rel.color || (Array.isArray(rel.colors) && rel.colors[0])
+            if (relColor && typeof relColor === 'string' && relColor.trim() && relColor.toLowerCase() !== 'standard') {
+              const colClean = relColor.trim()
+              if (!siblings.some(s => s.color.toLowerCase() === colClean.toLowerCase())) {
+                siblings.push({
+                  color: colClean,
+                  product: rel,
+                  productId: relId,
+                  images: Array.isArray(rel.images) && rel.images.length > 0 ? rel.images : (rel.image ? [rel.image] : [])
+                })
+              }
+            }
+          }
+        })
+      }
+    }
+
     return siblings
   }, [product, relatedProducts])
 
   // Aggregate all available colors (from colorImages, colors, color, and sibling products)
   const productColors = useMemo(() => {
     const list = []
-    // 1. Explicit color-specific images defined on product
-    if (Array.isArray(product?.colorImages) && product.colorImages.length > 0) {
-      product.colorImages.forEach(ci => {
-        if (ci && ci.color && typeof ci.color === 'string' && ci.color.trim()) {
-          const clean = ci.color.trim()
-          if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
-            list.push(clean)
-          }
+    const addCol = (c) => {
+      if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
+        const clean = c.trim()
+        if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
+          list.push(clean)
         }
-      })
-    }
-    // 2. Regular colors array
-    if (Array.isArray(product?.colors) && product.colors.length > 0) {
-      product.colors.forEach(c => {
-        if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
-          const clean = c.trim()
-          if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
-            list.push(clean)
-          }
-        }
-      })
-    }
-    // 3. Single color field
-    if (product?.color && typeof product.color === 'string' && product.color.trim() && product.color.trim().toLowerCase() !== 'standard') {
-      const clean = product.color.trim()
-      if (!list.some(x => x.toLowerCase() === clean.toLowerCase())) {
-        list.push(clean)
       }
     }
-    // 4. Sibling variant products in store
-    siblingColorVariants.forEach(s => {
-      if (!list.some(x => x.toLowerCase() === s.color.toLowerCase())) {
-        list.push(s.color)
-      }
-    })
+    // 1. Current product's own explicit colors (Priority 1)
+    if (product?.color) addCol(product.color)
+    if (Array.isArray(product?.colors)) product.colors.forEach(addCol)
+    if (Array.isArray(product?.colorImages)) product.colorImages.forEach(ci => addCol(ci?.color))
+
+    // 2. Sibling variants (other colors of same clothing)
+    siblingColorVariants.forEach(s => addCol(s.color))
+
     return list
   }, [product, siblingColorVariants])
 
+  const currentProductPrimaryColor = useMemo(() => {
+    if (!product) return ''
+    if (product.color && typeof product.color === 'string' && product.color.trim() && product.color.trim().toLowerCase() !== 'standard') {
+      return product.color.trim()
+    }
+    if (Array.isArray(product.colors) && product.colors.length > 0) {
+      const valid = product.colors.find(c => c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard')
+      if (valid) return valid.trim()
+    }
+    if (Array.isArray(product.colorImages) && product.colorImages.length > 0) {
+      const valid = product.colorImages.find(ci => ci && ci.color && ci.color.trim() && ci.color.trim().toLowerCase() !== 'standard')
+      if (valid) return valid.color.trim()
+    }
+    return ''
+  }, [product])
+
   const [selectedColor, setSelectedColor] = useState(() => {
+    if (location.state?.selectedColor) {
+      return location.state.selectedColor
+    }
     if (passedProduct) {
+      if (passedProduct.color && typeof passedProduct.color === 'string' && passedProduct.color.trim() && passedProduct.color.trim().toLowerCase() !== 'standard') {
+        return passedProduct.color.trim()
+      }
       if (Array.isArray(passedProduct.colors) && passedProduct.colors.length > 0) {
         const valid = passedProduct.colors.find(c => c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard')
         if (valid) return valid.trim()
-      }
-      if (passedProduct.color && typeof passedProduct.color === 'string' && passedProduct.color.trim() && passedProduct.color.trim().toLowerCase() !== 'standard') {
-        return passedProduct.color.trim()
       }
     }
     return ''
@@ -217,13 +243,21 @@ const ProductPage = () => {
 
   useEffect(() => {
     if (product) {
-      if (productColors.length > 0) {
+      const stateCol = location.state?.selectedColor
+      if (stateCol && productColors.some(c => c.toLowerCase() === stateCol.toLowerCase())) {
+        setSelectedColor(stateCol)
+        return
+      }
+      const primary = currentProductPrimaryColor
+      if (primary) {
+        setSelectedColor(primary)
+      } else if (productColors.length > 0) {
         setSelectedColor(prev => prev && productColors.some(c => c.toLowerCase() === prev.toLowerCase()) ? prev : productColors[0])
       } else {
         setSelectedColor('')
       }
     }
-  }, [product?._id || product?.id, product?.colors, product?.color, product?.colorImages, productColors])
+  }, [product?._id || product?.id, currentProductPrimaryColor, productColors, location.state?.selectedColor])
 
   // Get representative image for color swatch thumbnail
   const getColorSwatchImage = (col) => {
@@ -356,6 +390,9 @@ const ProductPage = () => {
   const isOutOfStock = currentStock <= 0 || product?.status === 'Out of Stock'
 
   useEffect(() => {
+    if (location.state?.product && String(location.state.product._id || location.state.product.id) === String(id)) {
+      setProduct(location.state.product)
+    }
     fetchProduct()
     window.scrollTo(0, 0)
   }, [id])

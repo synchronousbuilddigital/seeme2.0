@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useMemo } from 'react'
+import { useState, useEffect, useContext, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { CartContext } from '../context/CartContext'
@@ -13,6 +13,159 @@ import { isSizeInStock, getSortedSizesForProduct, getFirstAvailableSize, isProdu
 import './CollectionsPage.css'
 
 export { isProductOutOfStock }
+
+const CollectionProductCard = ({
+  product,
+  index,
+  colorVariants,
+  isInWishlist,
+  toggleWishlist,
+  navigate,
+  trackSelectItem
+}) => {
+  const origPrice = Number(product.mrp || product.discountPrice || product.originalPrice || 0)
+  const curPrice = Number(product.price || 0)
+  let discountPct = 0
+  if (origPrice > curPrice && origPrice > 0) {
+    discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
+  } else if (product.discount && Number(product.discount) > 0) {
+    discountPct = Math.round(Number(product.discount))
+  }
+  const hasDiscount = discountPct > 0
+  const isOutOfStock = isProductOutOfStock(product.parentProduct || product)
+  const targetId = product.originalProductId || product._id
+  const inWishlist = isInWishlist(targetId)
+
+  const [hoveredImg, setHoveredImg] = useState(null)
+  const [activeColor, setActiveColor] = useState(product.color || (product.colors && product.colors[0]) || '')
+
+  const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
+  const displayedImg = hoveredImg || mainImg
+
+  const handleCardClick = () => {
+    try { trackSelectItem(product.parentProduct || product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
+    navigate(`/product/${targetId}`, {
+      state: {
+        product: product.parentProduct || product,
+        selectedColor: activeColor || product.color
+      }
+    })
+  }
+
+  return (
+    <motion.div
+      key={product._id || index}
+      className={`collection-product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`}
+      initial={{ opacity: 0, y: 25 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
+    >
+      <div className="product-image-wrapper" onClick={handleCardClick}>
+        <img
+          src={displayedImg}
+          alt={product.name}
+          className="product-image"
+          loading="lazy"
+          onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
+        />
+
+        {discountPct > 0 && (
+          <span className="collection-discount-badge">{discountPct}% OFF</span>
+        )}
+
+        {/* Color Badge if specific color */}
+        {product.color && product.color.toLowerCase() !== 'standard' && (
+          <span className="collection-color-badge" title={`Color: ${product.color}`}>
+            <span className="color-badge-dot" style={{ backgroundColor: getColorHex(product.color) }} />
+            {product.color}
+          </span>
+        )}
+
+        <button
+          className={`wishlist-btn-card ${inWishlist ? 'active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleWishlist(product.parentProduct || product)
+          }}
+          title="Add to Wishlist"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={inWishlist ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+
+        {isOutOfStock && (
+          <div className="out-of-stock-badge">Sold Out</div>
+        )}
+      </div>
+
+      <div className="product-info">
+        {/* Colour Swatches Bar (Sath me bhi dikhe) */}
+        {colorVariants && colorVariants.length > 1 && (
+          <div className="card-color-swatches-bar" onClick={(e) => e.stopPropagation()}>
+            <div className="card-swatches-dots">
+              {colorVariants.slice(0, 5).map((v) => {
+                const isSelected = (activeColor || '').toLowerCase() === v.color.toLowerCase()
+                return (
+                  <button
+                    key={v.color}
+                    type="button"
+                    className={`card-color-dot ${isSelected ? 'active' : ''}`}
+                    style={{ backgroundColor: v.hex || getColorHex(v.color) }}
+                    title={v.color}
+                    onMouseEnter={() => {
+                      if (v.image) setHoveredImg(getOptimizedImageUrl(v.image, 'product'))
+                      setActiveColor(v.color)
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredImg(null)
+                      setActiveColor(product.color || (product.colors && product.colors[0]) || '')
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(`/product/${v.productId}`, {
+                        state: { product: v.product, selectedColor: v.color }
+                      })
+                    }}
+                  />
+                )
+              })}
+              {colorVariants.length > 5 && (
+                <span className="card-more-colors-count">+{colorVariants.length - 5}</span>
+              )}
+            </div>
+            <span className="card-colors-count-label">
+              {colorVariants.length} Colours
+            </span>
+          </div>
+        )}
+
+        <h3 className="product-name" onClick={handleCardClick}>
+          {product.name}
+        </h3>
+
+        <div className="product-footer">
+          <div className="collection-price-group">
+            <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
+            {hasDiscount && (
+              <span className="product-mrp-crossed">
+                ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
+              </span>
+            )}
+          </div>
+
+          <AddToCartButton
+            product={product.parentProduct || product}
+            selectedSize={getFirstAvailableSize(product.parentProduct || product, 'M')}
+            variant="mini"
+            label="+ Add"
+          />
+        </div>
+      </div>
+    </motion.div>
+  )
+}
 
 const CollectionsPage = () => {
   const navigate = useNavigate()
@@ -35,6 +188,7 @@ const CollectionsPage = () => {
   const [maxPrice, setMaxPrice] = useState(10000)
   const [selectedSizes, setSelectedSizes] = useState([])
   const [selectedColors, setSelectedColors] = useState([])
+  const [viewMode, setViewMode] = useState('all-colors') // 'all-colors' | 'by-design'
   const [showSidebar, setShowSidebar] = useState(true)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [openSections, setOpenSections] = useState({
@@ -154,10 +308,134 @@ const CollectionsPage = () => {
     return products.filter(p => belongsToAudience(p, selectedAudience))
   }, [products, selectedAudience])
 
+  const styleCodeMap = useMemo(() => {
+    const map = new Map()
+    products.forEach(p => {
+      const code = p.styleCode ? p.styleCode.trim().toUpperCase() : null
+      if (code) {
+        if (!map.has(code)) map.set(code, [])
+        map.get(code).push(p)
+      }
+    })
+    return map
+  }, [products])
+
+  const baseNameMap = useMemo(() => {
+    const map = new Map()
+    const cleanBase = (n) => String(n || '').toLowerCase().replace(/\s*[-–—|/].*$/, '').replace(/\s*\(.*?\)/g, '').trim()
+    products.forEach(p => {
+      const base = cleanBase(p.name)
+      if (base && base.length >= 3 && p.category) {
+        const key = `${p.category}__${base}`
+        if (!map.has(key)) map.set(key, [])
+        map.get(key).push(p)
+      }
+    })
+    return map
+  }, [products])
+
+  const getProductColorVariants = useCallback((p) => {
+    if (!p) return []
+    const variants = []
+    const addVariant = (colorName, hexCode, imageUrl, targetProductId, targetProductObj) => {
+      if (!colorName || typeof colorName !== 'string' || !colorName.trim() || colorName.toLowerCase() === 'standard') return
+      const cleanColor = colorName.trim()
+      if (!variants.some(v => v.color.toLowerCase() === cleanColor.toLowerCase())) {
+        variants.push({
+          color: cleanColor,
+          hex: hexCode || getColorHex(cleanColor),
+          image: imageUrl || null,
+          productId: targetProductId,
+          product: targetProductObj
+        })
+      }
+    }
+
+    const curColor = p.color || (Array.isArray(p.colors) && p.colors[0]) || ''
+    const curImg = p.images?.[0] || p.image
+    if (curColor) {
+      addVariant(curColor, getColorHex(curColor), curImg, p._id || p.id, p)
+    }
+
+    if (Array.isArray(p.colorImages) && p.colorImages.length > 0) {
+      p.colorImages.forEach(ci => {
+        if (ci && ci.color) {
+          addVariant(ci.color, ci.hex || getColorHex(ci.color), ci.images?.[0] || curImg, p._id || p.id, p)
+        }
+      })
+    }
+
+    const sCode = p.styleCode ? p.styleCode.trim().toUpperCase() : null
+    if (sCode && styleCodeMap.has(sCode)) {
+      const siblings = styleCodeMap.get(sCode)
+      siblings.forEach(sib => {
+        const sibColor = sib.color || (Array.isArray(sib.colors) && sib.colors[0])
+        if (sibColor) {
+          addVariant(sibColor, getColorHex(sibColor), sib.images?.[0] || sib.image, sib._id || sib.id, sib)
+        }
+      })
+    } else {
+      const cleanBase = (n) => String(n || '').toLowerCase().replace(/\s*[-–—|/].*$/, '').replace(/\s*\(.*?\)/g, '').trim()
+      const base = cleanBase(p.name)
+      const key = `${p.category}__${base}`
+      if (baseNameMap.has(key)) {
+        const siblings = baseNameMap.get(key)
+        if (siblings.length > 1) {
+          siblings.forEach(sib => {
+            const sibColor = sib.color || (Array.isArray(sib.colors) && sib.colors[0])
+            if (sibColor) {
+              addVariant(sibColor, getColorHex(sibColor), sib.images?.[0] || sib.image, sib._id || sib.id, sib)
+            }
+          })
+        }
+      }
+    }
+
+    return variants
+  }, [styleCodeMap, baseNameMap])
+
+  // Expand products with colorImages so each color variant appears as its own individual card
+  const expandedAudienceProducts = useMemo(() => {
+    if (viewMode === 'by-design') {
+      return audienceProducts
+    }
+
+    const list = []
+    audienceProducts.forEach(p => {
+      if (Array.isArray(p.colorImages) && p.colorImages.length > 1) {
+        const validColorImages = p.colorImages.filter(ci => ci && ci.color && ci.color.trim() && Array.isArray(ci.images) && ci.images.length > 0)
+        if (validColorImages.length > 1) {
+          validColorImages.forEach((ci) => {
+            const variantColor = ci.color.trim()
+            const variantImages = ci.images
+            list.push({
+              ...p,
+              _id: `${p._id}__variant__${encodeURIComponent(variantColor)}`,
+              originalProductId: p._id,
+              name: `${p.name} - ${variantColor}`,
+              baseName: p.name,
+              color: variantColor,
+              colors: [variantColor],
+              image: variantImages[0] || p.image,
+              images: variantImages.length > 0 ? variantImages : p.images,
+              selectedColor: variantColor,
+              isColorVariant: true,
+              parentProduct: p
+            })
+          })
+          return
+        }
+      }
+
+      list.push(p)
+    })
+    return list
+  }, [audienceProducts, viewMode])
+
   // Extract available colours dynamically from active audience products (excluding 'Standard')
   const availableColors = useMemo(() => {
     const colorMap = new Map()
-    audienceProducts.forEach(p => {
+    expandedAudienceProducts.forEach(p => {
       const list = []
       if (p.color && typeof p.color === 'string' && p.color.trim() && p.color.trim().toLowerCase() !== 'standard') {
         list.push(p.color.trim())
@@ -166,6 +444,13 @@ const CollectionsPage = () => {
         p.colors.forEach(c => {
           if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
             list.push(c.trim())
+          }
+        })
+      }
+      if (Array.isArray(p.colorImages)) {
+        p.colorImages.forEach(ci => {
+          if (ci && ci.color && typeof ci.color === 'string' && ci.color.trim() && ci.color.trim().toLowerCase() !== 'standard') {
+            list.push(ci.color.trim())
           }
         })
       }
@@ -180,11 +465,11 @@ const CollectionsPage = () => {
       })
     })
     return Array.from(colorMap.values()).sort((a, b) => a.name.localeCompare(b.name))
-  }, [audienceProducts])
+  }, [expandedAudienceProducts])
 
   // Filtered & Sorted Products
   const filteredProducts = useMemo(() => {
-    let result = [...audienceProducts]
+    let result = [...expandedAudienceProducts]
 
     // Category Filter
     if (selectedCategory !== 'all') {
@@ -252,6 +537,13 @@ const CollectionsPage = () => {
           p.colors.forEach(c => {
             if (c && typeof c === 'string' && c.trim() && c.trim().toLowerCase() !== 'standard') {
               prodColors.push(c.trim().toLowerCase())
+            }
+          })
+        }
+        if (Array.isArray(p.colorImages)) {
+          p.colorImages.forEach(ci => {
+            if (ci && ci.color && typeof ci.color === 'string' && ci.color.trim() && ci.color.trim().toLowerCase() !== 'standard') {
+              prodColors.push(ci.color.trim().toLowerCase())
             }
           })
         }
@@ -355,99 +647,6 @@ const CollectionsPage = () => {
   }
 
   const hasActiveFilters = selectedCategory !== 'all' || selectedBrand !== 'all' || priceFilter !== 'all' || maxPrice < 10000 || selectedSizes.length > 0 || selectedColors.length > 0 || searchQuery.trim() !== '' || sortBy !== 'newest'
-
-  const renderCollectionProductCard = (product, index) => {
-    const origPrice = Number(product.mrp || product.discountPrice || product.originalPrice || 0)
-    const curPrice = Number(product.price || 0)
-    let discountPct = 0
-    if (origPrice > curPrice && origPrice > 0) {
-      discountPct = Math.round(((origPrice - curPrice) / origPrice) * 100)
-    } else if (product.discount && Number(product.discount) > 0) {
-      discountPct = Math.round(Number(product.discount))
-    }
-    const hasDiscount = discountPct > 0
-    const mainImg = getOptimizedImageUrl(product.images?.[0] || product.image, 'product')
-    const isOutOfStock = isProductOutOfStock(product)
-    const inWishlist = isInWishlist(product._id)
-
-    return (
-      <motion.div
-        key={product._id || index}
-        className={`collection-product-card ${isOutOfStock ? 'is-out-of-stock' : ''}`}
-        initial={{ opacity: 0, y: 25 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, delay: (index % 6) * 0.05 }}
-      >
-        <div
-          className="product-image-wrapper"
-          onClick={() => {
-            try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
-            navigate(`/product/${product._id}`, { state: { product } })
-          }}
-        >
-          <img
-            src={mainImg}
-            alt={product.name}
-            className="product-image"
-            loading="lazy"
-            onError={(e) => { e.target.src = '/images/categories_straight.jpg' }}
-          />
-
-          {discountPct > 0 && (
-            <span className="collection-discount-badge">{discountPct}% OFF</span>
-          )}
-
-          <button
-            className={`wishlist-btn-card ${inWishlist ? 'active' : ''}`}
-            onClick={(e) => {
-              e.stopPropagation()
-              toggleWishlist(product)
-            }}
-            title="Add to Wishlist"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill={inWishlist ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          </button>
-
-          {isOutOfStock && (
-            <div className="out-of-stock-badge">Sold Out</div>
-          )}
-        </div>
-
-        <div className="product-info">
-          <h3
-            className="product-name"
-            onClick={() => {
-              try { trackSelectItem(product, 'Shop All Collections', 'collections_all', index) } catch (e) { }
-              navigate(`/product/${product._id}`, { state: { product } })
-            }}
-          >
-            {product.name}
-          </h3>
-
-          <div className="product-footer">
-            <div className="collection-price-group">
-              <span className="product-price">₹{Number(product.price || 0).toLocaleString('en-IN')}</span>
-              {hasDiscount && (
-                <span className="product-mrp-crossed">
-                  ₹{Number(product.mrp || product.discountPrice).toLocaleString('en-IN')}
-                </span>
-              )}
-            </div>
-
-            <AddToCartButton
-              product={product}
-              selectedSize={getFirstAvailableSize(product, 'M')}
-              variant="mini"
-              label="+ Add"
-            />
-          </div>
-        </div>
-      </motion.div>
-    )
-  }
 
   if (loading) {
     return (
@@ -827,6 +1026,26 @@ const CollectionsPage = () => {
                 </span>
               ))}
             </div>
+            {/* View Mode Toggle: All Colours vs Grouped By Design */}
+            <div className="view-mode-toggle-group" role="group" aria-label="View Mode">
+              <button
+                type="button"
+                className={`view-mode-btn ${viewMode === 'all-colors' ? 'active' : ''}`}
+                onClick={() => setViewMode('all-colors')}
+                title="View every colour individually"
+              >
+                ✦ All Colours
+              </button>
+              <button
+                type="button"
+                className={`view-mode-btn ${viewMode === 'by-design' ? 'active' : ''}`}
+                onClick={() => setViewMode('by-design')}
+                title="Group colours by garment design"
+              >
+                ❖ By Design
+              </button>
+            </div>
+
             <button
               className="mobile-filter-trigger-btn"
               onClick={() => setShowMobileFilters(true)}
@@ -850,7 +1069,18 @@ const CollectionsPage = () => {
               </div>
             ) : (
               <>
-                {filteredProducts.slice(0, visibleCount).map((product, index) => renderCollectionProductCard(product, index))}
+                {filteredProducts.slice(0, visibleCount).map((product, index) => (
+                  <CollectionProductCard
+                    key={product._id || `${product.id || index}_${product.color || ''}`}
+                    product={product}
+                    index={index}
+                    colorVariants={getProductColorVariants(product.parentProduct || product)}
+                    isInWishlist={isInWishlist}
+                    toggleWishlist={toggleWishlist}
+                    navigate={navigate}
+                    trackSelectItem={trackSelectItem}
+                  />
+                ))}
 
                 {visibleCount < filteredProducts.length && (
                   <div style={{ textAlign: 'center', width: '100%', gridColumn: '1 / -1', padding: '36px 0 20px' }}>

@@ -604,55 +604,81 @@
   gap: 12px;
 }
 
+.pagination-info {
+  font-size: 0.78rem;
+  color: #666;
+  white-space: nowrap;
+}
+
 .pagination-info strong {
   color: #111;
+  font-weight: 700;
 }
 
 .pagination-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .page-size-selector {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.page-size-selector span {
+  white-space: nowrap;
+  color: #666;
 }
 
 .page-size-selector select {
-  padding: 3px 6px;
+  padding: 4px 8px;
   border: 1px solid #d4af37;
   border-radius: 6px;
   background: #ffffff;
   font-size: 0.75rem;
+  font-weight: 600;
   color: #111;
   outline: none;
   cursor: pointer;
 }
 
 .page-buttons {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.page-num-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .page-btn {
-  min-width: 28px;
-  height: 28px;
+  min-width: 32px;
+  height: 32px;
   padding: 0 6px;
   border: 1px solid #e7e5e4;
   background: #ffffff;
   border-radius: 6px;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #444;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
+  user-select: none;
 }
 
 .page-btn:hover:not(:disabled) {
@@ -675,11 +701,19 @@
 .nav-btn {
   padding: 0 10px;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .page-dots {
-  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
   color: #999;
+  font-size: 0.75rem;
+  user-select: none;
+  flex-shrink: 0;
 }
 
 /* Loader & Empty states */
@@ -787,6 +821,56 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  /* Responsive Pagination for <= 640px */
+  .log-pagination-bar {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 10px;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .pagination-info {
+    width: 100%;
+    text-align: center;
+    font-size: 0.74rem;
+    white-space: normal;
+  }
+
+  .pagination-controls {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 14px;
+  }
+
+  .page-size-selector {
+    justify-content: center;
+  }
+
+  .page-buttons {
+    justify-content: center;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 2px 0;
+  }
+
+  .page-btn {
+    min-width: 30px;
+    height: 30px;
+    font-size: 0.74rem;
+    padding: 0 5px;
+  }
+
+  .nav-btn {
+    padding: 0 8px;
+    font-size: 0.72rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -820,5 +904,56 @@
 
   .activity-kpi-grid .kpi-subtext {
     font-size: 0.6rem !important;
+  }
+
+  /* Responsive Pagination for <= 480px */
+  .log-pagination-bar {
+    padding: 10px 6px;
+    gap: 8px;
+  }
+
+  .pagination-info {
+    font-size: 0.7rem;
+    line-height: 1.35;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .page-buttons {
+    order: 1;
+    width: 100%;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .page-size-selector {
+    order: 2;
+    font-size: 0.72rem;
+  }
+
+  .page-size-selector select {
+    padding: 3px 6px;
+    font-size: 0.72rem;
+  }
+
+  .page-btn {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.72rem;
+    padding: 0 4px;
+    border-radius: 5px;
+  }
+
+  .nav-btn {
+    padding: 0 6px;
+    font-size: 0.7rem;
+  }
+
+  .page-dots {
+    padding: 0 1px;
   }
 }

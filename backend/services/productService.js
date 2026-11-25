@@ -106,13 +106,14 @@ export const getAllProducts = async (filters = {}) => {
   if (sortBy === 'price_desc') sortOptions = { price: -1 }
   if (sortBy === 'newest') sortOptions = { createdAt: -1 }
 
-  const products = await Product.find(filter)
-    .sort(sortOptions)
-    .skip(skip)
-    .limit(Number(limit))
-    .lean()
-
-  const total = await Product.countDocuments(filter)
+  const [products, total] = await Promise.all([
+    Product.find(filter)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(),
+    Product.countDocuments(filter)
+  ])
 
   return { products, total, pages: Math.ceil(total / limit), currentPage: Number(page) }
 }
@@ -157,13 +158,14 @@ export const searchProducts = async (queryParams) => {
   if (sortBy === 'price_desc') sortOptions = { price: -1 }
   if (sortBy === 'newest') sortOptions = { createdAt: -1 }
 
-  const products = await Product.find(filter)
-    .sort(sortOptions)
-    .skip(skip)
-    .limit(Number(limit))
-    .lean()
-
-  const total = await Product.countDocuments(filter)
+  const [products, total] = await Promise.all([
+    Product.find(filter)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(Number(limit))
+      .lean(),
+    Product.countDocuments(filter)
+  ])
 
   return { products, total, pages: Math.ceil(total / limit), currentPage: Number(page) }
 }
@@ -238,6 +240,36 @@ export const getProductById = async (id) => {
   if (!product) {
     throw new Error('Product not found')
   }
+
+  let siblingVariants = []
+  if (product.styleCode && product.styleCode.trim()) {
+    siblingVariants = await Product.find({
+      styleCode: product.styleCode.trim(),
+      _id: { $ne: product._id },
+      isActive: { $ne: false }
+    })
+      .select('_id name slug price mrp discount images color colors colorImages sizeStock stock styleCode')
+      .lean()
+  }
+
+  // If no styleCode siblings found, support intelligent matching by base name in the same category
+  if (siblingVariants.length === 0 && product.name && product.category) {
+    const cleanBase = product.name.replace(/\s*[-–—|/].*$/, '').replace(/\s*\(.*?\)/g, '').trim()
+    if (cleanBase && cleanBase.length >= 3) {
+      const escaped = cleanBase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      siblingVariants = await Product.find({
+        category: product.category,
+        name: { $regex: new RegExp(`^${escaped}`, 'i') },
+        _id: { $ne: product._id },
+        isActive: { $ne: false }
+      })
+        .select('_id name slug price mrp discount images color colors colorImages sizeStock stock styleCode')
+        .limit(20)
+        .lean()
+    }
+  }
+
+  product.siblingVariants = siblingVariants || []
   return product
 }
 

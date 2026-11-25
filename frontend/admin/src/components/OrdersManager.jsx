@@ -16,7 +16,13 @@ const QUICK_CANCEL_REASONS = [
 ]
 
 const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter = 'all' }) => {
-  const [orders, setOrders] = useState([])
+  const [orders, setOrders] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem('seemee_admin_orders_cache')
+      if (cached) return JSON.parse(cached)
+    } catch (e) { }
+    return []
+  })
   const [filter, setFilter] = useState(initialStatusFilter || 'all')
   const [orderTypeFilter, setOrderTypeFilter] = useState('all')
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -453,8 +459,11 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
   const fetchOrders = async () => {
     try {
       const data = await apiRequest(API_ENDPOINTS.ORDERS, { auth: true })
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         setOrders(data.data)
+        try {
+          sessionStorage.setItem('seemee_admin_orders_cache', JSON.stringify(data.data))
+        } catch (e) { }
       }
     } catch (error) {
       console.error('Error fetching orders:', error)

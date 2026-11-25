@@ -271,10 +271,14 @@ productSchema.pre('save', function (next) {
     this.sizes = Array.from(sizeSet)
   }
 
-  if (Array.isArray(this.colors) && this.colors.length > 0) {
-    if (!this.color) this.color = this.colors[0]
-  } else if (this.color && (!this.colors || this.colors.length === 0)) {
-    this.colors = [this.color]
+  if (this.color) {
+    const cTrim = String(this.color).trim()
+    this.color = cTrim
+    if (!Array.isArray(this.colors)) this.colors = []
+    const rest = this.colors.filter(c => c && c.toLowerCase() !== cTrim.toLowerCase())
+    this.colors = [cTrim, ...rest]
+  } else if (Array.isArray(this.colors) && this.colors.length > 0) {
+    this.color = this.colors[0]
   }
   next()
 })
@@ -299,33 +303,60 @@ productSchema.pre('findOneAndUpdate', function (next) {
     }
   }
 
-  // Sync colorImages to colors on update
-  const colorImages = update.colorImages || (update.$set && update.$set.colorImages)
-  if (Array.isArray(colorImages) && colorImages.length > 0) {
-    let currentColors = update.colors || (update.$set && update.$set.colors) || []
-    if (!Array.isArray(currentColors)) currentColors = []
-    colorImages.forEach(ci => {
+  // Sync color & colors on update reliably
+  const hasExplicitColors = Array.isArray(update.colors) || (update.$set && Array.isArray(update.$set.colors))
+  const rawColors = update.colors || (update.$set && update.$set.colors)
+  const rawColor = update.color || (update.$set && update.$set.color)
+  const rawColorImages = update.colorImages || (update.$set && update.$set.colorImages)
+
+  if (hasExplicitColors) {
+    const cleanColors = (rawColors || []).map(c => String(c || '').trim()).filter(Boolean)
+    const primaryColor = (rawColor ? String(rawColor).trim() : cleanColors[0]) || ''
+    const finalColors = []
+    if (primaryColor) finalColors.push(primaryColor)
+    cleanColors.forEach(c => {
+      if (!finalColors.some(fc => fc.toLowerCase() === c.toLowerCase())) {
+        finalColors.push(c)
+      }
+    })
+
+    if (update.$set) {
+      update.$set.colors = finalColors
+      if (primaryColor) update.$set.color = primaryColor
+    } else {
+      update.colors = finalColors
+      if (primaryColor) update.color = primaryColor
+    }
+  } else if (rawColor) {
+    const cTrim = String(rawColor).trim()
+    if (update.$set) {
+      update.$set.color = cTrim
+      if (!update.$set.colors) update.$set.colors = [cTrim]
+    } else {
+      update.color = cTrim
+      if (!update.colors) update.colors = [cTrim]
+    }
+  } else if (Array.isArray(rawColorImages) && rawColorImages.length > 0) {
+    const extractedColors = []
+    rawColorImages.forEach(ci => {
       if (ci && ci.color && ci.color.trim()) {
-        const cTrim = ci.color.trim()
-        if (!currentColors.some(existing => existing.toLowerCase() === cTrim.toLowerCase())) {
-          currentColors.push(cTrim)
+        const ct = ci.color.trim()
+        if (!extractedColors.some(e => e.toLowerCase() === ct.toLowerCase())) {
+          extractedColors.push(ct)
         }
       }
     })
-    if (update.$set) update.$set.colors = currentColors
-    else update.colors = currentColors
+    if (extractedColors.length > 0) {
+      if (update.$set) {
+        update.$set.colors = extractedColors
+        update.$set.color = extractedColors[0]
+      } else {
+        update.colors = extractedColors
+        update.color = extractedColors[0]
+      }
+    }
   }
 
-  // Sync color/colors on update
-  const colors = update.colors || (update.$set && update.$set.colors)
-  const color = update.color || (update.$set && update.$set.color)
-  if (Array.isArray(colors) && colors.length > 0 && !color) {
-    if (update.$set) update.$set.color = colors[0]
-    else update.color = colors[0]
-  } else if (color && (!colors || colors.length === 0)) {
-    if (update.$set) update.$set.colors = [color]
-    else update.colors = [color]
-  }
   next()
 })
 
@@ -338,6 +369,7 @@ productSchema.index({ isActive: 1, isNewArrival: 1 })
 productSchema.index({ isActive: 1, isTryTheLook: 1 })
 productSchema.index({ isActive: 1, tryTheLook: 1 })
 productSchema.index({ createdAt: -1 })
+productSchema.index({ styleCode: 1 })
 
 // Virtual getters for backwards compatibility with legacy dimension/weight property access
 productSchema.virtual('dimensions.lengthCm').get(function () { return this.dimensions?.length })
