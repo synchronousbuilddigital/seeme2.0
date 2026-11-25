@@ -6,6 +6,15 @@ import { getImageUrl } from '../utils/imageHelper'
 import { printOrderInvoice } from '../utils/invoiceHelper'
 import './OrdersManager.css'
 
+const QUICK_CANCEL_REASONS = [
+  'Customer requested cancellation',
+  'Item out of stock / quality issue',
+  'Delivery address unserviceable / incorrect',
+  'Duplicate order placed by customer',
+  'Payment verification failed / suspicious transaction',
+  'Unable to contact customer for COD confirmation'
+]
+
 const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter = 'all' }) => {
   const [orders, setOrders] = useState([])
   const [filter, setFilter] = useState(initialStatusFilter || 'all')
@@ -17,6 +26,34 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
   const [exportRange, setExportRange] = useState('filtered')
   const [exportFormat, setExportFormat] = useState('csv')
   const [exportProgressText, setExportProgressText] = useState('')
+
+  // Manual Order Cancellation States
+  const [cancelModalOrder, setCancelModalOrder] = useState(null)
+  const [cancellationReason, setCancellationReason] = useState('')
+  const [cancellingOrder, setCancellingOrder] = useState(false)
+  const [cancelError, setCancelError] = useState('')
+
+  // Check if an order has already been shipped or dispatched
+  const isOrderShippedOrDispatched = (order) => {
+    if (!order) return false
+    const s = String(order.status || '').toLowerCase()
+    if (['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(s)) {
+      return true
+    }
+    if (Boolean(order.shipping?.awbNumber) || Boolean(order.trackingNumber)) {
+      return true
+    }
+    return false
+  }
+
+  // An order can ONLY be cancelled strictly BEFORE shipment/dispatch
+  const canCancelOrder = (order) => {
+    if (!order) return false
+    const s = String(order.status || '').toLowerCase()
+    if (s === 'cancelled' || s === 'refunded') return false
+    if (isOrderShippedOrDispatched(order)) return false
+    return true
+  }
 
   // Ad2Ship Logistics States
   const [ad2shipLoading, setAd2shipLoading] = useState(false)
@@ -424,12 +461,17 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
     }
   }
 
-  const updateOrderStatus = async (orderId, newStatus, note = '') => {
+  const updateOrderStatus = async (orderId, newStatus, note = '', reason = '') => {
     try {
+      const payload = { status: newStatus, note }
+      if (reason) {
+        payload.cancellationReason = reason
+      }
+
       const data = await apiRequest(`${API_ENDPOINTS.ADMIN.BASE}/orders/${orderId}/status`, {
         method: 'PUT',
         auth: true,
-        body: { status: newStatus, note }
+        body: payload
       })
 
       if (data.success) {
@@ -437,10 +479,46 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
         if (selectedOrder && selectedOrder._id === orderId) {
           setSelectedOrder(data.data)
         }
-        showNotification('Order status updated!')
+        showNotification(newStatus === 'cancelled' ? 'Order cancelled & cancellation email sent to customer!' : 'Order status updated!')
+        return true
       }
+      return false
     } catch (error) {
       showNotification(error.message || 'Failed to update status', 'error')
+      return false
+    }
+  }
+
+  const handleConfirmCancelOrder = async (e) => {
+    if (e && e.preventDefault) e.preventDefault()
+    if (!cancellationReason.trim()) {
+      setCancelError('Please select or write a cancellation reason.')
+      return
+    }
+
+    if (!cancelModalOrder) return
+
+    setCancellingOrder(true)
+    setCancelError('')
+
+    try {
+      const reason = cancellationReason.trim()
+      const success = await updateOrderStatus(
+        cancelModalOrder._id,
+        'cancelled',
+        `Order cancelled by Admin. Reason: ${reason}`,
+        reason
+      )
+
+      if (success) {
+        setCancelModalOrder(null)
+        setCancellationReason('')
+        setCancelError('')
+      }
+    } catch (err) {
+      setCancelError(err.message || 'Failed to process cancellation')
+    } finally {
+      setCancellingOrder(false)
     }
   }
 
@@ -878,10 +956,39 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                     <span className="amount-cell">₹{Number(order.totalAmount || 0).toLocaleString('en-IN')}</span>
                   </td>
                   <td className="actions-cell">
-                    <button className="manage-btn" onClick={() => setSelectedOrder(order)}>
-                      <span>Manage</span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <button className="manage-btn" onClick={() => setSelectedOrder(order)}>
+                        <span>Manage</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                      </button>
+                      {canCancelOrder(order) && (
+                        <button
+                          type="button"
+                          className="table-cancel-order-btn"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setCancelModalOrder(order)
+                            setCancellationReason('')
+                            setCancelError('')
+                          }}
+                          style={{
+                            padding: '6px 10px',
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            border: '1px solid #fca5a5',
+                            borderRadius: '6px',
+                            fontSize: '0.72rem',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                            transition: 'all 0.2s ease'
+                          }}
+                          title={`Cancel Order #${order.orderNumber} & send note to ${order.customer?.email}`}
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -992,13 +1099,39 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                   </span>
                 )
               })()}
-              <button className="mobile-manage-btn" onClick={(e) => {
-                e.stopPropagation()
-                setSelectedOrder(order)
-              }}>
-                <span>Manage Order</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {canCancelOrder(order) && (
+                  <button
+                    type="button"
+                    className="mobile-cancel-btn"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setCancelModalOrder(order)
+                      setCancellationReason('')
+                      setCancelError('')
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      background: '#fee2e2',
+                      color: '#dc2626',
+                      border: '1px solid #fca5a5',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button className="mobile-manage-btn" onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedOrder(order)
+                }}>
+                  <span>Manage</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -1037,6 +1170,31 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                 <div className="header-main">
                   <h2>Order #{selectedOrder.orderNumber}</h2>
                   <span className={`status-pill ${selectedOrder.status}`}>{selectedOrder.status}</span>
+                  {canCancelOrder(selectedOrder) && (
+                    <button
+                      type="button"
+                      className="header-cancel-order-btn"
+                      onClick={() => {
+                        setCancelModalOrder(selectedOrder)
+                        setCancellationReason('')
+                        setCancelError('')
+                      }}
+                      style={{
+                        padding: '4px 10px',
+                        background: '#fee2e2',
+                        color: '#dc2626',
+                        border: '1px solid #fca5a5',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        marginLeft: '8px'
+                      }}
+                      title="Cancel this order and notify customer via email"
+                    >
+                      ✕ Cancel Order
+                    </button>
+                  )}
                 </div>
                 <div className="header-actions">
                   <button className="print-btn" onClick={printInvoice}>
@@ -1049,6 +1207,35 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
 
               <div className="modal-scroll-area">
                 <div className="modal-sections">
+                  {selectedOrder.status === 'cancelled' && (
+                    <div style={{
+                      background: '#fef2f2',
+                      border: '1.5px solid #fca5a5',
+                      borderLeft: '5px solid #dc2626',
+                      borderRadius: '10px',
+                      padding: '14px 18px',
+                      marginBottom: '16px',
+                      boxShadow: '0 2px 8px rgba(220, 38, 38, 0.08)'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#991b1b', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>⚠️</span> ORDER CANCELLED
+                        </span>
+                        {selectedOrder.cancelledAt && (
+                          <span style={{ fontSize: '0.74rem', color: '#b91c1c', fontWeight: '600' }}>
+                            {new Date(selectedOrder.cancelledAt).toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.88rem', color: '#7f1d1d', lineHeight: '1.5' }}>
+                        <strong style={{ color: '#991b1b' }}>Cancellation Reason:</strong>{' '}
+                        {selectedOrder.cancellationReason || selectedOrder.timeline?.slice().reverse().find(t => (t.status || '').toLowerCase() === 'cancelled')?.note || 'Cancelled by store administration'}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#991b1b', marginTop: '6px', fontStyle: 'italic' }}>
+                        ✉️ An email notification with this reason was sent to {selectedOrder.customer?.email}.
+                      </div>
+                    </div>
+                  )}
                   <section className="info-section">
                     <h3>Customer Details</h3>
                     <div className="info-card">
@@ -1259,13 +1446,13 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                           }}>
                             {selectedOrder.status}
                           </span>
-                          {selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'delivered' && (
+                          {canCancelOrder(selectedOrder) && (
                             <button
                               type="button"
                               onClick={() => {
-                                if (window.confirm('Are you sure you want to cancel this order?')) {
-                                  updateOrderStatus(selectedOrder._id, 'cancelled')
-                                }
+                                setCancelModalOrder(selectedOrder)
+                                setCancellationReason('')
+                                setCancelError('')
                               }}
                               style={{
                                 padding: '4px 10px',
@@ -1278,7 +1465,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                                 cursor: 'pointer',
                                 transition: 'all 0.2s ease'
                               }}
-                              title="Cancel this order"
+                              title="Cancel this order and notify customer via email"
                             >
                               Cancel Order
                             </button>
@@ -1618,6 +1805,109 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                   {(!trackingModalData.OrderHistory || trackingModalData.OrderHistory.length === 0) && (
                     <p style={{ fontSize: '0.85rem', color: '#737373' }}>No tracking checkpoints recorded yet.</p>
                   )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Premium Order Cancellation Modal */}
+      <AnimatePresence>
+        {cancelModalOrder && (
+          <div className="modal-overlay" onClick={() => !cancellingOrder && setCancelModalOrder(null)}>
+            <motion.div
+              className="premium-cancel-order-modal"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="cancel-modal-topbar">
+                <div>
+                  <span className="cancel-modal-badge">ORDER CANCELLATION NOTE</span>
+                  <h3 className="cancel-modal-title">Cancel Order #{cancelModalOrder.orderNumber}</h3>
+                </div>
+                <button
+                  type="button"
+                  className="cancel-modal-close"
+                  disabled={cancellingOrder}
+                  onClick={() => setCancelModalOrder(null)}
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="cancel-modal-body">
+                <div className="cancel-recipient-pill">
+                  <span className="pill-icon">✉️</span>
+                  <span>Order placed with customer email:</span>
+                  <strong>{cancelModalOrder.customer?.email}</strong>
+                  <span className="customer-tag">({cancelModalOrder.customer?.name})</span>
+                </div>
+
+                <div className="cancel-field-group">
+                  <label className="cancel-label">Quick Suggestions (Click karke auto-fill karein):</label>
+                  <div className="cancel-quick-chips">
+                    {QUICK_CANCEL_REASONS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        className={`cancel-chip ${cancellationReason === preset ? 'active' : ''}`}
+                        onClick={() => {
+                          setCancellationReason(preset)
+                          setCancelError('')
+                        }}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="cancel-field-group">
+                  <label className="cancel-label">
+                    Cancellation Note / Reason (Order cancel kyu kar rahe hain) <span className="req-star">*</span>
+                  </label>
+                  <textarea
+                    className="cancel-reason-textarea"
+                    rows={4}
+                    value={cancellationReason}
+                    onChange={(e) => {
+                      setCancellationReason(e.target.value)
+                      if (cancelError) setCancelError('')
+                    }}
+                    placeholder="Yahan reason/note likhein (e.g. Due to an unexpected inventory issue, we are unable to fulfill this item...)..."
+                    disabled={cancellingOrder}
+                  />
+                  <span className="cancel-help-hint">
+                    Ye note customer ke email inbox me aur unke order details me dikhega.
+                  </span>
+                </div>
+
+                {cancelError && (
+                  <div className="cancel-error-text">
+                    ⚠️ {cancelError}
+                  </div>
+                )}
+
+                <div className="cancel-modal-actions">
+                  <button
+                    type="button"
+                    className="cancel-btn-cancel"
+                    disabled={cancellingOrder}
+                    onClick={() => setCancelModalOrder(null)}
+                  >
+                    Keep Order
+                  </button>
+                  <button
+                    type="button"
+                    className="cancel-btn-confirm"
+                    disabled={cancellingOrder || !cancellationReason.trim()}
+                    onClick={handleConfirmCancelOrder}
+                  >
+                    {cancellingOrder ? 'Cancelling & Sending Mail...' : 'Cancel Order & Send Note to Customer'}
+                  </button>
                 </div>
               </div>
             </motion.div>

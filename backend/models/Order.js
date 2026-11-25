@@ -107,6 +107,12 @@ const orderSchema = new mongoose.Schema({
   }],
   internalNotes: String,
   customerNotes: String,
+  cancellationReason: {
+    type: String,
+    trim: true
+  },
+  cancelledAt: Date,
+  cancelledBy: String,
   billingAddress: {
     street: String,
     city: String,

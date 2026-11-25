@@ -249,7 +249,13 @@ const Orders = () => {
                   </span>
                   <div className="cancelled-text">
                     <strong>This Order Has Been Cancelled</strong>
-                    <p>Cancelled prior to warehouse dispatch & pickup.</p>
+                    {order.cancellationReason ? (
+                      <p style={{ marginTop: '2px', color: '#991B1B' }}>
+                        <strong>Reason:</strong> {order.cancellationReason}
+                      </p>
+                    ) : (
+                      <p>Cancelled prior to warehouse dispatch & pickup.</p>
+                    )}
                   </div>
                 </div>
               ) : (isOfflineStore && isCodOrder) ? (

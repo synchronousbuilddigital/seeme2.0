@@ -318,41 +318,43 @@ const AdminDashboard = () => {
       </aside>
 
       <main className="admin-content">
-        <div className="content-header">
-          <div className="content-topbar">
-            <div className="topbar-search-area">
-              <GlobalSearch onResults={(selection) => {
-                if (selection.type === 'product') setActiveTab('products')
-                if (selection.type === 'order') handleSelectOrderFromNotif(selection.id)
-                if (selection.type === 'customer') setActiveTab('customers')
-              }} />
-            </div>
+        {activeTab === 'overview' && (
+          <div className="content-header">
+            <div className="content-topbar">
+              <div className="topbar-search-area">
+                <GlobalSearch onResults={(selection) => {
+                  if (selection.type === 'product') setActiveTab('products')
+                  if (selection.type === 'order') handleSelectOrderFromNotif(selection.id)
+                  if (selection.type === 'customer') setActiveTab('customers')
+                }} />
+              </div>
 
-            <div className="topbar-actions">
-              <NotificationBell onSelectOrder={handleSelectOrderFromNotif} />
-              <div className="admin-profile-pill" onClick={handleLogout} title="Admin Profile (Click to logout)">
-                {getStoredAdminUser()?.avatar ? (
-                  <img
-                    src={getStoredAdminUser().avatar}
-                    alt={getStoredAdminUser()?.name || 'Admin'}
-                    className="admin-profile-avatar"
-                  />
-                ) : (
-                  <div className="admin-profile-avatar-fallback">
-                    {(getStoredAdminUser()?.name || 'Admin').charAt(0).toUpperCase()}
+              <div className="topbar-actions">
+                <NotificationBell onSelectOrder={handleSelectOrderFromNotif} />
+                <div className="admin-profile-pill" onClick={handleLogout} title="Admin Profile (Click to logout)">
+                  {getStoredAdminUser()?.avatar ? (
+                    <img
+                      src={getStoredAdminUser().avatar}
+                      alt={getStoredAdminUser()?.name || 'Admin'}
+                      className="admin-profile-avatar"
+                    />
+                  ) : (
+                    <div className="admin-profile-avatar-fallback">
+                      {(getStoredAdminUser()?.name || 'Admin').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="admin-profile-text">
+                    <span className="admin-profile-name">{getStoredAdminUser()?.name || 'Admin'}</span>
+                    <span className="admin-profile-role">{getStoredAdminUser()?.role ? (getStoredAdminUser().role.charAt(0).toUpperCase() + getStoredAdminUser().role.slice(1)) : 'Admin'}</span>
                   </div>
-                )}
-                <div className="admin-profile-text">
-                  <span className="admin-profile-name">{getStoredAdminUser()?.name || 'Admin'}</span>
-                  <span className="admin-profile-role">{getStoredAdminUser()?.role ? (getStoredAdminUser().role.charAt(0).toUpperCase() + getStoredAdminUser().role.slice(1)) : 'Admin'}</span>
+                  <svg className="admin-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
                 </div>
-                <svg className="admin-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Subpage Header for non-overview tabs */}
         {activeTab !== 'overview' && activeTab !== 'products' && activeTab !== 'orders' && activeTab !== 'inventory' && (

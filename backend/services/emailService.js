@@ -214,8 +214,12 @@ export const sendSignupOtpEmail = async (email, name, otp) => {
 /**
  * 2. Send Order Status Email (Placed, Confirmed, Shipped, Delivered, Cancelled)
  */
-export const sendOrderEmail = async (order, statusType = 'Placed') => {
-  if (!order || !order.customer || !order.customer.email) {
+export const sendOrderEmail = async (order, statusType = 'Placed', extraOptions = {}) => {
+  const primaryEmail = (order?.customer?.email || '').trim()
+  const accountEmail = (order?.user?.email || '').trim()
+  const recipientList = Array.from(new Set([primaryEmail, accountEmail].filter(Boolean)))
+
+  if (recipientList.length === 0) {
     console.warn('⚠️ Order email skipped: Missing customer email')
     return null
   }
@@ -223,6 +227,7 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
   const orderId = order.orderNumber || order._id || order.id || 'ORDER'
   const customerName = order.customer?.name || 'Valued Customer'
   const statusStr = String(statusType || order.status || 'Placed').toUpperCase()
+  const cancellationReason = extraOptions?.cancellationReason || order.cancellationReason || (order.timeline && order.timeline.length > 0 ? (order.timeline.slice().reverse().find(t => (t.status || '').toLowerCase() === 'cancelled')?.note || '').replace(/^Order cancelled by Admin\. Reason:\s*/i, '') : '')
 
   const address = order.customer?.address || {}
   const addressStr = [
@@ -283,6 +288,20 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
           ${statusStr === 'REFUNDED' ? 'Your order refund has been processed successfully.' : ''}
         </p>
 
+        ${statusStr === 'CANCELLED' ? `
+          <div style="background: #FEF2F2; border: 1.5px solid #FCA5A5; border-left: 5px solid #DC2626; padding: 18px 20px; border-radius: 8px; margin: 20px 0; color: #991B1B;">
+            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center;">
+              ⚠️ Reason for Cancellation:
+            </div>
+            <div style="font-size: 14px; color: #7F1D1D; line-height: 1.6; font-weight: 500; background: #FFFFFF; padding: 12px 14px; border-radius: 6px; border: 1px solid #FECACA;">
+              ${cancellationReason || 'Order was cancelled by store administration.'}
+            </div>
+            <p style="margin: 10px 0 0 0; color: #B91C1C; font-size: 12px; line-height: 1.4;">
+              If you have any questions or feel this was in error, please reply to this email or contact SEEMEE Support.
+            </p>
+          </div>
+        ` : ''}
+
         ${(statusStr === 'CANCELLED' || statusStr === 'REFUNDED') ? (
           (order.paymentMethod === 'online' || order.paymentStatus === 'paid') ? `
             <div style="background: #FFFBEB; border: 1.5px solid #F59E0B; padding: 16px; border-radius: 8px; margin: 20px 0; color: #92400E; font-size: 14px; line-height: 1.5;">
@@ -330,9 +349,13 @@ export const sendOrderEmail = async (order, statusType = 'Placed') => {
     sendAdminNewOrderAlertEmail(order).catch(err => console.error('Admin order alert email error:', err))
   }
 
+  const emailSubject = statusStr === 'CANCELLED'
+    ? `Order #${orderId} Has Been Cancelled - SEEMEE`
+    : (statusStr === 'PLACED' ? `Order Confirmation #${orderId} - SEEMEE` : `Order #${orderId} - ${statusStr}`)
+
   return await sendEmail({
-    to: order.customer.email,
-    subject: `Order #${orderId} - ${statusStr}`,
+    to: recipientList.join(', '),
+    subject: emailSubject,
     html
   })
 }

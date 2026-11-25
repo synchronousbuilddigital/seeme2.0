@@ -6,6 +6,7 @@ import shippingService from '../services/shippingService.js'
 import { sendOrderEmail } from '../services/emailService.js'
 import pushNotificationService from '../services/pushNotificationService.js'
 import { revertCouponUsage } from '../services/couponEngine.js'
+import { restoreVariantStock } from '../utils/variantStockHelper.js'
 
 // @desc    Get quick dashboard summary
 // @route   GET /api/admin/dashboard-summary
@@ -215,8 +216,8 @@ export const getInventoryStats = asyncHandler(async (req, res) => {
 // @route   PUT /api/admin/orders/:id/status
 // @access  Admin
 export const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status, note, trackingNumber, estimatedDelivery } = req.body
-  const order = await Order.findById(req.params.id)
+  const { status, note, trackingNumber, estimatedDelivery, cancellationReason } = req.body
+  const order = await Order.findById(req.params.id).populate('user', 'name email phone')
 
   if (!order) {
     res.status(404)
@@ -225,6 +226,13 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 
   // Synchronize cancellation with Ad2Ship if order status is set to cancelled
   if (String(status || '').toLowerCase() === 'cancelled') {
+    const currentStatus = String(order.status || '').toLowerCase()
+    const isShipped = ['shipped', 'delivered', 'in_transit', 'out_for_delivery', 'picked_up'].includes(currentStatus) || Boolean(order.shipping?.awbNumber) || Boolean(order.trackingNumber)
+    if (isShipped) {
+      res.status(400)
+      throw new Error('Order cannot be cancelled after shipment or courier dispatch.')
+    }
+
     if (order.shipping?.ad2shipOrderId) {
       try {
         await shippingService.cancelShipment(order._id)
@@ -243,16 +251,20 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
             if (item.product) {
               const prod = await Product.findById(item.product)
               if (prod) {
-                if (prod.sizeStock && prod.sizeStock.length > 0) {
-                  const sItem = prod.sizeStock.find(s => s.size === item.size)
-                  if (sItem) {
-                    sItem.quantity += (item.quantity || 1)
-                    prod.stock = prod.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+                try {
+                  restoreVariantStock(prod, { size: item.size, color: item.color, quantity: item.quantity })
+                } catch {
+                  if (prod.sizeStock && prod.sizeStock.length > 0) {
+                    const sItem = prod.sizeStock.find(s => s.size === item.size)
+                    if (sItem) {
+                      sItem.quantity += (item.quantity || 1)
+                      prod.stock = prod.sizeStock.reduce((total, s) => total + Math.max(0, s.quantity || 0), 0)
+                    } else {
+                      prod.stock += (item.quantity || 1)
+                    }
                   } else {
                     prod.stock += (item.quantity || 1)
                   }
-                } else {
-                  prod.stock += (item.quantity || 1)
                 }
                 await prod.save()
               }
@@ -263,22 +275,53 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         console.warn(`⚠️ Stock restoration error during admin cancellation for #${order.orderNumber}:`, stockErr.message)
       }
     }
+
+    // Save cancellation reason and metadata
+    const cleanReason = (cancellationReason || note || 'Cancelled by Store Administration').trim()
+    order.cancellationReason = cleanReason
+    order.cancelledAt = new Date()
+    order.cancelledBy = 'admin'
+
+    // Automatically initiate refund request record if order was online / prepaid
+    if (order.paymentMethod === 'online' || order.paymentStatus === 'paid') {
+      order.refundStatus = 'refund_requested'
+      try {
+        const Refund = (await import('../models/Refund.js')).default
+        const existingRefund = await Refund.findOne({ order: order._id })
+        if (!existingRefund) {
+          await Refund.create({
+            order: order._id,
+            paymentId: order.paymentDetails?.paymentId || 'online_pay',
+            amount: order.totalAmount,
+            reason: cleanReason,
+            status: 'requested',
+            requestedBy: req.user?._id
+          })
+        }
+      } catch (rErr) {
+        console.warn('⚠️ Auto-refund record creation notice:', rErr.message)
+      }
+    }
   }
 
   order.status = status || order.status
   if (trackingNumber) order.trackingNumber = trackingNumber
   if (estimatedDelivery) order.estimatedDelivery = estimatedDelivery
 
+  const timelineNote = (String(status || '').toLowerCase() === 'cancelled' && (cancellationReason || note))
+    ? `Order cancelled by Admin. Reason: ${(cancellationReason || note).trim()}`
+    : (note || `Order status updated to ${order.status}`)
+
   order.timeline.push({
     status: order.status,
-    note: note || `Order status updated to ${order.status}`,
+    note: timelineNote,
     timestamp: new Date()
   })
 
   await order.save()
 
-  // Send status update email with SEEMEE Logo to customer
-  sendOrderEmail(order, order.status).catch(err => console.error('Admin status email error:', err.message))
+  // Send status update email with SEEMEE Logo to customer (including cancellation reason)
+  sendOrderEmail(order, order.status, { cancellationReason: order.cancellationReason }).catch(err => console.error('Admin status email error:', err.message))
 
   // Trigger Push Notification to admins if order was cancelled
   if (String(status || '').toLowerCase() === 'cancelled') {

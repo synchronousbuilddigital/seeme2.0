@@ -2339,3 +2339,236 @@
     font-size: 1.2rem;
   }
 }
+
+/* ==========================================================================
+   PREMIUM ORDER CANCELLATION MODAL
+   ========================================================================== */
+.premium-cancel-order-modal {
+  background: #ffffff;
+  width: 92%;
+  max-width: 540px;
+  border-radius: 18px;
+  padding: 26px 28px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  align-self: center;
+  margin: auto;
+  box-sizing: border-box;
+}
+
+.cancel-modal-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.cancel-modal-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.cancel-modal-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.cancel-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.cancel-modal-close:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.cancel-recipient-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: #334155;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.cancel-recipient-pill strong {
+  color: #0f172a;
+}
+
+.customer-tag {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.cancel-alert-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: #1e40af;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.cancel-alert-box p {
+  margin: 0;
+}
+
+.cancel-field-group {
+  margin-bottom: 16px;
+}
+
+.cancel-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.cancel-label .req-star {
+  color: #dc2626;
+}
+
+.cancel-quick-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.cancel-chip {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancel-chip:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.cancel-chip.active {
+  background: #fee2e2;
+  border-color: #f87171;
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.cancel-reason-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: #0f172a;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.cancel-reason-textarea:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+.cancel-help-hint {
+  display: block;
+  font-size: 0.74rem;
+  color: #64748b;
+  margin-top: 5px;
+}
+
+.cancel-error-text {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+
+.cancel-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-btn-cancel {
+  padding: 9px 18px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn-cancel:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.cancel-btn-confirm {
+  padding: 9px 20px;
+  background: #dc2626;
+  border: none;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+  transition: all 0.2s ease;
+}
+
+.cancel-btn-confirm:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.cancel-btn-confirm:disabled,
+.cancel-btn-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

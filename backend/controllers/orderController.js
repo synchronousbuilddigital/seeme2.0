@@ -359,7 +359,7 @@ export const getOrder = asyncHandler(async (req, res) => {
 // @route   PUT /api/orders/:id/status
 // @access  Admin
 export const updateOrderStatus = asyncHandler(async (req, res) => {
-  const { status, trackingNumber, estimatedDelivery, note } = req.body
+  const { status, trackingNumber, estimatedDelivery, note, cancellationReason } = req.body
   const order = await Order.findById(req.params.id)
   if (!order) {
     res.status(404)
@@ -369,12 +369,15 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   // Update tracking details if provided
   if (trackingNumber !== undefined) order.trackingNumber = trackingNumber
   if (estimatedDelivery !== undefined) order.estimatedDelivery = estimatedDelivery
-  if (note) {
+  if (note || (status && String(status).toLowerCase() === 'cancelled' && cancellationReason)) {
     if (!order.timeline) order.timeline = []
+    const timelineNote = (status && String(status).toLowerCase() === 'cancelled' && cancellationReason)
+      ? `Order cancelled by Admin. Reason: ${cancellationReason.trim()}`
+      : note
     order.timeline.push({
-      status: order.status,
+      status: status || order.status,
       timestamp: new Date(),
-      note
+      note: timelineNote
     })
   }
 
@@ -397,10 +400,15 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
           }
         }
       }
+
+      const cleanReason = (cancellationReason || note || 'Cancelled by Store Administration').trim()
+      order.cancellationReason = cleanReason
+      order.cancelledAt = new Date()
+      order.cancelledBy = 'admin'
     }
 
     order.status = status
-    sendOrderEmail(order, status).catch(err => console.error('Order status email error:', err.message))
+    sendOrderEmail(order, status, { cancellationReason: order.cancellationReason }).catch(err => console.error('Order status email error:', err.message))
 
     if (newStatus === 'cancelled') {
       pushNotificationService.sendOrderCancelledNotification(order).catch(err => console.error('Order cancellation push error:', err.message))
