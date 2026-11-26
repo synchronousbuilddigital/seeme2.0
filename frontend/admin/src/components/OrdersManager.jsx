@@ -259,6 +259,47 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
     }
   }
 
+  // 4-Day Return Status Management
+  const [returnProcessingId, setReturnProcessingId] = useState(null)
+
+  const handleUpdateReturnStatus = async (orderId, newReturnStatus, restoreStock = false) => {
+    let adminComment = ''
+    if (newReturnStatus === 'return_rejected') {
+      adminComment = window.prompt('Enter reason for rejecting return request (optional):', 'Item does not meet 4-day return criteria')
+      if (adminComment === null) return
+    } else if (newReturnStatus === 'return_approved') {
+      if (!window.confirm('Approve this return request? Customer will receive an email update.')) return
+    } else if (newReturnStatus === 'return_completed') {
+      if (!window.confirm('Mark this return as completed and restore stock in warehouse?')) return
+    }
+
+    setReturnProcessingId(orderId)
+    try {
+      const data = await apiRequest(API_ENDPOINTS.UPDATE_RETURN_STATUS(orderId), {
+        method: 'PUT',
+        body: {
+          returnStatus: newReturnStatus,
+          adminComment: adminComment || '',
+          restoreStock
+        }
+      })
+
+      if (data.success) {
+        showNotification(data.message || 'Return status updated successfully!')
+        fetchOrders()
+        if (selectedOrder) {
+          setSelectedOrder(data.data || { ...selectedOrder, returnStatus: newReturnStatus, returnAdminComment: adminComment })
+        }
+      } else {
+        showNotification(data.message || 'Failed to update return status', 'error')
+      }
+    } catch (err) {
+      showNotification(err.message || 'Failed to update return status', 'error')
+    } finally {
+      setReturnProcessingId(null)
+    }
+  }
+
   const handleCalculateRate = async (order) => {
     if (!order.customer?.address?.pincode) {
       showNotification('Pincode missing for this order address', 'error')
@@ -652,6 +693,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
     .filter(order => {
       if (filter === 'all') return true
       if (filter === 'refund_requested') return order.refundStatus === 'refund_requested' || order.status === 'refunded'
+      if (filter === 'return_requested') return order.returnStatus === 'return_requested' || order.returnStatus === 'return_approved'
       return order.status === filter
     })
 
@@ -797,6 +839,7 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                 onChange={(e) => setFilter(e.target.value)}
               >
                 <option value="all">All Statuses ({orders.length})</option>
+                <option value="return_requested">4-Day Return Requests ({orders.filter(o => o.returnStatus === 'return_requested' || o.returnStatus === 'return_approved').length})</option>
                 <option value="refund_requested">Refund Requests ({orders.filter(o => o.refundStatus === 'refund_requested' || o.status === 'refunded').length})</option>
                 <option value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</option>
                 <option value="confirmed">Confirmed ({orders.filter(o => o.status === 'confirmed').length})</option>
@@ -960,6 +1003,21 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                       <span className="status-indicator-dot" />
                       {order.status}
                     </span>
+                    {order.returnStatus && order.returnStatus !== 'not_requested' && (
+                      <span style={{
+                        display: 'inline-block',
+                        marginTop: '4px',
+                        padding: '2px 8px',
+                        fontSize: '0.68rem',
+                        fontWeight: '800',
+                        borderRadius: '100px',
+                        background: order.returnStatus === 'return_requested' ? '#fef3c7' : order.returnStatus === 'return_approved' ? '#dcfce7' : '#fee2e2',
+                        color: order.returnStatus === 'return_requested' ? '#92400e' : order.returnStatus === 'return_approved' ? '#166534' : '#991b1b',
+                        border: `1px solid ${order.returnStatus === 'return_requested' ? '#fcd34d' : order.returnStatus === 'return_approved' ? '#86efac' : '#fca5a5'}`
+                      }}>
+                        {order.returnStatus === 'return_requested' ? '🔄 RETURN REQUEST' : order.returnStatus === 'return_approved' ? '✓ RETURN APPROVED' : '✕ RETURN REJECTED'}
+                      </span>
+                    )}
                   </td>
                   <td>
                     <span className="amount-cell">₹{Number(order.totalAmount || 0).toLocaleString('en-IN')}</span>
@@ -1029,6 +1087,19 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
               <span className={`status-pill ${order.status}`}>
                 {order.status}
               </span>
+              {order.returnStatus && order.returnStatus !== 'not_requested' && (
+                <span style={{
+                  padding: '2px 8px',
+                  fontSize: '0.66rem',
+                  fontWeight: '800',
+                  borderRadius: '100px',
+                  background: order.returnStatus === 'return_requested' ? '#fef3c7' : '#dcfce7',
+                  color: order.returnStatus === 'return_requested' ? '#92400e' : '#166534',
+                  border: `1px solid ${order.returnStatus === 'return_requested' ? '#fcd34d' : '#86efac'}`
+                }}>
+                  {order.returnStatus === 'return_requested' ? 'RETURN REQ' : 'RETURN OK'}
+                </span>
+              )}
             </div>
 
             {/* Body: Customer Details & Financials */}
@@ -1433,6 +1504,111 @@ const OrdersManager = ({ targetOrderId, onClearTargetOrder, initialStatusFilter 
                             </div>
                           )
                         })()}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* 4-Day Return Management Card */}
+                  {((selectedOrder.status || '').toLowerCase() === 'delivered' || (selectedOrder.returnStatus && selectedOrder.returnStatus !== 'not_requested')) && (
+                    <section className="return-management-section" style={{ marginTop: '20px' }}>
+                      <h3 style={{ fontSize: '0.95rem', letterSpacing: '0.05em', color: '#111', textTransform: 'uppercase', marginBottom: '10px' }}>🔄 4-Day Return Management</h3>
+                      <div className="refund-card-body" style={{ background: '#262422', padding: '16px', borderRadius: '10px', border: '1px solid #383531' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '14px', fontSize: '0.88rem' }}>
+                          <div><span style={{ color: '#a3a3a3' }}>Return Status:</span> <strong style={{ color: '#d4af37', marginLeft: '4px', fontWeight: '700' }}>{(selectedOrder.returnStatus || 'not_requested').replace(/_/g, ' ').toUpperCase()}</strong></div>
+                          <div><span style={{ color: '#a3a3a3' }}>Delivered Date:</span> <strong style={{ color: '#ffffff', marginLeft: '4px', fontWeight: '700' }}>{selectedOrder.deliveredAt ? new Date(selectedOrder.deliveredAt).toLocaleDateString('en-IN') : 'Not Set (Ad2Ship Sync)'}</strong></div>
+                        </div>
+
+                        {selectedOrder.returnStatus === 'return_requested' ? (
+                          <div style={{ background: '#1c1917', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #f59e0b', marginTop: '10px' }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#f59e0b', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                              CUSTOMER 4-DAY RETURN REQUEST
+                            </div>
+                            <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
+                              <strong>Reason:</strong> {selectedOrder.returnReason || 'Not specified'}
+                            </div>
+                            {selectedOrder.returnNotes && (
+                              <div style={{ fontSize: '0.85rem', color: '#e5e5e5', marginBottom: '4px' }}>
+                                <strong>Customer Notes:</strong> {selectedOrder.returnNotes}
+                              </div>
+                            )}
+                            {selectedOrder.returnRequestedAt && (
+                              <div style={{ fontSize: '0.78rem', color: '#a3a3a3', marginBottom: '12px' }}>
+                                Requested on: {new Date(selectedOrder.returnRequestedAt).toLocaleString('en-IN')}
+                              </div>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '12px', flexWrap: 'wrap' }}>
+                              <button
+                                type="button"
+                                disabled={returnProcessingId === selectedOrder._id}
+                                onClick={() => handleUpdateReturnStatus(selectedOrder._id, 'return_approved')}
+                                style={{
+                                  padding: '8px 16px',
+                                  fontSize: '0.82rem',
+                                  background: '#16a34a',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  borderRadius: '6px',
+                                  fontWeight: '700',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                {returnProcessingId === selectedOrder._id ? 'Updating...' : 'Approve Return Request'}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={returnProcessingId === selectedOrder._id}
+                                onClick={() => handleUpdateReturnStatus(selectedOrder._id, 'return_rejected')}
+                                style={{
+                                  padding: '8px 16px',
+                                  fontSize: '0.82rem',
+                                  background: 'transparent',
+                                  color: '#ef4444',
+                                  border: '1.5px solid #ef4444',
+                                  borderRadius: '6px',
+                                  fontWeight: '700',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                Reject Return Request
+                              </button>
+                            </div>
+                          </div>
+                        ) : selectedOrder.returnStatus === 'return_approved' ? (
+                          <div style={{ background: '#1c1917', padding: '14px', borderRadius: '8px', borderLeft: '4px solid #16a34a' }}>
+                            <div style={{ color: '#4ade80', fontWeight: '700', fontSize: '0.86rem', marginBottom: '4px' }}>✓ Return Approved - Awaiting Reverse Package</div>
+                            <p style={{ color: '#a3a3a3', fontSize: '0.8rem', margin: '4px 0 10px 0' }}>Once the customer package arrives back at the warehouse, mark return as completed to restore stock.</p>
+                            <button
+                              type="button"
+                              disabled={returnProcessingId === selectedOrder._id}
+                              onClick={() => handleUpdateReturnStatus(selectedOrder._id, 'return_completed', true)}
+                              style={{
+                                padding: '8px 16px',
+                                fontSize: '0.82rem',
+                                background: '#2563eb',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontWeight: '700',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Mark Package Received & Restore Stock
+                            </button>
+                          </div>
+                        ) : selectedOrder.returnStatus === 'return_rejected' ? (
+                          <div style={{ background: '#1c1917', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #dc2626', color: '#f87171', fontSize: '0.82rem' }}>
+                            ✕ Return Request Rejected. {selectedOrder.returnAdminComment ? `Remark: ${selectedOrder.returnAdminComment}` : ''}
+                          </div>
+                        ) : selectedOrder.returnStatus === 'return_completed' ? (
+                          <div style={{ background: '#1c1917', padding: '12px', borderRadius: '8px', borderLeft: '4px solid #16a34a', color: '#4ade80', fontSize: '0.82rem' }}>
+                            ✓ Return Completed & Stock Restored.
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '0.82rem', color: '#a3a3a3', fontStyle: 'italic', borderTop: '1px solid #333', paddingTop: '10px' }}>
+                            No active return request submitted by customer. (Eligible within 4 days of delivery).
+                          </div>
+                        )}
                       </div>
                     </section>
                   )}

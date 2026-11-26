@@ -147,6 +147,32 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  deliveredAt: Date,
+  returnStatus: {
+    type: String,
+    enum: [
+      'not_requested',
+      'return_requested',
+      'return_approved',
+      'return_rejected',
+      'return_completed'
+    ],
+    default: 'not_requested'
+  },
+  returnReason: {
+    type: String,
+    trim: true
+  },
+  returnNotes: {
+    type: String,
+    trim: true
+  },
+  returnRequestedAt: Date,
+  returnAdminComment: {
+    type: String,
+    trim: true
+  },
+  returnHandledAt: Date,
   shipping: {
     provider: { type: String, default: 'ad2ship' },
     ad2shipOrderId: Number,
@@ -207,6 +233,8 @@ orderSchema.index({ status: 1 })
 orderSchema.index({ orderType: 1 })
 orderSchema.index({ paymentStatus: 1 })
 orderSchema.index({ refundStatus: 1 })
+orderSchema.index({ returnStatus: 1 })
+orderSchema.index({ deliveredAt: 1 })
 orderSchema.index({ createdAt: -1 })
 orderSchema.index({ 'shipping.ad2shipOrderId': 1 })
 orderSchema.index({ 'shipping.awbNumber': 1 })

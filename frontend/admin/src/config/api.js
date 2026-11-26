@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
   ORDERS: `${API_BASE_URL}/api/orders`,
   APPROVE_COD: (id) => `${API_BASE_URL}/api/orders/${id}/approve-cod`,
   REJECT_COD: (id) => `${API_BASE_URL}/api/orders/${id}/reject-cod`,
+  UPDATE_RETURN_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/return-status`,
   SHIPPING: {
     RATE: `${API_BASE_URL}/api/shipping/rate`,
     CREATE: `${API_BASE_URL}/api/shipping/create`,

@@ -26,6 +26,10 @@ router.post('/razorpay-webhook', refundController.handleRazorpayWebhook)
 router.post('/:orderId/refund-request', protect, refundController.requestRefund)
 router.get('/:orderId/refund', protect, refundController.getRefundByOrder)
 
+// Return routes (Customer 4-day delivery window & Admin management)
+router.post('/:id/return-request', protect, orderController.requestOrderReturn)
+router.put('/:id/return-status', protect, admin, orderController.updateOrderReturnStatus)
+
 // Cancel order (user or admin)
 router.put('/:id/cancel', protect, orderController.cancelMyOrder)
 

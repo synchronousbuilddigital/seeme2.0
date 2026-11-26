@@ -420,6 +420,11 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
       order.cancelledBy = 'admin'
     }
 
+    // Set deliveredAt when order reaches delivered status
+    if (newStatus === 'delivered' && !order.deliveredAt) {
+      order.deliveredAt = new Date()
+    }
+
     order.status = status
     sendOrderEmail(order, status, { cancellationReason: order.cancellationReason }).catch(err => console.error('Order status email error:', err.message))
 
@@ -1058,4 +1063,172 @@ export const verifyOfflinePincode = asyncHandler(async (req, res) => {
       message: 'Offline store is not available in your area.'
     })
   }
+})
+
+export const RETURN_WINDOW_DAYS = 4
+export const RETURN_WINDOW_MS = RETURN_WINDOW_DAYS * 24 * 60 * 60 * 1000
+
+// @desc    Customer submits a return request for a delivered order within 4 days
+// @route   POST /api/orders/:id/return-request
+// @access  Private (Customer or Admin)
+export const requestOrderReturn = asyncHandler(async (req, res) => {
+  const { id } = req.params
+  const { reason, notes } = req.body
+
+  const order = await Order.findById(id)
+  if (!order) {
+    res.status(404)
+    throw new Error('Order not found')
+  }
+
+  // 1. Ownership validation
+  const userEmail = String(req.user?.email || '').trim().toLowerCase()
+  const orderEmail = String(order.customer?.email || '').trim().toLowerCase()
+  const isOwner = (orderEmail && orderEmail === userEmail) || (order.user && String(order.user) === String(req.user?._id))
+
+  if (!isOwner && req.user?.role !== 'admin') {
+    res.status(403)
+    throw new Error('Unauthorized: You can only request a return for your own order')
+  }
+
+  // 2. Order status must be DELIVERED
+  const status = String(order.status || '').toLowerCase().trim()
+  if (status !== 'delivered') {
+    res.status(400)
+    throw new Error('Return is only applicable after the order has been delivered.')
+  }
+
+  // 3. Duplicate check
+  if (order.returnStatus && order.returnStatus !== 'not_requested') {
+    res.status(400)
+    throw new Error(`A return request has already been submitted for this order (Status: ${order.returnStatus}).`)
+  }
+
+  // 4. Strict 4-Day Window Validation
+  let deliveryDate = order.deliveredAt
+  if (!deliveryDate && order.timeline && order.timeline.length > 0) {
+    const deliveredEntry = order.timeline.slice().reverse().find(t => String(t.status || '').toLowerCase() === 'delivered')
+    if (deliveredEntry) deliveryDate = deliveredEntry.timestamp
+  }
+  if (!deliveryDate) {
+    deliveryDate = order.updatedAt || order.createdAt
+  }
+
+  const deliveredTime = new Date(deliveryDate).getTime()
+  const expiresAt = new Date(deliveredTime + RETURN_WINDOW_MS)
+  const now = Date.now()
+
+  if (now > expiresAt.getTime()) {
+    res.status(400)
+    throw new Error(`Return window has expired. Returns are strictly allowed within ${RETURN_WINDOW_DAYS} days of delivery. Delivery Date: ${new Date(deliveredTime).toLocaleDateString('en-IN')}, Return Window Closed: ${expiresAt.toLocaleDateString('en-IN')}.`)
+  }
+
+  if (!reason || !reason.trim()) {
+    res.status(400)
+    throw new Error('Please select or specify a reason for return.')
+  }
+
+  // 5. Update Order with Return details
+  order.returnStatus = 'return_requested'
+  order.returnReason = reason.trim()
+  order.returnNotes = notes ? notes.trim() : ''
+  order.returnRequestedAt = new Date()
+
+  if (!order.timeline) order.timeline = []
+  order.timeline.push({
+    status: 'Return Requested',
+    timestamp: new Date(),
+    note: `Return requested by customer within 4-day window. Reason: ${reason.trim()}${notes ? ` | Notes: ${notes.trim()}` : ''}`
+  })
+
+  await order.save()
+
+  // 6. Notify Admin via push or log
+  try {
+    if (pushNotificationService && typeof pushNotificationService.sendOrderNotification === 'function') {
+      pushNotificationService.sendOrderNotification(order, 'RETURN_REQUESTED').catch(e => console.warn('Push error:', e.message))
+    }
+  } catch (pushErr) {
+    console.warn('⚠️ Push notification skipped for return request:', pushErr.message)
+  }
+
+  // 7. Send confirmation email to customer
+  try {
+    await sendOrderEmail(order, 'RETURN_REQUESTED', { returnReason: reason.trim() })
+  } catch (emailErr) {
+    console.warn('⚠️ Return confirmation email error:', emailErr.message)
+  }
+
+  res.json({
+    success: true,
+    message: 'Return request submitted successfully. Our team will review your request shortly.',
+    data: order
+  })
+})
+
+// @desc    Admin updates return status (approve, reject, complete)
+// @route   PUT /api/orders/:id/return-status
+// @access  Admin
+export const updateOrderReturnStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params
+  const { returnStatus, adminComment, restoreStock } = req.body
+
+  const validStatuses = ['return_approved', 'return_rejected', 'return_completed']
+  if (!validStatuses.includes(returnStatus)) {
+    res.status(400)
+    throw new Error(`Invalid return status. Valid values: ${validStatuses.join(', ')}`)
+  }
+
+  const order = await Order.findById(id)
+  if (!order) {
+    res.status(404)
+    throw new Error('Order not found')
+  }
+
+  order.returnStatus = returnStatus
+  order.returnAdminComment = adminComment ? adminComment.trim() : ''
+  order.returnHandledAt = new Date()
+
+  const statusLabel = returnStatus === 'return_approved'
+    ? 'Return Approved'
+    : returnStatus === 'return_rejected'
+      ? 'Return Rejected'
+      : 'Return Completed'
+
+  if (!order.timeline) order.timeline = []
+  order.timeline.push({
+    status: statusLabel,
+    timestamp: new Date(),
+    note: `Admin updated return status to ${statusLabel}.${adminComment ? ` Remark: ${adminComment.trim()}` : ''}`
+  })
+
+  // Restore stock if return is completed and restoreStock is true
+  if (returnStatus === 'return_completed' && restoreStock && order.items && order.items.length > 0) {
+    for (const item of order.items) {
+      if (item.product) {
+        const product = await Product.findById(item.product)
+        if (product) {
+          restoreVariantStock(product, { size: item.size, color: item.color, quantity: item.quantity })
+          await product.save()
+        }
+      }
+    }
+  }
+
+  await order.save()
+
+  // Send status update email to customer
+  try {
+    await sendOrderEmail(order, statusLabel.toUpperCase().replace(/\s+/g, '_'), {
+      adminComment: adminComment ? adminComment.trim() : ''
+    })
+  } catch (emailErr) {
+    console.warn('⚠️ Return status email error:', emailErr.message)
+  }
+
+  res.json({
+    success: true,
+    message: `Return status updated to ${statusLabel}.`,
+    data: order
+  })
 })

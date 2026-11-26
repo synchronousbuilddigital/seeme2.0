@@ -7,6 +7,15 @@ import { printOrderInvoice } from '../utils/invoiceHelper'
 import { API_ENDPOINTS } from '../config/api'
 import './Orders.css'
 
+const RETURN_REASONS = [
+  'Size / Fit does not suit me',
+  'Garment damaged or defective',
+  'Received wrong item or color',
+  'Fabric / Quality not as expected',
+  'Product differs from images on site',
+  'Changed mind / Other'
+]
+
 const Orders = () => {
   const navigate = useNavigate()
   const { user, token, logout } = useAuth()
@@ -22,6 +31,13 @@ const Orders = () => {
   const [activeTrackingData, setActiveTrackingData] = useState(null)
   const [trackingLoading, setTrackingLoading] = useState(false)
   const [cancellingId, setCancellingId] = useState(null)
+
+  // 4-Day Return Modal states
+  const [returnModalOrder, setReturnModalOrder] = useState(null)
+  const [returnReason, setReturnReason] = useState(RETURN_REASONS[0])
+  const [returnNotes, setReturnNotes] = useState('')
+  const [submittingReturn, setSubmittingReturn] = useState(false)
+  const [returnError, setReturnError] = useState('')
 
   useEffect(() => {
     if (!token) {
@@ -121,6 +137,111 @@ const Orders = () => {
     printOrderInvoice(order)
   }
 
+  // 4-Day Return Eligibility Calculator
+  const getReturnEligibility = (order) => {
+    const statusLower = (order.status || '').toLowerCase()
+    if (statusLower !== 'delivered') {
+      return { isEligible: false, notDelivered: true }
+    }
+
+    if (order.returnStatus && order.returnStatus !== 'not_requested') {
+      return {
+        isEligible: false,
+        alreadyRequested: true,
+        returnStatus: order.returnStatus,
+        returnReason: order.returnReason,
+        returnAdminComment: order.returnAdminComment
+      }
+    }
+
+    let deliveryDate = order.deliveredAt
+    if (!deliveryDate && order.timeline && order.timeline.length > 0) {
+      const deliveredEntry = order.timeline.slice().reverse().find(t => (t.status || '').toLowerCase() === 'delivered')
+      if (deliveredEntry) deliveryDate = deliveredEntry.timestamp
+    }
+    if (!deliveryDate) {
+      deliveryDate = order.updatedAt || order.createdAt
+    }
+
+    const RETURN_WINDOW_MS = 4 * 24 * 60 * 60 * 1000 // Strictly 4 days
+    const deliveredTime = new Date(deliveryDate).getTime()
+    const expiresAt = new Date(deliveredTime + RETURN_WINDOW_MS)
+    const diffMs = expiresAt.getTime() - Date.now()
+
+    if (diffMs <= 0) {
+      return {
+        isEligible: false,
+        expired: true,
+        deliveredAt: new Date(deliveredTime),
+        expiresAt
+      }
+    }
+
+    const daysLeft = Math.ceil(diffMs / (24 * 60 * 60 * 1000))
+    const hoursLeft = Math.ceil(diffMs / (60 * 60 * 1000))
+
+    return {
+      isEligible: true,
+      deliveredAt: new Date(deliveredTime),
+      expiresAt,
+      daysLeft,
+      hoursLeft
+    }
+  }
+
+  // Handle Submit Return Request
+  const handleSubmitReturn = async (e) => {
+    if (e) e.preventDefault()
+    if (!returnModalOrder) return
+    if (!returnReason || !returnReason.trim()) {
+      setReturnError('Please select a reason for return.')
+      return
+    }
+
+    setSubmittingReturn(true)
+    setReturnError('')
+
+    try {
+      const response = await fetch(API_ENDPOINTS.ORDERS_RETURN_REQUEST(returnModalOrder._id), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          reason: returnReason,
+          notes: returnNotes
+        })
+      })
+
+      if (response.status === 401) {
+        logout()
+        window.location.href = '/auth?expired=true'
+        return
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        alert('Return request submitted successfully. Our team will review within 24-48 hours.')
+        setOrders(prev => prev.map(o => o._id === returnModalOrder._id ? {
+          ...o,
+          returnStatus: 'return_requested',
+          returnReason,
+          returnNotes,
+          returnRequestedAt: new Date()
+        } : o))
+        setReturnModalOrder(null)
+      } else {
+        setReturnError(data.message || 'Failed to submit return request.')
+      }
+    } catch (err) {
+      console.error('Error requesting return:', err)
+      setReturnError('Network error while requesting return. Please try again.')
+    } finally {
+      setSubmittingReturn(false)
+    }
+  }
+
   // Filter & KPI calculations
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
@@ -174,6 +295,8 @@ const Orders = () => {
       Boolean(order.shipping?.awbNumber || order.trackingNumber) ||
       Boolean(order.shipping?.pickupAt)
 
+    const returnEligibility = getReturnEligibility(order)
+
     return (
       <div key={order._id} className={`order-card-luxury ${isCancelled ? 'cancelled-card' : ''}`}>
         {/* Card Header Header Strip */}
@@ -209,6 +332,12 @@ const Orders = () => {
                 <span className="status-dot" />
                 {isOfflineStore && isCodOrder ? (isCodApproved ? 'ORDER HANDOVER' : 'COD PENDING APPROVAL') : statusLower.toUpperCase()}
               </span>
+              {order.returnStatus && order.returnStatus !== 'not_requested' && (
+                <span className={`status-pill return-pill ${order.returnStatus}`}>
+                  <span className="status-dot" />
+                  {order.returnStatus === 'return_requested' ? 'RETURN REQUESTED' : order.returnStatus === 'return_approved' ? 'RETURN APPROVED' : order.returnStatus === 'return_rejected' ? 'RETURN REJECTED' : 'RETURN COMPLETED'}
+                </span>
+              )}
               <span className={`payment-pill ${order.paymentStatus === 'paid' ? 'paid' : 'pending'}`}>
                 {isOfflineStore && isCodOrder
                   ? `COD • ${isCodApproved ? 'PAID / APPROVED' : (order.paymentStatus || 'PENDING').toUpperCase()}`
@@ -382,6 +511,59 @@ const Orders = () => {
                         ) : null}
                       </div>
                     )}
+
+                    {/* 4-Day Return Status & Notice for Delivered Orders */}
+                    {statusLower === 'delivered' && (
+                      <div className="return-status-container">
+                        {order.returnStatus === 'return_requested' ? (
+                          <div className="return-status-banner requested">
+                            <div className="return-banner-title">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                              <span>Return Requested (Under Review)</span>
+                            </div>
+                            <p className="return-banner-desc">Reason: <strong>{order.returnReason || 'Requested by customer'}</strong></p>
+                            {order.returnNotes && <p className="return-banner-notes">Notes: {order.returnNotes}</p>}
+                            <small>Submitted on {new Date(order.returnRequestedAt || order.updatedAt).toLocaleDateString('en-IN')}. Our concierge team is reviewing your request.</small>
+                          </div>
+                        ) : order.returnStatus === 'return_approved' ? (
+                          <div className="return-status-banner approved">
+                            <div className="return-banner-title">✓ Return Request Approved</div>
+                            <p className="return-banner-desc">Our courier partner will schedule reverse pickup from your address. Please keep original tags and box ready.</p>
+                            {order.returnAdminComment && <small>Note from Atelier: {order.returnAdminComment}</small>}
+                          </div>
+                        ) : order.returnStatus === 'return_rejected' ? (
+                          <div className="return-status-banner rejected">
+                            <div className="return-banner-title">✕ Return Request Rejected</div>
+                            <p className="return-banner-desc">Reason: {order.returnAdminComment || 'Does not satisfy 4-day return policy conditions.'}</p>
+                          </div>
+                        ) : order.returnStatus === 'return_completed' ? (
+                          <div className="return-status-banner approved">
+                            <div className="return-banner-title">✓ Return Completed</div>
+                            <p className="return-banner-desc">Return package has been received and inspected by our atelier.</p>
+                          </div>
+                        ) : returnEligibility.isEligible ? (
+                          <div className="return-status-banner eligible">
+                            <div className="return-banner-title">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                              <span>4-Day Return Window Active</span>
+                            </div>
+                            <p className="return-banner-desc">
+                              Delivered on {returnEligibility.deliveredAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}. You have <strong>{returnEligibility.daysLeft} {returnEligibility.daysLeft === 1 ? 'day' : 'days'}</strong> left to request a return (until {returnEligibility.expiresAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}).
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="return-status-banner expired">
+                            <div className="return-banner-title">
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                              <span>Return Window Closed</span>
+                            </div>
+                            <p className="return-banner-desc">
+                              Returns are applicable for 4 days only after delivery. The return window for this order closed on {returnEligibility.expiresAt?.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Logistics & Live Tracking Card */}
@@ -425,6 +607,20 @@ const Orders = () => {
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                     {cancellingId === order._id ? 'Cancelling...' : 'Cancel Order'}
+                  </button>
+                )}
+                {statusLower === 'delivered' && returnEligibility.isEligible && (
+                  <button
+                    className="return-order-action-btn"
+                    onClick={() => {
+                      setReturnModalOrder(order)
+                      setReturnReason(RETURN_REASONS[0])
+                      setReturnNotes('')
+                      setReturnError('')
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                    Request Return ({returnEligibility.daysLeft}d left)
                   </button>
                 )}
                 <button className="invoice-btn" onClick={() => handlePrint(order)}>
@@ -555,6 +751,94 @@ const Orders = () => {
                   <p className="no-logs">No checkpoint logs available yet.</p>
                 )}
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* 4-Day Return Request Modal */}
+        {returnModalOrder && (
+          <div className="modal-overlay" onClick={() => !submittingReturn && setReturnModalOrder(null)}>
+            <motion.div
+              className="premium-return-modal"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="return-modal-header">
+                <div className="return-modal-title-group">
+                  <span className="return-modal-badge">4-DAY RETURN POLICY</span>
+                  <h3>Request Return for #{returnModalOrder.orderNumber}</h3>
+                </div>
+                <button
+                  type="button"
+                  className="return-modal-close"
+                  onClick={() => setReturnModalOrder(null)}
+                  disabled={submittingReturn}
+                >
+                  &times;
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmitReturn} className="return-modal-body">
+                <div className="return-policy-notice-box">
+                  <div className="notice-icon">⏱️</div>
+                  <div className="notice-text">
+                    <strong>4-Day Delivery Return Window</strong>
+                    <p>Returns must be requested strictly within 4 days of delivery. All garments must be unworn, undamaged, with original SEEMEE tags attached.</p>
+                  </div>
+                </div>
+
+                <div className="return-form-group">
+                  <label className="return-field-label">Reason for Return <span className="req-star">*</span></label>
+                  <select
+                    className="return-select-input"
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    disabled={submittingReturn}
+                  >
+                    {RETURN_REASONS.map((r, idx) => (
+                      <option key={idx} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="return-form-group">
+                  <label className="return-field-label">Additional Comments / Notes (Optional)</label>
+                  <textarea
+                    className="return-textarea-input"
+                    rows="3"
+                    placeholder="Provide details about fit, sizing, or defect to assist our reverse logistics..."
+                    value={returnNotes}
+                    onChange={(e) => setReturnNotes(e.target.value)}
+                    disabled={submittingReturn}
+                  />
+                </div>
+
+                {returnError && (
+                  <div className="return-error-banner">
+                    ⚠️ {returnError}
+                  </div>
+                )}
+
+                <div className="return-modal-actions">
+                  <button
+                    type="button"
+                    className="return-btn-cancel"
+                    onClick={() => setReturnModalOrder(null)}
+                    disabled={submittingReturn}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="return-btn-submit"
+                    disabled={submittingReturn || !returnReason}
+                  >
+                    {submittingReturn ? 'Submitting Request...' : 'Submit Return Request'}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

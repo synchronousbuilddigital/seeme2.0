@@ -259,20 +259,37 @@ export const sendOrderEmail = async (order, statusType = 'Placed', extraOptions 
     CONFIRMED: '#16A34A',
     SHIPPED: '#0284C7',
     DELIVERED: '#059669',
-    CANCELLED: '#DC2626'
+    CANCELLED: '#DC2626',
+    RETURN_REQUESTED: '#D97706',
+    RETURN_APPROVED: '#16A34A',
+    RETURN_REJECTED: '#DC2626',
+    RETURN_COMPLETED: '#059669'
   }
 
   const badgeColor = statusColors[statusStr] || '#1C1917'
 
+  const returnReason = extraOptions?.returnReason || order.returnReason || ''
+  const adminComment = extraOptions?.adminComment || order.returnAdminComment || ''
+
+  const headerTitle = statusStr === 'COD_PENDING' ? 'COD Order Received'
+    : statusStr === 'COD_APPROVED' ? 'COD Order Approved'
+    : statusStr === 'PLACED' ? 'Order Confirmation'
+    : statusStr === 'CANCELLED' ? 'Order Cancellation'
+    : statusStr === 'RETURN_REQUESTED' ? 'Return Request Received'
+    : statusStr === 'RETURN_APPROVED' ? 'Return Request Approved'
+    : statusStr === 'RETURN_REJECTED' ? 'Return Request Update'
+    : statusStr === 'RETURN_COMPLETED' ? 'Return Completed'
+    : 'Order Update'
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #FAF9F6; padding: 30px; border-radius: 12px; border: 1px solid #E7E5E4; color: #1C1917;">
-      ${getLogoHeaderHtml(statusStr === 'COD_PENDING' ? 'COD Order Received' : statusStr === 'COD_APPROVED' ? 'COD Order Approved' : statusStr === 'PLACED' ? 'Order Confirmation' : statusStr === 'CANCELLED' ? 'Order Cancellation' : 'Order Update')}
+      ${getLogoHeaderHtml(headerTitle)}
 
       <div style="background: #FFFFFF; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.04);">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #F5F5F4; padding-bottom: 15px; margin-bottom: 20px;">
           <div>
             <h3 style="margin: 0; color: #1C1917; font-size: 18px;">Order #${orderId}</h3>
-            <span style="font-size: 12px; color: #78716C;">Status: <strong style="color: ${badgeColor};">${statusStr === 'COD_PENDING' ? 'Processing' : statusStr === 'COD_APPROVED' ? 'COD Approved & Payment Completed' : statusStr}</strong></span>
+            <span style="font-size: 12px; color: #78716C;">Status: <strong style="color: ${badgeColor};">${statusStr === 'COD_PENDING' ? 'Processing' : statusStr === 'COD_APPROVED' ? 'COD Approved & Payment Completed' : statusStr === 'RETURN_REQUESTED' ? 'Return Requested (Under Review)' : statusStr === 'RETURN_APPROVED' ? 'Return Approved' : statusStr === 'RETURN_REJECTED' ? 'Return Rejected' : statusStr}</strong></span>
           </div>
         </div>
 
@@ -286,7 +303,25 @@ export const sendOrderEmail = async (order, statusType = 'Placed', extraOptions 
           ${statusStr === 'DELIVERED' ? 'Your order has been delivered successfully. Thank you for shopping with SEEMEE!' : ''}
           ${statusStr === 'CANCELLED' ? 'Your order has been cancelled.' : ''}
           ${statusStr === 'REFUNDED' ? 'Your order refund has been processed successfully.' : ''}
+          ${statusStr === 'RETURN_REQUESTED' ? 'We have received your return request submitted within our 4-day delivery return window. Our quality & logistics team is reviewing your details.' : ''}
+          ${statusStr === 'RETURN_APPROVED' ? 'Your return request has been <strong>approved</strong>. Our courier partner will schedule reverse pickup. Please keep the garment unworn with all tags and original packaging ready.' : ''}
+          ${statusStr === 'RETURN_REJECTED' ? 'Your return request could not be approved based on our verification criteria.' : ''}
+          ${statusStr === 'RETURN_COMPLETED' ? 'Your returned package has been received at our atelier and return verification is complete.' : ''}
         </p>
+
+        ${statusStr === 'RETURN_REQUESTED' && returnReason ? `
+          <div style="background: #FFFBEB; border: 1.5px solid #FCD34D; border-left: 5px solid #D97706; padding: 16px 18px; border-radius: 8px; margin: 18px 0; color: #92400E;">
+            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">Return Reason:</div>
+            <div style="font-size: 14px; font-weight: 500;">${returnReason}</div>
+          </div>
+        ` : ''}
+
+        ${statusStr === 'RETURN_REJECTED' && adminComment ? `
+          <div style="background: #FEF2F2; border: 1.5px solid #FCA5A5; border-left: 5px solid #DC2626; padding: 16px 18px; border-radius: 8px; margin: 18px 0; color: #991B1B;">
+            <div style="font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">Reason for Rejection:</div>
+            <div style="font-size: 14px; font-weight: 500;">${adminComment}</div>
+          </div>
+        ` : ''}
 
         ${statusStr === 'CANCELLED' ? `
           <div style="background: #FEF2F2; border: 1.5px solid #FCA5A5; border-left: 5px solid #DC2626; padding: 18px 20px; border-radius: 8px; margin: 20px 0; color: #991B1B;">

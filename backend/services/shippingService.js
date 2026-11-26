@@ -742,8 +742,11 @@ export const applyAd2ShipTrackingToOrder = async (order, trackingRes, { source =
     const mainStatusChanged = shouldAdvanceOrderStatus(order.status, mappedStatus)
     if (mainStatusChanged) {
       order.status = mappedStatus
-      if (mappedStatus === 'delivered' && order.paymentMethod === 'cod') {
-        order.paymentStatus = 'paid'
+      if (mappedStatus === 'delivered') {
+        if (!order.deliveredAt) order.deliveredAt = new Date()
+        if (order.paymentMethod === 'cod') {
+          order.paymentStatus = 'paid'
+        }
       }
       changed = true
     }

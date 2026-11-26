@@ -61,7 +61,7 @@ const ReturnPolicyPage = () => {
 
   const tocItems = [
     { id: 'overview-policy', num: '01', title: 'Policy Overview' },
-    { id: 'no-returns-dispatch', num: '02', title: 'No Returns & No Refunds After Dispatch' },
+    { id: 'four-day-return', num: '02', title: '4-Day Return Window Upon Delivery' },
     { id: 'cancellation-rules', num: '03', title: 'Order Cancellation Rules' },
     { id: 'exchange-eligibility', num: '04', title: 'Exchange Eligibility (7 Days)' },
     { id: 'price-conditions', num: '05', title: 'Price Conditions for Exchange' },
@@ -191,18 +191,18 @@ const ReturnPolicyPage = () => {
             </div>
           </section>
 
-          {/* 02 No Returns & No Refunds After Dispatch */}
-          <section className="policy-section" id="no-returns-dispatch">
+          {/* 02 4-Day Return Window Upon Delivery */}
+          <section className="policy-section" id="four-day-return">
             <div className="section-head">
               <span className="section-num">02</span>
-              <h2 className="section-title">No Returns & No Refunds After Dispatch</h2>
+              <h2 className="section-title">4-Day Return Window Upon Delivery</h2>
             </div>
             <div className="section-body">
               <div className="policy-callout alert">
-                <strong>STRICT BUSINESS RULE:</strong> Returns are <strong>NOT accepted</strong> once a product has been shipped. <strong>No monetary refunds</strong> are provided after dispatch under any circumstances.
+                <strong>STRICT 4-DAY RETURN POLICY:</strong> Returns are applicable strictly within <strong>4 days from the date of order delivery</strong>. Once 4 days have elapsed post-delivery, the return window closes permanently and returns cannot be initiated or accepted under any circumstances.
               </div>
               <p>
-                Once an order departs our warehouse or production atelier, the sale is final regarding cash/bank refunds. Customers seeking sizing or style adjustments must request an exchange adhering to our 7-day exchange window.
+                To qualify for a return within the 4-day window, garments must be completely unused, unworn, unwashed, with all original SEEMEE atelier brand tags, security ribbons, and packaging intact.
               </p>
             </div>
           </section>

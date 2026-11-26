@@ -54,6 +54,7 @@ export const API_ENDPOINTS = {
   ORDERS_CANCEL: (id) => `${API_BASE_URL}/api/orders/${id}/cancel`,
   ORDERS_REFUND_REQUEST: (id) => `${API_BASE_URL}/api/orders/${id}/refund-request`,
   ORDERS_REFUND_STATUS: (id) => `${API_BASE_URL}/api/orders/${id}/refund`,
+  ORDERS_RETURN_REQUEST: (id) => `${API_BASE_URL}/api/orders/${id}/return-request`,
   CREATE_RAZORPAY_ORDER: `${API_BASE_URL}/api/orders/create-razorpay-order`,
   VERIFY_PAYMENT: `${API_BASE_URL}/api/orders/verify-payment`,
   VERIFY_OFFLINE_PINCODE: `${API_BASE_URL}/api/orders/verify-offline-pincode`,

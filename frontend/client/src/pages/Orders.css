@@ -1084,3 +1084,347 @@
   margin: 0;
   line-height: 1.45;
 }
+
+/* --------------------------------------------------------------------------
+   4-Day Return System Styles
+   -------------------------------------------------------------------------- */
+.status-pill.return-pill.return_requested {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+.status-pill.return-pill.return_requested .status-dot {
+  background: #d97706;
+}
+
+.status-pill.return-pill.return_approved {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+.status-pill.return-pill.return_approved .status-dot {
+  background: #10b981;
+}
+
+.status-pill.return-pill.return_rejected {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+.status-pill.return-pill.return_rejected .status-dot {
+  background: #ef4444;
+}
+
+.status-pill.return-pill.return_completed {
+  background: #f0fdf4;
+  color: #14532d;
+  border: 1px solid #86efac;
+}
+.status-pill.return-pill.return_completed .status-dot {
+  background: #15803d;
+}
+
+.return-order-action-btn {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1.5px solid #f59e0b;
+  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.return-order-action-btn:hover {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #78350f;
+  box-shadow: 0 4px 15px rgba(217, 119, 6, 0.25);
+  transform: translateY(-1px);
+}
+
+.return-status-container {
+  margin-top: 1rem;
+}
+
+.return-status-banner {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.return-status-banner.eligible {
+  background: #fffdf5;
+  border: 1.5px solid #fde68a;
+  color: #92400e;
+}
+
+.return-status-banner.expired {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  color: #64748b;
+}
+
+.return-status-banner.requested {
+  background: #fffbeb;
+  border: 1.5px solid #f59e0b;
+  color: #78350f;
+}
+
+.return-status-banner.approved {
+  background: #ecfdf5;
+  border: 1.5px solid #10b981;
+  color: #065f46;
+}
+
+.return-status-banner.rejected {
+  background: #fef2f2;
+  border: 1.5px solid #f87171;
+  color: #991b1b;
+}
+
+.return-banner-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.return-banner-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.return-banner-notes {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.return-status-banner small {
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+/* Premium Return Modal */
+.premium-return-modal {
+  background: #ffffff;
+  color: #1c1917;
+  border-radius: 20px;
+  max-width: 520px;
+  width: 100%;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+  border: 1px solid #e7e5e4;
+  overflow: hidden;
+}
+
+.return-modal-header {
+  padding: 1.4rem 1.6rem;
+  background: #1c1917;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.return-modal-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #d4af37;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.return-modal-title-group h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.return-modal-close {
+  background: transparent;
+  border: none;
+  color: #d6d3d1;
+  font-size: 1.8rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.return-modal-close:hover {
+  color: #d4af37;
+}
+
+.return-modal-body {
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.return-policy-notice-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+.notice-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.notice-text strong {
+  font-size: 0.82rem;
+  color: #92400e;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.notice-text p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #78350f;
+  line-height: 1.4;
+}
+
+.return-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.return-field-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #292524;
+}
+
+.req-star {
+  color: #dc2626;
+}
+
+.return-select-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #d6d3d1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #1c1917;
+  background: #ffffff;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.return-select-input:focus {
+  border-color: #d4af37;
+}
+
+.return-textarea-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #d6d3d1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #1c1917;
+  background: #ffffff;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.return-textarea-input:focus {
+  border-color: #d4af37;
+}
+
+.return-error-banner {
+  padding: 10px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.return-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.return-btn-cancel {
+  padding: 10px 18px;
+  background: #f5f5f4;
+  border: 1.5px solid #e7e5e4;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #57534e;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.return-btn-cancel:hover {
+  background: #e7e5e4;
+  color: #1c1917;
+}
+
+.return-btn-submit {
+  padding: 10px 22px;
+  background: #1c1917;
+  border: 1.5px solid #1c1917;
+  color: #ffffff;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.return-btn-submit:hover:not(:disabled) {
+  background: #d4af37;
+  border-color: #d4af37;
+  color: #1c1917;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+}
+
+.return-btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .order-footer-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .return-order-action-btn,
+  .cancel-order-action-btn,
+  .invoice-btn,
+  .support-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
